@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from central_preventiva.adaptadores.api.dados_sinteticos import (
+from central_preventiva.adaptadores.http.dados_sinteticos import (
     criar_roteador as criar_roteador_dados_sinteticos,
 )
 from central_preventiva.adaptadores.http.saude import roteador as roteador_saude
