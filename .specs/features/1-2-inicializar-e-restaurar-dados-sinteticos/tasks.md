@@ -401,15 +401,20 @@ devolvida na repetição seja exatamente a registrada.
 - Skill: NONE
 
 **Done when**:
-- [ ] Running `executar()` against a `tmp_path` DuckDB path with no file present creates schema + seed end-to-end
-- [ ] Running it again reports "já preparado" with unchanged row counts
-- [ ] A structurally invalid/missing configuration exits with a PT-BR error revealing no secret values (consistent with `ConfiguracaoInvalida`'s existing behavior)
-- [ ] README documents the exact reproducible command under "Execução local"
+- [x] Running `executar()` against a `tmp_path` DuckDB path with no file present creates schema + seed end-to-end
+- [x] Running it again reports "já preparado" with unchanged row counts
+- [x] A structurally invalid/missing configuration exits with a PT-BR error revealing no secret values (consistent with `ConfiguracaoInvalida`'s existing behavior)
+- [x] README documents the exact reproducible command under "Execução local"
+
+**Note**: como `servidor.py`, o comando deixa `ConfiguracaoInvalida` propagar em vez de capturá-la —
+o erro já é sanitizado na origem e encerra o processo com status diferente de zero.
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(composicao): adicionar comando de inicializacao dos dados sinteticos`
+
+**Status**: ✅ Complete
 
 ---
 

@@ -52,6 +52,14 @@ npm run lint --prefix src/frontend
 npm run build --prefix src/frontend
 ```
 
+Prepare o banco operacional DuckDB. O comando aplica as migrações versionadas pendentes e semeia os dados sintéticos da demonstração; repeti-lo é seguro e apenas relata que os dados já estavam preparados:
+
+```bash
+uv run --directory src/backend python -m central_preventiva.composicao.inicializador
+```
+
+O arquivo do banco (`var/central_preventiva.duckdb` por padrão) fica fora do controle de versão e é integralmente recriável por esse comando. Conclua a inicialização antes de iniciar o servidor: o DuckDB aceita um único processo escritor.
+
 Em terminais separados, inicie a API e o frontend. Ambos aceitam conexões somente por `127.0.0.1`:
 
 ```bash
