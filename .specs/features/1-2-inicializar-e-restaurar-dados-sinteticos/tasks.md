@@ -541,16 +541,22 @@ cenário real com uma única migração conhecida.
 - Skill: NONE
 
 **Done when**:
-- [ ] Mocked `fetch` returning `201` resolves with the parsed `ResultadoRestauracao`
-- [ ] Mocked `fetch` returning `409` problem+json rejects with a typed error carrying `codigo`/`correlacao_id`
-- [ ] Mocked `fetch` returning `422` problem+json rejects with a typed error
-- [ ] A network failure (`fetch` rejecting) surfaces as a typed error, not an unhandled rejection
-- [ ] Every call sends a freshly generated `Idempotency-Key` header
+- [x] Mocked `fetch` returning `201` resolves with the parsed `ResultadoRestauracao`
+- [x] Mocked `fetch` returning `409` problem+json rejects with a typed error carrying `codigo`/`correlacao_id`
+- [x] Mocked `fetch` returning `422` problem+json rejects with a typed error
+- [x] A network failure (`fetch` rejecting) surfaces as a typed error, not an unhandled rejection
+- [x] Every call sends a freshly generated `Idempotency-Key` header
+
+**Note**: `ErroRestauracao` sempre carrega `ocorrencia`, `impacto` e `proximaAcao` — inclusive na
+falha de rede e em respostas de erro que não sejam `problem+json` — para que o estado `Falha` da
+T16 nunca fique sem texto. O corpo continua `snake_case` no fio e vira `camelCase` no TypeScript.
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(api): adicionar cliente de restauracao dos dados sinteticos`
+
+**Status**: ✅ Complete
 
 ---
 
