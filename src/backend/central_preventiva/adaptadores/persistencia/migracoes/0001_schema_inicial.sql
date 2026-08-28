@@ -1,4 +1,10 @@
 -- Migração 1: schema inicial de referência da Central Preventiva.
+-- As relações entre tabelas são declaradas como comentários, e não como REFERENCES.
+-- Motivo: o DuckDB não adia a verificação de chave estrangeira e recusa tanto apagar uma
+-- tabela referenciada na mesma transação em que suas filhas foram apagadas quanto atualizar
+-- uma coluna LIST de uma tabela referenciada (duckdb/duckdb#13819). Com REFERENCES a
+-- restauração transacional exigida por SEED-09 seria impossível. A integridade referencial
+-- é garantida pelo conjunto sintético versionado, único escritor destas tabelas.
 -- Cria o registro de migrações, as tabelas de referência semeadas pela demonstração,
 -- a casca mínima de execucao_preventiva e o armazenamento genérico de idempotência.
 
@@ -20,7 +26,7 @@ CREATE TABLE segurados (
 
 CREATE TABLE apolices (
     id                        UUID PRIMARY KEY,
-    segurado_id               UUID NOT NULL REFERENCES segurados(id),
+    segurado_id               UUID NOT NULL,  -- relaciona-se a segurados(id)
     numero                    VARCHAR NOT NULL,
     tipo                      VARCHAR NOT NULL CHECK (tipo IN ('residencial', 'automovel')),
     situacao                  VARCHAR NOT NULL CHECK (situacao IN ('ativa', 'cancelada', 'suspensa')),
@@ -61,10 +67,10 @@ CREATE TABLE eventos_meteorologicos (
 
 CREATE TABLE elegibilidades_historicas (
     id             UUID PRIMARY KEY,
-    evento_id      UUID NOT NULL REFERENCES eventos_meteorologicos(id),
-    regra_id       UUID NOT NULL REFERENCES regras(id),
-    segurado_id    UUID NOT NULL REFERENCES segurados(id),
-    apolice_id     UUID NOT NULL REFERENCES apolices(id),
+    evento_id      UUID NOT NULL,  -- relaciona-se a eventos_meteorologicos(id)
+    regra_id       UUID NOT NULL,  -- relaciona-se a regras(id)
+    segurado_id    UUID NOT NULL,  -- relaciona-se a segurados(id)
+    apolice_id     UUID NOT NULL,  -- relaciona-se a apolices(id)
     elegivel       BOOLEAN NOT NULL,
     justificativa  VARCHAR NOT NULL,
     criado_em      TIMESTAMP NOT NULL DEFAULT now()

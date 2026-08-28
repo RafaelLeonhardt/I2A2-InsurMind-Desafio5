@@ -308,16 +308,20 @@ T14 and T15 have no dependency on each other; T16 depends on both.
 - Skill: NONE
 
 **Done when**:
-- [ ] `esta_semeado()` is `False` on an empty schema, `True` after `semear()`
-- [ ] `semear()` inserts at least one eligible and one non-eligible example for both `chuva_intensa` and `granizo`, with fictitious IDs (asserted by a naming/pattern check, e.g. a `-DEMO-` marker or synthetic UUID namespace)
-- [ ] `restaurar()` reverts a manually-mutated reference row back to the canonical dataset, inside one transaction
-- [ ] A simulated failure partway through `restaurar()` (e.g. a constraint violation injected via a test double) leaves the pre-restore dataset fully intact and queryable — no partial delete/reinsert
-- [ ] No real personal data, credential, or usable contact appears anywhere in `dataset_sintetico_v1()`
+- [x] `esta_semeado()` is `False` on an empty schema, `True` after `semear()`
+- [x] `semear()` inserts at least one eligible and one non-eligible example for both `chuva_intensa` and `granizo`, with fictitious IDs (marcador `DEMO-` nos identificadores legíveis e UUIDs derivados do namespace da demonstração)
+- [x] `restaurar()` reverts a manually-mutated reference row back to the canonical dataset, inside one transaction
+- [x] A simulated failure partway through `restaurar()` (constraint violation injected via a corrupted `ConjuntoSintetico` test double) leaves the pre-restore dataset fully intact and queryable — no partial delete/reinsert
+- [x] No real personal data, credential, or usable contact appears anywhere in `dataset_sintetico_v1()`
+
+**SPEC_DEVIATION (afeta também T5)**: `design.md` declara `REFERENCES` nas tabelas de referência e descreve a restauração como delete + reinsert numa única transação. As duas coisas são incompatíveis no DuckDB: ele não adia a verificação de chave estrangeira, então recusa apagar uma tabela referenciada na mesma transação em que suas filhas foram apagadas, e recusa até atualizar uma coluna `LIST` (`apolices.coberturas`) de uma tabela referenciada (duckdb/duckdb#13819, confirmado experimentalmente). Escolha: manter a restauração transacional exigida por SEED-09 e declarar as relações como chave estrangeira **lógica**, documentada no `README.md` da persistência e em comentário no `0001_schema_inicial.sql`, em vez de `REFERENCES`. O conjunto sintético versionado é o único escritor destas tabelas. Isso alterou `migracoes/0001_schema_inicial.sql` e o `README.md` da persistência, arquivos criados em T5.
 
 **Tests**: integration
 **Gate**: build
 
 **Commit**: `feat(persistencia): adicionar semeador de dados sinteticos reproduziveis`
+
+**Status**: ✅ Complete
 
 ---
 

@@ -101,18 +101,18 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
 | SEED-01 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
-| SEED-02 | P1: Inicializar esquema e dados sintéticos | Design | Pending |
+| SEED-02 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
 | SEED-03 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
 | SEED-04 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
 | SEED-05 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
 | SEED-06 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
-| SEED-07 | P1: Inicializar esquema e dados sintéticos | Design | Pending |
+| SEED-07 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
 | SEED-08 | P1: Restaurar a demonstração com segurança | Design | Pending |
-| SEED-09 | P1: Restaurar a demonstração com segurança | Design | Pending |
+| SEED-09 | P1: Restaurar a demonstração com segurança | Tasks | Implementing |
 | SEED-10 | P1: Restaurar a demonstração com segurança | Tasks | Implementing |
 | SEED-11 | P1: Restaurar a demonstração com segurança | Tasks | Implementing |
 | SEED-12 | P1: Restaurar a demonstração com segurança | Tasks | Implementing |
-| SEED-13 | P1: Restaurar a demonstração com segurança | Design | Pending |
+| SEED-13 | P1: Restaurar a demonstração com segurança | Tasks | Implementing |
 | SEED-14 | P1: Restaurar a demonstração com segurança | Design | Pending |
 | SEED-15 | P1: Restaurar a demonstração com segurança | Design | Pending |
 

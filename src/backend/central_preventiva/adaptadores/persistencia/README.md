@@ -26,6 +26,17 @@ Git) e é integralmente recriável a partir das migrações e do seed versionado
 - Colunas de timestamp usam `TIMESTAMP NOT NULL DEFAULT now()`: `criado_em` marca a inserção e
   `atualizado_em` marca a última alteração, presente apenas nas tabelas mutáveis.
 - Domínios fechados são validados por restrições `CHECK` na própria tabela.
+- As relações entre tabelas são documentadas aqui e no arquivo de migração, mas **não** são
+  declaradas como `REFERENCES` no DuckDB.
+
+  # SPEC_DEVIATION: o `design.md` declara `REFERENCES` nas tabelas de referência.
+  # Motivo: o DuckDB não adia a verificação de chave estrangeira. Com `REFERENCES`, ele recusa
+  # apagar uma tabela referenciada na mesma transação em que suas filhas foram apagadas, e
+  # recusa até atualizar uma coluna `LIST` (`apolices.coberturas`) de uma tabela referenciada
+  # (duckdb/duckdb#13819). Isso torna impossível a restauração transacional exigida por
+  # SEED-09. As colunas de relacionamento continuam documentadas como chave estrangeira lógica
+  # e a integridade é garantida pelo conjunto sintético versionado, único escritor destas
+  # tabelas.
 
 ## Tabelas da migração `0001_schema_inicial`
 
@@ -60,7 +71,7 @@ Apólices sintéticas vinculadas a uma pessoa segurada.
 | Coluna | Tipo | Restrições |
 | --- | --- | --- |
 | `id` | `UUID` | chave primária |
-| `segurado_id` | `UUID` | `NOT NULL`, chave estrangeira para `segurados(id)` |
+| `segurado_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `segurados(id)` |
 | `numero` | `VARCHAR` | `NOT NULL` |
 | `tipo` | `VARCHAR` | `NOT NULL`, `CHECK` em `residencial`, `automovel` |
 | `situacao` | `VARCHAR` | `NOT NULL`, `CHECK` em `ativa`, `cancelada`, `suspensa` |
@@ -113,10 +124,10 @@ Elegibilidades pré-calculadas da demonstração, com casos elegíveis e não el
 | Coluna | Tipo | Restrições |
 | --- | --- | --- |
 | `id` | `UUID` | chave primária |
-| `evento_id` | `UUID` | `NOT NULL`, chave estrangeira para `eventos_meteorologicos(id)` |
-| `regra_id` | `UUID` | `NOT NULL`, chave estrangeira para `regras(id)` |
-| `segurado_id` | `UUID` | `NOT NULL`, chave estrangeira para `segurados(id)` |
-| `apolice_id` | `UUID` | `NOT NULL`, chave estrangeira para `apolices(id)` |
+| `evento_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `eventos_meteorologicos(id)` |
+| `regra_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `regras(id)` |
+| `segurado_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `segurados(id)` |
+| `apolice_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `apolices(id)` |
 | `elegivel` | `BOOLEAN` | `NOT NULL` |
 | `justificativa` | `VARCHAR` | `NOT NULL` |
 | `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
