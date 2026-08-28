@@ -102,10 +102,10 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 | --- | --- | --- | --- |
 | SEED-01 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
 | SEED-02 | P1: Inicializar esquema e dados sintéticos | Design | Pending |
-| SEED-03 | P1: Inicializar esquema e dados sintéticos | Design | Pending |
-| SEED-04 | P1: Inicializar esquema e dados sintéticos | Design | Pending |
+| SEED-03 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
+| SEED-04 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
 | SEED-05 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
-| SEED-06 | P1: Inicializar esquema e dados sintéticos | Design | Pending |
+| SEED-06 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
 | SEED-07 | P1: Inicializar esquema e dados sintéticos | Design | Pending |
 | SEED-08 | P1: Restaurar a demonstração com segurança | Design | Pending |
 | SEED-09 | P1: Restaurar a demonstração com segurança | Design | Pending |

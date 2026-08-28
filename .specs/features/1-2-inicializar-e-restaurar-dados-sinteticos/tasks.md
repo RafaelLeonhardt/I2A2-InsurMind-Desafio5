@@ -225,17 +225,20 @@ T14 and T15 have no dependency on each other; T16 depends on both.
 - Skill: NONE
 
 **Done when**:
-- [ ] Applying against an empty `tmp_path` DuckDB file creates all 8 tables and one `schema_migracoes` row
-- [ ] Re-running against an already-current database applies nothing and reports no pending work
-- [ ] A `schema_migracoes` row seeded with a future version number causes `aplicar_pendentes()` to raise `VersaoSchemaFutura` with zero file mutation (verified by comparing file bytes/mtime or re-querying table absence)
-- [ ] A simulated failure in a second migration (e.g. a deliberately invalid SQL migration injected via a test double) leaves migration 1 committed, does not record migration 2, and raises `MigracaoFalhou(versao=2, ...)`
-- [ ] Re-running after "fixing" the failing migration resumes from migration 2 without re-applying migration 1
-- [ ] Schema documentation (columns, keys, constraints, timestamps, migration strategy) is written to a versioned doc per `SEED-06` (e.g. `docs/adr/../` or a `src/backend/central_preventiva/adaptadores/persistencia/README.md`)
+- [x] Applying against an empty `tmp_path` DuckDB file creates all 8 tables and one `schema_migracoes` row
+- [x] Re-running against an already-current database applies nothing and reports no pending work
+- [x] A `schema_migracoes` row seeded with a future version number causes `aplicar_pendentes()` to raise `VersaoSchemaFutura` with zero file mutation (verified by re-querying table absence and the unchanged ledger)
+- [x] A simulated failure in a second migration (e.g. a deliberately invalid SQL migration injected via a test double) leaves migration 1 committed, does not record migration 2, and raises `MigracaoFalhou(versao=2, ...)`
+- [x] Re-running after "fixing" the failing migration resumes from migration 2 without re-applying migration 1
+- [x] Schema documentation (columns, keys, constraints, timestamps, migration strategy) is written to a versioned doc per `SEED-06` (`src/backend/central_preventiva/adaptadores/persistencia/README.md`)
+- [x] Also covers `spec.md`'s edge case "banco existente com `schema_migracoes` ausente ou corrompida" via `RegistroMigracoesInvalido`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(persistencia): adicionar executor de migracoes versionadas do DuckDB`
+
+**Status**: ✅ Complete
 
 ---
 
