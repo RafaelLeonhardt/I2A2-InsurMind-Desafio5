@@ -573,16 +573,23 @@ T16 nunca fique sem texto. O corpo continua `snake_case` no fio e vira `camelCas
 - Skill: NONE
 
 **Done when**:
-- [ ] Clicking "Restaurar demonstração" opens the `Modal` in the `Confirmação` state; nothing is called yet
-- [ ] Confirming moves to `Restaurando` (loading indicator, action disabled) and calls the mocked API client
-- [ ] A mocked success response moves to `Concluído`
-- [ ] A mocked failure response moves to `Falha`, showing occurrence/impact/next-safe-action text, and the previous content remains visible/consultable
-- [ ] Visiting `/administracao/restaurar-demonstracao` renders this page instead of the existing `App` shell; visiting `/` is unaffected
+- [x] Clicking "Restaurar demonstração" opens the `Modal` in the `Confirmação` state; nothing is called yet
+- [x] Confirming moves to `Restaurando` (loading indicator, action disabled) and calls the mocked API client
+- [x] A mocked success response moves to `Concluído`
+- [x] A mocked failure response moves to `Falha`, showing occurrence/impact/next-safe-action text, and the previous content remains visible/consultable
+- [x] Visiting `/administracao/restaurar-demonstracao` renders this page instead of the existing `App` shell; visiting `/` is unaffected
+
+**Note**: `main.test.tsx` ganhou o caso do caminho administrativo e passou a fixar `/` no `beforeEach`;
+o teste existente da shell segue com as mesmas asserções. O botão que abre o modal usa o rótulo
+"Restaurar demonstração" e o de confirmação usa "Confirmar restauração", para que sejam
+distinguíveis por papel acessível.
 
 **Tests**: integration
 **Gate**: build
 
 **Commit**: `feat(frontend): adicionar superficie de restauracao da demonstracao`
+
+**Status**: ✅ Complete
 
 ---
 
