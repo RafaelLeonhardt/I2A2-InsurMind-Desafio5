@@ -367,16 +367,24 @@ T14 and T15 have no dependency on each other; T16 depends on both.
 - Skill: NONE
 
 **Done when**:
-- [ ] A fake `PortaIdempotencia` returning a stored response short-circuits: `restaurar()` is never called on the fake `PortaDadosSinteticos`
-- [ ] A fake idempotency hit with a **different** `hash_requisicao` raises `ConflitoIdempotencia`, no mutation
-- [ ] A fake `PortaExecucoes.existe_execucao_nao_terminal() -> True` raises `ExecucaoAtivaImpedeRestauracao` without calling `restaurar()` or `registrar()`
-- [ ] A fake `PortaDadosSinteticos.esta_semeado() -> False` raises `NaoInicializado` without calling the guard or `restaurar()`
-- [ ] Happy path calls the guard, then `restaurar()`, then `registrar()`, in that order, and returns a populated `ResultadoRestauracao`
+- [x] A fake `PortaIdempotencia` returning a stored response short-circuits: `restaurar()` is never called on the fake `PortaDadosSinteticos`
+- [x] A fake idempotency hit with a **different** `hash_requisicao` raises `ConflitoIdempotencia`, no mutation
+- [x] A fake `PortaExecucoes.existe_execucao_nao_terminal() -> True` raises `ExecucaoAtivaImpedeRestauracao` without calling `restaurar()` or `registrar()`
+- [x] A fake `PortaDadosSinteticos.esta_semeado() -> False` raises `NaoInicializado` without calling the guard or `restaurar()`
+- [x] Happy path calls the guard, then `restaurar()`, then `registrar()`, in that order, and returns a populated `ResultadoRestauracao`
+
+**Note**: o caso de uso é o único chamador de `PortaIdempotencia.registrar`, então ele serializa o
+`ResultadoRestauracao` em JSON (`serializar_resultado`) para o campo `corpo` e o reconstrói
+(`desserializar_resultado`) na repetição da mesma chave. Isso mantém `ResultadoRestauracao`
+inalterado em `portas_persistencia.py` (fora do `Where` desta tarefa) e garante que a resposta
+devolvida na repetição seja exatamente a registrada.
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(aplicacao): adicionar caso de uso de restauracao dos dados sinteticos`
+
+**Status**: ✅ Complete
 
 ---
 
