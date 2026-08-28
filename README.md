@@ -24,6 +24,43 @@ O objetivo do projeto não é substituir análises técnicas nem confirmar cober
 - [Registros de Decisões Arquiteturais — ADRs](docs/adr/README.md): decisões técnicas e arquiteturais, seus contextos e suas consequências.
 - [Design e mockups da solução](docs/design/README.md): telas de referência e descrição da experiência dos perfis Administrador e Segurado.
 
+## Execução local
+
+Pré-requisitos: Python 3.14.7 gerenciado pelo `uv`, Node.js 22.12.0 ou superior e npm 11.19.0.
+
+Prepare a configuração local sem substituir um `.env` existente:
+
+```bash
+cp -n .env.example .env
+```
+
+Instale e verifique o backend:
+
+```bash
+uv sync --project src/backend --locked
+uv run --directory src/backend pytest
+uv run --directory src/backend ruff check .
+uv run --directory src/backend pyright
+```
+
+Instale e verifique o frontend:
+
+```bash
+npm ci --prefix src/frontend
+npm test --prefix src/frontend -- --run
+npm run lint --prefix src/frontend
+npm run build --prefix src/frontend
+```
+
+Em terminais separados, inicie a API e o frontend. Ambos aceitam conexões somente por `127.0.0.1`:
+
+```bash
+uv run --directory src/backend python -m central_preventiva.composicao.servidor
+npm run dev --prefix src/frontend
+```
+
+A saúde mínima fica disponível em `http://127.0.0.1:8000/api/v1/saude` e o contrato OpenAPI em `http://127.0.0.1:8000/openapi.json`.
+
 ## Licença
 
 Este projeto está licenciado sob a [Licença MIT](LICENSE).
