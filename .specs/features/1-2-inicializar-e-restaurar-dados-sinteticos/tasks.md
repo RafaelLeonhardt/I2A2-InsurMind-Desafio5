@@ -431,17 +431,37 @@ o erro já é sanitizado na origem e encerra o processo com status diferente de 
 - Skill: NONE
 
 **Done when**:
-- [ ] Happy path against a `tmp_path` DuckDB (already seeded, no active execution): `201`, response matches `RespostaRestauracao`
-- [ ] Missing `Idempotency-Key` header: `422` problem+json
-- [ ] Same `Idempotency-Key` + same body repeated: second call returns the identical stored response, no second restore executed (verified by row-timestamp/mutation check)
-- [ ] Same `Idempotency-Key` + different body: `409` problem+json, no mutation
-- [ ] Fixture non-terminal `execucao_preventiva` row present: `409` problem+json naming the active-execution guard, no mutation
-- [ ] JSON body uses `snake_case`; OpenAPI description in Portuguese, matching `test_openapi_em_portugues_nao_antecipa_recursos_futuros`'s style
+- [x] Happy path against a `tmp_path` DuckDB (already seeded, no active execution): `201`, response matches `RespostaRestauracao`
+- [x] Missing `Idempotency-Key` header: `422` problem+json
+- [x] Same `Idempotency-Key` + same body repeated: second call returns the identical stored response, no second restore executed (verified by row-timestamp/mutation check)
+- [x] Same `Idempotency-Key` + different body: `409` problem+json, no mutation
+- [x] Fixture non-terminal `execucao_preventiva` row present: `409` problem+json naming the active-execution guard, no mutation
+- [x] JSON body uses `snake_case`; OpenAPI description in Portuguese, matching `test_openapi_em_portugues_nao_antecipa_recursos_futuros`'s style
+
+**Notas de implementação**:
+- O corpo `problem+json` carrega `codigo`, `correlacao_id`, `ocorrencia`, `impacto` e `proxima_acao`.
+  Os três últimos atendem `spec.md` AC6 (`SEED-13`, "ocorrência, impacto e próxima ação segura") e
+  alimentam o estado `Falha` da T16.
+- O conteúdo da requisição usado na idempotência é o hash SHA-256 do corpo bruto recebido.
+- `composicao/api.py` passou a liberar `POST` e o cabeçalho `Idempotency-Key` no CORS; sem isso o
+  frontend da T16 não conseguiria chamar o recurso.
+- **Alteração necessária em `testes/test_saude.py` (fora do `Where` original)**:
+  `test_openapi_em_portugues_nao_antecipa_recursos_futuros` fixava
+  `set(documento["paths"]) == {"/api/v1/saude"}`, afirmação válida na história 1.1 e tornada
+  obsoleta por `SEED-15`, que exige expor a restauração sob `/api/v1`. A asserção continua sendo
+  uma igualdade exata de conjunto (mesma força, ainda detecta recursos futuros expostos por
+  engano); apenas passou a enumerar o caminho legitimamente adicionado. Nenhuma asserção foi
+  enfraquecida, pulada ou removida.
+- `nao_inicializado` responde `409`. **Spec-precision gap**: a `spec.md` exige "um erro explícito
+  orientando a executar a inicialização primeiro" sem fixar o status; `409` foi escolhido por ser
+  conflito de estado, coerente com as demais recusas sem mutação.
 
 **Tests**: e2e
 **Gate**: full
 
 **Commit**: `feat(api): adicionar endpoint de restauracao dos dados sinteticos`
+
+**Status**: ✅ Complete
 
 ---
 

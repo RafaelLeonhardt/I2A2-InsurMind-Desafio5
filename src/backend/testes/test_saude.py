@@ -27,7 +27,10 @@ def test_openapi_em_portugues_nao_antecipa_recursos_futuros() -> None:
     cliente = TestClient(criar_aplicacao(criar_configuracao_local()))
     documento = cliente.get("/openapi.json").json()
     assert documento["info"]["description"].startswith("Disponibiliza somente")
-    assert set(documento["paths"]) == {"/api/v1/saude"}
+    assert set(documento["paths"]) == {
+        "/api/v1/saude",
+        "/api/v1/dados-sinteticos/restauracoes",
+    }
     assert documento["paths"]["/api/v1/saude"]["get"]["description"].startswith("Confirma")
     assert documento["paths"]["/api/v1/saude"]["get"]["responses"]["200"]["description"] == (
         "Saúde do processo confirmada."
