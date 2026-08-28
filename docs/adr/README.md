@@ -14,10 +14,11 @@ Este diretório reúne os Registros de Decisões Arquiteturais (Architecture Dec
 | [0006](0006-uso-de-duckdb-como-banco-de-dados.md) | Uso de DuckDB como banco de dados | Aceito | 22/08/2026 |
 | [0007](0007-uso-do-codex-para-assistencia-ao-desenvolvimento.md) | Uso do Codex para assistência ao desenvolvimento | Aceito | 22/08/2026 |
 | [0008](0008-comunicacao-entre-frontend-e-backend-por-api-rest.md) | Comunicação entre frontend e backend por API REST | Aceito | 22/08/2026 |
-| [0009](0009-execucao-local-sem-autenticacao-e-autorizacao.md) | Execução local sem autenticação e autorização | Aceito | 22/08/2026 |
+| [0009](0009-execucao-local-sem-autenticacao-e-autorizacao.md) | Execução local sem autenticação e autorização | Aceito; parcialmente substituído pelo ADR 0013 | 22/08/2026 |
 | [0010](0010-organizacao-modular-do-codigo-fonte.md) | Organização modular do código-fonte | Aceito | 22/08/2026 |
 | [0011](0011-adocao-do-portugues-brasileiro-na-documentacao-e-no-codigo.md) | Adoção do português brasileiro na documentação e no código | Aceito | 22/08/2026 |
 | [0012](0012-adocao-de-langchain-e-langgraph-para-agentes.md) | Adoção de LangChain e LangGraph para agentes | Aceito | 22/08/2026 |
+| [0013](0013-uso-controlado-de-integracoes-externas-e-credenciais-locais.md) | Uso controlado de integrações externas e credenciais locais | Aceito | 25/08/2026 |
 
 ## Convenções
 
