@@ -338,15 +338,19 @@ T14 and T15 have no dependency on each other; T16 depends on both.
 - Skill: NONE
 
 **Done when**:
-- [ ] Against a fake "not yet migrated, not yet seeded" pair of ports: applies migrations then seeds, in that order
-- [ ] Against a fake "already current, already seeded" pair: does nothing and returns `"ja_preparado"`
-- [ ] `verificar_versao_schema` re-raises `VersaoSchemaFutura`/surfaces `MigracoesPendentes` from a fake `PortaMigracoes` without calling any mutating method
-- [ ] No `adaptadores`/`duckdb` import anywhere in this module (enforced by extending `test_camadas.py`'s AST check to `aplicacao`, or by an equivalent new test)
+- [x] Against a fake "not yet migrated, not yet seeded" pair of ports: applies migrations then seeds, in that order
+- [x] Against a fake "already current, already seeded" pair: does nothing and returns `"ja_preparado"`
+- [x] `verificar_versao_schema` re-raises `VersaoSchemaFutura`/surfaces `MigracoesPendentes` from a fake `PortaMigracoes` without calling any mutating method
+- [x] No `adaptadores`/`duckdb` import anywhere in this module (verified by the equivalent AST check in `test_inicializacao.py`, keeping `test_camadas.py` outside this task's `Where`)
+
+**Note**: `PortasInicializacao` (frozen dataclass agrupando `PortaMigracoes` + `PortaDadosSinteticos`) é declarada neste módulo, conforme a assinatura do `design.md`.
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(aplicacao): adicionar caso de uso de inicializacao dos dados sinteticos`
+
+**Status**: ✅ Complete
 
 ---
 
