@@ -281,14 +281,17 @@ T14 and T15 have no dependency on each other; T16 depends on both.
 - Skill: NONE
 
 **Done when**:
-- [ ] `buscar()` returns `None` for an unknown `(chave, operacao)`
-- [ ] `registrar()` then `buscar()` returns the exact stored `hash_requisicao`/`resposta_status`/`resposta_corpo`
-- [ ] The same `chave` used under a different `operacao` does not collide (composite key proven by a test)
+- [x] `buscar()` returns `None` for an unknown `(chave, operacao)`
+- [x] `registrar()` then `buscar()` returns the exact stored `hash_requisicao`/`resposta_status`/`resposta_corpo`
+- [x] The same `chave` used under a different `operacao` does not collide (composite key proven by a test)
+- [x] Reregistrar o mesmo par é recusado pela chave primária e preserva a resposta original
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(persistencia): adicionar repositorio generico de chaves de idempotencia`
+
+**Status**: ✅ Complete
 
 ---
 
