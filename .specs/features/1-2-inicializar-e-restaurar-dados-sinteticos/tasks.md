@@ -510,16 +510,21 @@ cenário real com uma única migração conhecida.
 - Skill: NONE
 
 **Done when**:
-- [ ] Renders `titulo`, `objeto`, `impacto` text content
-- [ ] `Tab`/`Shift+Tab` stays trapped within the modal while open
-- [ ] `Esc` closes the modal when closable, calling the provided close handler
-- [ ] Focus returns to the element that opened the modal after it closes
-- [ ] Confirm action calls the provided callback exactly once per click/`Enter`
+- [x] Renders `titulo`, `objeto`, `impacto` text content
+- [x] `Tab`/`Shift+Tab` stays trapped within the modal while open
+- [x] `Esc` closes the modal when closable, calling the provided close handler
+- [x] Focus returns to the element that opened the modal after it closes
+- [x] Confirm action calls the provided callback exactly once per click/`Enter`
+
+**Note**: o componente é genérico e dirigido por propriedades (`aberto`, `podeFechar`,
+`confirmacaoDesabilitada`, `children`), como exige `AD-003`; nada nele é específico da restauração.
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(componentes): adicionar modal de confirmacao acessivel`
+
+**Status**: ✅ Complete
 
 ---
 

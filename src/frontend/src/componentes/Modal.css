@@ -1,0 +1,73 @@
+.modal-fundo {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1.5rem;
+  background: rgb(15 23 42 / 55%);
+  z-index: 10;
+}
+
+.modal {
+  width: min(32rem, 100%);
+  padding: 1.75rem;
+  border-radius: 0.75rem;
+  background: #ffffff;
+  color: #0f172a;
+  box-shadow: 0 1.25rem 3rem rgb(15 23 42 / 25%);
+}
+
+.modal h2 {
+  margin: 0 0 1rem;
+  font-size: 1.25rem;
+}
+
+.modal-descricao {
+  margin: 0 0 1.25rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.modal-descricao dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #475569;
+}
+
+.modal-descricao dd {
+  margin: 0.15rem 0 0;
+}
+
+.modal-acoes {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.modal-acoes button {
+  padding: 0.6rem 1.1rem;
+  border: 1px solid #cbd5f5;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #0f172a;
+  font: inherit;
+  cursor: pointer;
+}
+
+.modal-acoes button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.modal-acoes .modal-confirmar {
+  border-color: #1d4ed8;
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.modal-acoes button:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
