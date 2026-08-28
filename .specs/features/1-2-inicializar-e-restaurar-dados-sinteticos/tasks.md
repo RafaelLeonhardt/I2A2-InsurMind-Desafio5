@@ -197,14 +197,18 @@ T14 and T15 have no dependency on each other; T16 depends on both.
 - Skill: NONE
 
 **Done when**:
-- [ ] Opens a connection to a `tmp_path`-based file, creates a table, and the change is visible after closing and reopening
-- [ ] Connection is closed even when the wrapped block raises
-- [ ] No shared/global connection object exists anywhere in the module
+- [x] Opens a connection to a `tmp_path`-based file, creates a table, and the change is visible after closing and reopening
+- [x] Connection is closed even when the wrapped block raises
+- [x] No shared/global connection object exists anywhere in the module
+
+**Note**: also creates the file's parent directory when missing (`var/` is gitignored and absent on a fresh clone), which SEED-05's "integralmente recriável" requires. Adds the package's `__init__.py`.
 
 **Tests**: integration
 **Gate**: quick
 
 **Commit**: `feat(persistencia): adicionar helper de conexao explicita ao DuckDB`
+
+**Status**: ✅ Complete
 
 ---
 
