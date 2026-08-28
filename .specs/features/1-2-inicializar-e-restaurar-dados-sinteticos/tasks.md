@@ -478,15 +478,22 @@ o erro já é sanitizado na origem e encerra o processo com status diferente de 
 - Skill: NONE
 
 **Done when**:
-- [ ] Against a `tmp_path` DuckDB at the current known version: `uvicorn.run` is called (unchanged behavior)
-- [ ] Against a `tmp_path` DuckDB seeded with a future `schema_migracoes` version: `uvicorn.run` is never called, process exits with a PT-BR error, no file mutation
-- [ ] Against a `tmp_path` DuckDB with pending migrations (older version): `uvicorn.run` is never called, error directs the operator to run the init command
-- [ ] Existing `test_servidor_repassa_host_validado_e_porta_fixa` still passes
+- [x] Against a `tmp_path` DuckDB at the current known version: `uvicorn.run` is called (unchanged behavior)
+- [x] Against a `tmp_path` DuckDB seeded with a future `schema_migracoes` version: `uvicorn.run` is never called, process exits with a PT-BR error, no file mutation
+- [x] Against a `tmp_path` DuckDB with pending migrations (older version): `uvicorn.run` is never called, error directs the operator to run the init command
+- [x] Existing `test_servidor_repassa_host_validado_e_porta_fixa` still passes
+
+**Note**: o teste existente passou a apontar para um banco `tmp_path` já inicializado, precondição
+que a nova verificação exige; suas asserções (host repassado e porta fixa) seguem idênticas. O caso
+"versão anterior" é exercitado pelo banco ainda inexistente (`versao_registrada() is None`), o
+cenário real com uma única migração conhecida.
 
 **Tests**: integration
 **Gate**: build
 
 **Commit**: `feat(composicao): recusar inicializacao do servidor com schema pendente ou futuro`
+
+**Status**: ✅ Complete
 
 ---
 
