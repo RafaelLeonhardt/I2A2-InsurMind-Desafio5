@@ -141,15 +141,17 @@ T14 and T15 have no dependency on each other; T16 depends on both.
 - Skill: NONE
 
 **Done when**:
-- [ ] Every method used by T9/T10 (use cases) and implemented by T5-T8 (adapters) exists on the matching Protocol with correct signatures
-- [ ] Exception types carry the fields the error-handling table in `design.md` requires (e.g., `MigracaoFalhou.versao`, `VersaoSchemaFutura`)
-- [ ] `pyright --strict` passes with no errors
-- [ ] Docstrings in Portuguese on every public symbol
+- [x] Every method used by T9/T10 (use cases) and implemented by T5-T8 (adapters) exists on the matching Protocol with correct signatures (added `PortaMigracoes.versao_conhecida()`: `verificar_versao_schema` lives in `aplicacao` and cannot compare versions without it)
+- [x] Exception types carry the fields the error-handling table in `design.md` requires (e.g., `MigracaoFalhou.versao`, `VersaoSchemaFutura`); added `RegistroMigracoesInvalido` for `spec.md`'s ledger-ausente/corrompido edge case
+- [x] `pyright --strict` passes with no errors
+- [x] Docstrings in Portuguese on every public symbol
 
 **Tests**: none (interfaces/DTOs only, verified by every task that implements/consumes them)
 **Gate**: build
 
 **Commit**: `feat(aplicacao): definir portas e tipos da inicializacao e restauracao`
+
+**Status**: ✅ Complete
 
 ---
 

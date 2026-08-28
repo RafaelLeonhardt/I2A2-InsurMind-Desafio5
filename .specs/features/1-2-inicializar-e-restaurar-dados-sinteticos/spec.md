@@ -100,7 +100,7 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| SEED-01 | P1: Inicializar esquema e dados sintéticos | Design | Pending |
+| SEED-01 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
 | SEED-02 | P1: Inicializar esquema e dados sintéticos | Design | Pending |
 | SEED-03 | P1: Inicializar esquema e dados sintéticos | Design | Pending |
 | SEED-04 | P1: Inicializar esquema e dados sintéticos | Design | Pending |
