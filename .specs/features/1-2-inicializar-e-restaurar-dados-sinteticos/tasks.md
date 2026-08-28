@@ -255,14 +255,16 @@ T14 and T15 have no dependency on each other; T16 depends on both.
 - Skill: NONE
 
 **Done when**:
-- [ ] Returns `False` against an empty `execucao_preventiva` table
-- [ ] Returns `True` after inserting a fixture row with a non-terminal `estado`
-- [ ] Returns `False` when all rows present have a terminal `estado`
+- [x] Returns `False` against an empty `execucao_preventiva` table
+- [x] Returns `True` after inserting a fixture row with a non-terminal `estado` (parametrizado sobre todos os estados não terminais)
+- [x] Returns `False` when all rows present have a terminal `estado`
 
 **Tests**: integration
 **Gate**: full
 
 **Commit**: `feat(persistencia): adicionar repositorio de guarda de execucoes ativas`
+
+**Status**: ✅ Complete
 
 ---
 
