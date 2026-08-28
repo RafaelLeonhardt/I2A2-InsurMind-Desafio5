@@ -168,15 +168,19 @@ T14 and T15 have no dependency on each other; T16 depends on both.
 - Skill: NONE
 
 **Done when**:
-- [ ] `Configuracao` accepts a valid `caminho_banco` and rejects an invalid/empty one with `ValidationError`
-- [ ] `obter_configuracao()` still sanitizes errors (no value leakage), consistent with `test_erro_de_configuracao_nao_revela_valores`
-- [ ] `.env.example` documents the new variable with a non-secret example value
-- [ ] Existing `test_configuracao.py` tests still pass; new tests added for `caminho_banco`
+- [x] `Configuracao` accepts a valid `caminho_banco` and rejects an invalid/empty one with `ValidationError`
+- [x] `obter_configuracao()` still sanitizes errors (no value leakage), consistent with `test_erro_de_configuracao_nao_revela_valores`
+- [x] `.env.example` documents the new variable with a non-secret example value
+- [x] Existing `test_configuracao.py` tests still pass; new tests added for `caminho_banco`
+
+**Deviation**: the field has a validated default (`var/central_preventiva.duckdb`, resolved from the project root) instead of being strictly required. A required field would break every existing `Configuracao(...)` construction in `test_saude.py`/`test_servidor.py` (files outside this task's `Where`) on a clean checkout, and would break existing local `.env` files because the README uses `cp -n`, which never overwrites. The default matches the `*.duckdb` and `var/central_preventiva.duckdb` entries already in `.gitignore` (SEED-05). Validation (non-empty name, `.duckdb` suffix, project-root resolution) still applies to any supplied value.
 
 **Tests**: unit
 **Gate**: quick
 
 **Commit**: `feat(composicao): adicionar caminho do banco DuckDB a configuracao local`
+
+**Status**: ✅ Complete
 
 ---
 

@@ -7,6 +7,8 @@ from pydantic import Field, ValidationError, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 RAIZ_PROJETO = Path(__file__).resolve().parents[4]
+CAMINHO_BANCO_PADRAO = RAIZ_PROJETO / "var" / "central_preventiva.duckdb"
+SUFIXO_BANCO = ".duckdb"
 
 
 class ConfiguracaoInvalida(RuntimeError):
@@ -25,6 +27,10 @@ class Configuracao(BaseSettings):
 
     host_api: str = Field(validation_alias="CENTRAL_PREVENTIVA_HOST_API")
     origem_frontend: str = Field(validation_alias="CENTRAL_PREVENTIVA_ORIGEM_FRONTEND")
+    caminho_banco: Path = Field(
+        default=CAMINHO_BANCO_PADRAO,
+        validation_alias="CENTRAL_PREVENTIVA_CAMINHO_BANCO",
+    )
 
     @field_validator("host_api")
     @classmethod
@@ -43,6 +49,15 @@ class Configuracao(BaseSettings):
         if valor != "http://127.0.0.1:5173":
             raise ValueError("origem fora da interface de loopback")
         return valor
+
+    @field_validator("caminho_banco")
+    @classmethod
+    def validar_caminho_banco(cls, valor: Path) -> Path:
+        """Exige um arquivo `.duckdb` nomeado e o resolve a partir da raiz do projeto."""
+
+        if not valor.name.strip() or valor.suffix != SUFIXO_BANCO:
+            raise ValueError("caminho do banco operacional inválido")
+        return valor if valor.is_absolute() else RAIZ_PROJETO / valor
 
 
 @lru_cache

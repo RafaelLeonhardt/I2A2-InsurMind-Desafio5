@@ -1,10 +1,13 @@
 """Testes da configuração segura e restrita à interface local."""
 
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
 from central_preventiva.composicao import configuracao as modulo_configuracao
 from central_preventiva.composicao.configuracao import (
+    RAIZ_PROJETO,
     Configuracao,
     ConfiguracaoInvalida,
     obter_configuracao,
@@ -44,6 +47,71 @@ def test_recusa_configuracao_fora_do_loopback(host: str, origem: str) -> None:
             host_api=host,
             origem_frontend=origem,
         )
+
+
+def test_caminho_do_banco_padrao_fica_no_diretorio_local_ignorado_pelo_git(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("CENTRAL_PREVENTIVA_CAMINHO_BANCO", raising=False)
+
+    configuracao = Configuracao(
+        host_api="127.0.0.1",
+        origem_frontend="http://127.0.0.1:5173",
+        _env_file=None,
+    )
+
+    assert configuracao.caminho_banco == RAIZ_PROJETO / "var" / "central_preventiva.duckdb"
+
+
+def test_aceita_caminho_do_banco_relativo_resolvido_na_raiz_do_projeto() -> None:
+    configuracao = Configuracao(
+        host_api="127.0.0.1",
+        origem_frontend="http://127.0.0.1:5173",
+        caminho_banco=Path("var/demonstracao.duckdb"),
+    )
+
+    assert configuracao.caminho_banco == RAIZ_PROJETO / "var" / "demonstracao.duckdb"
+
+
+def test_preserva_caminho_do_banco_absoluto(tmp_path: Path) -> None:
+    caminho = tmp_path / "central_preventiva.duckdb"
+
+    configuracao = Configuracao(
+        host_api="127.0.0.1",
+        origem_frontend="http://127.0.0.1:5173",
+        caminho_banco=caminho,
+    )
+
+    assert configuracao.caminho_banco == caminho
+
+
+@pytest.mark.parametrize(
+    "caminho",
+    ["", "   ", "var/", "var/central_preventiva.txt", "var/central_preventiva"],
+)
+def test_recusa_caminho_do_banco_invalido(caminho: str) -> None:
+    with pytest.raises(ValidationError):
+        Configuracao(
+            host_api="127.0.0.1",
+            origem_frontend="http://127.0.0.1:5173",
+            caminho_banco=Path(caminho),
+        )
+
+
+def test_erro_de_configuracao_nao_revela_o_caminho_do_banco(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    caminho_sensivel = "/caminho/interno/nao-exibir"
+    monkeypatch.setenv("CENTRAL_PREVENTIVA_HOST_API", "127.0.0.1")
+    monkeypatch.setenv("CENTRAL_PREVENTIVA_ORIGEM_FRONTEND", "http://127.0.0.1:5173")
+    monkeypatch.setenv("CENTRAL_PREVENTIVA_CAMINHO_BANCO", caminho_sensivel)
+    obter_configuracao.cache_clear()
+
+    with pytest.raises(ConfiguracaoInvalida) as captura:
+        obter_configuracao()
+
+    assert caminho_sensivel not in str(captura.value)
+    obter_configuracao.cache_clear()
 
 
 def test_erro_de_configuracao_nao_revela_valores(
