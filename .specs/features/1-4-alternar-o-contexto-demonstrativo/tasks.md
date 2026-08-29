@@ -392,12 +392,12 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] No perfil Administrador, mostra somente "Prontidão" e "Restaurar dados sintéticos"
-- [ ] No perfil Segurado, mostra somente "Visão geral"
-- [ ] Ativar um item por clique ou por `Enter` (com foco por `Tab`) chama `selecionarSuperficie` com o valor correspondente
-- [ ] O item correspondente à `superficieAtiva` recebe `aria-current="page"`
-- [ ] Gate check passes: `npm test --prefix src/frontend -- --run`
-- [ ] Test count: 4+ novos testes passam
+- [x] No perfil Administrador, mostra somente "Prontidão" e "Restaurar dados sintéticos"
+- [x] No perfil Segurado, mostra somente "Visão geral"
+- [x] Ativar um item por clique ou por `Enter` (com foco por `Tab`) chama `selecionarSuperficie` com o valor correspondente
+- [x] O item correspondente à `superficieAtiva` recebe `aria-current="page"`
+- [x] Gate check passes: `npm test --prefix src/frontend -- --run`
+- [x] Test count: 4+ novos testes passam
 
 **Tests**: unit
 **Gate**: quick (frontend)
