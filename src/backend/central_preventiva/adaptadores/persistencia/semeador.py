@@ -4,20 +4,13 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, datetime
 from pathlib import Path
-from uuid import NAMESPACE_URL, UUID, uuid5
 
 import duckdb
 
 from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
+from central_preventiva.dominio.identificadores_demonstracao import identificador_demonstracao
 
-NAMESPACE_DEMONSTRACAO = uuid5(NAMESPACE_URL, "https://central-preventiva.invalid/demonstracao")
 MARCADOR_DEMONSTRACAO = "DEMO-"
-
-
-def identificador_demonstracao(nome: str) -> UUID:
-    """Deriva um identificador determinístico e fictício do namespace da demonstração."""
-
-    return uuid5(NAMESPACE_DEMONSTRACAO, nome)
 
 
 @dataclass(frozen=True, slots=True)

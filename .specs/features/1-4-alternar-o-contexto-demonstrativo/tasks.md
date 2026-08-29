@@ -128,11 +128,11 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] `semeador.py` não define mais `identificador_demonstracao` localmente
-- [ ] Nenhuma duplicação de lógica de UUID determinístico permanece no repositório
-- [ ] Testes existentes de `test_semeador.py` continuam passando sem alteração de asserts (comportamento inalterado)
-- [ ] Gate check passes: `uv run --directory src/backend pytest`
-- [ ] Test count: suíte de `test_semeador.py` (já existente) permanece 100% verde
+- [x] `semeador.py` não define mais `identificador_demonstracao` localmente
+- [x] Nenhuma duplicação de lógica de UUID determinístico permanece no repositório
+- [x] Testes existentes de `test_semeador.py` continuam passando sem alteração de asserts (comportamento inalterado)
+- [x] Gate check passes: `uv run --directory src/backend pytest`
+- [x] Test count: suíte de `test_semeador.py` (já existente) permanece 100% verde
 
 **Tests**: unit (verificação de regressão nos testes já existentes; nenhum teste novo exigido para esta tarefa)
 **Gate**: quick (backend)
