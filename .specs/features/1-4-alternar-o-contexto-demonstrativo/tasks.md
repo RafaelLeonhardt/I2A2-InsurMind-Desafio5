@@ -338,10 +338,10 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] Componente exibe uma mensagem explicando o bloqueio, sem mostrar nenhum dado de superfície
-- [ ] Botão "Voltar para a Visão geral" (ou rótulo equivalente definido no design) chama `aoVoltar` ao ser ativado por clique e por `Enter`
-- [ ] Gate check passes: `npm test --prefix src/frontend -- --run`
-- [ ] Test count: 2+ novos testes passam
+- [x] Componente exibe uma mensagem explicando o bloqueio, sem mostrar nenhum dado de superfície
+- [x] Botão "Voltar para a Visão geral" (ou rótulo equivalente definido no design) chama `aoVoltar` ao ser ativado por clique e por `Enter`
+- [x] Gate check passes: `npm test --prefix src/frontend -- --run`
+- [x] Test count: 2+ novos testes passam
 
 **Tests**: unit
 **Gate**: quick (frontend)
