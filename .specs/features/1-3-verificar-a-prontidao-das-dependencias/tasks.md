@@ -271,13 +271,13 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] `httpx.MockTransport` simula 200 → `DISPONIVEL`
-- [ ] `httpx.MockTransport` simula `429`/`5xx` → `DEGRADADA`
-- [ ] `httpx.MockTransport` simula `401` → `INDISPONIVEL`, causa não contém a chave usada no teste
-- [ ] `httpx.MockTransport` simula timeout → `INDISPONIVEL`
-- [ ] Um teste passa uma chave sintética óbvia (`sk-teste-xyz`) e faz `assert "sk-teste-xyz" not in str(resultado)` sobre o `ResultadoSonda` e sobre qualquer exceção capturada
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
-- [ ] Test count: 5+ testes passam
+- [x] `httpx.MockTransport` simula 200 → `DISPONIVEL`
+- [x] `httpx.MockTransport` simula `429`/`5xx` → `DEGRADADA`
+- [x] `httpx.MockTransport` simula `401` → `INDISPONIVEL`, causa não contém a chave usada no teste
+- [x] `httpx.MockTransport` simula timeout → `INDISPONIVEL`
+- [x] Um teste passa uma chave sintética óbvia (`sk-teste-xyz`) e faz `assert "sk-teste-xyz" not in str(resultado)` sobre o `ResultadoSonda` e sobre qualquer exceção capturada
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Test count: 5+ testes passam
 
 **Tests**: unit
 **Gate**: quick
