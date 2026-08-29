@@ -363,14 +363,14 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] Mostra o perfil ativo e a data/hora de referência em qualquer perfil
-- [ ] No perfil Segurado, busca e mostra o nome do segurado padrão retornado por `getSeguradoPadrao()`
-- [ ] No perfil Segurado, se `getSeguradoPadrao()` rejeitar, mostra um estado de indisponibilidade com causa e um botão de nova tentativa, nunca um nome fixo/vazio
-- [ ] Ativar "Visualizar como" chama `alternarPerfil` com o perfil oposto ao atual
-- [ ] Uma região `aria-live="polite"` anuncia o texto do perfil após cada troca
-- [ ] O perfil é comunicado por texto + ícone, não só por cor (asserção de texto/ícone presentes, não de estilo)
-- [ ] Gate check passes: `npm test --prefix src/frontend -- --run`
-- [ ] Test count: 6+ novos testes passam
+- [x] Mostra o perfil ativo e a data/hora de referência em qualquer perfil
+- [x] No perfil Segurado, busca e mostra o nome do segurado padrão retornado por `getSeguradoPadrao()`
+- [x] No perfil Segurado, se `getSeguradoPadrao()` rejeitar, mostra um estado de indisponibilidade com causa e um botão de nova tentativa, nunca um nome fixo/vazio
+- [x] Ativar "Visualizar como" chama `alternarPerfil` com o perfil oposto ao atual
+- [x] Uma região `aria-live="polite"` anuncia o texto do perfil após cada troca
+- [x] O perfil é comunicado por texto + ícone, não só por cor (asserção de texto/ícone presentes, não de estilo)
+- [x] Gate check passes: `npm test --prefix src/frontend -- --run`
+- [x] Test count: 6+ novos testes passam
 
 **Tests**: unit
 **Gate**: quick (frontend)
