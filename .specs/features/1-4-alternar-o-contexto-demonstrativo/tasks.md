@@ -204,11 +204,11 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] `consultar_segurado_padrao` devolve o `Segurado` quando `buscar_por_id(SEGURADO_PADRAO)` encontra o registro
-- [ ] `consultar_segurado_padrao` levanta `SeguradoPadraoAusente` quando `buscar_por_id` devolve `None`
-- [ ] Teste usa um dublê de `PortasContexto` (sem DuckDB real), mesmo padrão de testes de caso de uso já existentes (`test_prontidao.py`, `test_restauracao.py`)
-- [ ] Gate check passes: `uv run --directory src/backend pytest`
-- [ ] Test count: 2+ novos testes passam (encontrado, ausente)
+- [x] `consultar_segurado_padrao` devolve o `Segurado` quando `buscar_por_id(SEGURADO_PADRAO)` encontra o registro
+- [x] `consultar_segurado_padrao` levanta `SeguradoPadraoAusente` quando `buscar_por_id` devolve `None`
+- [x] Teste usa um dublê de `PortasContexto` (sem DuckDB real), mesmo padrão de testes de caso de uso já existentes (`test_prontidao.py`, `test_restauracao.py`)
+- [x] Gate check passes: `uv run --directory src/backend pytest`
+- [x] Test count: 2+ novos testes passam (encontrado, ausente)
 
 **Tests**: unit
 **Gate**: quick (backend)
