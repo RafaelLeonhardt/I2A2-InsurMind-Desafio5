@@ -245,13 +245,13 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] `httpx.MockTransport` simula 2xx rápido → `DISPONIVEL`
-- [ ] `httpx.MockTransport` simula 2xx com atraso > orçamento → `DEGRADADA`
-- [ ] `httpx.MockTransport` simula `503` → `DEGRADADA`
-- [ ] `httpx.MockTransport` simula `httpx.TimeoutException`/`httpx.ConnectError` → `INDISPONIVEL`
-- [ ] Nenhum teste faz chamada de rede real
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
-- [ ] Test count: 4+ testes passam
+- [x] `httpx.MockTransport` simula 2xx rápido → `DISPONIVEL`
+- [x] `httpx.MockTransport` simula 2xx com atraso > orçamento → `DEGRADADA`
+- [x] `httpx.MockTransport` simula `503` → `DEGRADADA`
+- [x] `httpx.MockTransport` simula `httpx.TimeoutException`/`httpx.ConnectError` → `INDISPONIVEL`
+- [x] Nenhum teste faz chamada de rede real
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Test count: 4+ testes passam
 
 **Tests**: unit
 **Gate**: quick
