@@ -252,16 +252,27 @@ class DependenciaLocalNaoReverifica(RuntimeError):
         self.nome = nome
 
 
-def _operacao(nome: NomeDependencia) -> str:
+def operacao_verificacao(nome: NomeDependencia) -> str:
     """Monta o nome da operação de idempotência escopada por dependência."""
 
     return f"{OPERACAO_VERIFICACAO_PREFIXO}:{nome}"
 
 
-def _serializar_ack(estado: EstadoDependencia) -> str:
-    """Serializa o snapshot aceito para o corpo guardado na chave de idempotência."""
+def _serializar_ack(estado: EstadoDependencia, aceito_em: datetime) -> str:
+    """Serializa o snapshot aceito para o corpo guardado na chave de idempotência.
 
-    return json.dumps({"nome": estado.nome, "estado": str(estado.estado), "causa": estado.causa})
+    `aceito_em` fica gravado no corpo para que uma repetição idempotente (mesma chave e
+    hash) devolva sempre o mesmo instante, em vez de um novo carimbo a cada leitura.
+    """
+
+    return json.dumps(
+        {
+            "nome": estado.nome,
+            "estado": str(estado.estado),
+            "causa": estado.causa,
+            "aceito_em": aceito_em.isoformat(),
+        }
+    )
 
 
 def _desserializar_ack(corpo: str) -> EstadoDependencia:
@@ -279,6 +290,17 @@ def _desserializar_ack(corpo: str) -> EstadoDependencia:
         impacto=impacto,
         acao_disponivel=acao,
     )
+
+
+def aceito_em_de(corpo: str) -> datetime:
+    """Extrai o instante de aceite gravado no corpo de um ack de verificação.
+
+    Usado pela camada HTTP para expor `aceito_em` de forma estável entre repetições
+    idempotentes, sem depender do relógio no momento da leitura.
+    """
+
+    dados = cast(dict[str, str], json.loads(corpo))
+    return datetime.fromisoformat(dados["aceito_em"])
 
 
 async def solicitar_nova_verificacao(
@@ -301,7 +323,7 @@ async def solicitar_nova_verificacao(
     if nome not in DEPENDENCIAS_EXTERNAS:
         raise DependenciaLocalNaoReverifica(nome)
 
-    operacao = _operacao(nome)
+    operacao = operacao_verificacao(nome)
     registrada = idempotencia.buscar(chave_idempotencia, operacao)
     if registrada is not None:
         if registrada.hash_requisicao != hash_requisicao:
@@ -332,7 +354,7 @@ async def solicitar_nova_verificacao(
                 operacao,
                 hash_requisicao,
                 STATUS_VERIFICACAO_ACEITA,
-                _serializar_ack(estado),
+                _serializar_ack(estado, agora),
             )
             return estado
 
@@ -344,7 +366,7 @@ async def solicitar_nova_verificacao(
             operacao,
             hash_requisicao,
             STATUS_VERIFICACAO_ACEITA,
-            _serializar_ack(estado),
+            _serializar_ack(estado, agora),
         )
         asyncio.create_task(_executar_sonda(sonda, registro, nome))
         return estado

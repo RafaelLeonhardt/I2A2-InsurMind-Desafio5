@@ -1,6 +1,8 @@
-"""Testes do recurso REST/JSON de prontidão das dependências (caminho GET)."""
+"""Testes do recurso REST/JSON de prontidão das dependências (caminhos GET e POST)."""
 
+import asyncio
 from pathlib import Path
+from uuid import uuid4
 
 import httpx
 import pytest
@@ -12,6 +14,13 @@ from central_preventiva.composicao.configuracao import Configuracao
 
 CAMINHO = "/api/v1/prontidao/dependencias"
 CAMPOS_ESPERADOS = {"nome", "estado", "verificado_em", "causa", "impacto", "acao_disponivel"}
+TIPO_PROBLEMA = "application/problem+json"
+
+
+def caminho_verificacoes(nome: str) -> str:
+    """Monta o caminho do recurso de nova verificação para a dependência informada."""
+
+    return f"{CAMINHO}/{nome}/verificacoes"
 
 
 @pytest.fixture(autouse=True)
@@ -126,3 +135,89 @@ def test_cors_libera_o_get_de_prontidao_para_a_origem_local(tmp_path: Path) -> N
     )
 
     assert permitida.headers["access-control-allow-origin"] == "http://127.0.0.1:5173"
+
+
+def test_post_sem_idempotency_key_e_recusado(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+
+    resposta = cliente_para(caminho).post(caminho_verificacoes("inmet"))
+
+    assert resposta.status_code == 422
+    assert resposta.headers["content-type"].startswith(TIPO_PROBLEMA)
+    assert resposta.json()["codigo"] == "idempotency_key_ausente"
+
+
+def test_post_duas_vezes_com_a_mesma_chave_dispara_uma_unica_verificacao(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    cliente = cliente_para(caminho)
+    chave = str(uuid4())
+
+    primeira = cliente.post(caminho_verificacoes("inmet"), headers={"Idempotency-Key": chave})
+    segunda = cliente.post(caminho_verificacoes("inmet"), headers={"Idempotency-Key": chave})
+
+    assert primeira.status_code == 202
+    assert segunda.status_code == 202
+    assert primeira.json() == segunda.json()
+    assert primeira.json()["nome"] == "inmet"
+    assert primeira.json()["estado"] == "verificando"
+
+
+def test_post_com_chave_diferente_enquanto_em_andamento_e_recusado(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    liberar = asyncio.Event()
+
+    async def _send_suspenso_ate_liberar(
+        self: httpx.AsyncClient, request: httpx.Request, **_: object
+    ) -> httpx.Response:
+        await liberar.wait()
+        raise httpx.ConnectError("falha de conexão simulada bloqueada até a liberação do teste")
+
+    monkeypatch.setattr(httpx.AsyncClient, "send", _send_suspenso_ate_liberar)
+    cliente = cliente_para(caminho)
+
+    cliente.post(caminho_verificacoes("inmet"), headers={"Idempotency-Key": str(uuid4())})
+    resposta = cliente.post(
+        caminho_verificacoes("inmet"), headers={"Idempotency-Key": str(uuid4())}
+    )
+    liberar.set()
+
+    assert resposta.status_code == 409
+    assert resposta.headers["content-type"].startswith(TIPO_PROBLEMA)
+    assert resposta.json()["codigo"] == "verificacao_em_andamento"
+
+
+def test_post_para_backend_e_recusado_como_dependencia_local(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+
+    resposta = cliente_para(caminho).post(
+        caminho_verificacoes("backend"), headers={"Idempotency-Key": str(uuid4())}
+    )
+
+    assert resposta.status_code == 422
+    assert resposta.headers["content-type"].startswith(TIPO_PROBLEMA)
+    assert resposta.json()["codigo"] == "dependencia_local_nao_reverifica"
+
+
+def test_post_para_banco_dados_e_recusado_como_dependencia_local(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+
+    resposta = cliente_para(caminho).post(
+        caminho_verificacoes("banco_dados"), headers={"Idempotency-Key": str(uuid4())}
+    )
+
+    assert resposta.status_code == 422
+    assert resposta.json()["codigo"] == "dependencia_local_nao_reverifica"
+
+
+def test_post_para_dependencia_desconhecida_e_recusado(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+
+    resposta = cliente_para(caminho).post(
+        caminho_verificacoes("desconhecida"), headers={"Idempotency-Key": str(uuid4())}
+    )
+
+    assert resposta.status_code == 404
+    assert resposta.headers["content-type"].startswith(TIPO_PROBLEMA)
+    assert resposta.json()["codigo"] == "dependencia_desconhecida"

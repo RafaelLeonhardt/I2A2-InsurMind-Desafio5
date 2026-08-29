@@ -1,25 +1,39 @@
 """Recurso REST/JSON de prontidão das dependências."""
 
-from datetime import datetime
+from datetime import UTC, datetime
+from hashlib import sha256
+from typing import Annotated, get_args
 from uuid import uuid4
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Header, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict
 
+from central_preventiva.adaptadores.persistencia.repositorio_idempotencia import (
+    RepositorioIdempotencia,
+)
 from central_preventiva.adaptadores.prontidao.sonda_backend import SondaBackend
 from central_preventiva.adaptadores.prontidao.sonda_banco_dados import SondaBancoDados
 from central_preventiva.adaptadores.prontidao.sonda_inmet import SondaInmet
 from central_preventiva.adaptadores.prontidao.sonda_openai import SondaOpenAI
+from central_preventiva.aplicacao.portas_persistencia import ConflitoIdempotencia
+from central_preventiva.aplicacao.portas_prontidao import NomeDependencia, VerificacaoEmAndamento
 from central_preventiva.aplicacao.prontidao import (
+    DependenciaLocalNaoReverifica,
     PortasProntidao,
     RegistroProntidao,
+    aceito_em_de,
     consultar_prontidao,
+    operacao_verificacao,
+    solicitar_nova_verificacao,
 )
 from central_preventiva.composicao.configuracao import Configuracao
 
 TIPO_PROBLEMA = "application/problem+json"
 CAMINHO_DEPENDENCIAS = "/prontidao/dependencias"
+CAMINHO_VERIFICACOES = "/prontidao/dependencias/{nome}/verificacoes"
+
+NOMES_CONHECIDOS: frozenset[str] = frozenset(get_args(NomeDependencia))
 
 
 class RespostaDependencia(BaseModel):
@@ -41,6 +55,16 @@ class RespostaDependencias(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     dependencias: list[RespostaDependencia]
+
+
+class RespostaVerificacaoAceita(BaseModel):
+    """Ack de uma nova verificação aceita para processamento em segundo plano."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    nome: str
+    estado: str
+    aceito_em: datetime
 
 
 class ProblemaProntidao(BaseModel):
@@ -83,6 +107,7 @@ def criar_roteador(configuracao: Configuracao) -> APIRouter:
 
     roteador = APIRouter(tags=["Prontidão"])
     registro = RegistroProntidao()
+    idempotencia = RepositorioIdempotencia(configuracao.caminho_banco)
 
     chave_openai = configuracao.chave_openai
     portas = PortasProntidao(
@@ -121,6 +146,95 @@ def criar_roteador(configuracao: Configuracao) -> APIRouter:
                 )
                 for estado in estados
             ]
+        )
+
+    @roteador.post(
+        CAMINHO_VERIFICACOES,
+        response_model=RespostaVerificacaoAceita,
+        status_code=202,
+        summary="Solicitar uma nova verificação de prontidão",
+        description=(
+            "Solicita, de forma assíncrona e idempotente, uma nova verificação de INMET ou "
+            "OpenAI. Exige o cabeçalho `Idempotency-Key` em toda requisição. Backend e banco "
+            "de dados não aceitam este recurso: já são recomputados a cada `GET`."
+        ),
+        responses={
+            202: {"description": "Nova verificação aceita e em andamento."},
+            404: {"description": "Dependência desconhecida.", "model": ProblemaProntidao},
+            409: {
+                "description": "Conflito de idempotência ou verificação já em andamento.",
+                "model": ProblemaProntidao,
+            },
+            422: {
+                "description": "Cabeçalho ausente ou dependência local sem re-verificação.",
+                "model": ProblemaProntidao,
+            },
+        },
+    )
+    async def verificar_novamente(  # pyright: ignore[reportUnusedFunction]
+        nome: str,
+        requisicao: Request,
+        idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
+    ) -> RespostaVerificacaoAceita | JSONResponse:
+        """Traduz `solicitar_nova_verificacao` para o contrato REST/JSON público."""
+
+        if nome not in NOMES_CONHECIDOS:
+            return problema(
+                404,
+                "dependencia_desconhecida",
+                f"A dependência '{nome}' é desconhecida.",
+                "Nenhuma verificação foi solicitada.",
+                "Use um dos nomes válidos: backend, banco_dados, inmet, openai.",
+            )
+
+        if idempotency_key is None or not idempotency_key.strip():
+            return problema(
+                422,
+                "idempotency_key_ausente",
+                "A requisição de verificação não informou o cabeçalho Idempotency-Key.",
+                "Nenhuma verificação foi solicitada.",
+                "Repita a requisição incluindo um cabeçalho Idempotency-Key único.",
+            )
+
+        hash_requisicao = sha256(await requisicao.body()).hexdigest()
+        nome_valido: NomeDependencia = nome  # pyright: ignore[reportAssignmentType]
+
+        try:
+            estado = await solicitar_nova_verificacao(
+                portas, idempotencia, registro, nome_valido, idempotency_key, hash_requisicao
+            )
+        except DependenciaLocalNaoReverifica:
+            return problema(
+                422,
+                "dependencia_local_nao_reverifica",
+                f"A dependência '{nome}' é recomputada a cada consulta de prontidão.",
+                "Nenhuma verificação foi solicitada.",
+                "Consulte o estado mais recente em GET /prontidao/dependencias.",
+            )
+        except ConflitoIdempotencia:
+            return problema(
+                409,
+                "conflito_idempotencia",
+                "A chave de idempotência já foi usada com outro conteúdo de requisição.",
+                "Nenhuma nova verificação foi solicitada.",
+                "Gere uma nova Idempotency-Key para solicitar outra verificação.",
+            )
+        except VerificacaoEmAndamento:
+            return problema(
+                409,
+                "verificacao_em_andamento",
+                f"Já existe uma verificação em andamento para a dependência '{nome}'.",
+                "Nenhuma nova verificação foi solicitada; a verificação em curso continua.",
+                "Aguarde a conclusão e consulte o progresso em GET /prontidao/dependencias.",
+            )
+
+        registrada = idempotencia.buscar(idempotency_key, operacao_verificacao(nome_valido))
+        aceito_em = aceito_em_de(registrada.corpo) if registrada is not None else datetime.now(UTC)
+
+        return RespostaVerificacaoAceita(
+            nome=estado.nome,
+            estado=str(estado.estado),
+            aceito_em=aceito_em,
         )
 
     return roteador

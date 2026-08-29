@@ -372,13 +372,13 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] `POST` sem `Idempotency-Key` → `422 idempotency_key_ausente`
-- [ ] `POST` duas vezes com a mesma chave (duplo clique) → uma única verificação disparada, mesma resposta `202`
-- [ ] `POST` com chave diferente enquanto uma está em voo → `409 verificacao_em_andamento`
-- [ ] `POST /prontidao/dependencias/backend/verificacoes` → `422 dependencia_local_nao_reverifica`
-- [ ] `POST /prontidao/dependencias/desconhecida/verificacoes` → `404 dependencia_desconhecida`
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
-- [ ] Test count: 5+ testes passam
+- [x] `POST` sem `Idempotency-Key` → `422 idempotency_key_ausente`
+- [x] `POST` duas vezes com a mesma chave (duplo clique) → uma única verificação disparada, mesma resposta `202`
+- [x] `POST` com chave diferente enquanto uma está em voo → `409 verificacao_em_andamento`
+- [x] `POST /prontidao/dependencias/backend/verificacoes` → `422 dependencia_local_nao_reverifica`
+- [x] `POST /prontidao/dependencias/desconhecida/verificacoes` → `404 dependencia_desconhecida`
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] Test count: 5+ testes passam
 
 **Tests**: e2e
 **Gate**: full
