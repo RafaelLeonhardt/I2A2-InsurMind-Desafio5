@@ -419,10 +419,10 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] Componente renderiza o alerta, as ações preventivas e o painel contextual sem nenhuma referência a "Marina Costa"
-- [ ] Nenhum dado de segurado (nome) é renderizado por este componente - vem só da `BarraContexto`
-- [ ] Gate check passes: `npm test --prefix src/frontend -- --run`
-- [ ] Test count: 1+ novo teste passa
+- [x] Componente renderiza o alerta, as ações preventivas e o painel contextual sem nenhuma referência a "Marina Costa"
+- [x] Nenhum dado de segurado (nome) é renderizado por este componente - vem só da `BarraContexto`
+- [x] Gate check passes: `npm test --prefix src/frontend -- --run`
+- [x] Test count: 1+ novo teste passa
 
 **Tests**: unit
 **Gate**: quick (frontend)
