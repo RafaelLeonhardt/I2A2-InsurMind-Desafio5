@@ -30,6 +30,7 @@ def test_openapi_em_portugues_nao_antecipa_recursos_futuros() -> None:
     assert set(documento["paths"]) == {
         "/api/v1/saude",
         "/api/v1/dados-sinteticos/restauracoes",
+        "/api/v1/prontidao/dependencias",
     }
     assert documento["paths"]["/api/v1/saude"]["get"]["description"].startswith("Confirma")
     assert documento["paths"]["/api/v1/saude"]["get"]["responses"]["200"]["description"] == (

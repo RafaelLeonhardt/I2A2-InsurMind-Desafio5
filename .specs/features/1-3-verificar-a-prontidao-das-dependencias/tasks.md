@@ -347,12 +347,12 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] `GET /api/v1/prontidao/dependencias` via `TestClient(criar_aplicacao(...))` retorna as 4 linhas com `nome`/`estado`/`verificado_em`/`causa`/`impacto`/`acao_disponivel`
-- [ ] Sem `OPENAI_API_KEY` configurada, a linha `openai` é `indisponivel` sem qualquer chamada de rede (dublê de `httpx` que falha o teste se for chamado)
-- [ ] `backend`/`banco_dados` respondem terminal já na primeira chamada
-- [ ] Resposta HTTP completa (corpo + headers) não contém a substring de uma chave OpenAI sintética configurada no teste
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
-- [ ] Test count: 4+ testes passam
+- [x] `GET /api/v1/prontidao/dependencias` via `TestClient(criar_aplicacao(...))` retorna as 4 linhas com `nome`/`estado`/`verificado_em`/`causa`/`impacto`/`acao_disponivel`
+- [x] Sem `OPENAI_API_KEY` configurada, a linha `openai` é `indisponivel` sem qualquer chamada de rede (dublê de `httpx` que falha o teste se for chamado)
+- [x] `backend`/`banco_dados` respondem terminal já na primeira chamada
+- [x] Resposta HTTP completa (corpo + headers) não contém a substring de uma chave OpenAI sintética configurada no teste
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] Test count: 4+ testes passam
 
 **Tests**: e2e
 **Gate**: full
