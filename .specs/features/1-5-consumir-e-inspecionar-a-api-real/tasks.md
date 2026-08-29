@@ -242,8 +242,8 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `clienteApi.GET('/api/v1/saude')` type-checks with an autocompleted, known response shape
-- [ ] `npm run build --prefix src/frontend` passes
+- [x] `clienteApi.GET('/api/v1/saude')` type-checks with an autocompleted, known response shape
+- [x] `npm run build --prefix src/frontend` passes
 
 **Tests**: none (per matrix - covered indirectly by T9's `documentacaoApi.test.ts`)
 **Gate**: quick (frontend)
