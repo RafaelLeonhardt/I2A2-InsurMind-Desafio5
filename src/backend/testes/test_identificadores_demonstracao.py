@@ -19,4 +19,4 @@ def test_entradas_diferentes_produzem_identificadores_diferentes() -> None:
 
 
 def test_segurado_padrao_corresponde_ao_identificador_de_chuva_elegivel() -> None:
-    assert SEGURADO_PADRAO == identificador_demonstracao("segurado/chuva-elegivel")
+    assert identificador_demonstracao("segurado/chuva-elegivel") == SEGURADO_PADRAO
