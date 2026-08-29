@@ -131,9 +131,9 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Test fails if a single character of a route's `summary`/`description` changes (verified manually during the task by a throwaway edit + revert)
-- [ ] Test asserts every `/api/v1` path's operations have non-empty PT-BR `summary` and `description`
-- [ ] `uv run --directory src/backend pytest` passes, test count increases by the number of new test functions added
+- [x] Test fails if a single character of a route's `summary`/`description` changes (verified manually during the task by a throwaway edit + revert)
+- [x] Test asserts every `/api/v1` path's operations have non-empty PT-BR `summary` and `description`
+- [x] `uv run --directory src/backend pytest` passes, test count increases by the number of new test functions added
 
 **Tests**: integration
 **Gate**: quick (backend)
