@@ -219,10 +219,10 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `tipos-gerados.ts` committed and includes a `paths` type with `/api/v1/saude`
-- [ ] `npm run verificar-tipos-api --prefix src/frontend` passes against the current backend
-- [ ] Manually confirmed: editing `tipos-gerados.ts` by hand and re-running `verificar-tipos-api` fails
-- [ ] `npm run build --prefix src/frontend` (`tsc -b`) passes
+- [x] `tipos-gerados.ts` committed and includes a `paths` type with `/api/v1/saude`
+- [x] `npm run verificar-tipos-api --prefix src/frontend` passes against the current backend
+- [x] Manually confirmed: editing `tipos-gerados.ts` by hand and re-running `verificar-tipos-api` fails
+- [x] `npm run build --prefix src/frontend` (`tsc -b`) passes
 
 **Tests**: none (per matrix)
 **Gate**: quick (frontend)
