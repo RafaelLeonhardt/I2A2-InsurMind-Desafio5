@@ -177,10 +177,10 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] `PortaSonda.verificar` é `async` e retorna `ResultadoSonda` (nunca `VERIFICANDO`)
-- [ ] `VerificacaoEmAndamento`/`DependenciaDesconhecida` têm mensagem em português pronta no `__init__`
-- [ ] `pyright` estrito não acusa erro no arquivo
-- [ ] Gate check passa: `uv run --directory src/backend pyright`
+- [x] `PortaSonda.verificar` é `async` e retorna `ResultadoSonda` (nunca `VERIFICANDO`)
+- [x] `VerificacaoEmAndamento`/`DependenciaDesconhecida` têm mensagem em português pronta no `__init__`
+- [x] `pyright` estrito não acusa erro no arquivo
+- [x] Gate check passa: `uv run --directory src/backend pyright`
 
 **Tests**: none
 **Gate**: build
