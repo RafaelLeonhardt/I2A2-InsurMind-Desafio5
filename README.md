@@ -26,7 +26,7 @@ O objetivo do projeto não é substituir análises técnicas nem confirmar cober
 
 ## Execução local
 
-Pré-requisitos: Python 3.14.7 gerenciado pelo `uv`, Node.js 22.12.0 ou superior e npm 11.19.0.
+Pré-requisitos: Python 3.14.4 gerenciado pelo `uv`, Node.js 22.12.0 ou superior e npm 11.19.0.
 
 Prepare a configuração local sem substituir um `.env` existente:
 

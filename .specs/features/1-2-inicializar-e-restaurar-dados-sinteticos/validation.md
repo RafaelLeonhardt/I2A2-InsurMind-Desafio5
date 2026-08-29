@@ -176,7 +176,7 @@ Not performed. The frontend surface is fully covered by RTL integration tests fo
 ## Gate Check
 
 - **Gate command (Build)**: Backend `pytest && ruff check . && pyright` · Frontend `npm test -- --run && npm run lint && npm run build`
-  - Note: the documented `uv run --directory src/backend …` form cannot execute as written on this machine — `pyproject.toml` pins `requires-python == "3.14.7"` while the local `uv` offers only 3.14.4/3.14.6. Run with `VIRTUAL_ENV="$(pwd)/.venv" uv run --directory . --active --no-sync <cmd>` from `src/backend`. This is an environment/pin mismatch, not a code defect, but it means the gate commands in `tasks.md` are not literally runnable as documented.
+  - Note: the documented `uv run --directory src/backend …` form cannot execute as written on this machine — `pyproject.toml` pins `requires-python == "3.14.4"` while the local `uv` offers only 3.14.4/3.14.6. Run with `VIRTUAL_ENV="$(pwd)/.venv" uv run --directory . --active --no-sync <cmd>` from `src/backend`. This is an environment/pin mismatch, not a code defect, but it means the gate commands in `tasks.md` are not literally runnable as documented.
 - **Result**: Backend 109 passed, 0 failed, 0 skipped · ruff "All checks passed" · pyright "0 errors, 0 warnings, 0 informations" (strict). Frontend 25 passed / 5 files, 0 failed · oxlint clean · `vite build` succeeded.
 - **Test count before feature** (measured at `7633552` in a scratch worktree): backend 18, frontend 4.
 - **Test count after feature**: backend 109, frontend 25.
@@ -237,8 +237,8 @@ genuine surviving mutant was found in this pass.
 **Issues found**: none blocking. Two spec-precision gaps (SEED-13 error wording; unspecified status
 code for the restore-before-init refusal) are spec-wording gaps to tighten in a future spec revision,
 not implementation or test defects. One process note: `tasks.md`'s Gate Check Commands are not
-literally runnable given the `requires-python == "3.14.7"` pin versus locally available interpreters.
+literally runnable given the `requires-python == "3.14.4"` pin versus locally available interpreters.
 
 **Next steps**: Mark the feature done. Optionally tighten `spec.md` on the two flagged precision
-gaps, and relax the `requires-python` pin (or install 3.14.7) so the documented gate commands run
+gaps, and relax the `requires-python` pin (or install 3.14.4) so the documented gate commands run
 as written.

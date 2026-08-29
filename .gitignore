@@ -21,3 +21,4 @@ var/central_preventiva.duckdb
 .agents/skills/bmad*
 _bmad/*
 _bmad-output/*
+.claude/skills/tlc-spec-driven/*
