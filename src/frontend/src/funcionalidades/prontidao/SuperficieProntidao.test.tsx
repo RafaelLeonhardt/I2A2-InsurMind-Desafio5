@@ -172,4 +172,56 @@ describe('superfície de prontidão', () => {
       vi.useRealTimers()
     }
   })
+
+  it('percorre os controles por Tab na ordem de leitura, com foco visível em cada um', async () => {
+    getDependencias.mockResolvedValue(conjuntoPadrao())
+    const usuario = userEvent.setup()
+    render(<SuperficieProntidao />)
+
+    await screen.findByRole('rowheader', { name: 'INMET' })
+    const botaoInmet = screen.getByRole('button', { name: 'Verificar novamente: INMET' })
+    const botaoOpenai = screen.getByRole('button', { name: 'Verificar novamente: OpenAI' })
+
+    await usuario.tab()
+    expect(botaoInmet).toHaveFocus()
+    expect(botaoInmet.className).toContain('botao-reverificar')
+
+    await usuario.tab()
+    expect(botaoOpenai).toHaveFocus()
+    expect(botaoOpenai.className).toContain('botao-reverificar')
+  })
+
+  it('carrega a classe do alvo mínimo de 44×44 px em cada botão de re-verificação', async () => {
+    getDependencias.mockResolvedValue(conjuntoPadrao())
+    render(<SuperficieProntidao />)
+
+    await screen.findByRole('rowheader', { name: 'INMET' })
+    const botaoInmet = screen.getByRole('button', { name: 'Verificar novamente: INMET' })
+    const botaoOpenai = screen.getByRole('button', { name: 'Verificar novamente: OpenAI' })
+
+    // A classe `botao-reverificar` define min-width/min-height de 44px em
+    // SuperficieProntidao.css. jsdom não layouta a página, então esta verificação
+    // confirma a presença da classe que codifica o alvo mínimo, não um pixel medido.
+    expect(botaoInmet).toHaveClass('botao-reverificar')
+    expect(botaoOpenai).toHaveClass('botao-reverificar')
+  })
+
+  it('dispara a mesma ação do clique ao pressionar Enter no botão focado', async () => {
+    getDependencias.mockResolvedValue(conjuntoPadrao())
+    solicitarNovaVerificacao.mockResolvedValue({
+      nome: 'inmet',
+      estado: 'verificando',
+      aceitoEm: '2026-08-29T12:00:05+00:00',
+    })
+    const usuario = userEvent.setup()
+    render(<SuperficieProntidao />)
+
+    await screen.findByRole('rowheader', { name: 'INMET' })
+    screen.getByRole('button', { name: 'Verificar novamente: INMET' }).focus()
+
+    await usuario.keyboard('{Enter}')
+
+    expect(solicitarNovaVerificacao).toHaveBeenCalledTimes(1)
+    expect(solicitarNovaVerificacao).toHaveBeenCalledWith('inmet')
+  })
 })

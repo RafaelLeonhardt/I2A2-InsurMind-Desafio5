@@ -449,11 +449,11 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] `userEvent.tab()` percorre os controles na ordem de leitura; cada um recebe foco visível (classe/estilo de foco presente)
-- [ ] Cada botão de re-verificação carrega a classe/estilo que define o alvo mínimo de 44×44 px (verificado por presença da classe/estilo, não por medição de pixel real — `jsdom` não layouta)
-- [ ] `Enter` no botão focado dispara a mesma ação que o clique
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend`
-- [ ] Test count: 3+ testes passam
+- [x] `userEvent.tab()` percorre os controles na ordem de leitura; cada um recebe foco visível (classe/estilo de foco presente)
+- [x] Cada botão de re-verificação carrega a classe/estilo que define o alvo mínimo de 44×44 px (verificado por presença da classe/estilo, não por medição de pixel real — `jsdom` não layouta)
+- [x] `Enter` no botão focado dispara a mesma ação que o clique
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend`
+- [x] Test count: 3+ testes passam
 
 **Tests**: integration
 **Gate**: full
