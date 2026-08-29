@@ -263,10 +263,10 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Success path returns the expected `ResultadoDocumentacaoApi`
-- [ ] Network-failure path throws `ErroDocumentacaoApi` with non-empty causa/impacto/proximaAcao/enderecoEsperado
-- [ ] Non-2xx path throws `ErroDocumentacaoApi` with the same shape
-- [ ] `documentacaoApi.test.ts` created co-located with the module; `npm test --prefix src/frontend -- --run` passes, test count increases by at least 3
+- [x] Success path returns the expected `ResultadoDocumentacaoApi`
+- [x] Network-failure path throws `ErroDocumentacaoApi` with non-empty causa/impacto/proximaAcao/enderecoEsperado
+- [x] Non-2xx path throws `ErroDocumentacaoApi` with the same shape
+- [x] `documentacaoApi.test.ts` created co-located with the module; `npm test --prefix src/frontend -- --run` passes, test count increases by at least 3
 
 **Tests**: unit
 **Gate**: quick (frontend)
