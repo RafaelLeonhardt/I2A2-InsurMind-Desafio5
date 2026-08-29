@@ -1,14 +1,18 @@
-"""Caso de uso de prontidão das dependências: registro em memória e consulta (GET)."""
+"""Caso de uso de prontidão das dependências: registro em memória, GET e POST."""
 
 import asyncio
+import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from typing import cast
 
+from central_preventiva.aplicacao.portas_persistencia import ConflitoIdempotencia, PortaIdempotencia
 from central_preventiva.aplicacao.portas_prontidao import (
     EstadoDependencia,
     NomeDependencia,
     PortaSonda,
     ResultadoSonda,
+    VerificacaoEmAndamento,
 )
 from central_preventiva.dominio.estados_prontidao import EstadoProntidao
 
@@ -17,6 +21,12 @@ DEPENDENCIAS_EXTERNAS: tuple[NomeDependencia, ...] = ("inmet", "openai")
 
 CAUSA_CREDENCIAL_AUSENTE = "Credencial ausente."
 CAUSA_FALHA_INESPERADA = "Falha inesperada durante a verificação."
+
+OPERACAO_VERIFICACAO_PREFIXO = "verificar_prontidao"
+"""Escopo desta operação no armazenamento genérico de chaves de idempotência."""
+
+STATUS_VERIFICACAO_ACEITA = 202
+"""Status registrado para o ack de uma nova verificação aceita."""
 
 _TEXTOS: dict[tuple[NomeDependencia, EstadoProntidao], tuple[str, str]] = {
     ("backend", EstadoProntidao.DISPONIVEL): ("Nenhum.", "Nenhuma ação necessária."),
@@ -226,3 +236,115 @@ async def consultar_prontidao(
     inmet = await _obter_ou_iniciar_externa(portas, registro, "inmet")
     openai = await _obter_ou_iniciar_externa(portas, registro, "openai")
     return (backend, banco_dados, inmet, openai)
+
+
+class DependenciaLocalNaoReverifica(RuntimeError):
+    """Indica que a dependência é recomputada pelo GET e não aceita re-verificação manual."""
+
+    def __init__(self, nome: NomeDependencia) -> None:
+        """Identifica a dependência local e monta a mensagem em português."""
+
+        super().__init__(
+            f"A dependência '{nome}' é recomputada a cada consulta de prontidão e não aceita "
+            "uma nova verificação manual. Consulte o estado mais recente pela listagem de "
+            "prontidão."
+        )
+        self.nome = nome
+
+
+def _operacao(nome: NomeDependencia) -> str:
+    """Monta o nome da operação de idempotência escopada por dependência."""
+
+    return f"{OPERACAO_VERIFICACAO_PREFIXO}:{nome}"
+
+
+def _serializar_ack(estado: EstadoDependencia) -> str:
+    """Serializa o snapshot aceito para o corpo guardado na chave de idempotência."""
+
+    return json.dumps({"nome": estado.nome, "estado": str(estado.estado), "causa": estado.causa})
+
+
+def _desserializar_ack(corpo: str) -> EstadoDependencia:
+    """Reconstrói o snapshot previamente aceito a partir do corpo registrado."""
+
+    dados = cast(dict[str, str | None], json.loads(corpo))
+    nome = cast(NomeDependencia, dados["nome"])
+    estado_valor = EstadoProntidao(cast(str, dados["estado"]))
+    impacto, acao = _textos(nome, estado_valor)
+    return EstadoDependencia(
+        nome=nome,
+        estado=estado_valor,
+        verificado_em=None,
+        causa=dados.get("causa"),
+        impacto=impacto,
+        acao_disponivel=acao,
+    )
+
+
+async def solicitar_nova_verificacao(
+    portas: PortasProntidao,
+    idempotencia: PortaIdempotencia,
+    registro: RegistroProntidao,
+    nome: NomeDependencia,
+    chave_idempotencia: str,
+    hash_requisicao: str,
+) -> EstadoDependencia:
+    """Solicita (ou repete, de forma idempotente) uma nova verificação de inmet/openai.
+
+    Só se aplica a `inmet`/`openai` — `backend`/`banco_dados` já são recomputados a cada
+    `GET` e levantam `DependenciaLocalNaoReverifica`. A mesma `chave_idempotencia` com o
+    mesmo `hash_requisicao` devolve o ack já registrado, sem novo disparo; com hash
+    diferente, levanta `ConflitoIdempotencia`. Uma chave diferente enquanto outra
+    verificação está em andamento levanta `VerificacaoEmAndamento`.
+    """
+
+    if nome not in DEPENDENCIAS_EXTERNAS:
+        raise DependenciaLocalNaoReverifica(nome)
+
+    operacao = _operacao(nome)
+    registrada = idempotencia.buscar(chave_idempotencia, operacao)
+    if registrada is not None:
+        if registrada.hash_requisicao != hash_requisicao:
+            raise ConflitoIdempotencia(chave=chave_idempotencia, operacao=operacao)
+        return _desserializar_ack(registrada.corpo)
+
+    async with registro.lock_de(nome):
+        chave_atual = registro.chave_em_voo(nome)
+        if chave_atual is not None and chave_atual != chave_idempotencia:
+            raise VerificacaoEmAndamento(nome)
+
+        sonda = portas.inmet if nome == "inmet" else portas.openai
+        agora = datetime.now(UTC)
+
+        if sonda is None:
+            estado = _montar_terminal(
+                nome,
+                ResultadoSonda(
+                    estado=EstadoProntidao.INDISPONIVEL,
+                    causa=CAUSA_CREDENCIAL_AUSENTE,
+                    latencia_ms=None,
+                ),
+                agora,
+            )
+            registro.gravar(estado)
+            idempotencia.registrar(
+                chave_idempotencia,
+                operacao,
+                hash_requisicao,
+                STATUS_VERIFICACAO_ACEITA,
+                _serializar_ack(estado),
+            )
+            return estado
+
+        estado = _montar_verificando(nome)
+        registro.gravar(estado)
+        registro.marcar_em_voo(nome, chave_idempotencia)
+        idempotencia.registrar(
+            chave_idempotencia,
+            operacao,
+            hash_requisicao,
+            STATUS_VERIFICACAO_ACEITA,
+            _serializar_ack(estado),
+        )
+        asyncio.create_task(_executar_sonda(sonda, registro, nome))
+        return estado

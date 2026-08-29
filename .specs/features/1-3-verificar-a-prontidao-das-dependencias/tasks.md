@@ -322,12 +322,12 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] Mesma chave + mesmo hash reenviados → mesmo ack, sem novo disparo (idempotência)
-- [ ] Mesma chave + hash diferente → `ConflitoIdempotencia`
-- [ ] Chave diferente enquanto uma verificação já está em voo → `VerificacaoEmAndamento`
-- [ ] `nome="backend"` ou `"banco_dados"` → erro de validação dedicado, sem tocar o registro
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
-- [ ] Test count: 4+ testes passam
+- [x] Mesma chave + mesmo hash reenviados → mesmo ack, sem novo disparo (idempotência)
+- [x] Mesma chave + hash diferente → `ConflitoIdempotencia`
+- [x] Chave diferente enquanto uma verificação já está em voo → `VerificacaoEmAndamento`
+- [x] `nome="backend"` ou `"banco_dados"` → erro de validação dedicado, sem tocar o registro
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Test count: 4+ testes passam
 
 **Tests**: unit
 **Gate**: quick
