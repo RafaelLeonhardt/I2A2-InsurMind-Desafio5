@@ -423,13 +423,13 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] Renderiza as 4 linhas com estado/última verificação/causa/impacto/ação
-- [ ] Linha em `Verificando` tem `aria-live="polite"`; as demais linhas não perdem seu estado enquanto uma está em voo
-- [ ] `Degradada` e `Indisponível` são visualmente distintas (texto + ícone + classe de cor, verificável via `getByText`/atributos, não só CSS computado)
-- [ ] Falha terminal aparece na linha mesmo sem nenhum toast renderizado no teste
-- [ ] Clique no botão de re-verificação chama `solicitarNovaVerificacao` com a dependência correta
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend`
-- [ ] Test count: 6+ testes passam
+- [x] Renderiza as 4 linhas com estado/última verificação/causa/impacto/ação
+- [x] Linha em `Verificando` tem `aria-live="polite"`; as demais linhas não perdem seu estado enquanto uma está em voo
+- [x] `Degradada` e `Indisponível` são visualmente distintas (texto + ícone + classe de cor, verificável via `getByText`/atributos, não só CSS computado)
+- [x] Falha terminal aparece na linha mesmo sem nenhum toast renderizado no teste
+- [x] Clique no botão de re-verificação chama `solicitarNovaVerificacao` com a dependência correta
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend`
+- [x] Test count: 6+ testes passam
 
 **Tests**: integration
 **Gate**: full

@@ -1,0 +1,76 @@
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.tabela-prontidao {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1.25rem;
+}
+
+.tabela-prontidao th,
+.tabela-prontidao td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.estado-badge--verificando {
+  color: #475569;
+  background: #f1f5f9;
+}
+
+.estado-badge--disponivel {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.estado-badge--degradada {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.estado-badge--indisponivel {
+  color: #b91c1c;
+  background: #fee2e2;
+}
+
+.botao-reverificar {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid #cbd5f5;
+  border-radius: 0.5rem;
+  background: #ffffff;
+  color: #0f172a;
+  font: inherit;
+  cursor: pointer;
+}
+
+.botao-reverificar:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.botao-reverificar:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
