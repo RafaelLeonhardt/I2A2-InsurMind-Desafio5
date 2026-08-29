@@ -310,9 +310,9 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `'documentacao-api'` is a valid `Superficie` value, present only in `SUPERFICIES_POR_PERFIL.administrador`
-- [ ] `PerfilContexto.test.tsx` extended with a case asserting `'documentacao-api'` is absent from `segurado`'s surfaces
-- [ ] `npm test --prefix src/frontend -- --run` passes, test count increases by at least 1
+- [x] `'documentacao-api'` is a valid `Superficie` value, present only in `SUPERFICIES_POR_PERFIL.administrador`
+- [x] `PerfilContexto.test.tsx` extended with a case asserting `'documentacao-api'` is absent from `segurado`'s surfaces
+- [x] `npm test --prefix src/frontend -- --run` passes, test count increases by at least 1
 
 **Tests**: unit (RTL) - extends existing test file
 **Gate**: quick (frontend)

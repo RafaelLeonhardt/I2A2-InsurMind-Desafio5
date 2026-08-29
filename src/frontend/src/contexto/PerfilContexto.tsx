@@ -2,12 +2,16 @@ import { createContext, type ReactNode, useCallback, useContext, useState } from
 
 export type Perfil = 'administrador' | 'segurado'
 
-export type Superficie = 'prontidao' | 'restaurar-dados-sinteticos' | 'visao-geral'
+export type Superficie =
+  | 'prontidao'
+  | 'restaurar-dados-sinteticos'
+  | 'documentacao-api'
+  | 'visao-geral'
 
 export const CHAVE_ARMAZENAMENTO_PERFIL = 'central-preventiva.perfil'
 
 export const SUPERFICIES_POR_PERFIL: Record<Perfil, readonly Superficie[]> = {
-  administrador: ['prontidao', 'restaurar-dados-sinteticos'],
+  administrador: ['prontidao', 'restaurar-dados-sinteticos', 'documentacao-api'],
   segurado: ['visao-geral'],
 }
 

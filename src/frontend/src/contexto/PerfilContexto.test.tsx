@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   CHAVE_ARMAZENAMENTO_PERFIL,
   PerfilProvider,
+  SUPERFICIES_POR_PERFIL,
   usePerfilContexto,
 } from './PerfilContexto'
 
@@ -127,5 +128,10 @@ describe('PerfilProvider / usePerfilContexto', () => {
     expect(result.current.perfil).toBe('segurado')
     expect(result.current.superficieAtiva).toBe('visao-geral')
     expect(window.localStorage.getItem(CHAVE_ARMAZENAMENTO_PERFIL)).toBe('segurado')
+  })
+
+  it('"documentacao-api" está presente só nas superfícies do perfil administrador', () => {
+    expect(SUPERFICIES_POR_PERFIL.administrador).toContain('documentacao-api')
+    expect(SUPERFICIES_POR_PERFIL.segurado).not.toContain('documentacao-api')
   })
 })
