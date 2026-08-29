@@ -1,0 +1,508 @@
+{
+  "components": {
+    "schemas": {
+      "ProblemaContexto": {
+        "additionalProperties": false,
+        "description": "Falha da consulta do segurado padrão, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaContexto",
+        "type": "object"
+      },
+      "ProblemaProntidao": {
+        "additionalProperties": false,
+        "description": "Falha da operação de prontidão, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaProntidao",
+        "type": "object"
+      },
+      "ProblemaRestauracao": {
+        "additionalProperties": false,
+        "description": "Falha da restauração, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaRestauracao",
+        "type": "object"
+      },
+      "RespostaDependencia": {
+        "additionalProperties": false,
+        "description": "Estado de prontidão de uma única dependência, pronto para exibição.",
+        "properties": {
+          "acao_disponivel": {
+            "title": "Acao Disponivel",
+            "type": "string"
+          },
+          "causa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Causa"
+          },
+          "estado": {
+            "title": "Estado",
+            "type": "string"
+          },
+          "impacto": {
+            "title": "Impacto",
+            "type": "string"
+          },
+          "nome": {
+            "title": "Nome",
+            "type": "string"
+          },
+          "verificado_em": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Verificado Em"
+          }
+        },
+        "required": [
+          "nome",
+          "estado",
+          "verificado_em",
+          "causa",
+          "impacto",
+          "acao_disponivel"
+        ],
+        "title": "RespostaDependencia",
+        "type": "object"
+      },
+      "RespostaDependencias": {
+        "additionalProperties": false,
+        "description": "Resposta pública consolidada das 4 dependências.",
+        "properties": {
+          "dependencias": {
+            "items": {
+              "$ref": "#/components/schemas/RespostaDependencia"
+            },
+            "title": "Dependencias",
+            "type": "array"
+          }
+        },
+        "required": [
+          "dependencias"
+        ],
+        "title": "RespostaDependencias",
+        "type": "object"
+      },
+      "RespostaRestauracao": {
+        "additionalProperties": false,
+        "description": "Resposta pública de uma restauração concluída.",
+        "properties": {
+          "restaurado_em": {
+            "format": "date-time",
+            "title": "Restaurado Em",
+            "type": "string"
+          },
+          "status": {
+            "const": "restaurado",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "restaurado_em"
+        ],
+        "title": "RespostaRestauracao",
+        "type": "object"
+      },
+      "RespostaSaude": {
+        "additionalProperties": false,
+        "description": "Resposta pública da disponibilidade do processo backend.",
+        "properties": {
+          "ambiente": {
+            "const": "educacional",
+            "title": "Ambiente",
+            "type": "string"
+          },
+          "status": {
+            "const": "disponivel",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "ambiente"
+        ],
+        "title": "RespostaSaude",
+        "type": "object"
+      },
+      "RespostaSeguradoPadrao": {
+        "additionalProperties": false,
+        "description": "Resposta pública do segurado sintético padrão.",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "nome": {
+            "title": "Nome",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nome"
+        ],
+        "title": "RespostaSeguradoPadrao",
+        "type": "object"
+      },
+      "RespostaVerificacaoAceita": {
+        "additionalProperties": false,
+        "description": "Ack de uma nova verificação aceita para processamento em segundo plano.",
+        "properties": {
+          "aceito_em": {
+            "format": "date-time",
+            "title": "Aceito Em",
+            "type": "string"
+          },
+          "estado": {
+            "title": "Estado",
+            "type": "string"
+          },
+          "nome": {
+            "title": "Nome",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nome",
+          "estado",
+          "aceito_em"
+        ],
+        "title": "RespostaVerificacaoAceita",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Disponibiliza somente os recursos implementados da Central Preventiva, com dados sintéticos e sem envio real.",
+    "summary": "API local da prova de conceito educacional.",
+    "title": "Central Preventiva",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/dados-sinteticos/restauracoes": {
+      "post": {
+        "description": "Repõe o conjunto sintético versionado em uma única transação. Exige o cabeçalho `Idempotency-Key` em toda requisição.",
+        "operationId": "restaurar_api_v1_dados_sinteticos_restauracoes_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaRestauracao"
+                }
+              }
+            },
+            "description": "Dados sintéticos restaurados."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaRestauracao"
+                }
+              }
+            },
+            "description": "Restauração recusada sem qualquer mutação."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaRestauracao"
+                }
+              }
+            },
+            "description": "Requisição sem o cabeçalho `Idempotency-Key`."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaRestauracao"
+                }
+              }
+            },
+            "description": "Falha ao concluir a transação de restauração."
+          }
+        },
+        "summary": "Restaurar os dados sintéticos da demonstração",
+        "tags": [
+          "Dados sintéticos"
+        ]
+      }
+    },
+    "/api/v1/prontidao/dependencias": {
+      "get": {
+        "description": "Devolve o estado mais recente de backend, banco de dados, INMET e OpenAI. Backend e banco de dados são recomputados a cada chamada; INMET e OpenAI, na primeira consulta, disparam a verificação em segundo plano e retornam 'verificando'.",
+        "operationId": "consultar_api_v1_prontidao_dependencias_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaDependencias"
+                }
+              }
+            },
+            "description": "Estado de prontidão das 4 dependências."
+          }
+        },
+        "summary": "Consultar a prontidão das dependências",
+        "tags": [
+          "Prontidão"
+        ]
+      }
+    },
+    "/api/v1/prontidao/dependencias/{nome}/verificacoes": {
+      "post": {
+        "description": "Solicita, de forma assíncrona e idempotente, uma nova verificação de INMET ou OpenAI. Exige o cabeçalho `Idempotency-Key` em toda requisição. Backend e banco de dados não aceitam este recurso: já são recomputados a cada `GET`.",
+        "operationId": "verificar_novamente_api_v1_prontidao_dependencias__nome__verificacoes_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "nome",
+            "required": true,
+            "schema": {
+              "title": "Nome",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaVerificacaoAceita"
+                }
+              }
+            },
+            "description": "Nova verificação aceita e em andamento."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaProntidao"
+                }
+              }
+            },
+            "description": "Dependência desconhecida."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaProntidao"
+                }
+              }
+            },
+            "description": "Conflito de idempotência ou verificação já em andamento."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaProntidao"
+                }
+              }
+            },
+            "description": "Cabeçalho ausente ou dependência local sem re-verificação."
+          }
+        },
+        "summary": "Solicitar uma nova verificação de prontidão",
+        "tags": [
+          "Prontidão"
+        ]
+      }
+    },
+    "/api/v1/saude": {
+      "get": {
+        "description": "Confirma somente que o processo local da API está disponível.",
+        "operationId": "obter_saude_api_v1_saude_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaSaude"
+                }
+              }
+            },
+            "description": "Saúde do processo confirmada."
+          }
+        },
+        "summary": "Consultar a saúde do processo",
+        "tags": [
+          "Saúde"
+        ]
+      }
+    },
+    "/api/v1/segurados/padrao": {
+      "get": {
+        "description": "Devolve o segurado sintético padrão usado na visão de Segurado da demonstração.",
+        "operationId": "consultar_api_v1_segurados_padrao_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaSeguradoPadrao"
+                }
+              }
+            },
+            "description": "Segurado sintético padrão encontrado."
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaContexto"
+                }
+              }
+            },
+            "description": "Dados sintéticos ainda não restaurados."
+          }
+        },
+        "summary": "Consultar o segurado sintético padrão",
+        "tags": [
+          "Segurados"
+        ]
+      }
+    }
+  }
+}

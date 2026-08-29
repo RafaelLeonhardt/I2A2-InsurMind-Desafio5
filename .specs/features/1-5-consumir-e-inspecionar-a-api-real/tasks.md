@@ -110,8 +110,8 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `central_preventiva/composicao/openapi.json` exists, is valid JSON, and matches the current app's `.openapi()` output byte-for-byte
-- [ ] File is committed to version control
+- [x] `central_preventiva/composicao/openapi.json` exists, is valid JSON, and matches the current app's `.openapi()` output byte-for-byte
+- [x] File is committed to version control
 
 **Tests**: none (per matrix)
 **Gate**: quick (backend)
