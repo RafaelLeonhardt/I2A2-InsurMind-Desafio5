@@ -197,9 +197,9 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `npm install --prefix src/frontend` succeeds with both packages present
-- [ ] Both scripts defined in `package.json`
-- [ ] Manually confirmed: running `gerar-tipos-api` with the backend down exits non-zero with a clear stderr message and writes no file
+- [x] `npm install --prefix src/frontend` succeeds with both packages present
+- [x] Both scripts defined in `package.json`
+- [x] Manually confirmed: running `gerar-tipos-api` with the backend down exits non-zero with a clear stderr message and writes no file
 
 **Tests**: none (per matrix)
 **Gate**: quick (frontend)
