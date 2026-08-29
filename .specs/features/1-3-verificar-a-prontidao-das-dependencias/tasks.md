@@ -200,9 +200,9 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] `await SondaBackend().verificar()` retorna sempre `DISPONIVEL`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
-- [ ] Test count: 1+ teste passa
+- [x] `await SondaBackend().verificar()` retorna sempre `DISPONIVEL`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Test count: 1+ teste passa
 
 **Tests**: unit
 **Gate**: quick
