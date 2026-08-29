@@ -141,7 +141,7 @@ export function SuperficieProntidao() {
   const porNome = new Map(dependencias.map((dependencia) => [dependencia.nome, dependencia]))
 
   return (
-    <main className="conteudo">
+    <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
       <p className="rotulo-contexto">Prontidão</p>
       <h1>Prontidão das dependências</h1>
       <p className="introducao">

@@ -4,7 +4,7 @@ import { CalendarDotsIcon, CloudRainIcon } from '@phosphor-icons/react'
 export function VisaoGeralSegurado() {
   return (
     <>
-      <main className="conteudo">
+      <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
         <p className="rotulo-contexto">Visão geral preventiva</p>
         <h1>Há chuva forte prevista para sua região.</h1>
         <p className="introducao">

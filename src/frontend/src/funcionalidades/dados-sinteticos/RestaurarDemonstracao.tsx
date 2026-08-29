@@ -46,7 +46,7 @@ export function RestaurarDemonstracao() {
   const encerrado = estado === 'concluido' || estado === 'falha'
 
   return (
-    <main className="conteudo">
+    <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
       <p className="rotulo-contexto">Área administrativa</p>
       <h1>Restaurar demonstração</h1>
       <p className="introducao">

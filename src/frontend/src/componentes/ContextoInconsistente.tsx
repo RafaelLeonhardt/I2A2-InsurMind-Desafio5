@@ -14,7 +14,7 @@ export function ContextoInconsistente({
   aoVoltar: () => void
 }) {
   return (
-    <main className="conteudo">
+    <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
       <p className="rotulo-contexto">Contexto inconsistente</p>
       <h1>Esta superfície não está disponível para o perfil {ROTULOS_PERFIL[perfil]}</h1>
       <p className="introducao">
