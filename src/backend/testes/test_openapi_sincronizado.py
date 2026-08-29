@@ -9,6 +9,7 @@ from central_preventiva.composicao.openapi_export import (
     gerar_documento_openapi,
 )
 
+
 def configuracao_para(caminho: Path) -> Configuracao:
     """Monta a configuração local apontada ao banco temporário do teste."""
 

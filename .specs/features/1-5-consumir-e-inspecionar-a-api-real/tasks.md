@@ -153,8 +153,8 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] T3's drift/PT-BR test passes with zero gaps
-- [ ] `uv run --directory src/backend pytest` passes
+- [x] T3's drift/PT-BR test passes with zero gaps (confirmed: all existing routes already carry PT-BR `summary`/`description`; no route edits needed)
+- [x] `uv run --directory src/backend pytest` passes
 
 **Tests**: integration (extends T3's test, no new test file)
 **Gate**: quick (backend)
@@ -174,10 +174,10 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Test asserts CORS header present for the configured origin
-- [ ] Test asserts CORS header absent (or request rejected) for an unconfigured origin
-- [ ] Test asserts `GET /docs` and `GET /openapi.json` return `200`
-- [ ] `uv run --directory src/backend pytest` passes, test count increases by the number of new test functions added
+- [x] Test asserts CORS header present for the configured origin
+- [x] Test asserts CORS header absent (or request rejected) for an unconfigured origin
+- [x] Test asserts `GET /docs` and `GET /openapi.json` return `200`
+- [x] `uv run --directory src/backend pytest` passes, test count increases by the number of new test functions added
 
 **Tests**: integration
 **Gate**: build (end of Phase 1: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`)
