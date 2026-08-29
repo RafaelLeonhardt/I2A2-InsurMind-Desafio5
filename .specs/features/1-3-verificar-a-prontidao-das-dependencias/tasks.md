@@ -400,10 +400,10 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] `getDependencias()` mapeia `snake_case` → `camelCase`, sucesso e falha de rede
-- [ ] `solicitarNovaVerificacao(nome)` trata `202`, `404`, `409` (dois códigos), `422` (dois códigos)
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run`
-- [ ] Test count: 6+ testes passam
+- [x] `getDependencias()` mapeia `snake_case` → `camelCase`, sucesso e falha de rede
+- [x] `solicitarNovaVerificacao(nome)` trata `202`, `404`, `409` (dois códigos), `422` (dois códigos)
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run`
+- [x] Test count: 6+ testes passam
 
 **Tests**: unit
 **Gate**: quick
