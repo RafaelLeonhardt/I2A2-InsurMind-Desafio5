@@ -154,9 +154,9 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] `Segurado` criado como dataclass imutável com `id: UUID` e `nome: str`
-- [ ] Módulo não importa `fastapi`/`pydantic`/`duckdb`/`aplicacao`/`adaptadores`/`composicao` (respeita `test_camadas.py`)
-- [ ] Gate check passes: `uv run --directory src/backend pytest`
+- [x] `Segurado` criado como dataclass imutável com `id: UUID` e `nome: str`
+- [x] Módulo não importa `fastapi`/`pydantic`/`duckdb`/`aplicacao`/`adaptadores`/`composicao` (respeita `test_camadas.py`)
+- [x] Gate check passes: `uv run --directory src/backend pytest`
 
 **Tests**: none (entidade pura, sem lógica de ramificação - conforme o default da matriz para camada de entidade/config)
 **Gate**: quick (backend)
