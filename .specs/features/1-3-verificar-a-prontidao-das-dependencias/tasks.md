@@ -222,10 +222,10 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] Banco válido em `tmp_path` → `DISPONIVEL`
-- [ ] Banco inacessível (ex. diretório sem permissão, ou arquivo corrompido) → `INDISPONIVEL`, `causa` sem o caminho absoluto do arquivo
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
-- [ ] Test count: 2+ testes passam
+- [x] Banco válido em `tmp_path` → `DISPONIVEL`
+- [x] Banco inacessível (ex. diretório sem permissão, ou arquivo corrompido) → `INDISPONIVEL`, `causa` sem o caminho absoluto do arquivo
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Test count: 2+ testes passam
 
 **Tests**: unit
 **Gate**: quick
