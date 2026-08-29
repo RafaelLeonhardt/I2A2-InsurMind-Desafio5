@@ -297,12 +297,12 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] Primeira chamada com registro vazio: `backend`/`banco_dados` já terminais na mesma chamada; `inmet`/`openai` = `VERIFICANDO`
-- [ ] Chamada seguinte, após a task de fundo concluir (aguardada no teste), reflete o estado terminal (`DISPONIVEL`/`DEGRADADA`/`INDISPONIVEL`) sem novo disparo
-- [ ] Uma sonda que levanta exceção não mapeada resulta em `INDISPONIVEL` com causa genérica (nunca deixa `VERIFICANDO` pendurado — NFR11)
-- [ ] `backend`/`banco_dados` nunca chamam `PortaSonda` de inmet/openai (assert com dublê que falha se chamado)
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
-- [ ] Test count: 4+ testes passam
+- [x] Primeira chamada com registro vazio: `backend`/`banco_dados` já terminais na mesma chamada; `inmet`/`openai` = `VERIFICANDO`
+- [x] Chamada seguinte, após a task de fundo concluir (aguardada no teste), reflete o estado terminal (`DISPONIVEL`/`DEGRADADA`/`INDISPONIVEL`) sem novo disparo
+- [x] Uma sonda que levanta exceção não mapeada resulta em `INDISPONIVEL` com causa genérica (nunca deixa `VERIFICANDO` pendurado — NFR11)
+- [x] `backend`/`banco_dados` nunca chamam `PortaSonda` de inmet/openai (assert com dublê que falha se chamado)
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Test count: 4+ testes passam
 
 **Tests**: unit
 **Gate**: quick
