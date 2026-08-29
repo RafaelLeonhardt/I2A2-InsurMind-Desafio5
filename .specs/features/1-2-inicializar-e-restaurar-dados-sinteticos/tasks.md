@@ -593,6 +593,30 @@ distinguíveis por papel acessível.
 
 ---
 
+## Fix Tasks (post-Verifier)
+
+### F1: Corrigir a ordem de verificação em `restaurar_dados_sinteticos`
+
+**What**: The Verifier (first pass) found that restoring against a database with no migrations applied at all returned a generic `500` instead of the `409 nao_inicializado` `spec.md`'s edge case requires, because `PortaIdempotencia.buscar()` ran before the `esta_semeado()` guard and raised an unhandled DuckDB catalog error (no `chaves_idempotencia` table yet), swallowed by the router's catch-all. Reordered `aplicacao/restauracao.py` so `esta_semeado()` is checked first.
+**Where**: `src/backend/central_preventiva/aplicacao/restauracao.py`, `src/backend/testes/test_restauracao.py` (call-order assertions), `src/backend/testes/test_dados_sinteticos_api.py` (new e2e case for the "no migrations at all" state)
+**Depends on**: T10, T12
+**Requirement**: SEED-08 (edge case: "restauração solicitada antes de qualquer inicialização")
+
+**Done when**:
+- [x] `restaurar_dados_sinteticos` checks `esta_semeado()` before `idempotencia.buscar()`
+- [x] `test_restauracao.py`'s five call-order assertions updated to match
+- [x] New e2e test posts against a `tmp_path` DuckDB with zero migrations applied and asserts `409 nao_inicializado` (not `500`)
+- [x] Full backend gate green: 109 passed (was 108), ruff clean, pyright strict clean
+
+**Tests**: unit + e2e
+**Gate**: full
+
+**Commit**: `fix(aplicacao): verificar inicializacao antes da chave de idempotencia na restauracao`
+
+**Status**: ✅ Complete
+
+---
+
 ## Phase Execution Map
 
 Visual representation of task ordering. Phases run in sequence, and tasks within a phase run in order:

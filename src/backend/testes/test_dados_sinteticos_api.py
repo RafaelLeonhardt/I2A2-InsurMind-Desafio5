@@ -153,6 +153,17 @@ def test_restauracao_antes_da_inicializacao_orienta_a_inicializar(tmp_path: Path
     assert "inicialização" in resposta.json()["proxima_acao"]
 
 
+def test_restauracao_em_banco_sem_nenhuma_migracao_orienta_a_inicializar(tmp_path: Path) -> None:
+    caminho = tmp_path / "central_preventiva.duckdb"
+
+    resposta = cliente_para(caminho).post(CAMINHO, headers={"Idempotency-Key": str(uuid4())})
+
+    assert resposta.status_code == 409
+    assert resposta.headers["content-type"].startswith(TIPO_PROBLEMA)
+    assert resposta.json()["codigo"] == "nao_inicializado"
+    assert "inicialização" in resposta.json()["proxima_acao"]
+
+
 def test_falha_na_transacao_preserva_o_conjunto_anterior_e_relata_a_falha(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

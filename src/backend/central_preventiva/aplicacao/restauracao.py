@@ -56,14 +56,14 @@ def restaurar_dados_sinteticos(
 ) -> ResultadoRestauracao:
     """Repõe o conjunto sintético versionado, uma única vez por chave de idempotência."""
 
+    if not portas.dados.esta_semeado():
+        raise NaoInicializado()
+
     registrada = portas.idempotencia.buscar(chave_idempotencia, OPERACAO_RESTAURACAO)
     if registrada is not None:
         if registrada.hash_requisicao != hash_requisicao:
             raise ConflitoIdempotencia(chave=chave_idempotencia, operacao=OPERACAO_RESTAURACAO)
         return desserializar_resultado(registrada.corpo)
-
-    if not portas.dados.esta_semeado():
-        raise NaoInicializado()
 
     if portas.execucoes.existe_execucao_nao_terminal():
         raise ExecucaoAtivaImpedeRestauracao()

@@ -118,8 +118,8 @@ def test_restauracao_bem_sucedida_consulta_guarda_restaura_e_registra() -> None:
     resultado = restaurar_dados_sinteticos(portas, CHAVE, HASH)
 
     assert diario == [
-        "buscar",
         "esta_semeado",
+        "buscar",
         "existe_execucao_nao_terminal",
         "restaurar",
         "registrar",
@@ -147,7 +147,7 @@ def test_chave_repetida_com_mesmo_conteudo_devolve_a_resposta_registrada() -> No
 
     resultado = restaurar_dados_sinteticos(portas, CHAVE, HASH)
 
-    assert diario == ["buscar"]
+    assert diario == ["esta_semeado", "buscar"]
     assert "restaurar" not in diario
     assert "registrar" not in diario
     assert resultado.status == "restaurado"
@@ -166,7 +166,7 @@ def test_chave_repetida_com_conteudo_diferente_conflita_sem_mutacao() -> None:
 
     assert captura.value.chave == CHAVE
     assert captura.value.operacao == OPERACAO_RESTAURACAO
-    assert diario == ["buscar"]
+    assert diario == ["esta_semeado", "buscar"]
     assert "restaurar" not in diario
     assert "registrar" not in diario
 
@@ -181,7 +181,7 @@ def test_execucao_ativa_impede_a_restauracao_sem_mutacao() -> None:
         restaurar_dados_sinteticos(portas, CHAVE, HASH)
 
     assert "execução ativa impede a restauração" in str(captura.value)
-    assert diario == ["buscar", "esta_semeado", "existe_execucao_nao_terminal"]
+    assert diario == ["esta_semeado", "buscar", "existe_execucao_nao_terminal"]
     assert "restaurar" not in diario
     assert "registrar" not in diario
 
@@ -196,6 +196,7 @@ def test_restauracao_antes_da_inicializacao_e_recusada_sem_consultar_a_guarda() 
         restaurar_dados_sinteticos(portas, CHAVE, HASH)
 
     assert "Execute o comando de inicialização" in str(captura.value)
-    assert diario == ["buscar", "esta_semeado"]
+    assert diario == ["esta_semeado"]
+    assert "buscar" not in diario
     assert "existe_execucao_nao_terminal" not in diario
     assert "restaurar" not in diario
