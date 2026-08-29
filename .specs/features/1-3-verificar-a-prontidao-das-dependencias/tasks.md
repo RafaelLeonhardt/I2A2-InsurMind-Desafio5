@@ -155,9 +155,9 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] `httpx` aparece em `[project.dependencies]`
-- [ ] `uv sync` (ou equivalente já usado pelo projeto) resolve sem erro
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `httpx` aparece em `[project.dependencies]`
+- [x] `uv sync` (ou equivalente já usado pelo projeto) resolve sem erro
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: none
 **Gate**: build
