@@ -9,7 +9,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/1-2-inicializar-e-restaurar-dados-sinteticos/design.md`
-**Status**: Draft
+**Status**: Done - verified 2026-08-29, see `validation.md`
 
 ---
 

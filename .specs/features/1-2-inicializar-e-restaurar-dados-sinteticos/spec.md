@@ -6,9 +6,9 @@ The Central Preventiva backend has no persistence yet — only the Story 1.1 hea
 
 ## Goals
 
-- [ ] First run against an empty/missing DuckDB file applies all versioned migrations and seeds the full synthetic reference dataset in one reproducible step.
-- [ ] Re-running initialization, or explicitly restoring via the admin UI, is safe, transactional, and idempotent — no duplicate records, no partial state on failure.
-- [ ] The schema-versioning mechanism rejects unsafe states (future schema version, corrupted/missing migration ledger) instead of guessing.
+- [x] First run against an empty/missing DuckDB file applies all versioned migrations and seeds the full synthetic reference dataset in one reproducible step.
+- [x] Re-running initialization, or explicitly restoring via the admin UI, is safe, transactional, and idempotent — no duplicate records, no partial state on failure.
+- [x] The schema-versioning mechanism rejects unsafe states (future schema version, corrupted/missing migration ledger) instead of guessing.
 
 ## Out of Scope
 
@@ -100,27 +100,27 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| SEED-01 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
-| SEED-02 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
-| SEED-03 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
-| SEED-04 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
-| SEED-05 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
-| SEED-06 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
-| SEED-07 | P1: Inicializar esquema e dados sintéticos | Tasks | Implementing |
-| SEED-08 | P1: Restaurar a demonstração com segurança | Design | Pending |
-| SEED-09 | P1: Restaurar a demonstração com segurança | Tasks | Implementing |
-| SEED-10 | P1: Restaurar a demonstração com segurança | Tasks | Implementing |
-| SEED-11 | P1: Restaurar a demonstração com segurança | Tasks | Implementing |
-| SEED-12 | P1: Restaurar a demonstração com segurança | Tasks | Implementing |
-| SEED-13 | P1: Restaurar a demonstração com segurança | Tasks | Implementing |
-| SEED-14 | P1: Restaurar a demonstração com segurança | Design | Pending |
-| SEED-15 | P1: Restaurar a demonstração com segurança | Design | Pending |
+| SEED-01 | P1: Inicializar esquema e dados sintéticos | Verified | Verified |
+| SEED-02 | P1: Inicializar esquema e dados sintéticos | Verified | Verified |
+| SEED-03 | P1: Inicializar esquema e dados sintéticos | Verified | Verified |
+| SEED-04 | P1: Inicializar esquema e dados sintéticos | Verified | Verified |
+| SEED-05 | P1: Inicializar esquema e dados sintéticos | Verified | Verified |
+| SEED-06 | P1: Inicializar esquema e dados sintéticos | Verified | Verified |
+| SEED-07 | P1: Inicializar esquema e dados sintéticos | Verified | Verified |
+| SEED-08 | P1: Restaurar a demonstração com segurança | Verified | Verified |
+| SEED-09 | P1: Restaurar a demonstração com segurança | Verified | Verified |
+| SEED-10 | P1: Restaurar a demonstração com segurança | Verified | Verified |
+| SEED-11 | P1: Restaurar a demonstração com segurança | Verified | Verified |
+| SEED-12 | P1: Restaurar a demonstração com segurança | Verified | Verified |
+| SEED-13 | P1: Restaurar a demonstração com segurança | Verified | Verified |
+| SEED-14 | P1: Restaurar a demonstração com segurança | Verified | Verified |
+| SEED-15 | P1: Restaurar a demonstração com segurança | Verified | Verified |
 
 **ID format:** `SEED-[NUMBER]`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 15 total, 0 mapped to tasks, 15 unmapped ⚠️ (expected until Tasks phase runs)
+**Coverage:** 15 total, 15 mapped to tasks, 0 unmapped. Verified by independent Verifier sub-agent, 2026-08-29 (`validation.md`): 15/15 ACs matched spec-defined outcome, 4/4 edge cases covered, 0 gaps, 0 genuine surviving mutants (12 injected, 1 proven-equivalent). Two spec-precision gaps flagged (not blocking - see `validation.md`).
 
 ---
 

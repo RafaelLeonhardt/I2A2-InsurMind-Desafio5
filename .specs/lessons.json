@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 5,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "ac_gap::when a spec precondition names an absence before any successful initialization test every database state that phrase admits no schema at all and schema without seed not just the most convenient one",
+      "text": "When a spec precondition names an absence (\"before any successful initialization\"), test every database state that phrase admits - no schema at all, and schema without seed - not just the most convenient one.",
+      "signal": "ac_gap",
+      "scope": "testes/e2e",
+      "status": "candidate",
+      "features": [
+        "1-2-inicializar-e-restaurar-dados-sinteticos"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md Fix 1 - src/backend/testes/test_dados_sinteticos_api.py:146 (testes/e2e)"
+      ],
+      "created": "2026-08-29T08:53:06Z",
+      "last_seen": "2026-08-29T08:53:06Z"
+    },
+    {
+      "id": "L-002",
+      "key": "spec_precision_gap::when the spec requires an error response to carry named fields without fixing their wording assert each field is present and non empty and record the missing wording as a spec precision gap",
+      "text": "When the spec requires an error response to carry named fields without fixing their wording, assert each field is present and non-empty and record the missing wording as a spec-precision gap.",
+      "signal": "spec_precision_gap",
+      "scope": "adaptadores/http",
+      "status": "candidate",
+      "features": [
+        "1-2-inicializar-e-restaurar-dados-sinteticos"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "spec.md SEED-13 - src/backend/testes/test_dados_sinteticos_api.py:174 (adaptadores/http)",
+        "validation.md SEED-13 (pass 2) - src/backend/testes/test_dados_sinteticos_api.py:185 (adaptadores/http)"
+      ],
+      "created": "2026-08-29T08:53:06Z",
+      "last_seen": "2026-08-29T09:06:16Z"
+    },
+    {
+      "id": "L-003",
+      "key": "spec_precision_gap::name the exact http status code in the spec for every refusal path when the spec only says explicit error record the chosen status as a spec precision gap instead of passing it silently",
+      "text": "Name the exact HTTP status code in the spec for every refusal path; when the spec only says \"explicit error\", record the chosen status as a spec-precision gap instead of passing it silently.",
+      "signal": "spec_precision_gap",
+      "scope": "adaptadores/http",
+      "status": "candidate",
+      "features": [
+        "1-2-inicializar-e-restaurar-dados-sinteticos"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "spec.md Edge Cases - src/backend/central_preventiva/adaptadores/http/dados_sinteticos.py:146 (adaptadores/http)",
+        "validation.md Edge Cases (pass 2) - src/backend/central_preventiva/adaptadores/http/dados_sinteticos.py:146 (adaptadores/http)"
+      ],
+      "created": "2026-08-29T08:53:06Z",
+      "last_seen": "2026-08-29T09:06:16Z"
+    },
+    {
+      "id": "L-004",
+      "key": "spec_deviation::duckdb checks foreign keys immediately and cannot defer them within a transaction so a schema needing single transaction delete and reinsert must declare relationships as documented logical foreign keys instead of references",
+      "text": "DuckDB checks foreign keys immediately and cannot defer them within a transaction, so a schema needing single-transaction delete-and-reinsert must declare relationships as documented logical foreign keys instead of REFERENCES.",
+      "signal": "spec_deviation",
+      "scope": "adaptadores/persistencia",
+      "status": "candidate",
+      "features": [
+        "1-2-inicializar-e-restaurar-dados-sinteticos"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tasks.md T8 SPEC_DEVIATION - src/backend/central_preventiva/adaptadores/persistencia/migracoes/0001_schema_inicial.sql:2 (adaptadores/persistencia)",
+        "validation.md Task Completion T5/T8 (pass 2) - src/backend/central_preventiva/adaptadores/persistencia/migracoes/0001_schema_inicial.sql:2 (adaptadores/persistencia)"
+      ],
+      "created": "2026-08-29T08:53:06Z",
+      "last_seen": "2026-08-29T09:06:16Z"
+    }
+  ]
+}
