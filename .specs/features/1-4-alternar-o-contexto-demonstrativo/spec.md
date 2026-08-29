@@ -38,6 +38,7 @@ Toda ambiguidade foi resolvida ou registrada aqui — nada fica sem definição.
 | Mecanismo de "próxima ação válida" quando o contexto está ausente/incompatível | Mensagem explicando a inconsistência + botão que retorna à Visão geral do perfil ativo vigente | Único destino sempre válido dado que cada perfil tem uma superfície inicial estável nesta história | y |
 | Biblioteca/mecanismo de navegação entre superfícies (SPA router vs. estado local) | Decisão de arquitetura, não de produto | Cabe à fase de Design, não a esta especificação | n/a — Design decide |
 | Componente visual exato do seletor "Visualizar como" | Segue `{components.seletor-demonstrativo}` do `DESIGN.md` (rótulo visível, ícone auxiliar) | Já especificado nos artefatos de design; não é uma decisão de produto em aberto | y |
+| Verificação automatizada do "indicador de foco de 3 px" (CTX-18) | O valor exato de 3 px é garantido pela regra CSS `button:focus-visible, a:focus-visible, main:focus-visible { outline: 3px solid var(--amber) }` (`src/frontend/src/App.css:17`) e validado por revisão visual/UAT, não por um teste automatizado de `getComputedStyle` | `jsdom` (ambiente de teste do Vitest, sem `css: true`) não aplica o cascateamento real de folhas de estilo externas; um teste de `getComputedStyle` sobre esse valor não distinguiria uma regressão real de um falso positivo/negativo, violando o critério "non-shallow" da revisão de adequação de testes. Os testes automatizados cobrem a ordem de tabulação e a ativação por `Enter`/clique (a parte comportamental do AC); o valor "3 px" em si fica sob responsabilidade da revisão de design/UAT | y |
 
 **Open questions:** none — todas resolvidas ou registradas acima.
 
@@ -159,7 +160,7 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
 | CTX-01 | P1: Alternar entre Administrador e Segurado | Tasks | Implementing |
-| CTX-02 | P1: Alternar entre Administrador e Segurado | Tasks | Implementing |
+| CTX-02 | P1: Alternar entre Administrador e Segurado | Tasks | Verified |
 | CTX-03 | P1: Alternar entre Administrador e Segurado | Tasks | Implementing |
 | CTX-04 | P1: Alternar entre Administrador e Segurado | Tasks | Implementing |
 | CTX-05 | P1: Alternar entre Administrador e Segurado | Tasks | Implementing |
@@ -175,7 +176,7 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 | CTX-15 | P1: Bloquear contexto ausente ou incompatível | Tasks | Implementing |
 | CTX-16 | P2: Operar em larguras de desktop suportadas | Tasks | Implementing |
 | CTX-17 | P2: Operar em larguras de desktop suportadas | Tasks | Implementing |
-| CTX-18 | P2: Operar o seletor e a navegação por teclado | Tasks | Implementing |
+| CTX-18 | P2: Operar o seletor e a navegação por teclado | Tasks | Verified |
 | CTX-19 | P2: Operar o seletor e a navegação por teclado | Tasks | Implementing |
 | CTX-20 | P2: Operar o seletor e a navegação por teclado | Tasks | Implementing |
 

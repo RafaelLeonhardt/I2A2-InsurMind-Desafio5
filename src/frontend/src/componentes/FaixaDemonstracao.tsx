@@ -2,12 +2,7 @@
 export function FaixaDemonstracao() {
   return (
     <footer className="faixa-simulacao">
-      <span>
-        <strong>Dados sintéticos</strong> · Ambiente educacional
-      </span>
-      <span>
-        <strong>Sem envio real</strong> · Simulação local
-      </span>
+      <span>Ambiente educacional · Dados sintéticos · Sem envio real</span>
     </footer>
   )
 }

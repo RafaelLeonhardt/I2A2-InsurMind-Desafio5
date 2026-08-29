@@ -3,12 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { FaixaDemonstracao } from './FaixaDemonstracao'
 
 describe('FaixaDemonstracao', () => {
-  it('exibe os três textos fixos da faixa demonstrativa', () => {
+  it('exibe a faixa fixa "Ambiente educacional · Dados sintéticos · Sem envio real"', () => {
     render(<FaixaDemonstracao />)
 
-    expect(screen.getByText('Dados sintéticos')).toBeInTheDocument()
-    expect(screen.getByText(/Ambiente educacional/)).toBeInTheDocument()
-    expect(screen.getByText('Sem envio real')).toBeInTheDocument()
+    expect(
+      screen.getByText('Ambiente educacional · Dados sintéticos · Sem envio real'),
+    ).toBeInTheDocument()
   })
 
   it('não contém nenhum elemento interativo de fechamento', () => {

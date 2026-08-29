@@ -46,13 +46,13 @@ afterEach(() => {
 })
 
 describe('shell do contexto demonstrativo', () => {
-  it('mantém os avisos persistentes da demonstração em qualquer perfil', () => {
+  it('mantém a faixa fixa "Ambiente educacional · Dados sintéticos · Sem envio real" em qualquer perfil', () => {
     definirLargura(1440)
-    const { container } = render(<App />)
+    render(<App />)
 
-    expect(container.textContent).toContain('Ambiente educacional')
-    expect(screen.getAllByText('Dados sintéticos').length).toBeGreaterThan(0)
-    expect(screen.getByText(/Sem envio real/)).toBeInTheDocument()
+    expect(
+      screen.getByText('Ambiente educacional · Dados sintéticos · Sem envio real'),
+    ).toBeInTheDocument()
   })
 
   it('abre no perfil Administrador, com Prontidão e Restaurar dados sintéticos na navegação', () => {

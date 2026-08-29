@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 7,
+  "next_id": 9,
   "lessons": [
     {
       "id": "L-001",
@@ -115,6 +115,42 @@
       ],
       "created": "2026-08-29T10:32:47Z",
       "last_seen": "2026-08-29T10:32:47Z"
+    },
+    {
+      "id": "L-007",
+      "key": "ac_gap::when a spec defines a literal fixed banner label string assert the exact combined text in a test not just that its component substrings are each present somewhere in the dom",
+      "text": "When a spec defines a literal fixed banner/label string, assert the exact combined text in a test, not just that its component substrings are each present somewhere in the DOM.",
+      "signal": "ac_gap",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "1-4-alternar-o-contexto-demonstrativo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "CTX-02 (frontend)"
+      ],
+      "created": "2026-08-29T20:09:23Z",
+      "last_seen": "2026-08-29T20:09:23Z"
+    },
+    {
+      "id": "L-008",
+      "key": "spec_precision_gap::when a spec defines a precise css visual value e g an exact focus outline width in pixels add a computed style assertion or explicitly document it as a uat only manual check instead of leaving it silently unasserted",
+      "text": "When a spec defines a precise CSS visual value (e.g. an exact focus-outline width in pixels), add a computed-style assertion or explicitly document it as a UAT-only manual check instead of leaving it silently unasserted.",
+      "signal": "spec_precision_gap",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "1-4-alternar-o-contexto-demonstrativo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "CTX-18 (frontend)"
+      ],
+      "created": "2026-08-29T20:09:23Z",
+      "last_seen": "2026-08-29T20:09:23Z"
     }
   ]
 }
