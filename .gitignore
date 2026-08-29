@@ -22,3 +22,5 @@ var/central_preventiva.duckdb
 _bmad/*
 _bmad-output/*
 .claude/skills/tlc-spec-driven/*
+.data/
+_bmad-output/
