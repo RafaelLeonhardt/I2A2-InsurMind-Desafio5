@@ -257,12 +257,12 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] `getSeguradoPadrao()` resolve com `{id, nome}` quando o backend responde 200
-- [ ] `getSeguradoPadrao()` rejeita com `ErroContexto` tipado quando o backend responde `503 problem+json`
-- [ ] `getSeguradoPadrao()` rejeita com `ErroContexto` (`FALHA_DE_REDE`) quando `fetch` lança
-- [ ] Teste usa `fetch` mockado via `vi.stubGlobal`, mesmo padrão de `api/dadosSinteticos.test.ts`
-- [ ] Gate check passes: `npm test --prefix src/frontend -- --run`
-- [ ] Test count: 3+ novos testes passam
+- [x] `getSeguradoPadrao()` resolve com `{id, nome}` quando o backend responde 200
+- [x] `getSeguradoPadrao()` rejeita com `ErroContexto` tipado quando o backend responde `503 problem+json`
+- [x] `getSeguradoPadrao()` rejeita com `ErroContexto` (`FALHA_DE_REDE`) quando `fetch` lança
+- [x] Teste usa `fetch` mockado via `vi.stubGlobal`, mesmo padrão de `api/dadosSinteticos.test.ts`
+- [x] Gate check passes: `npm test --prefix src/frontend -- --run`
+- [x] Test count: 3+ novos testes passam
 
 **Tests**: unit
 **Gate**: quick (frontend)
