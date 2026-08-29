@@ -178,11 +178,11 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] `buscar_por_id` devolve um `Segurado` quando o id existe na tabela `segurados`
-- [ ] `buscar_por_id` devolve `None` quando o id não existe (tabela vazia ou id desconhecido)
-- [ ] Teste usa banco DuckDB temporário migrado (`ExecutorMigracoes`), mesmo padrão de `test_repositorio_execucoes.py`
-- [ ] Gate check passes: `uv run --directory src/backend pytest`
-- [ ] Test count: 2+ novos testes passam (encontrado, não encontrado)
+- [x] `buscar_por_id` devolve um `Segurado` quando o id existe na tabela `segurados`
+- [x] `buscar_por_id` devolve `None` quando o id não existe (tabela vazia ou id desconhecido)
+- [x] Teste usa banco DuckDB temporário migrado (`ExecutorMigracoes`), mesmo padrão de `test_repositorio_execucoes.py`
+- [x] Gate check passes: `uv run --directory src/backend pytest`
+- [x] Test count: 2+ novos testes passam (encontrado, não encontrado)
 
 **Tests**: integration
 **Gate**: quick (backend)
