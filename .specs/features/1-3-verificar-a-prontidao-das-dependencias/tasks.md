@@ -131,11 +131,11 @@ T13 também depende de T12 (Fase 4) - cross-fase, ver Phase Execution Map.
 - Skill: NONE
 
 **Done when**:
-- [ ] `Configuracao` aceita `OPENAI_API_KEY` ausente (campo `None`) sem falhar a validação
-- [ ] `chave_openai.get_secret_value()` nunca aparece em `repr(configuracao)` (teste que serializa/repr a config e busca a string do valor)
-- [ ] `.env.example` documenta `OPENAI_API_KEY=` e `CENTRAL_PREVENTIVA_URL_BASE_INMET=` sem valor secreto
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
-- [ ] Test count: 2+ novos testes em `test_configuracao.py` passam, nenhum teste existente quebra
+- [x] `Configuracao` aceita `OPENAI_API_KEY` ausente (campo `None`) sem falhar a validação
+- [x] `chave_openai.get_secret_value()` nunca aparece em `repr(configuracao)` (teste que serializa/repr a config e busca a string do valor)
+- [x] `.env.example` documenta `OPENAI_API_KEY=` e `CENTRAL_PREVENTIVA_URL_BASE_INMET=` sem valor secreto
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Test count: 2+ novos testes em `test_configuracao.py` passam, nenhum teste existente quebra
 
 **Tests**: integration
 **Gate**: quick

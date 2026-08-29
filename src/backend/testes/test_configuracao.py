@@ -129,6 +129,51 @@ def test_erro_de_configuracao_nao_revela_valores(
     obter_configuracao.cache_clear()
 
 
+def test_aceita_chave_openai_ausente() -> None:
+    configuracao = Configuracao(
+        host_api="127.0.0.1",
+        origem_frontend="http://127.0.0.1:5173",
+        _env_file=None,
+    )
+
+    assert configuracao.chave_openai is None
+
+
+def test_chave_openai_nunca_aparece_no_repr_nem_no_str() -> None:
+    chave_sintetica = "sk-teste-nao-deve-vazar-98765"
+
+    configuracao = Configuracao(
+        host_api="127.0.0.1",
+        origem_frontend="http://127.0.0.1:5173",
+        chave_openai=chave_sintetica,
+        _env_file=None,
+    )
+
+    assert chave_sintetica not in repr(configuracao)
+    assert chave_sintetica not in str(configuracao)
+
+
+def test_url_base_inmet_tem_padrao_vazio_quando_ausente() -> None:
+    configuracao = Configuracao(
+        host_api="127.0.0.1",
+        origem_frontend="http://127.0.0.1:5173",
+        _env_file=None,
+    )
+
+    assert configuracao.url_base_inmet == ""
+
+
+def test_url_base_inmet_aceita_valor_configurado() -> None:
+    configuracao = Configuracao(
+        host_api="127.0.0.1",
+        origem_frontend="http://127.0.0.1:5173",
+        url_base_inmet="https://exemplo-inmet.invalido/api",
+        _env_file=None,
+    )
+
+    assert configuracao.url_base_inmet == "https://exemplo-inmet.invalido/api"
+
+
 @pytest.mark.parametrize("tipo_erro", [OSError, UnicodeError])
 def test_erro_de_leitura_do_env_e_sanitizado(
     monkeypatch: pytest.MonkeyPatch,

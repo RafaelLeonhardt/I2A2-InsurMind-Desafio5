@@ -3,7 +3,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import Field, ValidationError, field_validator
+from pydantic import Field, SecretStr, ValidationError, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 RAIZ_PROJETO = Path(__file__).resolve().parents[4]
@@ -30,6 +30,14 @@ class Configuracao(BaseSettings):
     caminho_banco: Path = Field(
         default=CAMINHO_BANCO_PADRAO,
         validation_alias="CENTRAL_PREVENTIVA_CAMINHO_BANCO",
+    )
+    chave_openai: SecretStr | None = Field(
+        default=None,
+        validation_alias="OPENAI_API_KEY",
+    )
+    url_base_inmet: str = Field(
+        default="",
+        validation_alias="CENTRAL_PREVENTIVA_URL_BASE_INMET",
     )
 
     @field_validator("host_api")
