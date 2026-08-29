@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 5,
+  "next_id": 7,
   "lessons": [
     {
       "id": "L-001",
@@ -79,6 +79,42 @@
       ],
       "created": "2026-08-29T08:53:06Z",
       "last_seen": "2026-08-29T09:06:16Z"
+    },
+    {
+      "id": "L-005",
+      "key": "spec_precision_gap::when a spec sets a numeric latency budget e g p95 ns add a timing assertion measured elapsed time against the threshold in addition to structural evidence like no external i o called structural evidence alone leaves the numeric bound spec unverified",
+      "text": "When a spec sets a numeric latency budget (e.g. p95 <= Ns), add a timing assertion (measured elapsed time against the threshold) in addition to structural evidence like 'no external I/O called' -- structural evidence alone leaves the numeric bound spec-unverified.",
+      "signal": "spec_precision_gap",
+      "scope": "backend/prontidao",
+      "status": "candidate",
+      "features": [
+        "1-3-verificar-a-prontidao-das-dependencias"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "PRONT-03 (validation.md P1: Ver a prontidao consolidada AC3) (backend/prontidao)"
+      ],
+      "created": "2026-08-29T10:32:42Z",
+      "last_seen": "2026-08-29T10:32:42Z"
+    },
+    {
+      "id": "L-006",
+      "key": "spec_precision_gap::when a spec requires a real browser behavior jsdom cannot simulate e g 200 zoom real layout measurement flag it explicitly as needing manual uat verification in the spec or tasks file instead of leaving it silently uncovered by the automated suite",
+      "text": "When a spec requires a real-browser behavior jsdom cannot simulate (e.g. 200% zoom, real layout/measurement), flag it explicitly as needing manual/UAT verification in the spec or tasks file instead of leaving it silently uncovered by the automated suite.",
+      "signal": "spec_precision_gap",
+      "scope": "frontend/accessibility",
+      "status": "candidate",
+      "features": [
+        "1-3-verificar-a-prontidao-das-dependencias"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "PRONT-13 (validation.md P2: Operar a superficie por teclado e em zoom 200% AC2) (frontend/accessibility)"
+      ],
+      "created": "2026-08-29T10:32:47Z",
+      "last_seen": "2026-08-29T10:32:47Z"
     }
   ]
 }
