@@ -284,14 +284,14 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] Sem valor salvo em `localStorage`, `perfil` inicial é `"administrador"`
-- [ ] Valor salvo válido (`"segurado"` ou `"administrador"`) é restaurado como `perfil` inicial
-- [ ] Valor salvo inválido/corrompido é tratado como ausência de preferência (`"administrador"`)
-- [ ] `alternarPerfil` grava o novo valor em `localStorage` e nunca chama nenhum endpoint de rede
-- [ ] `alternarPerfil` redefine `superficieAtiva` para a primeira superfície de `SUPERFICIES_POR_PERFIL[novoPerfil]`, mesmo que a superfície anterior não exista no novo perfil (CTX-04: limpeza de estado incompatível)
-- [ ] `selecionarSuperficie` só aceita valores presentes em `SUPERFICIES_POR_PERFIL[perfil]`; um valor fora da lista é rejeitado e `superficieValida` reporta `false` até a próxima seleção válida
-- [ ] Gate check passes: `npm test --prefix src/frontend -- --run`
-- [ ] Test count: 8+ novos testes passam (default, restauração, valor corrompido, alternância nas duas direções, limpeza de estado, seleção inválida)
+- [x] Sem valor salvo em `localStorage`, `perfil` inicial é `"administrador"`
+- [x] Valor salvo válido (`"segurado"` ou `"administrador"`) é restaurado como `perfil` inicial
+- [x] Valor salvo inválido/corrompido é tratado como ausência de preferência (`"administrador"`)
+- [x] `alternarPerfil` grava o novo valor em `localStorage` e nunca chama nenhum endpoint de rede
+- [x] `alternarPerfil` redefine `superficieAtiva` para a primeira superfície de `SUPERFICIES_POR_PERFIL[novoPerfil]`, mesmo que a superfície anterior não exista no novo perfil (CTX-04: limpeza de estado incompatível)
+- [x] `selecionarSuperficie` só aceita valores presentes em `SUPERFICIES_POR_PERFIL[perfil]`; um valor fora da lista é rejeitado e `superficieValida` reporta `false` até a próxima seleção válida
+- [x] Gate check passes: `npm test --prefix src/frontend -- --run`
+- [x] Test count: 8+ novos testes passam (default, restauração, valor corrompido, alternância nas duas direções, limpeza de estado, seleção inválida)
 
 **Tests**: unit
 **Gate**: quick (frontend)
