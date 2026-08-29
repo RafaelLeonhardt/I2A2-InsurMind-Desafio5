@@ -3,6 +3,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from central_preventiva.adaptadores.http.contexto import (
+    criar_roteador as criar_roteador_contexto,
+)
 from central_preventiva.adaptadores.http.dados_sinteticos import (
     criar_roteador as criar_roteador_dados_sinteticos,
 )
@@ -40,6 +43,10 @@ def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
     )
     aplicacao.include_router(
         criar_roteador_prontidao(configuracao_ativa),
+        prefix="/api/v1",
+    )
+    aplicacao.include_router(
+        criar_roteador_contexto(configuracao_ativa),
         prefix="/api/v1",
     )
     return aplicacao

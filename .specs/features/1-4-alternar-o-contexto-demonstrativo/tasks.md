@@ -230,12 +230,12 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] `GET /api/v1/segurados/padrao` devolve `200` com `{"id": "...", "nome": "..."}` quando o segurado padrão existe
-- [ ] `GET /api/v1/segurados/padrao` devolve `503` `application/problem+json` com `codigo="segurado_padrao_ausente"` quando os dados sintéticos ainda não foram semeados
-- [ ] Roteador registrado em `composicao/api.py` com `prefix="/api/v1"`, mesmo padrão dos roteadores existentes
-- [ ] Teste usa `TestClient` sobre banco temporário migrado (e semeado / não semeado), mesmo padrão de `test_dados_sinteticos_api.py`
-- [ ] Gate check passes: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
-- [ ] Test count: 2+ novos testes passam (200, 503)
+- [x] `GET /api/v1/segurados/padrao` devolve `200` com `{"id": "...", "nome": "..."}` quando o segurado padrão existe
+- [x] `GET /api/v1/segurados/padrao` devolve `503` `application/problem+json` com `codigo="segurado_padrao_ausente"` quando os dados sintéticos ainda não foram semeados
+- [x] Roteador registrado em `composicao/api.py` com `prefix="/api/v1"`, mesmo padrão dos roteadores existentes
+- [x] Teste usa `TestClient` sobre banco temporário migrado (e semeado / não semeado), mesmo padrão de `test_dados_sinteticos_api.py`
+- [x] Gate check passes: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] Test count: 2+ novos testes passam (200, 503)
 
 **Tests**: e2e
 **Gate**: full (backend)
