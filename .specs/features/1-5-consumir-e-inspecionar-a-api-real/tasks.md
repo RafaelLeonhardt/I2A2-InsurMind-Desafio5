@@ -286,11 +286,11 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Component shows a loading state before the first response
-- [ ] Component shows "Disponível" with both addresses and a working `target="_blank"`/`rel="noopener noreferrer"` link on success
-- [ ] Component shows "Indisponível" with causa/impacto/próxima ação/endereço esperado on failure
-- [ ] No literal example API response value appears anywhere in the component's default/placeholder render
-- [ ] `SuperficieDocumentacaoApi.test.tsx` created co-located with the component; `npm test --prefix src/frontend -- --run` passes, test count increases by at least 3
+- [x] Component shows a loading state before the first response
+- [x] Component shows "Disponível" with both addresses and a working `target="_blank"`/`rel="noopener noreferrer"` link on success
+- [x] Component shows "Indisponível" with causa/impacto/próxima ação/endereço esperado on failure
+- [x] No literal example API response value appears anywhere in the component's default/placeholder render
+- [x] `SuperficieDocumentacaoApi.test.tsx` created co-located with the component; `npm test --prefix src/frontend -- --run` passes, test count increases by at least 3
 
 **Tests**: unit (RTL)
 **Gate**: quick (frontend)
