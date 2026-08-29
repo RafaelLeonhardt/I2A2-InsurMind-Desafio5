@@ -313,10 +313,10 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] Componente renderiza os três textos fixos da faixa
-- [ ] Nenhum elemento interativo de fechamento existe no componente
-- [ ] Gate check passes: `npm test --prefix src/frontend -- --run`
-- [ ] Test count: 1+ novo teste passa
+- [x] Componente renderiza os três textos fixos da faixa
+- [x] Nenhum elemento interativo de fechamento existe no componente
+- [x] Gate check passes: `npm test --prefix src/frontend -- --run`
+- [x] Test count: 1+ novo teste passa
 
 **Tests**: unit
 **Gate**: quick (frontend)
