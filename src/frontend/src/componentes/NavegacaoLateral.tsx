@@ -1,9 +1,16 @@
-import { ArrowsLeftRightIcon, CheckCircleIcon, HouseIcon, ShieldCheckIcon } from '@phosphor-icons/react'
+import {
+  ArrowsLeftRightIcon,
+  BookOpenTextIcon,
+  CheckCircleIcon,
+  HouseIcon,
+  ShieldCheckIcon,
+} from '@phosphor-icons/react'
 import { SUPERFICIES_POR_PERFIL, type Superficie, usePerfilContexto } from '../contexto/PerfilContexto'
 
 const ROTULOS: Record<Superficie, string> = {
   prontidao: 'Prontidão',
   'restaurar-dados-sinteticos': 'Restaurar dados sintéticos',
+  'documentacao-api': 'Documentação da API',
   'visao-geral': 'Visão geral',
 }
 
@@ -13,6 +20,9 @@ function IconeSuperficie({ superficie }: { superficie: Superficie }) {
   }
   if (superficie === 'restaurar-dados-sinteticos') {
     return <ArrowsLeftRightIcon aria-hidden="true" size={21} />
+  }
+  if (superficie === 'documentacao-api') {
+    return <BookOpenTextIcon aria-hidden="true" size={21} />
   }
   return <HouseIcon aria-hidden="true" size={21} />
 }

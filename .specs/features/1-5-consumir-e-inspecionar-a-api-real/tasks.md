@@ -332,9 +332,9 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Nav item renders for `'documentacao-api'` with a label and icon, following the existing pattern
-- [ ] `NavegacaoLateral.test.tsx` extended with a case asserting the item renders for the Administrador profile
-- [ ] `npm test --prefix src/frontend -- --run` passes, test count increases by at least 1
+- [x] Nav item renders for `'documentacao-api'` with a label and icon, following the existing pattern
+- [x] `NavegacaoLateral.test.tsx` extended with a case asserting the item renders for the Administrador profile
+- [x] `npm test --prefix src/frontend -- --run` passes, test count increases by at least 1
 
 **Tests**: unit (RTL) - extends existing test file
 **Gate**: quick (frontend)

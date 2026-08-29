@@ -18,11 +18,12 @@ afterEach(() => {
 })
 
 describe('NavegacaoLateral', () => {
-  it('no perfil Administrador, mostra somente "Prontidão" e "Restaurar dados sintéticos"', () => {
+  it('no perfil Administrador, mostra "Prontidão", "Restaurar dados sintéticos" e "Documentação da API"', () => {
     renderizarComPerfil('administrador')
 
     expect(screen.getByRole('button', { name: /Prontidão/ })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Restaurar dados sintéticos/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Documentação da API/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Visão geral/ })).not.toBeInTheDocument()
   })
 
@@ -32,6 +33,13 @@ describe('NavegacaoLateral', () => {
     expect(screen.getByRole('button', { name: /Visão geral/ })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Prontidão/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Restaurar dados sintéticos/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Documentação da API/ })).not.toBeInTheDocument()
+  })
+
+  it('o item "Documentação da API" renderiza para o perfil Administrador', () => {
+    renderizarComPerfil('administrador')
+
+    expect(screen.getByRole('button', { name: 'Documentação da API' })).toBeInTheDocument()
   })
 
   it('o item correspondente à superficieAtiva recebe aria-current="page" por padrão', () => {
