@@ -158,26 +158,26 @@ Each requirement gets a unique ID for tracking across design, tasks, and validat
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| CTX-01 | P1: Alternar entre Administrador e Segurado | Design | Pending |
-| CTX-02 | P1: Alternar entre Administrador e Segurado | Design | Pending |
-| CTX-03 | P1: Alternar entre Administrador e Segurado | Design | Pending |
-| CTX-04 | P1: Alternar entre Administrador e Segurado | Design | Pending |
-| CTX-05 | P1: Alternar entre Administrador e Segurado | Design | Pending |
-| CTX-06 | P1: Alternar entre Administrador e Segurado | Design | Pending |
+| CTX-01 | P1: Alternar entre Administrador e Segurado | Tasks | Implementing |
+| CTX-02 | P1: Alternar entre Administrador e Segurado | Tasks | Implementing |
+| CTX-03 | P1: Alternar entre Administrador e Segurado | Tasks | Implementing |
+| CTX-04 | P1: Alternar entre Administrador e Segurado | Tasks | Implementing |
+| CTX-05 | P1: Alternar entre Administrador e Segurado | Tasks | Implementing |
+| CTX-06 | P1: Alternar entre Administrador e Segurado | Tasks | Implementing |
 | CTX-07 | P1: Apresentar o segurado sintético padrão | Tasks | Implementing |
-| CTX-08 | P1: Apresentar o segurado sintético padrão | Design | Pending |
+| CTX-08 | P1: Apresentar o segurado sintético padrão | Tasks | Implementing |
 | CTX-09 | P1: Apresentar o segurado sintético padrão | Tasks | Implementing |
-| CTX-10 | P1: Persistir o perfil localmente sem criar identidade | Design | Pending |
-| CTX-11 | P1: Persistir o perfil localmente sem criar identidade | Design | Pending |
-| CTX-12 | P1: Persistir o perfil localmente sem criar identidade | Design | Pending |
-| CTX-13 | P1: Bloquear contexto ausente ou incompatível | Design | Pending |
-| CTX-14 | P1: Bloquear contexto ausente ou incompatível | Design | Pending |
-| CTX-15 | P1: Bloquear contexto ausente ou incompatível | Design | Pending |
-| CTX-16 | P2: Operar em larguras de desktop suportadas | Design | Pending |
-| CTX-17 | P2: Operar em larguras de desktop suportadas | Design | Pending |
-| CTX-18 | P2: Operar o seletor e a navegação por teclado | Design | Pending |
-| CTX-19 | P2: Operar o seletor e a navegação por teclado | Design | Pending |
-| CTX-20 | P2: Operar o seletor e a navegação por teclado | Design | Pending |
+| CTX-10 | P1: Persistir o perfil localmente sem criar identidade | Tasks | Implementing |
+| CTX-11 | P1: Persistir o perfil localmente sem criar identidade | Tasks | Implementing |
+| CTX-12 | P1: Persistir o perfil localmente sem criar identidade | Tasks | Implementing |
+| CTX-13 | P1: Bloquear contexto ausente ou incompatível | Tasks | Implementing |
+| CTX-14 | P1: Bloquear contexto ausente ou incompatível | Tasks | Implementing |
+| CTX-15 | P1: Bloquear contexto ausente ou incompatível | Tasks | Implementing |
+| CTX-16 | P2: Operar em larguras de desktop suportadas | Tasks | Implementing |
+| CTX-17 | P2: Operar em larguras de desktop suportadas | Tasks | Implementing |
+| CTX-18 | P2: Operar o seletor e a navegação por teclado | Tasks | Implementing |
+| CTX-19 | P2: Operar o seletor e a navegação por teclado | Tasks | Implementing |
+| CTX-20 | P2: Operar o seletor e a navegação por teclado | Tasks | Implementing |
 
 **ID format:** `CTX-[NUMBER]`
 

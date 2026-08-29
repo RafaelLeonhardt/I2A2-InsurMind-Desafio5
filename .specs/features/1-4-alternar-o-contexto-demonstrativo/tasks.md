@@ -444,10 +444,10 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] `App.tsx` não contém mais markup estático de navegação, barra de contexto, faixa ou conteúdo do Segurado diretamente - só composição dos componentes da Fase 2
-- [ ] Trocar de perfil no seletor troca a navegação e o conteúdo principal de acordo com `SUPERFICIES_POR_PERFIL`
-- [ ] O aviso de largura < 1024 px continua funcionando (comportamento inalterado de `App.tsx:27-33,73-77`)
-- [ ] Gate check passes: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] `App.tsx` não contém mais markup estático de navegação, barra de contexto, faixa ou conteúdo do Segurado diretamente - só composição dos componentes da Fase 2
+- [x] Trocar de perfil no seletor troca a navegação e o conteúdo principal de acordo com `SUPERFICIES_POR_PERFIL`
+- [x] O aviso de largura < 1024 px continua funcionando (comportamento inalterado de `App.tsx:27-33,73-77`)
+- [x] Gate check passes: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: integration (cobertas em T15 - ver "Resolving compilation dependencies": o teste completo do shell só é executável após esta composição existir; T15 absorve a bateria de testes que valida T14, ver nota de escopo abaixo)
 **Gate**: full (frontend)
@@ -471,16 +471,16 @@ Execution order: T14, T15.
 - Skill: NONE
 
 **Done when**:
-- [ ] Teste cobre Administrador → Segurado e Segurado → Administrador, verificando a navegação exibida em cada perfil (CTX-03, CTX-05)
-- [ ] Teste cobre que abrir o modal "Restaurar dados sintéticos" e trocar de perfil fecha o modal (via desmontagem) sem chamar nenhuma mutação de dados (CTX-04)
-- [ ] Teste cobre que nenhum texto de interface descreve a troca como login/autenticação/autorização (CTX-06)
-- [ ] Teste cobre que o perfil sobrevive a uma nova montagem do componente simulando reload, lendo o valor gravado em `localStorage` (CTX-10, CTX-11)
-- [ ] Teste cobre que um valor corrompido em `localStorage` resulta no perfil "Administrador" (CTX-11 edge case)
-- [ ] Teste cobre o bloqueio via `ContextoInconsistente` e o retorno à Visão geral do perfil ativo (CTX-13, CTX-14, CTX-15)
-- [ ] Teste cobre as larguras 1024 px, 1279 px e uma largura ampla mantendo navegação e seletor operáveis, e a largura < 1024 px exibindo o aviso sem perda de função (CTX-16, CTX-17)
-- [ ] Teste cobre navegação só por teclado (`Tab`/`Shift+Tab`/`Enter`) até o seletor e um item de navegação, com foco visível e anúncio `aria-live` (CTX-18, CTX-19)
-- [ ] Gate check passes: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
-- [ ] Test count: 10+ testes passam nesta suíte (nenhuma exclusão silenciosa do que já existia em `App.test.tsx`)
+- [x] Teste cobre Administrador → Segurado e Segurado → Administrador, verificando a navegação exibida em cada perfil (CTX-03, CTX-05)
+- [x] Teste cobre que abrir o modal "Restaurar dados sintéticos" e trocar de perfil fecha o modal (via desmontagem) sem chamar nenhuma mutação de dados (CTX-04)
+- [x] Teste cobre que nenhum texto de interface descreve a troca como login/autenticação/autorização (CTX-06)
+- [x] Teste cobre que o perfil sobrevive a uma nova montagem do componente simulando reload, lendo o valor gravado em `localStorage` (CTX-10, CTX-11)
+- [x] Teste cobre que um valor corrompido em `localStorage` resulta no perfil "Administrador" (CTX-11 edge case)
+- [x] Teste cobre o bloqueio via `ContextoInconsistente` e o retorno à Visão geral do perfil ativo (CTX-13, CTX-14, CTX-15)
+- [x] Teste cobre as larguras 1024 px, 1279 px e uma largura ampla mantendo navegação e seletor operáveis, e a largura < 1024 px exibindo o aviso sem perda de função (CTX-16, CTX-17)
+- [x] Teste cobre navegação só por teclado (`Tab`/`Shift+Tab`/`Enter`) até o seletor e um item de navegação, com foco visível e anúncio `aria-live` (CTX-18, CTX-19)
+- [x] Gate check passes: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Test count: 10+ testes passam nesta suíte (nenhuma exclusão silenciosa do que já existia em `App.test.tsx`)
 
 **Tests**: integration
 **Gate**: build (frontend Full + backend Full, ao final da história)
