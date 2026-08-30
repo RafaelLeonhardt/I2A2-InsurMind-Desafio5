@@ -246,11 +246,11 @@ T14
 
 **Done when**:
 
-- [ ] `ClienteInmet` usa `Configuracao.url_base_inmet`, timeout de 5s, transporte injetável (para teste)
-- [ ] `ClienteInmet` não loga cabeçalhos, credenciais nem o corpo íntegro da resposta
-- [ ] Teste com `httpx.MockTransport`: sucesso, timeout, erro de transporte, status de erro — todos sem rede real
-- [ ] `AdaptadorInmetFalso` implementa a mesma porta (`ColetorMeteorologico`) e é reutilizável pelos testes de T8/T9
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `ClienteInmet` usa `Configuracao.url_base_inmet`, timeout de 5s, transporte injetável (para teste)
+- [x] `ClienteInmet` não loga cabeçalhos, credenciais nem o corpo íntegro da resposta
+- [x] Teste com `httpx.MockTransport`: sucesso, timeout, erro de transporte, status de erro — todos sem rede real
+- [x] `AdaptadorInmetFalso` implementa a mesma porta (`ColetorMeteorologico`) e é reutilizável pelos testes de T8/T9
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
