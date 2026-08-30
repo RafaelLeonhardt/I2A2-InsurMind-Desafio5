@@ -12,6 +12,18 @@ from central_preventiva.dominio.identificadores_demonstracao import identificado
 
 MARCADOR_DEMONSTRACAO = "DEMO-"
 
+TABELAS_EXCECAO_RESTAURACAO: frozenset[str] = frozenset(
+    {"schema_migracoes", "areas_monitoradas_inmet"}
+)
+"""Lista de exceções da restauração ao estado inicial completo (AD-014).
+
+`schema_migracoes` (registro de versão aplicada) e as tabelas de configuração versionada
+(hoje só `areas_monitoradas_inmet`) nunca são apagadas pela restauração — toda outra
+tabela do catálogo, incluindo qualquer tabela de execução futura, é apagada e (quando
+fizer parte do conjunto sintético canônico) resemeada. Uma nova tabela de configuração
+versionada precisa entrar aqui explicitamente; tabelas de execução não precisam.
+"""
+
 
 @dataclass(frozen=True, slots=True)
 class TabelaSemeada:
@@ -348,10 +360,21 @@ class SemeadorDadosSinteticos:
             self._inserir(conexao, tabela, tabela.linhas)
 
     def _restaurar(self, conexao: duckdb.DuckDBPyConnection) -> None:
-        """Apaga as tabelas de referência e reinsere o conjunto canônico versionado."""
+        """Repõe o estado inicial completo (AD-014): wipe orientado pelo catálogo, reseed.
 
-        for tabela in reversed(self._conjunto.tabelas):
-            conexao.execute(f"DELETE FROM {tabela.nome}")
+        Apaga toda tabela do catálogo do DuckDB fora de `TABELAS_EXCECAO_RESTAURACAO` —
+        cobre automaticamente as tabelas semeadas e qualquer tabela de execução futura,
+        sem lista manual — e então reinsere o conjunto sintético canônico.
+        """
+
+        tabelas_existentes = {
+            nome
+            for (nome,) in conexao.execute(
+                "SELECT table_name FROM information_schema.tables WHERE table_schema = 'main'"
+            ).fetchall()
+        }
+        for nome in tabelas_existentes - TABELAS_EXCECAO_RESTAURACAO:
+            conexao.execute(f"DELETE FROM {nome}")
         for tabela in self._conjunto.tabelas:
             self._inserir(conexao, tabela, tabela.linhas)
 

@@ -3,6 +3,7 @@
 import re
 from dataclasses import replace
 from pathlib import Path
+from uuid import uuid4
 
 import duckdb
 import pytest
@@ -11,6 +12,7 @@ from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
 from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigracoes
 from central_preventiva.adaptadores.persistencia.semeador import (
     MARCADOR_DEMONSTRACAO,
+    TABELAS_EXCECAO_RESTAURACAO,
     ConjuntoSintetico,
     SemeadorDadosSinteticos,
     dataset_sintetico_v1,
@@ -206,3 +208,72 @@ def test_semear_e_restaurar_compartilham_o_mesmo_conjunto_canonico(tmp_path: Pat
     with abrir_conexao(caminho_restaurado) as conexao:
         restaurado = conexao.execute("SELECT id, nome FROM segurados ORDER BY nome").fetchall()
     assert semeado == restaurado
+
+
+def inserir_area_monitorada(caminho: Path, codigo_estacao: str, codigo_ibge_area: str) -> str:
+    """Insere uma área monitorada de teste e devolve o seu id."""
+
+    id_area = str(uuid4())
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO areas_monitoradas_inmet "
+            "(id, codigo_estacao_inmet, nome_estacao, codigo_ibge_area, ativa) "
+            "VALUES (?, ?, 'Estação de Teste', ?, true)",
+            [id_area, codigo_estacao, codigo_ibge_area],
+        )
+    return id_area
+
+
+def inserir_sincronizacao(caminho: Path, area_monitorada_id: str) -> None:
+    """Insere uma sincronização meteorológica de teste, fora do fluxo do semeador canônico."""
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO sincronizacoes_meteorologicas "
+            "(id, requisicao_id, area_monitorada_id, origem, estado, registros_validos) "
+            "VALUES (?, ?, ?, 'manual', 'concluido', 1)",
+            [uuid4(), uuid4(), area_monitorada_id],
+        )
+
+
+def test_restaurar_esvazia_tabelas_de_execucao_fora_da_lista_de_excecoes(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    SemeadorDadosSinteticos(caminho).semear()
+    area_id = inserir_area_monitorada(caminho, "A701", "9990001")
+    inserir_sincronizacao(caminho, area_id)
+    with abrir_conexao(caminho) as conexao:
+        antes = conexao.execute("SELECT count(*) FROM sincronizacoes_meteorologicas").fetchone()
+    assert antes is not None and antes[0] == 1
+
+    SemeadorDadosSinteticos(caminho).restaurar()
+
+    with abrir_conexao(caminho) as conexao:
+        depois = conexao.execute("SELECT count(*) FROM sincronizacoes_meteorologicas").fetchone()
+    assert depois is not None and depois[0] == 0
+
+
+def test_restaurar_preserva_areas_monitoradas_e_schema_migracoes(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    SemeadorDadosSinteticos(caminho).semear()
+    area_id = inserir_area_monitorada(caminho, "A701", "9990001")
+    with abrir_conexao(caminho) as conexao:
+        versao_antes = conexao.execute(
+            "SELECT max(versao) FROM schema_migracoes"
+        ).fetchone()
+
+    SemeadorDadosSinteticos(caminho).restaurar()
+
+    with abrir_conexao(caminho) as conexao:
+        area = conexao.execute(
+            "SELECT id FROM areas_monitoradas_inmet WHERE id = ?", [area_id]
+        ).fetchone()
+        versao_depois = conexao.execute(
+            "SELECT max(versao) FROM schema_migracoes"
+        ).fetchone()
+
+    assert area is not None
+    assert versao_depois == versao_antes
+
+
+def test_lista_de_excecoes_da_restauracao_e_a_constante_nomeada_documentada() -> None:
+    assert frozenset({"schema_migracoes", "areas_monitoradas_inmet"}) == TABELAS_EXCECAO_RESTAURACAO

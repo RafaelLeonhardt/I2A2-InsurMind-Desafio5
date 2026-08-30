@@ -455,11 +455,11 @@ T14
 
 **Done when**:
 
-- [ ] Restauração após uma coleta deixa `sincronizacoes_meteorologicas` (e qualquer tabela futura fora da lista de exceções) vazia, na mesma transação do reseed
-- [ ] `areas_monitoradas_inmet` e `schema_migracoes` permanecem intactas após a restauração
-- [ ] O wipe é orientado pelo catálogo (nenhuma lista manual de tabelas de execução a manter); a lista de exceções é uma constante nomeada e documentada (AD-014)
-- [ ] Teste cobre reseed correto das tabelas semeadas após o wipe ampliado (mesmos IDs determinísticos)
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Restauração após uma coleta deixa `sincronizacoes_meteorologicas` (e qualquer tabela futura fora da lista de exceções) vazia, na mesma transação do reseed
+- [x] `areas_monitoradas_inmet` e `schema_migracoes` permanecem intactas após a restauração
+- [x] O wipe é orientado pelo catálogo (nenhuma lista manual de tabelas de execução a manter); a lista de exceções é uma constante nomeada e documentada (AD-014)
+- [x] Teste cobre reseed correto das tabelas semeadas após o wipe ampliado (mesmos IDs determinísticos)
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
