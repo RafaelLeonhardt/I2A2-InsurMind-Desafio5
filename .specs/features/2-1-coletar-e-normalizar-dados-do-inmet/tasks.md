@@ -192,11 +192,11 @@ T14
 
 **Done when**:
 
-- [ ] `README.md` do módulo lista endpoint, parâmetros, campos consumidos, unidades e mapeamento campo-a-campo para `EventoMeteorologico`
-- [ ] Ao menos uma amostra JSON real válida de chuva, uma amostra real inválida (campo obrigatório ausente) e uma amostra sintética congelada de granizo (rotulada como sintética — AD-013) estão salvas em `testes/fixtures/inmet/`
-- [ ] O `README.md` do módulo registra explicitamente que as leituras de estações automáticas não contêm campo de granizo e que `granizo` entra só pelo cenário sintético (AD-013)
-- [ ] Nenhuma amostra contém dado pessoal ou sensível (dados são meteorológicos públicos, permitido por ADR-0013)
-- [ ] Gate check passa: `uv run --directory src/backend pytest` (nenhum teste ainda depende das fixtures — apenas confirma que nada quebrou)
+- [x] `README.md` do módulo lista endpoint, parâmetros, campos consumidos, unidades e mapeamento campo-a-campo para `EventoMeteorologico`
+- [x] Ao menos uma amostra JSON real válida de chuva, uma amostra real inválida (campo obrigatório ausente) e uma amostra sintética congelada de granizo (rotulada como sintética — AD-013) estão salvas em `testes/fixtures/inmet/`
+- [x] O `README.md` do módulo registra explicitamente que as leituras de estações automáticas não contêm campo de granizo e que `granizo` entra só pelo cenário sintético (AD-013)
+- [x] Nenhuma amostra contém dado pessoal ou sensível (dados são meteorológicos públicos, permitido por ADR-0013)
+- [x] Gate check passa: `uv run --directory src/backend pytest` (nenhum teste ainda depende das fixtures — apenas confirma que nada quebrou)
 
 **Tests**: none
 **Gate**: quick

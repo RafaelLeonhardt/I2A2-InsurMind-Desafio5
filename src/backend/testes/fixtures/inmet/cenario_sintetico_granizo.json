@@ -1,0 +1,9 @@
+{
+    "_sintetico": true,
+    "CD_ESTACAO": "A702",
+    "TIPO_EVENTO_SINTETICO": "granizo",
+    "INTENSIDADE": "31.0",
+    "PERIODO_INICIO": "2026-03-12T14:00:00",
+    "PERIODO_FIM": "2026-03-12T20:00:00",
+    "INSTANTE_OBSERVADO": "2026-03-12T08:00:00"
+}
