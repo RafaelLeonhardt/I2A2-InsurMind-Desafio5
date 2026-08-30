@@ -104,6 +104,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/meteorologia/coletas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Solicitar uma coleta meteorológica manual
+         * @description Solicita, de forma idempotente, uma coleta meteorológica manual para a área informada. Exige o cabeçalho `Idempotency-Key` em toda requisição.
+         */
+        post: operations["solicitar_coleta_api_v1_meteorologia_coletas_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/meteorologia/eventos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar os eventos meteorológicos normalizados
+         * @description Devolve os eventos meteorológicos já normalizados, do mais recente.
+         */
+        get: operations["consultar_eventos_api_v1_meteorologia_eventos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/meteorologia/sincronizacoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o histórico de sincronizações meteorológicas
+         * @description Devolve a última tentativa, a última coleta válida, a próxima consulta estimada e o histórico completo de sincronizações, só com dados persistidos.
+         */
+        get: operations["consultar_sincronizacoes_api_v1_meteorologia_sincronizacoes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -113,15 +173,61 @@ export interface components {
          * @description Falha da consulta do segurado padrão, com ocorrência, impacto e próxima ação segura.
          */
         ProblemaContexto: {
-            /** Codigo */
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
             codigo: string;
-            /** Correlacao Id */
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
             correlacao_id: string;
-            /** Ocorrencia */
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
             ocorrencia: string;
-            /** Impacto */
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
             impacto: string;
-            /** Proxima Acao */
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
+         * ProblemaMeteorologia
+         * @description Falha de uma operação meteorológica, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaMeteorologia: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
             proxima_acao: string;
         };
         /**
@@ -129,15 +235,30 @@ export interface components {
          * @description Falha da operação de prontidão, com ocorrência, impacto e próxima ação segura.
          */
         ProblemaProntidao: {
-            /** Codigo */
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
             codigo: string;
-            /** Correlacao Id */
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
             correlacao_id: string;
-            /** Ocorrencia */
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
             ocorrencia: string;
-            /** Impacto */
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
             impacto: string;
-            /** Proxima Acao */
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
             proxima_acao: string;
         };
         /**
@@ -145,33 +266,105 @@ export interface components {
          * @description Falha da restauração, com ocorrência, impacto e próxima ação segura.
          */
         ProblemaRestauracao: {
-            /** Codigo */
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
             codigo: string;
-            /** Correlacao Id */
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
             correlacao_id: string;
-            /** Ocorrencia */
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
             ocorrencia: string;
-            /** Impacto */
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
             impacto: string;
-            /** Proxima Acao */
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
             proxima_acao: string;
+        };
+        /**
+         * RespostaColetaAceita
+         * @description Ack público de uma solicitação de coleta manual aceita ou já registrada.
+         */
+        RespostaColetaAceita: {
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador da sincronização criada ou já registrada.
+             */
+            id: string;
+            /**
+             * Requisicao Id
+             * Format: uuid
+             * @description Identificador de correlação da tentativa.
+             */
+            requisicao_id: string;
+            /**
+             * Estado
+             * @description Estado da sincronização no momento da resposta.
+             */
+            estado: string;
+            /**
+             * Registros Validos
+             * @description Quantidade de eventos válidos produzidos.
+             */
+            registros_validos: number;
+            /**
+             * Motivo Falha
+             * @description Motivo tipado da falha, ou nulo se não houve.
+             */
+            motivo_falha: string | null;
+            /**
+             * Aceito Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC em que a solicitação foi aceita.
+             */
+            aceito_em: string;
         };
         /**
          * RespostaDependencia
          * @description Estado de prontidão de uma única dependência, pronto para exibição.
          */
         RespostaDependencia: {
-            /** Nome */
+            /**
+             * Nome
+             * @description Nome canônico da dependência verificada.
+             */
             nome: string;
-            /** Estado */
+            /**
+             * Estado
+             * @description Estado atual de prontidão da dependência.
+             */
             estado: string;
-            /** Verificado Em */
+            /**
+             * Verificado Em
+             * @description Instante RFC 3339 em UTC da última verificação, ou nulo se ainda não houve.
+             */
             verificado_em: string | null;
-            /** Causa */
+            /**
+             * Causa
+             * @description Causa da indisponibilidade ou degradação, ou nula quando disponível.
+             */
             causa: string | null;
-            /** Impacto */
+            /**
+             * Impacto
+             * @description Efeito prático do estado atual para quem consulta.
+             */
             impacto: string;
-            /** Acao Disponivel */
+            /**
+             * Acao Disponivel
+             * @description Ação segura disponível dado o estado atual.
+             */
             acao_disponivel: string;
         };
         /**
@@ -179,8 +372,92 @@ export interface components {
          * @description Resposta pública consolidada das 4 dependências.
          */
         RespostaDependencias: {
-            /** Dependencias */
+            /**
+             * Dependencias
+             * @description Estado de prontidão de cada uma das 4 dependências monitoradas.
+             */
             dependencias: components["schemas"]["RespostaDependencia"][];
+        };
+        /**
+         * RespostaEvento
+         * @description Evento meteorológico normalizado, pronto para exibição.
+         */
+        RespostaEvento: {
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador do evento meteorológico.
+             */
+            id: string;
+            /**
+             * Tipo
+             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
+             */
+            tipo: string;
+            /**
+             * Area
+             * @description Código IBGE da área onde o evento foi observado.
+             */
+            area: string;
+            /**
+             * Periodo Inicio
+             * Format: date-time
+             * @description Início RFC 3339 em UTC do período do evento.
+             */
+            periodo_inicio: string;
+            /**
+             * Periodo Fim
+             * Format: date-time
+             * @description Término RFC 3339 em UTC do período do evento.
+             */
+            periodo_fim: string;
+            /**
+             * Intensidade
+             * @description Intensidade normalizada da medida observada.
+             */
+            intensidade: number;
+            /**
+             * Proveniencia
+             * @description Origem do evento (`real_inmet` ou `sintetico`).
+             */
+            proveniencia: string;
+            /**
+             * Instante Observado
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC em que a medida foi observada.
+             */
+            instante_observado: string;
+        };
+        /**
+         * RespostaEventos
+         * @description Lista pública de eventos meteorológicos normalizados.
+         */
+        RespostaEventos: {
+            /**
+             * Eventos
+             * @description Eventos meteorológicos, do mais recente.
+             */
+            eventos: components["schemas"]["RespostaEvento"][];
+        };
+        /**
+         * RespostaHistoricoSincronizacoes
+         * @description Histórico de sincronização, com os marcos exigidos pela consulta de Marina.
+         */
+        RespostaHistoricoSincronizacoes: {
+            /** @description Tentativa mais recente registrada, ou nula se nunca houve nenhuma. */
+            ultima_tentativa: components["schemas"]["RespostaSincronizacao"] | null;
+            /** @description Última tentativa concluída com sucesso, ou nula se nenhuma concluiu. */
+            ultima_valida: components["schemas"]["RespostaSincronizacao"] | null;
+            /**
+             * Proxima Consulta
+             * @description Instante RFC 3339 em UTC estimado da próxima coleta automática.
+             */
+            proxima_consulta: string | null;
+            /**
+             * Resultados Anteriores
+             * @description Histórico completo, da tentativa mais recente para a mais antiga.
+             */
+            resultados_anteriores: components["schemas"]["RespostaSincronizacao"][];
         };
         /**
          * RespostaRestauracao
@@ -189,12 +466,14 @@ export interface components {
         RespostaRestauracao: {
             /**
              * Status
+             * @description Resultado da restauração concluída.
              * @constant
              */
             status: "restaurado";
             /**
              * Restaurado Em
              * Format: date-time
+             * @description Instante RFC 3339 em UTC em que a restauração foi concluída.
              */
             restaurado_em: string;
         };
@@ -205,11 +484,13 @@ export interface components {
         RespostaSaude: {
             /**
              * Status
+             * @description Disponibilidade do processo backend.
              * @constant
              */
             status: "disponivel";
             /**
              * Ambiente
+             * @description Ambiente de execução do processo.
              * @constant
              */
             ambiente: "educacional";
@@ -219,25 +500,99 @@ export interface components {
          * @description Resposta pública do segurado sintético padrão.
          */
         RespostaSeguradoPadrao: {
-            /** Id */
+            /**
+             * Id
+             * @description Identificador opaco do segurado sintético padrão.
+             */
             id: string;
-            /** Nome */
+            /**
+             * Nome
+             * @description Nome do segurado sintético padrão.
+             */
             nome: string;
+        };
+        /**
+         * RespostaSincronizacao
+         * @description Registro público de uma tentativa de sincronização meteorológica.
+         */
+        RespostaSincronizacao: {
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador da sincronização.
+             */
+            id: string;
+            /**
+             * Requisicao Id
+             * Format: uuid
+             * @description Identificador de correlação da tentativa.
+             */
+            requisicao_id: string;
+            /**
+             * Origem
+             * @description Origem da tentativa (`automatica` ou `manual`).
+             */
+            origem: string;
+            /**
+             * Estado
+             * @description Estado atual da sincronização.
+             */
+            estado: string;
+            /**
+             * Registros Validos
+             * @description Quantidade de eventos válidos produzidos.
+             */
+            registros_validos: number;
+            /**
+             * Motivo Falha
+             * @description Motivo tipado da falha, ou nulo se não houve.
+             */
+            motivo_falha: string | null;
+            /**
+             * Iniciado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC de início da tentativa.
+             */
+            iniciado_em: string;
+            /**
+             * Finalizado Em
+             * @description Instante RFC 3339 em UTC de término, ou nulo se em andamento.
+             */
+            finalizado_em: string | null;
         };
         /**
          * RespostaVerificacaoAceita
          * @description Ack de uma nova verificação aceita para processamento em segundo plano.
          */
         RespostaVerificacaoAceita: {
-            /** Nome */
+            /**
+             * Nome
+             * @description Nome canônico da dependência cuja verificação foi aceita.
+             */
             nome: string;
-            /** Estado */
+            /**
+             * Estado
+             * @description Estado da dependência no momento em que a verificação foi aceita.
+             */
             estado: string;
             /**
              * Aceito Em
              * Format: date-time
+             * @description Instante RFC 3339 em UTC em que a nova verificação foi aceita.
              */
             aceito_em: string;
+        };
+        /**
+         * SolicitacaoColeta
+         * @description Corpo da solicitação de coleta manual: a área monitorada a consultar.
+         */
+        SolicitacaoColeta: {
+            /**
+             * Area Id
+             * Format: uuid
+             * @description Identificador da área monitorada a coletar.
+             */
+            area_id: string;
         };
     };
     responses: never;
@@ -413,6 +768,99 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaContexto"];
+                };
+            };
+        };
+    };
+    solicitar_coleta_api_v1_meteorologia_coletas_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitacaoColeta"];
+            };
+        };
+        responses: {
+            /** @description Coleta manual aceita e concluída. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaColetaAceita"];
+                };
+            };
+            /** @description Área monitorada desconhecida. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+            /** @description Conflito de idempotência. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+            /** @description Requisição sem o cabeçalho `Idempotency-Key`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+        };
+    };
+    consultar_eventos_api_v1_meteorologia_eventos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Eventos meteorológicos normalizados. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaEventos"];
+                };
+            };
+        };
+    };
+    consultar_sincronizacoes_api_v1_meteorologia_sincronizacoes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Histórico de sincronizações meteorológicas. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaHistoricoSincronizacoes"];
                 };
             };
         };

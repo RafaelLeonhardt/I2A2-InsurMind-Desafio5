@@ -403,10 +403,10 @@ T14
 
 **Done when**:
 
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado com o backend no ar; `tipos-gerados.ts` inclui os três endpoints novos
-- [ ] Módulo expõe funções tipadas sem redeclarar manualmente campos cobertos pelo contrato
-- [ ] Testes cobrem sucesso e erro tipado (mesmo piso de `src/api/prontidao.test.ts`)
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run`
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado com o backend no ar; `tipos-gerados.ts` inclui os três endpoints novos
+- [x] Módulo expõe funções tipadas sem redeclarar manualmente campos cobertos pelo contrato
+- [x] Testes cobrem sucesso e erro tipado (mesmo piso de `src/api/prontidao.test.ts`)
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run`
 
 **Tests**: unit
 **Gate**: quick
