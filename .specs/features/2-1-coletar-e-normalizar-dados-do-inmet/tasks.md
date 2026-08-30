@@ -218,13 +218,13 @@ T14
 
 **Done when**:
 
-- [ ] Amostra real válida de chuva normaliza para `EventoMeteorologico` com `tipo = chuva_intensa` e `proveniencia = real_inmet`
-- [ ] Amostra sintética de granizo normaliza para `EventoMeteorologico` com `tipo = granizo` (a proveniência final `sintetico` é atribuída pelo caminho de cenário sintético da 2.2 — AD-013; leituras reais nunca produzem `granizo`)
-- [ ] Amostra inválida (campo ausente) retorna motivo de rejeição sem criar evento
-- [ ] Amostra com medida fora de faixa plausível retorna motivo de rejeição sem criar evento
-- [ ] Amostra com geografia não reconhecida (sem entrada em `areas_monitoradas_inmet`) retorna motivo de rejeição
-- [ ] Nenhum teste depende de rede
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Amostra real válida de chuva normaliza para `EventoMeteorologico` com `tipo = chuva_intensa` e `proveniencia = real_inmet`
+- [x] Amostra sintética de granizo normaliza para `EventoMeteorologico` com `tipo = granizo` (a proveniência final `sintetico` é atribuída pelo caminho de cenário sintético da 2.2 — AD-013; leituras reais nunca produzem `granizo`)
+- [x] Amostra inválida (campo ausente) retorna motivo de rejeição sem criar evento
+- [x] Amostra com medida fora de faixa plausível retorna motivo de rejeição sem criar evento
+- [x] Amostra com geografia não reconhecida (sem entrada em `areas_monitoradas_inmet`) retorna motivo de rejeição
+- [x] Nenhum teste depende de rede
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
