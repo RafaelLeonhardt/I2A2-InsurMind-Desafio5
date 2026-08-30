@@ -32,7 +32,9 @@ def carregar_fixture(nome: str) -> dict[str, object]:
 
 
 def test_leitura_real_valida_normaliza_para_chuva_intensa_real_inmet() -> None:
-    bruta = RespostaColetaInmet(status_code=200, corpo=carregar_fixture("leitura_chuva_valida.json"))
+    bruta = RespostaColetaInmet(
+        status_code=200, corpo=carregar_fixture("leitura_chuva_valida.json")
+    )
 
     resultado = NormalizadorInmet().normalizar(bruta, AREA_MONITORADA)
 
@@ -88,7 +90,9 @@ def test_medida_nao_numerica_e_rejeitada_como_medida_invalida() -> None:
 
 
 def test_geografia_nao_reconhecida_e_rejeitada_sem_criar_evento() -> None:
-    bruta = RespostaColetaInmet(status_code=200, corpo=carregar_fixture("leitura_chuva_valida.json"))
+    bruta = RespostaColetaInmet(
+        status_code=200, corpo=carregar_fixture("leitura_chuva_valida.json")
+    )
 
     resultado = NormalizadorInmet().normalizar(bruta, None)
 

@@ -10,14 +10,16 @@ from central_preventiva.dominio.evento_meteorologico import EventoMeteorologico
 
 
 class OrigemSincronizacao(StrEnum):
-    """Origem de uma tentativa de sincronização, alinhada ao `CHECK` de `sincronizacoes_meteorologicas.origem`."""
+    """Origem de uma sincronização, alinhada ao `CHECK` de
+    `sincronizacoes_meteorologicas.origem`."""
 
     AUTOMATICA = "automatica"
     MANUAL = "manual"
 
 
 class EstadoSincronizacao(StrEnum):
-    """Estado de uma tentativa de sincronização, alinhado ao `CHECK` de `sincronizacoes_meteorologicas.estado`."""
+    """Estado de uma sincronização, alinhado ao `CHECK` de
+    `sincronizacoes_meteorologicas.estado`."""
 
     COLETANDO = "coletando"
     NORMALIZANDO = "normalizando"
@@ -59,6 +61,10 @@ class Sincronizacao:
     finalizado_em: datetime | None
 
 
+INTERVALO_SEGUNDOS_COLETA = 900
+"""Intervalo entre coletas automáticas (15 minutos), confirmado no Design (AD-006)."""
+
+
 class ColetorMeteorologico(Protocol):
     """Executa uma coleta meteorológica bruta para uma área monitorada, sem normalizar."""
 
@@ -89,6 +95,15 @@ class RepositorioEventosMeteorologicos(Protocol):
 
     def salvar(self, evento: EventoMeteorologico) -> None:
         """Persiste o evento meteorológico normalizado."""
+        ...
+
+    def listar(self) -> tuple[EventoMeteorologico, ...]:
+        """Lista os eventos meteorológicos normalizados, do mais recente para o mais antigo.
+
+        # SPEC_DEVIATION: método ausente do `design.md` original de T3; adicionado em T9
+        # porque `GET /api/v1/meteorologia/eventos` precisa consultar os eventos já
+        # normalizados e persistidos.
+        """
         ...
 
 

@@ -3,6 +3,7 @@
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import StrEnum
+from typing import cast
 from uuid import uuid4
 
 from central_preventiva.aplicacao.portas_meteorologia import AreaMonitorada, RespostaColetaInmet
@@ -34,13 +35,13 @@ class ResultadoNormalizacao:
     motivo_rejeicao: MotivoRejeicao | None
 
     @staticmethod
-    def aceitar(evento: EventoMeteorologico) -> "ResultadoNormalizacao":
+    def aceitar(evento: EventoMeteorologico) -> ResultadoNormalizacao:
         """Constrói um resultado de sucesso a partir do evento normalizado."""
 
         return ResultadoNormalizacao(evento=evento, motivo_rejeicao=None)
 
     @staticmethod
-    def rejeitar(motivo: MotivoRejeicao) -> "ResultadoNormalizacao":
+    def rejeitar(motivo: MotivoRejeicao) -> ResultadoNormalizacao:
         """Constrói um resultado de rejeição com o motivo tipado informado."""
 
         return ResultadoNormalizacao(evento=None, motivo_rejeicao=motivo)
@@ -57,9 +58,10 @@ class NormalizadorInmet:
         if area is None:
             return ResultadoNormalizacao.rejeitar(MotivoRejeicao.GEOGRAFIA_NAO_RECONHECIDA)
 
-        corpo = bruta.corpo
-        if not isinstance(corpo, dict):
+        bruta_corpo = bruta.corpo
+        if not isinstance(bruta_corpo, dict):
             return ResultadoNormalizacao.rejeitar(MotivoRejeicao.CAMPO_AUSENTE)
+        corpo = cast(dict[str, object], bruta_corpo)
 
         if corpo.get("_sintetico") is True and corpo.get("TIPO_EVENTO_SINTETICO") == "granizo":
             return self._normalizar_cenario_sintetico_granizo(corpo, area)
@@ -78,7 +80,7 @@ class NormalizadorInmet:
             return ResultadoNormalizacao.rejeitar(MotivoRejeicao.CAMPO_AUSENTE)
 
         try:
-            intensidade = float(chuva_bruta)
+            intensidade = float(chuva_bruta)  # type: ignore[arg-type]
         except (TypeError, ValueError):
             return ResultadoNormalizacao.rejeitar(MotivoRejeicao.MEDIDA_INVALIDA)
 

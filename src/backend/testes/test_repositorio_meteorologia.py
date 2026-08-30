@@ -1,5 +1,6 @@
 """Testes dos repositórios DuckDB de coleta meteorológica do INMET."""
 
+from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -19,8 +20,6 @@ from central_preventiva.dominio.evento_meteorologico import (
     ProvenienciaEvento,
     TipoEventoMeteorologico,
 )
-
-from datetime import datetime
 
 
 def preparar_banco(tmp_path: Path) -> Path:
@@ -167,13 +166,15 @@ def test_listar_recentes_ordena_da_mais_recente_para_a_mais_antiga(tmp_path: Pat
         conexao.execute(
             "INSERT INTO sincronizacoes_meteorologicas "
             "(id, requisicao_id, area_monitorada_id, origem, estado, registros_validos, "
-            "iniciado_em) VALUES (?, ?, ?, 'manual', 'concluido', 0, TIMESTAMP '2026-08-30 10:00:00')",
+            "iniciado_em) "
+            "VALUES (?, ?, ?, 'manual', 'concluido', 0, TIMESTAMP '2026-08-30 10:00:00')",
             [primeira_id, uuid4(), area.id],
         )
         conexao.execute(
             "INSERT INTO sincronizacoes_meteorologicas "
             "(id, requisicao_id, area_monitorada_id, origem, estado, registros_validos, "
-            "iniciado_em) VALUES (?, ?, ?, 'manual', 'concluido', 0, TIMESTAMP '2026-08-30 12:00:00')",
+            "iniciado_em) "
+            "VALUES (?, ?, ?, 'manual', 'concluido', 0, TIMESTAMP '2026-08-30 12:00:00')",
             [segunda_id, uuid4(), area.id],
         )
 

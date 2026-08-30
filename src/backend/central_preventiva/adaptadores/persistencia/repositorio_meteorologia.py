@@ -116,6 +116,29 @@ class RepositorioEventosMeteorologicos:
             instante_observado=linha[7],
         )
 
+    def listar(self) -> tuple[EventoMeteorologico, ...]:
+        """Lista os eventos meteorológicos, do mais recente para o mais antigo."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute(
+                "SELECT id, tipo, area, periodo_inicio, periodo_fim, intensidade, "
+                "proveniencia, instante_observado FROM eventos_meteorologicos "
+                "ORDER BY instante_observado DESC"
+            ).fetchall()
+        return tuple(
+            EventoMeteorologico(
+                id=UUID(str(linha[0])),
+                tipo=TipoEventoMeteorologico(str(linha[1])),
+                area=str(linha[2]),
+                periodo_inicio=linha[3],
+                periodo_fim=linha[4],
+                intensidade=float(linha[5]),
+                proveniencia=ProvenienciaEvento(str(linha[6])),
+                instante_observado=linha[7],
+            )
+            for linha in linhas
+        )
+
 
 class RepositorioSincronizacoes:
     """Persiste e consulta o histórico de tentativas de sincronização meteorológica."""

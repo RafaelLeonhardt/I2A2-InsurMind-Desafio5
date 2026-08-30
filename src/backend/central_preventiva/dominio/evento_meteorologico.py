@@ -7,7 +7,7 @@ from uuid import UUID
 
 
 class TipoEventoMeteorologico(StrEnum):
-    """Tipos de evento meteorológico aceitos, alinhados ao `CHECK` de `eventos_meteorologicos.tipo`."""
+    """Tipos aceitos de evento, alinhados ao `CHECK` de `eventos_meteorologicos.tipo`."""
 
     CHUVA_INTENSA = "chuva_intensa"
     GRANIZO = "granizo"

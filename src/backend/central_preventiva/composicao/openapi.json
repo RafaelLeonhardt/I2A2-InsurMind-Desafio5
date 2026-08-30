@@ -41,6 +41,46 @@
         "title": "ProblemaContexto",
         "type": "object"
       },
+      "ProblemaMeteorologia": {
+        "additionalProperties": false,
+        "description": "Falha de uma operação meteorológica, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaMeteorologia",
+        "type": "object"
+      },
       "ProblemaProntidao": {
         "additionalProperties": false,
         "description": "Falha da operação de prontidão, com ocorrência, impacto e próxima ação segura.",
@@ -119,6 +159,62 @@
           "proxima_acao"
         ],
         "title": "ProblemaRestauracao",
+        "type": "object"
+      },
+      "RespostaColetaAceita": {
+        "additionalProperties": false,
+        "description": "Ack público de uma solicitação de coleta manual aceita ou já registrada.",
+        "properties": {
+          "aceito_em": {
+            "description": "Instante RFC 3339 em UTC em que a solicitação foi aceita.",
+            "format": "date-time",
+            "title": "Aceito Em",
+            "type": "string"
+          },
+          "estado": {
+            "description": "Estado da sincronização no momento da resposta.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "id": {
+            "description": "Identificador da sincronização criada ou já registrada.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "motivo_falha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Motivo tipado da falha, ou nulo se não houve.",
+            "title": "Motivo Falha"
+          },
+          "registros_validos": {
+            "description": "Quantidade de eventos válidos produzidos.",
+            "title": "Registros Validos",
+            "type": "integer"
+          },
+          "requisicao_id": {
+            "description": "Identificador de correlação da tentativa.",
+            "format": "uuid",
+            "title": "Requisicao Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "requisicao_id",
+          "estado",
+          "registros_validos",
+          "motivo_falha",
+          "aceito_em"
+        ],
+        "title": "RespostaColetaAceita",
         "type": "object"
       },
       "RespostaDependencia": {
@@ -201,6 +297,144 @@
         "title": "RespostaDependencias",
         "type": "object"
       },
+      "RespostaEvento": {
+        "additionalProperties": false,
+        "description": "Evento meteorológico normalizado, pronto para exibição.",
+        "properties": {
+          "area": {
+            "description": "Código IBGE da área onde o evento foi observado.",
+            "title": "Area",
+            "type": "string"
+          },
+          "id": {
+            "description": "Identificador do evento meteorológico.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "instante_observado": {
+            "description": "Instante RFC 3339 em UTC em que a medida foi observada.",
+            "format": "date-time",
+            "title": "Instante Observado",
+            "type": "string"
+          },
+          "intensidade": {
+            "description": "Intensidade normalizada da medida observada.",
+            "title": "Intensidade",
+            "type": "number"
+          },
+          "periodo_fim": {
+            "description": "Término RFC 3339 em UTC do período do evento.",
+            "format": "date-time",
+            "title": "Periodo Fim",
+            "type": "string"
+          },
+          "periodo_inicio": {
+            "description": "Início RFC 3339 em UTC do período do evento.",
+            "format": "date-time",
+            "title": "Periodo Inicio",
+            "type": "string"
+          },
+          "proveniencia": {
+            "description": "Origem do evento (`real_inmet` ou `sintetico`).",
+            "title": "Proveniencia",
+            "type": "string"
+          },
+          "tipo": {
+            "description": "Tipo do evento (`chuva_intensa` ou `granizo`).",
+            "title": "Tipo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tipo",
+          "area",
+          "periodo_inicio",
+          "periodo_fim",
+          "intensidade",
+          "proveniencia",
+          "instante_observado"
+        ],
+        "title": "RespostaEvento",
+        "type": "object"
+      },
+      "RespostaEventos": {
+        "additionalProperties": false,
+        "description": "Lista pública de eventos meteorológicos normalizados.",
+        "properties": {
+          "eventos": {
+            "description": "Eventos meteorológicos, do mais recente.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaEvento"
+            },
+            "title": "Eventos",
+            "type": "array"
+          }
+        },
+        "required": [
+          "eventos"
+        ],
+        "title": "RespostaEventos",
+        "type": "object"
+      },
+      "RespostaHistoricoSincronizacoes": {
+        "additionalProperties": false,
+        "description": "Histórico de sincronização, com os marcos exigidos pela consulta de Marina.",
+        "properties": {
+          "proxima_consulta": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Instante RFC 3339 em UTC estimado da próxima coleta automática.",
+            "title": "Proxima Consulta"
+          },
+          "resultados_anteriores": {
+            "description": "Histórico completo, da tentativa mais recente para a mais antiga.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaSincronizacao"
+            },
+            "title": "Resultados Anteriores",
+            "type": "array"
+          },
+          "ultima_tentativa": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaSincronizacao"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Tentativa mais recente registrada, ou nula se nunca houve nenhuma."
+          },
+          "ultima_valida": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaSincronizacao"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Última tentativa concluída com sucesso, ou nula se nenhuma concluiu."
+          }
+        },
+        "required": [
+          "ultima_tentativa",
+          "ultima_valida",
+          "proxima_consulta",
+          "resultados_anteriores"
+        ],
+        "title": "RespostaHistoricoSincronizacoes",
+        "type": "object"
+      },
       "RespostaRestauracao": {
         "additionalProperties": false,
         "description": "Resposta pública de uma restauração concluída.",
@@ -271,6 +505,82 @@
         "title": "RespostaSeguradoPadrao",
         "type": "object"
       },
+      "RespostaSincronizacao": {
+        "additionalProperties": false,
+        "description": "Registro público de uma tentativa de sincronização meteorológica.",
+        "properties": {
+          "estado": {
+            "description": "Estado atual da sincronização.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "finalizado_em": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Instante RFC 3339 em UTC de término, ou nulo se em andamento.",
+            "title": "Finalizado Em"
+          },
+          "id": {
+            "description": "Identificador da sincronização.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "iniciado_em": {
+            "description": "Instante RFC 3339 em UTC de início da tentativa.",
+            "format": "date-time",
+            "title": "Iniciado Em",
+            "type": "string"
+          },
+          "motivo_falha": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Motivo tipado da falha, ou nulo se não houve.",
+            "title": "Motivo Falha"
+          },
+          "origem": {
+            "description": "Origem da tentativa (`automatica` ou `manual`).",
+            "title": "Origem",
+            "type": "string"
+          },
+          "registros_validos": {
+            "description": "Quantidade de eventos válidos produzidos.",
+            "title": "Registros Validos",
+            "type": "integer"
+          },
+          "requisicao_id": {
+            "description": "Identificador de correlação da tentativa.",
+            "format": "uuid",
+            "title": "Requisicao Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "requisicao_id",
+          "origem",
+          "estado",
+          "registros_validos",
+          "motivo_falha",
+          "iniciado_em",
+          "finalizado_em"
+        ],
+        "title": "RespostaSincronizacao",
+        "type": "object"
+      },
       "RespostaVerificacaoAceita": {
         "additionalProperties": false,
         "description": "Ack de uma nova verificação aceita para processamento em segundo plano.",
@@ -298,6 +608,23 @@
           "aceito_em"
         ],
         "title": "RespostaVerificacaoAceita",
+        "type": "object"
+      },
+      "SolicitacaoColeta": {
+        "additionalProperties": false,
+        "description": "Corpo da solicitação de coleta manual: a área monitorada a consultar.",
+        "properties": {
+          "area_id": {
+            "description": "Identificador da área monitorada a coletar.",
+            "format": "uuid",
+            "title": "Area Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "area_id"
+        ],
+        "title": "SolicitacaoColeta",
         "type": "object"
       }
     }
@@ -377,6 +704,130 @@
         "summary": "Restaurar os dados sintéticos da demonstração",
         "tags": [
           "Dados sintéticos"
+        ]
+      }
+    },
+    "/api/v1/meteorologia/coletas": {
+      "post": {
+        "description": "Solicita, de forma idempotente, uma coleta meteorológica manual para a área informada. Exige o cabeçalho `Idempotency-Key` em toda requisição.",
+        "operationId": "solicitar_coleta_api_v1_meteorologia_coletas_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitacaoColeta"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaColetaAceita"
+                }
+              }
+            },
+            "description": "Coleta manual aceita e concluída."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaMeteorologia"
+                }
+              }
+            },
+            "description": "Área monitorada desconhecida."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaMeteorologia"
+                }
+              }
+            },
+            "description": "Conflito de idempotência."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaMeteorologia"
+                }
+              }
+            },
+            "description": "Requisição sem o cabeçalho `Idempotency-Key`."
+          }
+        },
+        "summary": "Solicitar uma coleta meteorológica manual",
+        "tags": [
+          "Meteorologia"
+        ]
+      }
+    },
+    "/api/v1/meteorologia/eventos": {
+      "get": {
+        "description": "Devolve os eventos meteorológicos já normalizados, do mais recente.",
+        "operationId": "consultar_eventos_api_v1_meteorologia_eventos_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaEventos"
+                }
+              }
+            },
+            "description": "Eventos meteorológicos normalizados."
+          }
+        },
+        "summary": "Consultar os eventos meteorológicos normalizados",
+        "tags": [
+          "Meteorologia"
+        ]
+      }
+    },
+    "/api/v1/meteorologia/sincronizacoes": {
+      "get": {
+        "description": "Devolve a última tentativa, a última coleta válida, a próxima consulta estimada e o histórico completo de sincronizações, só com dados persistidos.",
+        "operationId": "consultar_sincronizacoes_api_v1_meteorologia_sincronizacoes_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaHistoricoSincronizacoes"
+                }
+              }
+            },
+            "description": "Histórico de sincronizações meteorológicas."
+          }
+        },
+        "summary": "Consultar o histórico de sincronizações meteorológicas",
+        "tags": [
+          "Meteorologia"
         ]
       }
     },

@@ -325,13 +325,13 @@ T14
 
 **Done when**:
 
-- [ ] `POST /api/v1/meteorologia/coletas` sem `Idempotency-Key` retorna erro `application/problem+json`
-- [ ] `POST /api/v1/meteorologia/coletas` com `Idempotency-Key` nova retorna `202 Accepted`
-- [ ] Repetir a mesma `Idempotency-Key` devolve a resposta já registrada, sem nova chamada ao coletor (dublê instrumentado)
-- [ ] `GET /api/v1/meteorologia/eventos` e `GET /api/v1/meteorologia/sincronizacoes` retornam `200` com os campos exigidos pelo AC (tipo, local, período, intensidade, origem, horário / última tentativa, última válida, próxima consulta, resultados anteriores)
-- [ ] Roteador incluído em `composicao/api.py` com prefixo `/api/v1`
-- [ ] CORS restrito à origem configurada (mesmo padrão de `test_cors.py`)
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `POST /api/v1/meteorologia/coletas` sem `Idempotency-Key` retorna erro `application/problem+json`
+- [x] `POST /api/v1/meteorologia/coletas` com `Idempotency-Key` nova retorna `202 Accepted`
+- [x] Repetir a mesma `Idempotency-Key` devolve a resposta já registrada, sem nova chamada ao coletor (dublê instrumentado)
+- [x] `GET /api/v1/meteorologia/eventos` e `GET /api/v1/meteorologia/sincronizacoes` retornam `200` com os campos exigidos pelo AC (tipo, local, período, intensidade, origem, horário / última tentativa, última válida, próxima consulta, resultados anteriores)
+- [x] Roteador incluído em `composicao/api.py` com prefixo `/api/v1`
+- [x] CORS restrito à origem configurada (mesmo padrão de `test_cors.py`)
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full
