@@ -421,12 +421,12 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] `uv run --directory src/backend pytest` passes, full count reported
-- [ ] `uv run --directory src/backend ruff check .` passes
-- [ ] `uv run --directory src/backend pyright` passes
-- [ ] `npm test --prefix src/frontend -- --run` passes, full count reported
-- [ ] `npm run lint --prefix src/frontend` passes
-- [ ] `npm run build --prefix src/frontend` passes
+- [x] `uv run --directory src/backend pytest` passes, full count reported (185 passed)
+- [x] `uv run --directory src/backend ruff check .` passes
+- [x] `uv run --directory src/backend pyright` passes
+- [x] `npm test --prefix src/frontend -- --run` passes, full count reported (96 passed)
+- [x] `npm run lint --prefix src/frontend` passes
+- [x] `npm run build --prefix src/frontend` passes
 
 **Tests**: none (aggregate gate run)
 **Gate**: build
