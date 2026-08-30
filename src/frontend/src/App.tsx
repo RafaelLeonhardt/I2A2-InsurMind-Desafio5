@@ -6,6 +6,7 @@ import { FaixaDemonstracao } from './componentes/FaixaDemonstracao'
 import { NavegacaoLateral } from './componentes/NavegacaoLateral'
 import { PerfilProvider, SUPERFICIES_POR_PERFIL, usePerfilContexto } from './contexto/PerfilContexto'
 import { RestaurarDemonstracao } from './funcionalidades/dados-sinteticos/RestaurarDemonstracao'
+import { SuperficieDocumentacaoApi } from './funcionalidades/documentacao-api/SuperficieDocumentacaoApi'
 import { SuperficieProntidao } from './funcionalidades/prontidao/SuperficieProntidao'
 import { VisaoGeralSegurado } from './funcionalidades/segurado/VisaoGeralSegurado'
 
@@ -34,6 +35,8 @@ export function SuperficieAtiva() {
       return <SuperficieProntidao />
     case 'restaurar-dados-sinteticos':
       return <RestaurarDemonstracao />
+    case 'documentacao-api':
+      return <SuperficieDocumentacaoApi />
     case 'visao-geral':
       return <VisaoGeralSegurado />
   }

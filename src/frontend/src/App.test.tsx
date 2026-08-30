@@ -5,9 +5,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App, { SuperficieAtiva } from './App'
 import { CHAVE_ARMAZENAMENTO_PERFIL, PerfilProvider, usePerfilContexto } from './contexto/PerfilContexto'
 
-const { getSeguradoPadraoMock, restaurarDadosSinteticosMock } = vi.hoisted(() => ({
+const {
+  getSeguradoPadraoMock,
+  restaurarDadosSinteticosMock,
+  verificarDocumentacaoApiMock,
+} = vi.hoisted(() => ({
   getSeguradoPadraoMock: vi.fn(),
   restaurarDadosSinteticosMock: vi.fn(),
+  verificarDocumentacaoApiMock: vi.fn(),
 }))
 
 vi.mock('./api/contexto', async () => {
@@ -26,6 +31,14 @@ vi.mock('./api/dadosSinteticos', async () => {
   }
 })
 
+vi.mock('./api/documentacaoApi', async () => {
+  const real = await vi.importActual<typeof import('./api/documentacaoApi')>('./api/documentacaoApi')
+  return {
+    ...real,
+    verificarDocumentacaoApi: verificarDocumentacaoApiMock,
+  }
+})
+
 function definirLargura(largura: number) {
   Object.defineProperty(window, 'innerWidth', { configurable: true, value: largura })
 }
@@ -34,6 +47,11 @@ beforeEach(() => {
   getSeguradoPadraoMock.mockResolvedValue({
     id: '11111111-1111-4111-8111-111111111111',
     nome: 'Pessoa Segurada Sintética DEMO-001',
+  })
+  verificarDocumentacaoApiMock.mockResolvedValue({
+    estado: 'disponivel',
+    enderecoSwaggerUi: 'http://127.0.0.1:8000/docs',
+    enderecoOpenApi: 'http://127.0.0.1:8000/openapi.json',
   })
   window.localStorage.clear()
 })
@@ -63,6 +81,19 @@ describe('shell do contexto demonstrativo', () => {
     expect(screen.getByRole('button', { name: 'Restaurar dados sintéticos' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Visão geral' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Prontidão das dependências' })).toBeInTheDocument()
+  })
+
+  it('navega para "Documentação da API" e renderiza a superfície', async () => {
+    definirLargura(1440)
+    const usuario = userEvent.setup()
+    render(<App />)
+
+    await usuario.click(screen.getByRole('button', { name: 'Documentação da API' }))
+
+    expect(
+      await screen.findByRole('heading', { name: 'Documentação da API' }),
+    ).toBeInTheDocument()
+    expect(verificarDocumentacaoApiMock).toHaveBeenCalled()
   })
 
   it('Administrador → Segurado: navegação mostra somente Visão geral', async () => {

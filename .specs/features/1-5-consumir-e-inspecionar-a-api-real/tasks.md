@@ -354,9 +354,9 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] Selecting `'documentacao-api'` renders `SuperficieDocumentacaoApi`
-- [ ] `App.test.tsx` extended with a case navigating to the new surface and asserting it renders
-- [ ] `npm test --prefix src/frontend -- --run` passes, test count increases by at least 1
+- [x] Selecting `'documentacao-api'` renders `SuperficieDocumentacaoApi`
+- [x] `App.test.tsx` extended with a case navigating to the new surface and asserting it renders
+- [x] `npm test --prefix src/frontend -- --run` passes, test count increases by at least 1
 
 **Tests**: unit (RTL) - extends existing test file
 **Gate**: full (end of the wiring sub-sequence: full backend + frontend gate)
