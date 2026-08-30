@@ -46,6 +46,25 @@ class RepositorioAreasMonitoradas:
             ativa=bool(linha[4]),
         )
 
+    def listar_ativas(self) -> tuple[AreaMonitorada, ...]:
+        """Lista as áreas monitoradas atualmente ativas."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute(
+                "SELECT id, codigo_estacao_inmet, nome_estacao, codigo_ibge_area, ativa "
+                "FROM areas_monitoradas_inmet WHERE ativa = true"
+            ).fetchall()
+        return tuple(
+            AreaMonitorada(
+                id=UUID(str(linha[0])),
+                codigo_estacao_inmet=str(linha[1]),
+                nome_estacao=str(linha[2]),
+                codigo_ibge_area=str(linha[3]),
+                ativa=bool(linha[4]),
+            )
+            for linha in linhas
+        )
+
     def buscar_por_id(self, id: UUID) -> AreaMonitorada | None:
         """Resolve a área monitorada a partir do seu identificador interno, ou `None`."""
 

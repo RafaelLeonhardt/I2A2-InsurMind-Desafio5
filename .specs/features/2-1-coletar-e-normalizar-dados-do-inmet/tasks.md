@@ -353,11 +353,11 @@ T14
 
 **Done when**:
 
-- [ ] Task dispara uma coleta imediatamente ao iniciar (sem esperar o primeiro intervalo)
-- [ ] Task dorme exatamente `INTERVALO_SEGUNDOS` entre coletas (testado com relógio/evento dublê, sem `asyncio.sleep` real)
-- [ ] Task é cancelável de forma limpa (sem exceção não tratada) no shutdown do lifespan
-- [ ] `composicao/api.py` inicia a task no `lifespan` e a cancela no encerramento
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Task dispara uma coleta imediatamente ao iniciar (sem esperar o primeiro intervalo)
+- [x] Task dorme exatamente `INTERVALO_SEGUNDOS` entre coletas (testado com relógio/evento dublê, sem `asyncio.sleep` real)
+- [x] Task é cancelável de forma limpa (sem exceção não tratada) no shutdown do lifespan
+- [x] `composicao/api.py` inicia a task no `lifespan` e a cancela no encerramento
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick

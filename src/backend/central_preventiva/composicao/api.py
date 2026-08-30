@@ -1,5 +1,9 @@
 """Fábrica da aplicação FastAPI executada somente na interface local."""
 
+import asyncio
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager, suppress
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -12,11 +16,32 @@ from central_preventiva.adaptadores.http.dados_sinteticos import (
 from central_preventiva.adaptadores.http.meteorologia import (
     criar_roteador as criar_roteador_meteorologia,
 )
+from central_preventiva.adaptadores.http.meteorologia import (
+    montar_portas_coleta,
+)
 from central_preventiva.adaptadores.http.prontidao import (
     criar_roteador as criar_roteador_prontidao,
 )
 from central_preventiva.adaptadores.http.saude import roteador as roteador_saude
+from central_preventiva.aplicacao.coleta_meteorologica import ServicoColetaMeteorologica
+from central_preventiva.composicao.agendador_meteorologico import AgendadorMeteorologico
 from central_preventiva.composicao.configuracao import Configuracao, obter_configuracao
+
+
+@asynccontextmanager
+async def _lifespan(aplicacao: FastAPI) -> AsyncGenerator[None]:
+    """Inicia o agendador meteorológico no boot e o cancela de forma limpa no shutdown (AD-006)."""
+
+    configuracao_ativa: Configuracao = aplicacao.state.configuracao
+    portas = montar_portas_coleta(configuracao_ativa)
+    agendador = AgendadorMeteorologico(ServicoColetaMeteorologica(portas), portas.areas)
+    tarefa = asyncio.create_task(agendador.executar_em_segundo_plano())
+    try:
+        yield
+    finally:
+        tarefa.cancel()
+        with suppress(asyncio.CancelledError):
+            await tarefa
 
 
 def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
@@ -31,7 +56,9 @@ def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
             "com dados sintéticos e sem envio real."
         ),
         version="0.1.0",
+        lifespan=_lifespan,
     )
+    aplicacao.state.configuracao = configuracao_ativa
     aplicacao.add_middleware(
         CORSMiddleware,
         allow_origins=[configuracao_ativa.origem_frontend],

@@ -89,6 +89,15 @@ class RepositorioAreasMonitoradas(Protocol):
         """
         ...
 
+    def listar_ativas(self) -> tuple[AreaMonitorada, ...]:
+        """Lista as áreas monitoradas atualmente ativas, para a coleta automática.
+
+        # SPEC_DEVIATION: método ausente do `design.md` original de T3; adicionado em T10
+        # porque o `AgendadorMeteorologico` precisa enumerar todas as áreas ativas a cada
+        # ciclo, sem lista manual.
+        """
+        ...
+
 
 class RepositorioEventosMeteorologicos(Protocol):
     """Persiste eventos meteorológicos normalizados."""

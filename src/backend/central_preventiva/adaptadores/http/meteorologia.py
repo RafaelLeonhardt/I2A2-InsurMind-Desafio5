@@ -183,20 +183,26 @@ def _resposta_sincronizacao(sincronizacao: object) -> RespostaSincronizacao:
     )
 
 
-def criar_roteador(configuracao: Configuracao) -> APIRouter:
-    """Compõe o recurso de meteorologia sobre os adaptadores reais do INMET."""
+def montar_portas_coleta(configuracao: Configuracao) -> PortasColetaMeteorologica:
+    """Compõe as portas reais da coleta meteorológica, reusadas pelo roteador e pelo agendador."""
 
-    roteador = APIRouter(tags=["Meteorologia"])
-    eventos_repo = RepositorioEventosMeteorologicos(configuracao.caminho_banco)
-    sincronizacoes_repo = RepositorioSincronizacoes(configuracao.caminho_banco)
-    portas = PortasColetaMeteorologica(
+    return PortasColetaMeteorologica(
         idempotencia=RepositorioIdempotencia(configuracao.caminho_banco),
         areas=RepositorioAreasMonitoradas(configuracao.caminho_banco),
         coletor=ClienteInmet(configuracao.url_base_inmet),
         normalizador=NormalizadorInmet(),
-        eventos=eventos_repo,
-        sincronizacoes=sincronizacoes_repo,
+        eventos=RepositorioEventosMeteorologicos(configuracao.caminho_banco),
+        sincronizacoes=RepositorioSincronizacoes(configuracao.caminho_banco),
     )
+
+
+def criar_roteador(configuracao: Configuracao) -> APIRouter:
+    """Compõe o recurso de meteorologia sobre os adaptadores reais do INMET."""
+
+    roteador = APIRouter(tags=["Meteorologia"])
+    portas = montar_portas_coleta(configuracao)
+    eventos_repo = portas.eventos
+    sincronizacoes_repo = portas.sincronizacoes
     servico = ServicoColetaMeteorologica(portas)
 
     @roteador.post(
