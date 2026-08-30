@@ -39,8 +39,8 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 | --- | --- | --- |
 | Quick (backend) | After a backend-only task with new/changed tests | `uv run --directory src/backend pytest` |
 | Quick (frontend) | After a frontend-only task with new/changed tests | `npm test --prefix src/frontend -- --run` |
-| Full | After a task touching both backend and frontend, or wiring between them | `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright && npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend` |
-| Build | After phase completion | Full gate command above, run once at the end of each phase |
+| Full | After a task touching both backend and frontend, or wiring between them | Backend: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright` / Frontend: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend` — run both in parallel (`run_in_background`), wait for both, then evaluate |
+| Build | After phase completion | Full gate command above (backend + frontend in parallel), run once at the end of each phase |
 
 ---
 
