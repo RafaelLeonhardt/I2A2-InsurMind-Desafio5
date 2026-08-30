@@ -119,9 +119,9 @@ T14
 
 **Done when**:
 
-- [ ] `EventoMeteorologico`, `TipoEventoMeteorologico`, `ProvenienciaEvento` definidos com docstring PT-BR
-- [ ] Valores dos enums batem exatamente com os `CHECK` de `eventos_meteorologicos.tipo`/`proveniencia`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `EventoMeteorologico`, `TipoEventoMeteorologico`, `ProvenienciaEvento` definidos com docstring PT-BR
+- [x] Valores dos enums batem exatamente com os `CHECK` de `eventos_meteorologicos.tipo`/`proveniencia`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: none
 **Gate**: quick
