@@ -25,6 +25,8 @@ TABELAS_ESPERADAS = {
     "elegibilidades_historicas",
     "execucao_preventiva",
     "chaves_idempotencia",
+    "areas_monitoradas_inmet",
+    "sincronizacoes_meteorologicas",
 }
 
 REGISTRO_MINIMO = (
@@ -72,10 +74,10 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1,)
-    assert resultado.versao_final == 1
+    assert resultado.versoes_aplicadas == (1, 2)
+    assert resultado.versao_final == 2
     assert tabelas(caminho) == TABELAS_ESPERADAS
-    assert registros(caminho) == [(1, "schema inicial")]
+    assert registros(caminho) == [(1, "schema inicial"), (2, "meteorologia")]
 
 
 def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
@@ -85,8 +87,21 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 1
-    assert registros(caminho) == [(1, "schema inicial")]
+    assert resultado.versao_final == 2
+    assert registros(caminho) == [(1, "schema inicial"), (2, "meteorologia")]
+
+
+def test_migracao_meteorologia_e_idempotente_sobre_banco_ja_migrado(tmp_path: Path) -> None:
+    """AD-007: `areas_monitoradas_inmet`/`sincronizacoes_meteorologicas` aplicam com segurança
+    mesmo quando já estão presentes de uma execução anterior (nenhuma mutação duplicada)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    assert resultado.versoes_aplicadas == ()
+    assert {"areas_monitoradas_inmet", "sincronizacoes_meteorologicas"} <= tabelas(caminho)
 
 
 def test_recusa_versao_registrada_futura_sem_aplicar_mutacao(tmp_path: Path) -> None:

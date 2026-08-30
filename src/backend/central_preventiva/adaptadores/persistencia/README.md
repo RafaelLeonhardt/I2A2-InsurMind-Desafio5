@@ -157,3 +157,35 @@ Armazenamento genérico de `Idempotency-Key`, reutilizável por qualquer `POST` 
 | `resposta_status` | `INTEGER` | `NOT NULL` |
 | `resposta_corpo` | `VARCHAR` | `NOT NULL` |
 | `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+
+## Tabelas da migração `0002_meteorologia`
+
+### `areas_monitoradas_inmet`
+
+Mapeia uma estação/área real do INMET para o `codigo_ibge_area` sintético usado pela demonstração
+(AD-007). Tabela de configuração versionada — faz parte da lista de exceções da restauração (AD-014).
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `codigo_estacao_inmet` | `VARCHAR` | `NOT NULL`, código real da estação (`CD_ESTACAO`) |
+| `nome_estacao` | `VARCHAR` | `NOT NULL` |
+| `codigo_ibge_area` | `VARCHAR` | `NOT NULL`, chave estrangeira lógica para `segurados`/`apolices(codigo_ibge_area)` |
+| `ativa` | `BOOLEAN` | `NOT NULL`, padrão `true` |
+| `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+
+### `sincronizacoes_meteorologicas`
+
+Histórico de cada tentativa de coleta meteorológica (manual ou automática).
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `requisicao_id` | `UUID` | `NOT NULL`, correlação (AD-10) |
+| `area_monitorada_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `areas_monitoradas_inmet(id)` |
+| `origem` | `VARCHAR` | `NOT NULL`, `CHECK` em `automatica`, `manual` |
+| `estado` | `VARCHAR` | `NOT NULL`, `CHECK` em `coletando`, `normalizando`, `concluido`, `falha` |
+| `registros_validos` | `INTEGER` | `NOT NULL`, padrão `0` |
+| `motivo_falha` | `VARCHAR` | nulo se `estado != 'falha'` |
+| `iniciado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+| `finalizado_em` | `TIMESTAMP` | nulo enquanto em andamento |

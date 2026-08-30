@@ -143,10 +143,10 @@ T14
 
 **Done when**:
 
-- [ ] Migração aplica em transação própria e é idempotente (roda seguro em banco já migrado)
-- [ ] `adaptadores/persistencia/README.md` documenta as duas tabelas novas e suas chaves estrangeiras lógicas
-- [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0002` (teste adicionado nesta task)
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Migração aplica em transação própria e é idempotente (roda seguro em banco já migrado)
+- [x] `adaptadores/persistencia/README.md` documenta as duas tabelas novas e suas chaves estrangeiras lógicas
+- [x] `testes/test_migracoes.py` cobre a aplicação da migração `0002` (teste adicionado nesta task)
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
