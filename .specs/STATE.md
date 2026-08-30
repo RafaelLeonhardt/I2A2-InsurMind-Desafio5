@@ -59,3 +59,11 @@
 - **Status**: active
 
 ## Handoff
+
+- **Feature**: Épico 2 (Histórias 2.1–2.6) — planejamento completo, execução não iniciada por pedido explícito do usuário.
+- **Completed**: `spec.md` das 6 histórias (2.1–2.6), todas validadas por `validate_spec.py`. `design.md` + `tasks.md` das 6 histórias, todas validadas por `validate_tasks.py` (0 erros; alguns avisos de granularidade aceitos, mesma prática já usada em `1-2-inicializar-e-restaurar-dados-sinteticos/tasks.md`). AD-006 (runner `asyncio` in-process) e AD-007 (mapeamento estação real→área sintética) registrados acima.
+- **In-progress**: nada — um sub-agente de implementação da 2.1 (T1-T7) foi despachado e explicitamente interrompido a pedido do usuário antes de tocar qualquer arquivo (`git status` confirmado limpo).
+- **Next step**: quando o usuário pedir para implementar, retomar pela História 2.1 (`tasks.md` já aprovado, 13 tasks em 6 fases) — depende só das próprias histórias anteriores (Épico 1). Ordem de implementação entre histórias do Épico 2: 2.1 → 2.2 → 2.3 → 2.4 (pode rodar em paralelo lógico com 2.3, mas ambas dependem só de 2.1/2.2) → 2.5 → 2.6 (depende de 2.1, 2.3 e 2.5).
+- **Blockers**: nenhum. Único risco já registrado: os nomes de campo de leitura horária da API real do INMET não foram confirmados por sondagem ao vivo nesta sessão (ver `2-1-.../design.md`, seção Risks & Concerns) — primeira task de implementação (T4) resolve isso.
+- **Uncommitted files**: nenhum (todos os artefatos `.specs/` já estão na árvore de trabalho, não commitados; nenhuma alteração em código-fonte).
+- **Branch**: `main`.
