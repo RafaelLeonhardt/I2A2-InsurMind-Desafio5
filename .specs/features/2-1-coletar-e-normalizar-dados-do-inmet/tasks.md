@@ -298,12 +298,12 @@ T14
 
 **Done when**:
 
-- [ ] Solicitação manual persiste a sincronização em `coletando` antes de qualquer resposta
-- [ ] `executar_coleta` com `AdaptadorInmetFalso` (sucesso) produz evento normalizado e sincronização `concluido`
-- [ ] `executar_coleta` com resposta inválida produz sincronização `falha` com `motivo_falha`, sem criar evento
-- [ ] Repetir `solicitar_coleta_manual` com a mesma `Idempotency-Key` não dispara nova coleta e devolve a resposta registrada
-- [ ] Nenhum log do caso de uso expõe corpo externo íntegro ou credenciais
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Solicitação manual persiste a sincronização em `coletando` antes de qualquer resposta
+- [x] `executar_coleta` com `AdaptadorInmetFalso` (sucesso) produz evento normalizado e sincronização `concluido`
+- [x] `executar_coleta` com resposta inválida produz sincronização `falha` com `motivo_falha`, sem criar evento
+- [x] Repetir `solicitar_coleta_manual` com a mesma `Idempotency-Key` não dispara nova coleta e devolve a resposta registrada
+- [x] Nenhum log do caso de uso expõe corpo externo íntegro ou credenciais
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick

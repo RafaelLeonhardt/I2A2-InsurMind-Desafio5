@@ -74,6 +74,15 @@ class RepositorioAreasMonitoradas(Protocol):
         """Resolve a área monitorada a partir do código real da estação, se houver mapeamento."""
         ...
 
+    def buscar_por_id(self, id: UUID) -> AreaMonitorada | None:
+        """Resolve a área monitorada a partir do seu identificador interno, se existir.
+
+        # SPEC_DEVIATION: método ausente do `design.md` original de T3; adicionado em T8
+        # porque `solicitar_coleta_manual` precisa resolver o `area_id` recebido pela API
+        # em uma `AreaMonitorada` completa antes de disparar a coleta.
+        """
+        ...
+
 
 class RepositorioEventosMeteorologicos(Protocol):
     """Persiste eventos meteorológicos normalizados."""

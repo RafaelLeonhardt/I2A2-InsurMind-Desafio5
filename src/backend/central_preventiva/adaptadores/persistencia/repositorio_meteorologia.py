@@ -46,6 +46,25 @@ class RepositorioAreasMonitoradas:
             ativa=bool(linha[4]),
         )
 
+    def buscar_por_id(self, id: UUID) -> AreaMonitorada | None:
+        """Resolve a área monitorada a partir do seu identificador interno, ou `None`."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            linha = conexao.execute(
+                "SELECT id, codigo_estacao_inmet, nome_estacao, codigo_ibge_area, ativa "
+                "FROM areas_monitoradas_inmet WHERE id = ?",
+                [id],
+            ).fetchone()
+        if linha is None:
+            return None
+        return AreaMonitorada(
+            id=UUID(str(linha[0])),
+            codigo_estacao_inmet=str(linha[1]),
+            nome_estacao=str(linha[2]),
+            codigo_ibge_area=str(linha[3]),
+            ativa=bool(linha[4]),
+        )
+
 
 class RepositorioEventosMeteorologicos:
     """Persiste eventos meteorológicos normalizados."""
