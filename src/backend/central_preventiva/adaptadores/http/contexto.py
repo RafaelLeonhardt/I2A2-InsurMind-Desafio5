@@ -4,7 +4,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from central_preventiva.adaptadores.persistencia.repositorio_segurados import (
     RepositorioSegurados,
@@ -25,8 +25,8 @@ class RespostaSeguradoPadrao(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    id: str
-    nome: str
+    id: str = Field(description="Identificador opaco do segurado sintético padrão.")
+    nome: str = Field(description="Nome do segurado sintético padrão.")
 
 
 class ProblemaContexto(BaseModel):
@@ -34,11 +34,11 @@ class ProblemaContexto(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    codigo: str
-    correlacao_id: str
-    ocorrencia: str
-    impacto: str
-    proxima_acao: str
+    codigo: str = Field(description="Código estável que identifica o tipo da falha.")
+    correlacao_id: str = Field(description="Identificador único desta ocorrência de falha.")
+    ocorrencia: str = Field(description="O que aconteceu, em português brasileiro.")
+    impacto: str = Field(description="Efeito prático da falha para quem consultou o recurso.")
+    proxima_acao: str = Field(description="Próxima ação segura recomendada para contornar a falha.")
 
 
 def problema(

@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Header, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from central_preventiva.adaptadores.persistencia.repositorio_execucoes import RepositorioExecucoes
 from central_preventiva.adaptadores.persistencia.repositorio_idempotencia import (
@@ -34,8 +34,10 @@ class RespostaRestauracao(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    status: Literal["restaurado"]
-    restaurado_em: datetime
+    status: Literal["restaurado"] = Field(description="Resultado da restauração concluída.")
+    restaurado_em: datetime = Field(
+        description="Instante RFC 3339 em UTC em que a restauração foi concluída."
+    )
 
 
 class ProblemaRestauracao(BaseModel):
@@ -43,11 +45,11 @@ class ProblemaRestauracao(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    codigo: str
-    correlacao_id: str
-    ocorrencia: str
-    impacto: str
-    proxima_acao: str
+    codigo: str = Field(description="Código estável que identifica o tipo da falha.")
+    correlacao_id: str = Field(description="Identificador único desta ocorrência de falha.")
+    ocorrencia: str = Field(description="O que aconteceu, em português brasileiro.")
+    impacto: str = Field(description="Efeito prático da falha para quem consultou o recurso.")
+    proxima_acao: str = Field(description="Próxima ação segura recomendada para contornar a falha.")
 
 
 def problema(

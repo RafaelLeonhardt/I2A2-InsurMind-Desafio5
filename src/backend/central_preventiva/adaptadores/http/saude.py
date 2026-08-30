@@ -3,7 +3,7 @@
 from typing import Literal
 
 from fastapi import APIRouter
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from central_preventiva.aplicacao.saude import consultar_saude
 
@@ -15,8 +15,8 @@ class RespostaSaude(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    status: Literal["disponivel"]
-    ambiente: Literal["educacional"]
+    status: Literal["disponivel"] = Field(description="Disponibilidade do processo backend.")
+    ambiente: Literal["educacional"] = Field(description="Ambiente de execução do processo.")
 
 
 @roteador.get(

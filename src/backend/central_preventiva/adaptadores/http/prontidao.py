@@ -7,7 +7,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Header, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from central_preventiva.adaptadores.persistencia.repositorio_idempotencia import (
     RepositorioIdempotencia,
@@ -41,12 +41,16 @@ class RespostaDependencia(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    nome: str
-    estado: str
-    verificado_em: datetime | None
-    causa: str | None
-    impacto: str
-    acao_disponivel: str
+    nome: str = Field(description="Nome canônico da dependência verificada.")
+    estado: str = Field(description="Estado atual de prontidão da dependência.")
+    verificado_em: datetime | None = Field(
+        description="Instante RFC 3339 em UTC da última verificação, ou nulo se ainda não houve."
+    )
+    causa: str | None = Field(
+        description="Causa da indisponibilidade ou degradação, ou nula quando disponível."
+    )
+    impacto: str = Field(description="Efeito prático do estado atual para quem consulta.")
+    acao_disponivel: str = Field(description="Ação segura disponível dado o estado atual.")
 
 
 class RespostaDependencias(BaseModel):
@@ -54,7 +58,9 @@ class RespostaDependencias(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    dependencias: list[RespostaDependencia]
+    dependencias: list[RespostaDependencia] = Field(
+        description="Estado de prontidão de cada uma das 4 dependências monitoradas."
+    )
 
 
 class RespostaVerificacaoAceita(BaseModel):
@@ -62,9 +68,13 @@ class RespostaVerificacaoAceita(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    nome: str
-    estado: str
-    aceito_em: datetime
+    nome: str = Field(description="Nome canônico da dependência cuja verificação foi aceita.")
+    estado: str = Field(
+        description="Estado da dependência no momento em que a verificação foi aceita."
+    )
+    aceito_em: datetime = Field(
+        description="Instante RFC 3339 em UTC em que a nova verificação foi aceita."
+    )
 
 
 class ProblemaProntidao(BaseModel):
@@ -72,11 +82,11 @@ class ProblemaProntidao(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    codigo: str
-    correlacao_id: str
-    ocorrencia: str
-    impacto: str
-    proxima_acao: str
+    codigo: str = Field(description="Código estável que identifica o tipo da falha.")
+    correlacao_id: str = Field(description="Identificador único desta ocorrência de falha.")
+    ocorrencia: str = Field(description="O que aconteceu, em português brasileiro.")
+    impacto: str = Field(description="Efeito prático da falha para quem consultou o recurso.")
+    proxima_acao: str = Field(description="Próxima ação segura recomendada para contornar a falha.")
 
 
 def problema(

@@ -6,22 +6,27 @@
         "description": "Falha da consulta do segurado padrão, com ocorrência, impacto e próxima ação segura.",
         "properties": {
           "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
             "title": "Codigo",
             "type": "string"
           },
           "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
             "title": "Correlacao Id",
             "type": "string"
           },
           "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
             "title": "Impacto",
             "type": "string"
           },
           "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
             "title": "Ocorrencia",
             "type": "string"
           },
           "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
             "title": "Proxima Acao",
             "type": "string"
           }
@@ -41,22 +46,27 @@
         "description": "Falha da operação de prontidão, com ocorrência, impacto e próxima ação segura.",
         "properties": {
           "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
             "title": "Codigo",
             "type": "string"
           },
           "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
             "title": "Correlacao Id",
             "type": "string"
           },
           "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
             "title": "Impacto",
             "type": "string"
           },
           "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
             "title": "Ocorrencia",
             "type": "string"
           },
           "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
             "title": "Proxima Acao",
             "type": "string"
           }
@@ -76,22 +86,27 @@
         "description": "Falha da restauração, com ocorrência, impacto e próxima ação segura.",
         "properties": {
           "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
             "title": "Codigo",
             "type": "string"
           },
           "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
             "title": "Correlacao Id",
             "type": "string"
           },
           "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
             "title": "Impacto",
             "type": "string"
           },
           "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
             "title": "Ocorrencia",
             "type": "string"
           },
           "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
             "title": "Proxima Acao",
             "type": "string"
           }
@@ -111,6 +126,7 @@
         "description": "Estado de prontidão de uma única dependência, pronto para exibição.",
         "properties": {
           "acao_disponivel": {
+            "description": "Ação segura disponível dado o estado atual.",
             "title": "Acao Disponivel",
             "type": "string"
           },
@@ -123,17 +139,21 @@
                 "type": "null"
               }
             ],
+            "description": "Causa da indisponibilidade ou degradação, ou nula quando disponível.",
             "title": "Causa"
           },
           "estado": {
+            "description": "Estado atual de prontidão da dependência.",
             "title": "Estado",
             "type": "string"
           },
           "impacto": {
+            "description": "Efeito prático do estado atual para quem consulta.",
             "title": "Impacto",
             "type": "string"
           },
           "nome": {
+            "description": "Nome canônico da dependência verificada.",
             "title": "Nome",
             "type": "string"
           },
@@ -147,6 +167,7 @@
                 "type": "null"
               }
             ],
+            "description": "Instante RFC 3339 em UTC da última verificação, ou nulo se ainda não houve.",
             "title": "Verificado Em"
           }
         },
@@ -166,6 +187,7 @@
         "description": "Resposta pública consolidada das 4 dependências.",
         "properties": {
           "dependencias": {
+            "description": "Estado de prontidão de cada uma das 4 dependências monitoradas.",
             "items": {
               "$ref": "#/components/schemas/RespostaDependencia"
             },
@@ -184,12 +206,14 @@
         "description": "Resposta pública de uma restauração concluída.",
         "properties": {
           "restaurado_em": {
+            "description": "Instante RFC 3339 em UTC em que a restauração foi concluída.",
             "format": "date-time",
             "title": "Restaurado Em",
             "type": "string"
           },
           "status": {
             "const": "restaurado",
+            "description": "Resultado da restauração concluída.",
             "title": "Status",
             "type": "string"
           }
@@ -207,11 +231,13 @@
         "properties": {
           "ambiente": {
             "const": "educacional",
+            "description": "Ambiente de execução do processo.",
             "title": "Ambiente",
             "type": "string"
           },
           "status": {
             "const": "disponivel",
+            "description": "Disponibilidade do processo backend.",
             "title": "Status",
             "type": "string"
           }
@@ -228,10 +254,12 @@
         "description": "Resposta pública do segurado sintético padrão.",
         "properties": {
           "id": {
+            "description": "Identificador opaco do segurado sintético padrão.",
             "title": "Id",
             "type": "string"
           },
           "nome": {
+            "description": "Nome do segurado sintético padrão.",
             "title": "Nome",
             "type": "string"
           }
@@ -248,15 +276,18 @@
         "description": "Ack de uma nova verificação aceita para processamento em segundo plano.",
         "properties": {
           "aceito_em": {
+            "description": "Instante RFC 3339 em UTC em que a nova verificação foi aceita.",
             "format": "date-time",
             "title": "Aceito Em",
             "type": "string"
           },
           "estado": {
+            "description": "Estado da dependência no momento em que a verificação foi aceita.",
             "title": "Estado",
             "type": "string"
           },
           "nome": {
+            "description": "Nome canônico da dependência cuja verificação foi aceita.",
             "title": "Nome",
             "type": "string"
           }

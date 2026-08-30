@@ -161,6 +161,8 @@ T15 → T16
 
 **Commit**: `docs(backend): completar descricoes OpenAPI em portugues onde faltarem` (omit if T3 found zero gaps)
 
+**Verifier fix (post-implementation):** the independent Verifier flagged that T3's test only checked operation-level `summary`/`description`, not per-*field* `description` on the response/error schemas — the spec (API15-02) requires PT-BR descriptions for every field too. Fixed: added `Field(description=...)` to every field of `RespostaSeguradoPadrao`, `ProblemaContexto`, `RespostaRestauracao`, `ProblemaRestauracao`, `RespostaSaude`, `RespostaDependencia`, `RespostaDependencias`, `RespostaVerificacaoAceita`, `ProblemaProntidao`; added `test_todo_campo_dos_schemas_sob_api_v1_tem_description_em_portugues` to `test_openapi_sincronizado.py`; regenerated the snapshot.
+
 ---
 
 ### T5: Add CORS + docs-availability boundary test
@@ -183,6 +185,8 @@ T15 → T16
 **Gate**: build (end of Phase 1: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`)
 
 **Commit**: `test(backend): validar fronteira de CORS e disponibilidade de docs via loopback`
+
+**Verifier fix (post-implementation):** the independent Verifier flagged two minor coverage gaps — the preflight test never asserted `Accept` was present in `access-control-allow-headers` (it is configured, just unchecked), and no test covered an `OPTIONS` preflight from a non-configured origin. Fixed: added the `Accept` assertion to the existing preflight test and a new `test_preflight_recusa_uma_origem_nao_configurada` test.
 
 ---
 

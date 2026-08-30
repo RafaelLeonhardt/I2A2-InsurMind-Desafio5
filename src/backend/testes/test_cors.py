@@ -64,6 +64,22 @@ def test_preflight_libera_metodos_e_cabecalhos_esperados_para_a_origem_configura
     cabecalhos_liberados = resposta.headers.get("access-control-allow-headers", "")
     assert "content-type" in cabecalhos_liberados.lower()
     assert "idempotency-key" in cabecalhos_liberados.lower()
+    assert "accept" in cabecalhos_liberados.lower()
+
+
+def test_preflight_recusa_uma_origem_nao_configurada(tmp_path: Path) -> None:
+    cliente = cliente_para(tmp_path / "banco.duckdb")
+
+    resposta = cliente.options(
+        "/api/v1/dados-sinteticos/restauracoes",
+        headers={
+            "Origin": ORIGEM_NAO_CONFIGURADA,
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "Content-Type, Idempotency-Key",
+        },
+    )
+
+    assert "access-control-allow-origin" not in resposta.headers
 
 
 def test_swagger_ui_responde_200_via_loopback(tmp_path: Path) -> None:

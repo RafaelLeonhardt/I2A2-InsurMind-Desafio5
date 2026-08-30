@@ -71,3 +71,30 @@ def test_todo_schema_de_erro_referenciado_sob_api_v1_tem_description_em_portugue
 
     for nome, schema in schemas_de_erro.items():
         assert schema.get("description", "").strip(), f"{nome} sem description"
+
+
+def test_todo_campo_dos_schemas_sob_api_v1_tem_description_em_portugues(
+    tmp_path: Path,
+) -> None:
+    documento = gerar_documento_openapi(configuracao_para(tmp_path / "banco.duckdb"))
+
+    nomes_schemas_api_v1 = {
+        schema["$ref"].rsplit("/", 1)[-1]
+        for caminho, operacoes in documento["paths"].items()
+        if caminho.startswith("/api/v1")
+        for operacao in operacoes.values()
+        for resposta in operacao.get("responses", {}).values()
+        for conteudo in resposta.get("content", {}).values()
+        if (schema := conteudo.get("schema", {})).get("$ref")
+    }
+
+    assert nomes_schemas_api_v1, "esperava ao menos um schema referenciado sob /api/v1"
+
+    campos_sem_description: list[str] = []
+    for nome in nomes_schemas_api_v1:
+        schema = documento["components"]["schemas"][nome]
+        for campo, propriedade in schema.get("properties", {}).items():
+            if not propriedade.get("description", "").strip():
+                campos_sem_description.append(f"{nome}.{campo}")
+
+    assert not campos_sem_description, f"campos sem description: {campos_sem_description}"
