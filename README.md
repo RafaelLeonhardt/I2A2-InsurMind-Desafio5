@@ -67,7 +67,22 @@ uv run --directory src/backend python -m central_preventiva.composicao.servidor
 npm run dev --prefix src/frontend
 ```
 
-A saúde mínima fica disponível em `http://127.0.0.1:8000/api/v1/saude` e o contrato OpenAPI em `http://127.0.0.1:8000/openapi.json`.
+A saúde mínima fica disponível em `http://127.0.0.1:8000/api/v1/saude` e o contrato OpenAPI em `http://127.0.0.1:8000/openapi.json`. Com o servidor no ar, a Swagger UI interativa fica disponível em `http://127.0.0.1:8000/docs`.
+
+### Contrato OpenAPI e tipos do frontend
+
+O snapshot versionado do contrato (`src/backend/central_preventiva/composicao/openapi.json`) é gerado a partir da aplicação real e comparado ao schema em execução por `test_openapi_sincronizado.py`. Para regenerá-lo após alterar um roteador:
+
+```bash
+uv run --directory src/backend python -m central_preventiva.composicao.openapi_export
+```
+
+Os tipos TypeScript consumidos pelo cliente HTTP central (`src/frontend/src/api/clienteHttp.ts`) são gerados a partir desse mesmo contrato. **Os dois comandos abaixo exigem o backend em execução em `127.0.0.1:8000`** (`uv run --directory src/backend python -m central_preventiva.composicao.servidor`):
+
+```bash
+npm run gerar-tipos-api --prefix src/frontend    # regera src/frontend/src/api/tipos-gerados.ts
+npm run verificar-tipos-api --prefix src/frontend # falha se o arquivo versionado divergir do contrato ao vivo
+```
 
 ## Licença
 

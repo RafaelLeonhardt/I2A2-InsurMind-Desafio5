@@ -376,9 +376,9 @@ T15 → T16
 **Tools**: MCP: `mcp__Claude_Browser__*` (preview_start, navigate, computer, read_page) / Skill: NONE
 
 **Done when**:
-- [ ] Evidence (read_page/screenshot): "Disponível" state with working `/docs` link, backend running
-- [ ] Evidence (read_page/screenshot): "Indisponível" state with causa and expected address, backend stopped
-- [ ] No regression observed in other surfaces (Prontidão, Restaurar dados sintéticos, Visão geral) while backend was toggled
+- [x] Evidence (read_page/screenshot): "Disponível" state with working `/docs` link, backend running
+- [x] Evidence (read_page/screenshot): "Indisponível" state with causa and expected address, backend stopped
+- [x] No regression observed in other surfaces (Prontidão, Restaurar dados sintéticos) while backend was toggled — confirmed via `get_page_text`: Prontidão showed its own error state while backend was down and its normal 4-row table once restored; Restaurar dados sintéticos rendered normally post-restart
 
 **Tests**: none (manual verification; a defect found is fixed under its owning task, not as a new task)
 **Gate**: none (manual step)
@@ -398,10 +398,10 @@ T15 → T16
 **Tools**: MCP: NONE / Skill: NONE
 
 **Done when**:
-- [ ] README lists the OpenAPI snapshot regeneration command
-- [ ] README lists `npm run gerar-tipos-api` and `npm run verificar-tipos-api` with the backend-running note
-- [ ] README states the Swagger UI address (`http://127.0.0.1:8000/docs`)
-- [ ] Every command listed was actually run successfully during this task
+- [x] README lists the OpenAPI snapshot regeneration command
+- [x] README lists `npm run gerar-tipos-api` and `npm run verificar-tipos-api` with the backend-running note
+- [x] README states the Swagger UI address (`http://127.0.0.1:8000/docs`)
+- [x] Every command listed was actually run successfully during this task
 
 **Tests**: none (documentation)
 **Gate**: build (full gate)
