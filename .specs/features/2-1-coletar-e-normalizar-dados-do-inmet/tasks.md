@@ -428,12 +428,12 @@ T14
 
 **Done when**:
 
-- [ ] Estado de carregamento até a primeira resposta real (sem dado fixo simulando disponibilidade)
-- [ ] Lista/tabela exibe tipo, local, período, intensidade, origem e horário de cada evento
-- [ ] Alternativa em lista operável por teclado/leitor de tela para a seleção de eventos (sem depender de mapa)
-- [ ] Histórico de sincronização exibido (última tentativa, última válida, próxima consulta, resultados anteriores)
-- [ ] Testes cobrem carregando/disponível/indisponível e navegação por teclado (mesmo piso de `SuperficieProntidao.test.tsx`)
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Estado de carregamento até a primeira resposta real (sem dado fixo simulando disponibilidade)
+- [x] Lista/tabela exibe tipo, local, período, intensidade, origem e horário de cada evento
+- [x] Alternativa em lista operável por teclado/leitor de tela para a seleção de eventos (sem depender de mapa)
+- [x] Histórico de sincronização exibido (última tentativa, última válida, próxima consulta, resultados anteriores)
+- [x] Testes cobrem carregando/disponível/indisponível e navegação por teclado (mesmo piso de `SuperficieProntidao.test.tsx`)
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full
