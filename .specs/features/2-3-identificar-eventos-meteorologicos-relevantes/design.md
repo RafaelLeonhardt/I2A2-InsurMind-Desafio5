@@ -134,7 +134,7 @@ graph TD
 | Decision | Choice | Rationale |
 | --- | --- | --- |
 | Limiar de chuva intensa (demonstração) | `intensidade >= 50.0` (mm acumulados no período do evento) — fronteira **inclusiva** | Valor de referência usado por classificações meteorológicas públicas para "chuva forte/muito forte" em 24h; adequado como default de demonstração, documentado como tal (não é um valor operacional real) |
-| Limiar de granizo (demonstração) | Qualquer evento com `tipo = granizo` já é considerado relevante por ocorrência (não há limiar de intensidade adicional na demonstração) — a severidade em si é o gatilho | Simplifica o cenário sintético do MVP; granizo é binário (ocorreu/não ocorreu) na fonte pública, diferente de chuva que é uma medida contínua |
+| Limiar de granizo (demonstração) | Qualquer evento com `tipo = granizo` já é considerado relevante por ocorrência (não há limiar de intensidade adicional na demonstração) — a severidade em si é o gatilho | Simplifica o cenário sintético do MVP; granizo entra no MVP exclusivamente pelo cenário sintético (**AD-013** — as leituras de estações automáticas do INMET não têm campo de granizo), modelado por ocorrência, diferente de chuva que é uma medida contínua |
 | Onde vive o limiar | Reaproveita `regras.limiar_meteorologico` (schema já existente) — não introduz configuração paralela | A tabela já foi desenhada no Épico 1 exatamente para isso |
 | Serialização de `criterios` | JSON em coluna `VARCHAR` (DuckDB não tem tipo JSON nativo neste schema) | Consistente com `apolices.coberturas` sendo `VARCHAR[]`; aqui a estrutura é heterogênea por critério, então JSON serializado é mais simples que normalizar em tabela filha para o volume da PoC |
 

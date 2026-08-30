@@ -30,6 +30,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 | Contrato OpenAPI | integration | Sincronia do `openapi.json` com os novos endpoints, mesmo mecanismo de `test_openapi_sincronizado.py` | `testes/test_openapi_sincronizado.py` | `uv run --directory src/backend pytest` |
 | Cliente API do frontend (`src/api/meteorologia.ts`) | unit | Mesmo piso de `src/api/prontidao.test.ts` — sucesso, erro tipado, ausência de dado fixo | `src/frontend/src/api/meteorologia.test.ts` | `npm test --prefix src/frontend -- --run` |
 | Superfície "Fonte meteorológica" (componente React) | unit | Carregando/disponível/indisponível, tabela+lista acessível, mesmo piso de `SuperficieProntidao.test.tsx` | `src/frontend/src/funcionalidades/fonte-meteorologica/SuperficieFonteMeteorologica.test.tsx` | `npm test --prefix src/frontend -- --run` |
+| Extensão da restauração (AD-014) | integration | Restore após coleta repõe estado inicial completo: tabelas fora da lista de exceções vazias, `areas_monitoradas_inmet`/`schema_migracoes` intactas, reseed correto | `testes/test_restauracao.py` (estendido) | `uv run --directory src/backend pytest` |
 
 ## Gate Check Commands
 
@@ -89,6 +90,14 @@ T10 → T11
 
 ```
 T12 → T13
+```
+
+### Phase 7: Contrato de restauração (AD-014)
+
+Execução de T14. Dependência real: T14 depende de T2 (Fase 1 — primeiras tabelas de coleta precisam existir para provar o wipe).
+
+```
+T14
 ```
 
 ---
@@ -170,7 +179,7 @@ T12 → T13
 
 ### T4: Prova limitada registrada contra o INMET real + amostras congeladas
 
-**What**: Executar uma prova limitada e pontual contra `https://apitempo.inmet.gov.br` (fora da suíte automatizada), registrar em `adaptadores/meteorologia/README.md` o endpoint escolhido, os campos consumidos, unidades, normalizações e o mapeamento para `EventoMeteorologico`; salvar 2-3 amostras reais (uma válida por tipo de evento suportado, uma inválida) como fixtures congeladas em `testes/fixtures/inmet/`.
+**What**: Executar uma prova limitada e pontual contra `https://apitempo.inmet.gov.br` (fora da suíte automatizada), registrar em `adaptadores/meteorologia/README.md` o endpoint escolhido, os campos consumidos, unidades, normalizações e o mapeamento para `EventoMeteorologico`; salvar como fixtures congeladas em `testes/fixtures/inmet/`: ao menos uma amostra real válida de chuva (leitura de estação com precipitação), uma amostra real inválida (campo obrigatório ausente) e uma amostra sintética de granizo derivada do cenário de contingência do conjunto demonstrativo (AD-013 — estações automáticas não reportam granizo).
 **Where**: `src/backend/central_preventiva/adaptadores/meteorologia/README.md`
 **Depends on**: T1
 **Reuses**: nenhum (primeira integração real do domínio meteorológico); segue o padrão de documentação de contrato já usado por `adaptadores/persistencia/README.md`
@@ -184,7 +193,8 @@ T12 → T13
 **Done when**:
 
 - [ ] `README.md` do módulo lista endpoint, parâmetros, campos consumidos, unidades e mapeamento campo-a-campo para `EventoMeteorologico`
-- [ ] Ao menos uma amostra JSON real válida por tipo de evento suportado (chuva intensa, granizo) e uma amostra inválida (campo obrigatório ausente) estão salvas em `testes/fixtures/inmet/`
+- [ ] Ao menos uma amostra JSON real válida de chuva, uma amostra real inválida (campo obrigatório ausente) e uma amostra sintética congelada de granizo (rotulada como sintética — AD-013) estão salvas em `testes/fixtures/inmet/`
+- [ ] O `README.md` do módulo registra explicitamente que as leituras de estações automáticas não contêm campo de granizo e que `granizo` entra só pelo cenário sintético (AD-013)
 - [ ] Nenhuma amostra contém dado pessoal ou sensível (dados são meteorológicos públicos, permitido por ADR-0013)
 - [ ] Gate check passa: `uv run --directory src/backend pytest` (nenhum teste ainda depende das fixtures — apenas confirma que nada quebrou)
 
@@ -208,8 +218,8 @@ T12 → T13
 
 **Done when**:
 
-- [ ] Amostra válida de chuva intensa normaliza para `EventoMeteorologico` com `proveniencia = real_inmet`
-- [ ] Amostra válida de granizo normaliza para `EventoMeteorologico` com `proveniencia = real_inmet`
+- [ ] Amostra real válida de chuva normaliza para `EventoMeteorologico` com `tipo = chuva_intensa` e `proveniencia = real_inmet`
+- [ ] Amostra sintética de granizo normaliza para `EventoMeteorologico` com `tipo = granizo` (a proveniência final `sintetico` é atribuída pelo caminho de cenário sintético da 2.2 — AD-013; leituras reais nunca produzem `granizo`)
 - [ ] Amostra inválida (campo ausente) retorna motivo de rejeição sem criar evento
 - [ ] Amostra com medida fora de faixa plausível retorna motivo de rejeição sem criar evento
 - [ ] Amostra com geografia não reconhecida (sem entrada em `areas_monitoradas_inmet`) retorna motivo de rejeição
@@ -428,6 +438,32 @@ T12 → T13
 **Tests**: unit
 **Gate**: full
 
+---
+
+### T14: Estender a restauração ao estado inicial completo (AD-014)
+
+**What**: Ampliar `portas.dados.restaurar()` (semeador) para, dentro da mesma transação já existente, apagar todas as tabelas enumeradas pelo catálogo do DuckDB exceto a lista explícita de exceções (`schema_migracoes` e configuração versionada — hoje só `areas_monitoradas_inmet`) antes do reseed; a lista de exceções vive como constante nomeada ao lado do semeador. Sem código novo em `aplicacao/restauracao.py` (guarda DW-002 e idempotência inalteradas).
+**Where**: `src/backend/central_preventiva/adaptadores/persistencia/semeador.py`
+**Depends on**: T2
+**Reuses**: transação única e idempotência da restauração do Épico 1 (`aplicacao/restauracao.py`, intocada); `testes/test_restauracao.py` estendido
+**Requirement**: INMET-17
+
+**Tools**:
+
+- MCP: NONE
+- Skill: NONE
+
+**Done when**:
+
+- [ ] Restauração após uma coleta deixa `sincronizacoes_meteorologicas` (e qualquer tabela futura fora da lista de exceções) vazia, na mesma transação do reseed
+- [ ] `areas_monitoradas_inmet` e `schema_migracoes` permanecem intactas após a restauração
+- [ ] O wipe é orientado pelo catálogo (nenhuma lista manual de tabelas de execução a manter); a lista de exceções é uma constante nomeada e documentada (AD-014)
+- [ ] Teste cobre reseed correto das tabelas semeadas após o wipe ampliado (mesmos IDs determinísticos)
+- [ ] Gate check passa: `uv run --directory src/backend pytest`
+
+**Tests**: integration
+**Gate**: quick
+
 **Commit**: `feat(meteorologia): adicionar coleta e normalizacao de dados do INMET`
 
 ---
@@ -443,6 +479,7 @@ Phase 3:  T7
 Phase 4:  T8 → T9
 Phase 5:  T10 → T11
 Phase 6:  T12 → T13
+Phase 7:  T14
 ```
 
 Grafo completo de dependências (todas as arestas `Depends on`, uma por linha, incluindo as que cruzam fases):
@@ -463,9 +500,10 @@ T9 → T11
 T10 → T11
 T11 → T12
 T12 → T13
+T2 → T14
 ```
 
-Ordem de execução dentro de cada fase (nem toda tarefa tem dependência intra-fase — as demais rodam em sequência, mas sem dependência de dado entre si): Fase 1 executa T1, T2, T3 nessa ordem (T2 é independente; T3 depende de T1). Fase 2 executa T4, T5, T6 nessa ordem (T6 depende de T3, da Fase 1). Fase 3 executa T7 (depende de T2 e T3, da Fase 1). Fase 4 executa T8, T9 (T8 depende de T5/T6 da Fase 2 e T7 da Fase 3). Fase 5 executa T10, T11 (T10 depende de T8 da Fase 4; T11 depende de T9 da Fase 4 e de T10 desta fase). Fase 6 executa T12, T13 (T12 depende de T11 da Fase 5).
+Ordem de execução dentro de cada fase (nem toda tarefa tem dependência intra-fase — as demais rodam em sequência, mas sem dependência de dado entre si): Fase 1 executa T1, T2, T3 nessa ordem (T2 é independente; T3 depende de T1). Fase 2 executa T4, T5, T6 nessa ordem (T6 depende de T3, da Fase 1). Fase 3 executa T7 (depende de T2 e T3, da Fase 1). Fase 4 executa T8, T9 (T8 depende de T5/T6 da Fase 2 e T7 da Fase 3). Fase 5 executa T10, T11 (T10 depende de T8 da Fase 4; T11 depende de T9 da Fase 4 e de T10 desta fase). Fase 6 executa T12, T13 (T12 depende de T11 da Fase 5). Fase 7 executa T14 (depende de T2, da Fase 1 — deixada por último por ser transversal: prova o wipe ampliado com as tabelas desta história já em uso).
 
 Execution is strictly sequential — there is no intra-phase parallelism. A single agent (or batch worker) works one task at a time, in order.
 
@@ -488,6 +526,7 @@ Execution is strictly sequential — there is no intra-phase parallelism. A sing
 | T11: Sincronizar OpenAPI | 1 artefato gerado | ✅ Granular |
 | T12: Cliente HTTP frontend | 1 arquivo | ✅ Granular |
 | T13: Superfície "Fonte meteorológica" | 1 componente | ✅ Granular |
+| T14: Restauração — estado inicial completo | 1 arquivo (semeador) + teste estendido | ✅ Granular |
 
 ---
 
@@ -508,6 +547,7 @@ Execution is strictly sequential — there is no intra-phase parallelism. A sing
 | T11 | T9, T10 | T10 → T11 in-phase (Phase 5 diagram); T9 dependency is cross-phase, validated by forward-phase check | ✅ Match |
 | T12 | T11 | cross-phase (Phase 5 → Phase 6); no in-phase arrow required, validated by forward-phase check | ✅ Match |
 | T13 | T12 | T12 → T13 (Phase 6 diagram) | ✅ Match |
+| T14 | T2 | cross-phase (Phase 1 → Phase 7); no in-phase arrow required, validated by forward-phase check | ✅ Match |
 
 **Rules confirmed**: every `Depends on` points backward or within the same phase; no task depends on a later phase.
 
@@ -530,5 +570,6 @@ Execution is strictly sequential — there is no intra-phase parallelism. A sing
 | T11: Sincronizar OpenAPI | Contrato OpenAPI | integration | integration | ✅ OK |
 | T12: Cliente HTTP frontend | Cliente API frontend | unit | unit | ✅ OK |
 | T13: Superfície "Fonte meteorológica" | Componente React | unit | unit | ✅ OK |
+| T14: Restauração — estado inicial completo | Semeador/restauração (data-access) | integration | integration | ✅ OK |
 
 **Rules confirmed**: nenhum `Tests: none` fora das camadas marcadas `none` na matriz; nenhuma task adia teste para outra task.

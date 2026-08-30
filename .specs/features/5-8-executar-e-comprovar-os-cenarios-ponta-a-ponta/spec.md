@@ -7,7 +7,7 @@ Depois que os Épicos 1–4 e as Histórias 5.1–5.7 estiverem implementados, n
 ## Goals
 
 - [ ] Cenário de chuva intensa residencial avança da entrada meteorológica até a visualização do comunicado de um segurado elegível, incluindo ao menos um registro não elegível com explicação consultável
-- [ ] Cenário de granizo automóvel avança da entrada meteorológica até a visualização do comunicado, preservando regras/apólices/canais/recomendações específicas desse evento
+- [ ] Cenário de granizo automóvel avança da entrada meteorológica até a visualização do comunicado, preservando regras/apólices/canais/recomendações específicas desse evento (entrada fornecida pelo cenário sintético rotulado — AD-013)
 - [ ] Cenários de encerramento antecipado (sem risco, sem elegível) terminam com motivo e evidência determinísticos, sem nenhuma chamada à OpenAI/mensagem/simulação
 - [ ] Cenário de regeneração demonstra retorno ao redator, motivos, histórico e limite de 3 tentativas; esgotamento produz exceção e impede a mensagem de entrar na simulação
 - [ ] Cenário de contingência do INMET demonstra timeout, tentativas, snapshot informativo e ativação explícita do cenário sintético, com origem sintética visível até o fim do fluxo
@@ -53,7 +53,7 @@ Depois que os Épicos 1–4 e as Histórias 5.1–5.7 estiverem implementados, n
 **Acceptance Criteria**:
 
 1. WHEN o cenário de chuva intensa residencial for executado em um ambiente restaurado com todas as dependências disponíveis THEN ele SHALL avançar da entrada meteorológica até a visualização do comunicado de um segurado elegível, incluindo ao menos um registro não elegível com explicação consultável.
-2. WHEN o cenário de granizo automóvel for executado THEN ele SHALL avançar da entrada meteorológica até a visualização do comunicado, preservando regras, apólices, canais e recomendações específicas desse evento.
+2. WHEN o cenário de granizo automóvel for executado THEN ele SHALL avançar da entrada meteorológica até a visualização do comunicado, preservando regras, apólices, canais e recomendações específicas desse evento, com a entrada meteorológica fornecida pelo cenário sintético rotulado (AD-013 — granizo não existe nas leituras reais de estações automáticas).
 3. WHEN os cenários de um evento sem risco e de um evento sem público elegível forem executados THEN ambos SHALL terminar com motivo e evidência determinísticos, sem nenhuma chamada à OpenAI, mensagem ou simulação.
 
 **Independent Test**: Rodar a suíte de testes E2E dos 4 cenários e confirmar todos verdes, com o relatório de evidência de cada um citando os `file:line` dos testes correspondentes.

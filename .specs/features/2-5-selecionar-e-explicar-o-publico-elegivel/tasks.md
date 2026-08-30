@@ -72,7 +72,7 @@ T6
 
 ### T1: Migração `0005_elegibilidade.sql`
 
-**What**: Estender `elegibilidades_historicas` com `execucao_id`, `criterios`, `canal`, e `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)`.
+**What**: Recriar `elegibilidades_historicas` por recreate-and-copy (AD-015) com `execucao_id` (nulo = linha semeada), `criterios`, `canal` (backfill das linhas semeadas conforme o Design) e `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)` declarada no `CREATE`.
 **Where**: `src/backend/central_preventiva/adaptadores/persistencia/migracoes/0005_elegibilidade.sql`
 **Depends on**: None
 **Reuses**: convenção de migração numerada
@@ -83,7 +83,9 @@ T6
 **Done when**:
 
 - [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] `README.md` de persistência documenta as colunas novas e a `UNIQUE`
+- [ ] Recreate-and-copy preserva todas as linhas semeadas com backfill correto: `execucao_id IS NULL`, `criterios = '{"origem": "seed_demonstrativo"}'`, `canal` vindo de `segurados.canal_preferido` (AD-015)
+- [ ] Teste cobre `INSERT ... ON CONFLICT DO NOTHING` sobre a `UNIQUE` recriada e a não-colisão entre linhas semeadas (`execucao_id` nulo)
+- [ ] `README.md` de persistência documenta as colunas novas, a `UNIQUE` e a estratégia de recreate
 - [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0005`
 - [ ] Gate check passa: `uv run --directory src/backend pytest`
 

@@ -42,7 +42,7 @@ graph TD
 
 | System | Integration Method |
 | --- | --- |
-| DuckDB | Migração `0005` adiciona `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)` a `elegibilidades_historicas` e as colunas de critérios avaliados que ainda faltam |
+| DuckDB | Migração `0005` recria `elegibilidades_historicas` por recreate-and-copy (AD-015) com as colunas novas, backfill das linhas semeadas e `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)` declarada no `CREATE` |
 
 ---
 
@@ -92,15 +92,15 @@ graph TD
 
 ### Migração `0005_elegibilidade.sql`
 
-Estende `elegibilidades_historicas` (não recria):
+Recria `elegibilidades_historicas` por recreate-and-copy na transação da própria migração (**AD-015** — o DuckDB não suporta `ALTER ADD CONSTRAINT`, e a tabela já contém linhas semeadas do Épico 1 que precisam de backfill): `CREATE TABLE elegibilidades_historicas_nova (...)` com todas as colunas e constraints, `INSERT INTO ... SELECT` com os backfills abaixo, `DROP`, `RENAME`.
 
-| Coluna adicionada | Tipo | Restrições |
+| Coluna adicionada | Tipo | Restrições e backfill das linhas semeadas |
 | --- | --- | --- |
-| `execucao_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `execucao_preventiva(id)` (ausente no schema original, que só tinha dados pré-calculados de demonstração sem execução associada) |
-| `criterios` | `VARCHAR` | `NOT NULL` — JSON serializado com critério a critério, mesmo formato de `avaliacoes_risco.criterios` |
-| `canal` | `VARCHAR` | `NOT NULL` — canal preferencial preservado no momento da avaliação (snapshot, não referência viva a `segurados.canal_preferido`) |
+| `execucao_id` | `UUID` | **nulo permitido** — `NULL` identifica linha semeada de demonstração, anterior ao motor de execuções (não há execução a referenciar); toda linha produzida por execução recebe valor obrigatório, garantido por `RepositorioElegibilidades.salvar` (sempre grava o `execucao_id`), não pelo schema |
+| `criterios` | `VARCHAR` | `NOT NULL` — JSON serializado com critério a critério, mesmo formato de `avaliacoes_risco.criterios`; backfill das linhas semeadas: `'{"origem": "seed_demonstrativo"}'` |
+| `canal` | `VARCHAR` | `NOT NULL` — canal preferencial preservado no momento da avaliação (snapshot, não referência viva a `segurados.canal_preferido`); backfill das linhas semeadas: `segurados.canal_preferido` via join no `INSERT ... SELECT` (determinístico no conjunto semeado) |
 
-Nova constraint: `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)`.
+Constraint declarada no `CREATE`: `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)`. Linhas semeadas (`execucao_id IS NULL`) nunca colidem entre si — `NULL`s são distintos para `UNIQUE` — e a dedução por execução (linhas com `execucao_id` preenchido) permanece integral.
 
 ---
 
@@ -125,6 +125,7 @@ Nova constraint: `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_
 | Decision | Choice | Rationale |
 | --- | --- | --- |
 | Mecanismo de "no máximo um resultado" | `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)`, não uma checagem em código | Consistente com a dedução de eventos por `UNIQUE` em 2.2 (mesma família de decisão já tomada no projeto); a constraint do banco é a garantia mais forte disponível |
+| Estratégia da migração `0005` | Recreate-and-copy com backfill das linhas semeadas (`execucao_id` nulo, `criterios` fixo, `canal` via join) — **AD-015** | O DuckDB não suporta `ALTER ADD CONSTRAINT`, e `NOT NULL` sem backfill falharia sobre as linhas semeadas do Épico 1; a constraint no `CREATE` preserva a semântica de `ON CONFLICT` do insert-or-noop (AD-010) |
 | Onde o canal preferencial é lido | Lido de `segurados.canal_preferido` no momento da avaliação e gravado como snapshot em `elegibilidades_historicas.canal` | Cumpre "canal deverá ser preservado... sem alterar o resultado dos demais critérios" — o snapshot desacopla o valor congelado do valor atual, que a História 5.6 (fora do Épico 2) poderá mudar sem afetar o histórico |
 
 ---

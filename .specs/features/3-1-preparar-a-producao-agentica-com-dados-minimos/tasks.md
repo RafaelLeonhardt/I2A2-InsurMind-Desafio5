@@ -208,10 +208,10 @@ T9
 
 ### T7: `ServicoPreflightIA`
 
-**What**: `preparar` (verifica disponibilidade via `RetryComBackoff`, monta contexto por item, transiciona estado) e `solicitar_nova_tentativa` (valida snapshots, cria execução correlacionada).
-**Where**: `src/backend/central_preventiva/aplicacao/preflight_ia.py`
+**What**: `preparar` (verifica disponibilidade via `RetryComBackoff`, monta contexto por item, transiciona estado) e `solicitar_nova_tentativa` (valida snapshots, cria execução correlacionada e copia as elegibilidades da origem — AD-012); estende `RepositorioElegibilidades` (2.5) com `copiar_para_execucao`.
+**Where**: `src/backend/central_preventiva/aplicacao/preflight_ia.py`, `src/backend/central_preventiva/adaptadores/persistencia/repositorio_elegibilidade.py` (extensão)
 **Depends on**: T3, T4, T6
-**Reuses**: `RepositorioExecucaoPreventiva` (2.2), padrão de execução correlacionada de `ServicoColetaMeteorologica.solicitar_nova_tentativa` (2.2)
+**Reuses**: `RepositorioExecucaoPreventiva` (2.2), `RepositorioElegibilidades` (2.5, estendido), padrão de execução correlacionada de `ServicoColetaMeteorologica.solicitar_nova_tentativa` (2.2)
 **Requirement**: PREFL-01, PREFL-02, PREFL-06, PREFL-08, PREFL-09, PREFL-10
 
 **Tools**: MCP: NONE — Skill: NONE
@@ -223,6 +223,8 @@ T9
 - [ ] Item com contexto inválido gera exceção só desse item, sem afetar os demais nem chamar a OpenAI
 - [ ] `solicitar_nova_tentativa` com snapshot corrompido/versão não suportada rejeita sem criar execução
 - [ ] `solicitar_nova_tentativa` válida cria execução nova com `execucao_origem_id`, chave idempotente própria; origem permanece terminal
+- [ ] `solicitar_nova_tentativa` copia todas as linhas de elegibilidade da origem (incluídas e excluídas) para a nova execução — novos `id`s, novo `execucao_id`, conteúdo idêntico — na mesma transação da criação (AD-012); a nova execução não referencia nenhuma linha da origem
+- [ ] Teste cobre retentativa de origem que já possui `contextos_agente`: o preflight da nova execução monta contextos para as elegibilidades copiadas sem violar a `UNIQUE(elegibilidade_id)` (AD-012)
 - [ ] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit

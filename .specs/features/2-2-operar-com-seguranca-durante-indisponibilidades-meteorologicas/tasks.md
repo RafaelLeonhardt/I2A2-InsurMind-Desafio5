@@ -77,7 +77,7 @@ T7
 
 ### T1: Migração `0003_resiliencia_meteorologica.sql`
 
-**What**: Criar `tentativas_coleta_meteorologica`, `excecoes_operacionais`, `cenarios_sinteticos_ativados`, e adicionar `UNIQUE(tipo, area, periodo_inicio, periodo_fim)` a `eventos_meteorologicos`; atualizar `adaptadores/persistencia/README.md`.
+**What**: Criar `tentativas_coleta_meteorologica`, `excecoes_operacionais`, `cenarios_sinteticos_ativados`, e adicionar `UNIQUE(tipo, area, periodo_inicio, periodo_fim)` a `eventos_meteorologicos` por recreate-and-copy na mesma transação (AD-015 — DuckDB não suporta `ALTER ADD CONSTRAINT`); atualizar `adaptadores/persistencia/README.md`.
 **Where**: `src/backend/central_preventiva/adaptadores/persistencia/migracoes/0003_resiliencia_meteorologica.sql`
 **Depends on**: None
 **Reuses**: convenção de `0001_schema_inicial.sql`/`0002_meteorologia.sql`
@@ -88,7 +88,9 @@ T7
 **Done when**:
 
 - [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] `README.md` documenta as três tabelas novas e a `UNIQUE` adicionada
+- [ ] `eventos_meteorologicos` é recriada por recreate-and-copy (`CREATE` nova com a `UNIQUE` declarada → `INSERT ... SELECT` → `DROP` → `RENAME`), preservando todas as linhas existentes (AD-015)
+- [ ] Teste cobre `INSERT ... ON CONFLICT DO NOTHING` sobre a `UNIQUE` recriada — o insert-or-noop (AD-010) funciona na tabela resultante
+- [ ] `README.md` documenta as três tabelas novas e a `UNIQUE` adicionada (com a estratégia de recreate registrada)
 - [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0003`
 - [ ] Gate check passa: `uv run --directory src/backend pytest`
 

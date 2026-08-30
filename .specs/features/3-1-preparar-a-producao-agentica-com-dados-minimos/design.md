@@ -31,6 +31,7 @@ graph TD
     I[Marina solicita nova tentativa] --> J[ServicoPreflightIA.solicitar_nova_tentativa]
     J --> K[validar snapshots versionados]
     K -- ok --> L[nova ExecucaoPreventiva em aguardando_geracao, execucao_origem_id]
+    L --> N[copiar elegibilidades da origem para a nova execucao - AD-012, mesma transacao]
     K -- falha --> M[rejeitado, nenhuma execucao criada]
 ```
 
@@ -47,6 +48,7 @@ graph TD
 | `RepositorioExcecoesOperacionais` | mesmo módulo (2.2) | Reusado para a exceção sanitizada de preflight |
 | `Configuracao`/`obter_configuracao` | `composicao/configuracao.py` | Estendida com os parâmetros de modelo/prompt (ver Tech Decisions), mesma validação estrita de inicialização |
 | Padrão "execução correlacionada de origem" | `ServicoColetaMeteorologica.solicitar_nova_tentativa` (2.2) | Mesmo padrão aplicado a `falhou_preparacao_ia`: novo `execucao_id`, `execucao_origem_id`, chave idempotente própria, origem permanece terminal |
+| `RepositorioElegibilidades` | `adaptadores/persistencia/repositorio_elegibilidade.py` (2.5) | Estendido com `copiar_para_execucao` (AD-012): a nova execução correlacionada recebe cópias das linhas de elegibilidade da origem, nunca referências às linhas originais |
 | AD-002 (`Idempotency-Key`) | `chaves_idempotencia` | Reusado para o comando de nova tentativa |
 
 ### Integration Points
@@ -84,9 +86,18 @@ graph TD
 - **Location**: `aplicacao/preflight_ia.py`
 - **Interfaces**:
   - `async def preparar(self, execucao_id: UUID, versao_esperada: int) -> ResultadoPreflight`
-  - `async def solicitar_nova_tentativa(self, execucao_origem_id: UUID, chave_idempotencia: str) -> UUID`
-- **Dependencies**: `VerificadorDisponibilidadeOpenAI`, `MontadorContextoAgente`, `RepositorioExecucaoPreventiva`, `RepositorioExcecoesOperacionais`, `RepositorioContextosAgente`.
+  - `async def solicitar_nova_tentativa(self, execucao_origem_id: UUID, chave_idempotencia: str) -> UUID` — após validar os snapshots, cria a nova execução em `aguardando_geracao` **e copia todas as linhas de elegibilidade da origem (incluídas e excluídas) para a nova execução, na mesma transação** (`RepositorioElegibilidades.copiar_para_execucao`, AD-012). A nova execução nunca referencia as linhas de elegibilidade da origem — sem a cópia, as `UNIQUE`s de `contextos_agente.elegibilidade_id` (abaixo) e `mensagens(elegibilidade_id, canal)` (3.2) inviabilizariam refazer preflight/geração quando a origem já os possui.
+- **Dependencies**: `VerificadorDisponibilidadeOpenAI`, `MontadorContextoAgente`, `RepositorioExecucaoPreventiva`, `RepositorioExcecoesOperacionais`, `RepositorioContextosAgente`, `RepositorioElegibilidades` (2.5, estendido).
 - **Reuses**: padrão de execução correlacionada de 2.2.
+
+### Extensão de `RepositorioElegibilidades` — `copiar_para_execucao` (AD-012)
+
+- **Purpose**: Materializa, para uma execução correlacionada, cópias das linhas de elegibilidade da origem: novos `id`s, `execucao_id` da nova execução, conteúdo de snapshot idêntico (evento, regra, segurado, apólice, critérios, canal, justificativa).
+- **Location**: `adaptadores/persistencia/repositorio_elegibilidade.py` (extensão do repositório de 2.5)
+- **Interfaces**:
+  - `def copiar_para_execucao(self, execucao_origem_id: UUID, nova_execucao_id: UUID) -> int` — retorna o número de linhas copiadas; executa dentro da transação aberta pelo chamador. A `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)` de 2.5 permite as cópias por construção (o `execucao_id` difere).
+- **Dependencies**: `abrir_conexao`.
+- **Reuses**: tabela e padrão de `RepositorioElegibilidades` (2.5), sem mudar as operações existentes.
 
 ### `RepositorioContextosAgente`
 
@@ -151,6 +162,7 @@ graph TD
 | Generalização do wrapper de retry de 2.2 | Extrair `ColetorComRetry` (2.2) para um `RetryComBackoff[T]` genérico em `aplicacao/_retry.py`, parametrizado pela operação; `ColetorComRetry` (2.2) e `VerificadorDisponibilidadeOpenAI` (3.1) passam a usá-lo | Evita duplicar a política de 3 tentativas/backoff 1s-2s-4s em dois lugares; pequeno refactor de 2.2, sem mudar seu comportamento observável |
 | Onde configurar modelo/temperatura/prompt/limites | Novos campos em `Configuracao` (`composicao/configuracao.py`): `modelo_openai`, `temperatura_openai`, `versao_prompt`, com validação e defaults documentados no `.env.example` | Mesma fonte única de configuração já usada por todo o projeto; nenhuma configuração paralela |
 | Formato de `ContextoAgente` | `dataclass` imutável espelhando exatamente os 5 campos permitidos pelo AC (evento, localização aproximada, coberturas relevantes, canal, orientações de segurança) — nenhum campo opcional "extra" | Torna a violação de minimização de dados um erro de tipo, não uma disciplina de código |
+| Elegibilidades da execução correlacionada | Cópia integral das linhas da origem para a nova execução (`copiar_para_execucao`), na mesma transação da criação — nunca referência às linhas originais (**AD-012**) | As `UNIQUE`s de `contextos_agente.elegibilidade_id` e `mensagens(elegibilidade_id, canal)` tornariam a retentativa pós-`falhou_simulacao` inimplementável sobre as linhas da origem; a `UNIQUE` de `elegibilidades_historicas` inclui `execucao_id` (2.5), o que legitima cópias por execução e mantém cada execução auditável de forma autocontida |
 
 ---
 

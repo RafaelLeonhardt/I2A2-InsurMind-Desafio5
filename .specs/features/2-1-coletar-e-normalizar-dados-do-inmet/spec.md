@@ -91,8 +91,9 @@ A Central Preventiva ainda não consulta o INMET de verdade: hoje só existe a s
 4. The interface SHALL oferecer, para a seleção de eventos exibida no mapa, uma alternativa equivalente em lista operável por teclado e leitor de tela.
 5. WHEN Marina consultar a fonte meteorológica THEN o sistema SHALL exibir última tentativa, última atualização válida, próxima consulta e resultados anteriores usando somente dados persistidos, respondendo em até 1 segundo no percentil 95.
 6. IF uma atualização manual for repetida com a mesma `Idempotency-Key` THEN o sistema SHALL não iniciar outra coleta e SHALL devolver a resposta previamente registrada.
+7. WHEN uma restauração do conjunto sintético for executada após qualquer coleta ou execução THEN o sistema SHALL repor o estado inicial completo, removendo na mesma transação todos os registros produzidos por coleta/execução em qualquer tabela fora da lista explícita de exceções (`schema_migracoes` e tabelas de configuração versionada — AD-014), sem deixar referência órfã consultável.
 
-**Independent Test**: Repetir uma chamada de atualização manual com a mesma `Idempotency-Key` e confirmar, pela contagem de chamadas ao adaptador dublê, que nenhuma segunda coleta foi disparada.
+**Independent Test**: Repetir uma chamada de atualização manual com a mesma `Idempotency-Key` e confirmar, pela contagem de chamadas ao adaptador dublê, que nenhuma segunda coleta foi disparada; executar uma coleta, restaurar o conjunto sintético e confirmar que `sincronizacoes_meteorologicas` está vazia e `areas_monitoradas_inmet` intacta.
 
 ---
 
@@ -124,12 +125,13 @@ A Central Preventiva ainda não consulta o INMET de verdade: hoje só existe a s
 | INMET-14 | P2: Observabilidade, histórico e idempotência da sincronização | Design | Pending |
 | INMET-15 | P2: Observabilidade, histórico e idempotência da sincronização | Design | Pending |
 | INMET-16 | P2: Observabilidade, histórico e idempotência da sincronização | Design | Pending |
+| INMET-17 | P2: Observabilidade, histórico e idempotência da sincronização | Design | Pending |
 
 **ID format:** `INMET-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 16 total, 0 mapped to tasks, 16 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 17 total, 0 mapped to tasks, 17 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
 
 ---
 
@@ -140,3 +142,4 @@ A Central Preventiva ainda não consulta o INMET de verdade: hoje só existe a s
 - [ ] Amostra inválida congelada nunca produz um `Evento meteorológico`
 - [ ] Consulta de histórico e evento responde em até 1s p95 usando apenas dados persistidos
 - [ ] Nenhum log de sincronização contém cabeçalhos, credenciais ou corpo externo integral
+- [ ] Restaurar o conjunto sintético após uma coleta repõe o estado inicial completo (AD-014): tabelas de coleta/execução vazias, configuração versionada intacta, nenhuma referência órfã

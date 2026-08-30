@@ -29,6 +29,7 @@ graph TD
     F -- falha local --> I[ROLLBACK transacao 1 - mensagens permanecem aprovada]
     I --> J[transacao 2 idempotente: transicionar falhou_simulacao + Excecao sanitizada]
     K[Marina solicita nova tentativa apos falhou_simulacao] --> L[validar snapshots, criar execucao correlacionada em aguardando_geracao]
+    L --> M[copiar elegibilidades da origem para a nova execucao - AD-012, mesma transacao]
 ```
 
 ---
@@ -41,7 +42,8 @@ graph TD
 | --- | --- | --- |
 | `RepositorioExecucaoPreventiva.transicionar` | `adaptadores/persistencia/repositorio_execucao_preventiva.py` (2.2) | Reusado sem alteração para `simulando`/`concluida`/`falhou_simulacao` |
 | `RepositorioMensagens.transicionar` | `adaptadores/persistencia/repositorio_mensagens.py` (3.2) | Reusado sem alteração para `aprovada`→`simulada_entregue` |
-| Padrão de execução correlacionada (2.2, 3.1) | `ServicoColetaMeteorologica.solicitar_nova_tentativa` (2.2), `ServicoPreflightIA.solicitar_nova_tentativa` (3.1) | Terceira aplicação do mesmo padrão, para `falhou_simulacao` |
+| Padrão de execução correlacionada (2.2, 3.1) | `ServicoColetaMeteorologica.solicitar_nova_tentativa` (2.2), `ServicoPreflightIA.solicitar_nova_tentativa` (3.1) | Terceira aplicação do mesmo padrão, para `falhou_simulacao` — **incluindo a cópia de elegibilidades da origem (AD-012)**: aqui ela é obrigatória, pois a origem chegou a `simulando` e já possui contexto e mensagem por elegibilidade, colidindo com as `UNIQUE`s de `contextos_agente`/`mensagens` se as linhas fossem reutilizadas |
+| `RepositorioElegibilidades.copiar_para_execucao` | `adaptadores/persistencia/repositorio_elegibilidade.py` (extensão feita em 3.1, AD-012) | Reusado tal como está — mesma cópia transacional de elegibilidades para a nova execução |
 | `RepositorioExcecoesOperacionais` | `adaptadores/persistencia/repositorio_execucao_preventiva.py` (2.2) | Reusado para a exceção sanitizada de `falhou_simulacao` |
 | AD-002 (`Idempotency-Key`) | `chaves_idempotencia` | Reusado para o comando de confirmação |
 
@@ -61,9 +63,9 @@ graph TD
 - **Location**: `aplicacao/simulacao.py`
 - **Interfaces**:
   - `def confirmar(self, execucao_id: UUID, versao_esperada: int, chave_idempotencia: str, injecao_falha_teste: Callable[[], None] | None = None) -> ResultadoSimulacao` — o parâmetro de injeção de falha é usado apenas por teste (ver Tech Decisions), nunca por código de produção.
-  - `def solicitar_nova_tentativa(self, execucao_origem_id: UUID, chave_idempotencia: str) -> UUID`
-- **Dependencies**: `RepositorioMensagens`, `RepositorioEntregasSimuladas`, `RepositorioExecucaoPreventiva`, `RepositorioExcecoesOperacionais`, `RepositorioIdempotencia`.
-- **Reuses**: mesmo padrão de execução correlacionada de 2.2/3.1; mesma transação única de 3.5.
+  - `def solicitar_nova_tentativa(self, execucao_origem_id: UUID, chave_idempotencia: str) -> UUID` — valida os snapshots da origem, cria a nova execução em `aguardando_geracao` e copia as elegibilidades da origem para ela na mesma transação (`RepositorioElegibilidades.copiar_para_execucao`, AD-012); a nova execução gera seus próprios contextos e mensagens sobre as cópias, sem tocar nas linhas da origem.
+- **Dependencies**: `RepositorioMensagens`, `RepositorioEntregasSimuladas`, `RepositorioExecucaoPreventiva`, `RepositorioExcecoesOperacionais`, `RepositorioIdempotencia`, `RepositorioElegibilidades` (extensão de 3.1, AD-012).
+- **Reuses**: mesmo padrão de execução correlacionada de 2.2/3.1 (incluindo `copiar_para_execucao` de 3.1); mesma transação única de 3.5.
 
 ### `RepositorioEntregasSimuladas`
 

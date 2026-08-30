@@ -124,6 +124,10 @@ graph TD
 
 ### Migração `0003_resiliencia_meteorologica.sql`
 
+#### Alteração de `eventos_meteorologicos` — chave de dedução por recreate-and-copy (AD-015)
+
+O DuckDB não suporta `ALTER TABLE ADD CONSTRAINT`; a `UNIQUE(tipo, area, periodo_inicio, periodo_fim)` é adicionada recriando a tabela dentro da transação da própria migração: `CREATE TABLE eventos_meteorologicos_nova (...)` com a constraint declarada no `CREATE`, `INSERT INTO ... SELECT` preservando todas as linhas (semeadas e coletadas), `DROP TABLE eventos_meteorologicos`, `ALTER TABLE ... RENAME`. Seguro porque nenhuma tabela declara `REFERENCES` (AD-005); a constraint de tabela (e não um índice posterior) é o que garante a semântica de `INSERT ... ON CONFLICT DO NOTHING` exigida pelo AD-010.
+
 #### `tentativas_coleta_meteorologica` (nova)
 
 | Coluna | Tipo | Restrições |
@@ -185,7 +189,7 @@ Rastreia quando/qual cenário sintético de contingência foi ativado, para a in
 | Decision | Choice | Rationale |
 | --- | --- | --- |
 | Onde decidir a `proveniencia` do evento (`real_inmet` vs `sintetico`) | O caso de uso (`ServicoColetaMeteorologica`) passa a proveniência esperada ao `NormalizadorInmet` explicitamente, em vez de o normalizador inferi-la da resposta bruta | O mesmo normalizador de 2.1 serve tanto a coleta real quanto o cenário sintético; a proveniência é uma decisão de "qual coletor foi chamado", não do conteúdo da resposta |
-| Chave de deduplicação de evento | `UNIQUE(tipo, area, periodo_inicio, periodo_fim)` em `eventos_meteorologicos`, adicionada nesta migração | Cumpre literalmente "não deverá duplicar eventos já persistidos com a mesma identidade externa ou chave determinística de conteúdo"; simples e suficiente para o conjunto de dados da PoC |
+| Chave de deduplicação de evento | `UNIQUE(tipo, area, periodo_inicio, periodo_fim)` em `eventos_meteorologicos`, adicionada nesta migração **por recreate-and-copy (AD-015)** — nunca `ALTER ADD CONSTRAINT` (não suportado pelo DuckDB) nem `CREATE UNIQUE INDEX` posterior | Cumpre literalmente "não deverá duplicar eventos já persistidos com a mesma identidade externa ou chave determinística de conteúdo"; simples e suficiente para o conjunto de dados da PoC; a constraint de tabela garante a semântica de `ON CONFLICT` do insert-or-noop (AD-010) |
 | Onde vive o retry (wrapper vs dentro do cliente) | Wrapper `ColetorComRetry` na camada de aplicação, envolvendo a porta `ColetorMeteorologico` | Mantém `ClienteInmet` testável como chamada única (já coberto por 2.1) e centraliza política de retry num único lugar reusável por qualquer coletor futuro |
 | Escopo de `RepositorioExecucaoPreventiva` nesta história | Só `criar`/`obter`/`transicionar` genéricos; nenhuma lógica de marcos (`publico_elegivel_formado` etc.) — isso é da História 2.6 | Evita que 2.2 antecipe decisões de design que pertencem à orquestração completa (2.6), mantendo esta história focada em coleta+resiliência |
 

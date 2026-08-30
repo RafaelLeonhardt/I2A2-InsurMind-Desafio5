@@ -130,6 +130,7 @@ T5
 - [ ] Repetir `confirmar` com a mesma `Idempotency-Key` devolve o resultado já registrado, sem criar segunda entrega
 - [ ] Duas chamadas concorrentes para a mesma `versao_esperada`: só uma reclama; a outra recebe idempotente ou conflito, sem duplicação
 - [ ] `solicitar_nova_tentativa` com snapshot corrompido rejeita sem criar execução; com snapshot válido cria execução correlacionada em `aguardando_geracao` com `execucao_origem_id`, origem permanece terminal
+- [ ] `solicitar_nova_tentativa` copia as elegibilidades da origem para a nova execução na mesma transação (`RepositorioElegibilidades.copiar_para_execucao`, AD-012); teste cobre origem que chegou a `simulando` (com contextos e mensagens existentes) e confirma que a nova execução gera contexto e mensagem sem violar as `UNIQUE`s de `contextos_agente`/`mensagens`
 - [ ] Nenhum teste ou código de produção invoca qualquer conector real de canal
 - [ ] Gate check passa: `uv run --directory src/backend pytest`
 

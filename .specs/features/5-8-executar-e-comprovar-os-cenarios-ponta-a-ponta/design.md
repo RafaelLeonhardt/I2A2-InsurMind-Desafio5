@@ -47,7 +47,7 @@ graph TD
 | System | Integration Method |
 | --- | --- |
 | Chrome/Chromium | Via Playwright, contra o backend/frontend reais rodando localmente (`127.0.0.1`), nunca contra produção |
-| DuckDB | Nenhuma migração — os cenários E2E usam o banco restaurado pelo comando já existente (`composicao.inicializador`) |
+| DuckDB | Nenhuma migração — os cenários E2E usam o banco restaurado pelo comando já existente (`composicao.inicializador`), que repõe o estado inicial completo, incluindo as tabelas de execução (AD-014) |
 
 ---
 
@@ -97,8 +97,8 @@ Nenhuma migração — esta história não toca o schema de produção.
 
 | Error Scenario | Handling | User Impact |
 | --- | --- | --- |
-| Cenário E2E falha por dado sintético alterado por execução anterior | Cada cenário roda sobre um banco recém-restaurado (`composicao.inicializador` no `beforeAll`), garantindo isolamento | Falha diagnosticável, nunca resultado parcial silencioso |
-| Suíte executada duas vezes seguidas | Restauração do banco antes de cada execução garante determinismo — mesmo resultado em ambas | Nenhum efeito cumulativo |
+| Cenário E2E falha por dado sintético alterado por execução anterior | Cada cenário roda sobre um banco recém-restaurado (`composicao.inicializador` no `beforeAll`) — a restauração repõe o estado inicial completo, tabelas de execução incluídas (AD-014), garantindo isolamento real | Falha diagnosticável, nunca resultado parcial silencioso |
+| Suíte executada duas vezes seguidas | Restauração do banco antes de cada execução garante determinismo — o wipe catalog-driven do AD-014 elimina colisões de `UNIQUE` e resíduos de execuções anteriores entre rodadas | Nenhum efeito cumulativo |
 | Critério WCAG não atendido por limitação já documentada (`SPEC_DEVIATION` de história anterior) | Registrado explicitamente no relatório de evidência como desvio conhecido, não removido do relatório nem ocultado | Avaliador vê o desvio documentado, não uma auditoria falsamente limpa |
 
 ---

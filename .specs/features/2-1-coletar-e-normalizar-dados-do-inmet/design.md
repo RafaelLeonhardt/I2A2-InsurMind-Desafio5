@@ -11,7 +11,7 @@
 
 **Project docs**: AD-8 (ARCHITECTURE-SPINE.md) exige que adaptadores normalizem para modelo interno com timeout e no máximo três tentativas, e que falha nunca produza dado silenciosamente novo. AD-7 exige um "runner único no processo" para trabalho assíncrono. ADR-0013 autoriza a saída real de rede para o INMET como a única integração pública desta natureza. AD-10 proíbe log de corpo externo íntegro.
 
-**Web search (INMET real)**: confirmado por sondagem direta que `https://apitempo.inmet.gov.br` é um serviço público, sem autenticação, que responde em JSON. `GET /estacoes/T` retorna o catálogo de estações automáticas com campos confirmados: `CD_ESTACAO`, `DC_NOME`, `VL_LATITUDE`, `VL_LONGITUDE`, `VL_ALTITUDE`, `SG_ESTADO`, `TP_ESTACAO` (`"Automatica"`), `CD_SITUACAO` (`"Operante"`/`"Pane"`), `DT_INICIO_OPERACAO`, `DT_FIM_OPERACAO`. **Não foi possível confirmar, via sondagem ao vivo nesta sessão, os nomes exatos dos campos de leitura horária (chuva, temperatura, vento) do endpoint de dados por estação** — as tentativas de sondagem devolveram 404 ou corpo vazio para as combinações testadas. Isso é registrado explicitamente como incerteza, não presumido. A "prova limitada contra a fonte oficial" exigida pelo AC `INMET-01`/`INMET-02` é o primeiro item de implementação desta história, e fixa esses nomes de campo a partir de uma chamada real, antes de qualquer normalizador ser escrito.
+**Web search (INMET real)**: confirmado por sondagem direta que `https://apitempo.inmet.gov.br` é um serviço público, sem autenticação, que responde em JSON. `GET /estacoes/T` retorna o catálogo de estações automáticas com campos confirmados: `CD_ESTACAO`, `DC_NOME`, `VL_LATITUDE`, `VL_LONGITUDE`, `VL_ALTITUDE`, `SG_ESTADO`, `TP_ESTACAO` (`"Automatica"`), `CD_SITUACAO` (`"Operante"`/`"Pane"`), `DT_INICIO_OPERACAO`, `DT_FIM_OPERACAO`. **Não foi possível confirmar, via sondagem ao vivo nesta sessão, os nomes exatos dos campos de leitura horária (chuva, temperatura, vento) do endpoint de dados por estação** — as tentativas de sondagem devolveram 404 ou corpo vazio para as combinações testadas. Isso é registrado explicitamente como incerteza, não presumido. A "prova limitada contra a fonte oficial" exigida pelo AC `INMET-01`/`INMET-02` é o primeiro item de implementação desta história, e fixa esses nomes de campo a partir de uma chamada real, antes de qualquer normalizador ser escrito. **Um fato, porém, já é conhecido do contrato de estações automáticas: as leituras horárias expõem precipitação, temperatura, vento, pressão, umidade e radiação — não existe campo de granizo.** Por isso o AD-013 fixa que `tipo = granizo` entra no MVP exclusivamente pelo cenário sintético de contingência (2.2), com `proveniencia = 'sintetico'`; a proveniência `real_inmet` fica reservada a `chuva_intensa`, derivada da medida de precipitação.
 
 **Decisões confirmadas com o usuário nesta sessão** (aplicam-se a este Design e ficam registradas para a História 2.2 reaproveitar):
 
@@ -63,6 +63,7 @@ graph TD
 | --- | --- |
 | INMET (`apitempo.inmet.gov.br`) | `ClienteInmet` faz `httpx.AsyncClient.get` com timeout de 5s; única saída de rede nova, já autorizada pelo ADR-0013 |
 | DuckDB | Duas tabelas novas (`sincronizacoes_meteorologicas`, `areas_monitoradas_inmet`) via migração `0002`; `eventos_meteorologicos` (já existente) recebe as linhas normalizadas |
+| Restauração (Épico 1) | `restaurar_dados_sinteticos`/semeador estendidos para repor o estado inicial completo (AD-014): wipe orientado pelo catálogo do DuckDB, exceto `schema_migracoes` e configuração versionada (`areas_monitoradas_inmet`) — cobre automaticamente toda tabela futura de execução |
 | Frontend | Consumido pela API existente `/api/v1`; endpoints novos entram no mesmo `openapi.json` gerado (História 1.5) |
 
 ---
@@ -113,6 +114,14 @@ graph TD
   - `async def executar_em_segundo_plano(self) -> None` — laço `while True: coletar(); await asyncio.sleep(INTERVALO_SEGUNDOS)`, cancelável no `shutdown` do lifespan.
 - **Dependencies**: `ServicoColetaMeteorologica`, `RepositorioAreasMonitoradas`.
 - **Reuses**: nenhum agendador existente (é o primeiro); usa infraestrutura assíncrona já presente no FastAPI/uvicorn do projeto.
+
+### Extensão da restauração — estado inicial completo (AD-014)
+
+- **Purpose**: Faz a restauração do conjunto sintético repor o estado inicial completo do banco: dentro da mesma transação já existente, apaga — enumerando as tabelas pelo catálogo do DuckDB — todas as tabelas fora da lista explícita de exceções (`schema_migracoes` e tabelas de configuração versionada, hoje só `areas_monitoradas_inmet`) e então resemeia as tabelas semeadas como antes. Sem isso, as tabelas de coleta/execução criadas a partir desta história sobreviveriam ao restore, deixando referências órfãs (sem FK, por AD-005) e quebrando o determinismo dos E2E da 5.8.
+- **Location**: `adaptadores/persistencia/semeador.py` (método de restauração) + `aplicacao/restauracao.py` (contrato inalterado — a guarda DW-002 de execução não terminal permanece)
+- **Interfaces**: nenhuma assinatura pública nova — o comportamento de `portas.dados.restaurar()` é ampliado; a lista de exceções vive como constante nomeada ao lado do semeador.
+- **Dependencies**: catálogo do DuckDB (`information_schema`/`duckdb_tables()`), `abrir_conexao`.
+- **Reuses**: transação única e idempotência da restauração do Épico 1; enumeração pelo catálogo elimina a necessidade de cada história futura registrar suas tabelas — apenas tabelas de configuração versionada novas precisam entrar na lista de exceções (regra do AD-014).
 
 ### Roteador HTTP `meteorologia`
 
@@ -206,6 +215,7 @@ class EventoMeteorologico:
 | Intervalo de coleta automática | 15 minutos | Confirmado com o usuário; compatível com a atualização horária real do INMET sem sobrecarregar a fonte pública |
 | Escopo de retry/backoff nesta história | Não implementado aqui; `ClienteInmet.coletar` faz uma única tentativa com timeout de 5s, pronta para ser envolvida pelo laço de retry da História 2.2 | Mantém 2.1 focada em coleta+normalização do caminho feliz, conforme o próprio `spec.md` desta história já delimita em "Out of Scope" |
 | Mapeamento estação real → área sintética | Nova tabela `areas_monitoradas_inmet`, versionada por migração, com poucas linhas cobrindo só as áreas do conjunto demonstrativo | Necessário para o evento real do INMET poder, em algum cenário de demonstração, casar com um segurado sintético elegível; consistente com ADR-0013 (weather real, dados securitários sintéticos) |
+| Proveniência de granizo | `tipo = granizo` é exclusivamente sintético (**AD-013**): leituras reais de estação só produzem `chuva_intensa`; o normalizador atribui `granizo` apenas a respostas do cenário sintético (2.2) e as fixtures de granizo derivam do conjunto demonstrativo, nunca de resposta real | As leituras horárias de estações automáticas do INMET não têm campo de granizo — uma "amostra real de granizo" é inobtenível no endpoint escolhido, e construir o normalizador sobre contrato fabricado violaria a cadeia de verificação (achado A2 da revisão independente) |
 
 > **Project-level decision candidate**: o padrão "task `asyncio` única no lifespan do FastAPI é o runner assíncrono padrão do backend" e "mapeamento estação real → área sintética via tabela de configuração dedicada" valem para toda futura integração de agendamento/geografia do projeto. Proponho registrar como **AD-006** e **AD-007** em `.specs/STATE.md` ao aprovar este Design.
 
