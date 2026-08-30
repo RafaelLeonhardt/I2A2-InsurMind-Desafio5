@@ -272,11 +272,11 @@ T14
 
 **Done when**:
 
-- [ ] `RepositorioEventosMeteorologicos.salvar` persiste um `EventoMeteorologico` em `eventos_meteorologicos`
-- [ ] `RepositorioSincronizacoes` cria/atualiza uma linha de `sincronizacoes_meteorologicas` (início, término, estado, `registros_validos`, `requisicao_id`) e lista o histórico mais recente primeiro
-- [ ] `RepositorioAreasMonitoradas.buscar_por_codigo_estacao` resolve a área sintética a partir do código real da estação
-- [ ] Teste de erro: consulta a uma sincronização/evento inexistente não lança exceção não tratada
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `RepositorioEventosMeteorologicos.salvar` persiste um `EventoMeteorologico` em `eventos_meteorologicos`
+- [x] `RepositorioSincronizacoes` cria/atualiza uma linha de `sincronizacoes_meteorologicas` (início, término, estado, `registros_validos`, `requisicao_id`) e lista o histórico mais recente primeiro
+- [x] `RepositorioAreasMonitoradas.buscar_por_codigo_estacao` resolve a área sintética a partir do código real da estação
+- [x] Teste de erro: consulta a uma sincronização/evento inexistente não lança exceção não tratada
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
