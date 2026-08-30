@@ -379,9 +379,9 @@ T14
 
 **Done when**:
 
-- [ ] `uv run --directory src/backend python -m central_preventiva.composicao.openapi_export` executado com o backend no ar
-- [ ] `openapi.json` versionado inclui os três endpoints novos com descrições em português brasileiro
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `uv run --directory src/backend python -m central_preventiva.composicao.openapi_export` executado com o backend no ar
+- [x] `openapi.json` versionado inclui os três endpoints novos com descrições em português brasileiro
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: build
