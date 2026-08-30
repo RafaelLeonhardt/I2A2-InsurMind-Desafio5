@@ -168,9 +168,9 @@ T14
 
 **Done when**:
 
-- [ ] Cada porta declara exatamente os métodos que os componentes do `design.md` precisam (sem métodos especulativos)
-- [ ] Tipos de retorno usam `EventoMeteorologico`/tipos de T1
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Cada porta declara exatamente os métodos que os componentes do `design.md` precisam (sem métodos especulativos)
+- [x] Tipos de retorno usam `EventoMeteorologico`/tipos de T1
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: none
 **Gate**: quick
