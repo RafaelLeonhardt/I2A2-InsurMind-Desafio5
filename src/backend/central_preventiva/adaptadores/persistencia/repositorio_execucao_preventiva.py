@@ -1,0 +1,106 @@
+"""Repositório DuckDB de `execucao_preventiva`, com concorrência otimista (AD-008)."""
+
+from dataclasses import dataclass
+from pathlib import Path
+from uuid import UUID, uuid4
+
+from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
+from central_preventiva.dominio.estados_execucao import EstadoExecucao, eh_terminal
+
+
+class ConflitoVersao(RuntimeError):
+    """Indica que `versao_esperada` não corresponde à versão persistida da execução."""
+
+    def __init__(self, execucao_id: UUID, versao_esperada: int) -> None:
+        """Registra a execução e a versão esperada que não bateu."""
+
+        super().__init__(
+            f"A execução {execucao_id} não está na versão esperada {versao_esperada}."
+        )
+        self.execucao_id = execucao_id
+        self.versao_esperada = versao_esperada
+
+
+class TransicaoInvalida(RuntimeError):
+    """Indica uma tentativa de transicionar uma execução já em estado terminal."""
+
+    def __init__(self, execucao_id: UUID, estado_atual: EstadoExecucao) -> None:
+        """Registra a execução e seu estado terminal atual."""
+
+        super().__init__(
+            f"A execução {execucao_id} está no estado terminal '{estado_atual}' e não "
+            "pode ser transicionada."
+        )
+        self.execucao_id = execucao_id
+        self.estado_atual = estado_atual
+
+
+@dataclass(frozen=True, slots=True)
+class SnapshotExecucao:
+    """Estado e versão de uma execução preventiva, para leitura e checagem otimista."""
+
+    id: UUID
+    estado: EstadoExecucao
+    versao: int
+
+
+class RepositorioExecucaoPreventiva:
+    """Cria, lê e transiciona `execucao_preventiva` com versionamento otimista (AD-008)."""
+
+    def __init__(self, caminho: Path) -> None:
+        """Vincula o repositório ao arquivo operacional do DuckDB."""
+
+        self._caminho = caminho
+
+    def criar(self, estado_inicial: EstadoExecucao) -> UUID:
+        """Persiste uma nova execução preventiva na versão 1, no estado informado."""
+
+        execucao_id = uuid4()
+        with abrir_conexao(self._caminho) as conexao:
+            conexao.execute(
+                "INSERT INTO execucao_preventiva (id, estado, versao) VALUES (?, ?, 1)",
+                [execucao_id, estado_inicial.value],
+            )
+        return execucao_id
+
+    def obter(self, execucao_id: UUID) -> SnapshotExecucao:
+        """Lê o estado e a versão atuais da execução informada."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            linha = conexao.execute(
+                "SELECT id, estado, versao FROM execucao_preventiva WHERE id = ?",
+                [execucao_id],
+            ).fetchone()
+        assert linha is not None, f"execução {execucao_id} não encontrada"
+        return SnapshotExecucao(
+            id=UUID(str(linha[0])),
+            estado=EstadoExecucao(str(linha[1])),
+            versao=int(linha[2]),
+        )
+
+    def transicionar(
+        self, execucao_id: UUID, versao_esperada: int, novo_estado: EstadoExecucao
+    ) -> None:
+        """Transiciona a execução, incrementando a versão sob checagem otimista (AD-008).
+
+        Levanta `TransicaoInvalida` se o estado atual já for terminal (AD-7: estados
+        terminais nunca reabrem) ou `ConflitoVersao` se `versao_esperada` não bater —
+        em nenhum dos dois casos a linha é mutada.
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            atual = conexao.execute(
+                "SELECT estado FROM execucao_preventiva WHERE id = ?", [execucao_id]
+            ).fetchone()
+            assert atual is not None, f"execução {execucao_id} não encontrada"
+            estado_atual = EstadoExecucao(str(atual[0]))
+            if eh_terminal(estado_atual):
+                raise TransicaoInvalida(execucao_id, estado_atual)
+
+            resultado = conexao.execute(
+                "UPDATE execucao_preventiva SET estado = ?, versao = versao + 1, "
+                "atualizado_em = now() WHERE id = ? AND versao = ? RETURNING versao",
+                [novo_estado.value, execucao_id, versao_esperada],
+            ).fetchone()
+        if resultado is None:
+            raise ConflitoVersao(execucao_id, versao_esperada)

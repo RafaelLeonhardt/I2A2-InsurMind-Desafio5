@@ -113,11 +113,11 @@ T7
 
 **Done when**:
 
-- [ ] `criar` insere com `versao = 1` e o estado inicial informado
-- [ ] `transicionar` com `versao_esperada` correta atualiza estado e incrementa versão
-- [ ] `transicionar` com `versao_esperada` incorreta levanta `ConflitoVersao` sem mutar a linha
-- [ ] `transicionar` a partir de um estado terminal levanta `TransicaoInvalida`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `criar` insere com `versao = 1` e o estado inicial informado
+- [x] `transicionar` com `versao_esperada` correta atualiza estado e incrementa versão
+- [x] `transicionar` com `versao_esperada` incorreta levanta `ConflitoVersao` sem mutar a linha
+- [x] `transicionar` a partir de um estado terminal levanta `TransicaoInvalida`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
