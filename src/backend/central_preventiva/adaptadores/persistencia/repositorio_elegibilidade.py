@@ -11,6 +11,7 @@ from central_preventiva.adaptadores.persistencia.serializacao_criterios import (
     serializar_criterios,
 )
 from central_preventiva.dominio.avaliador_elegibilidade import (
+    OPERANDO_AREA_AFETADA,
     CandidatoElegibilidade,
     ResultadoElegibilidade,
 )
@@ -194,9 +195,11 @@ _SELECT_REGISTRO_ENRIQUECIDO = (
 
 
 def _codigo_ibge_area_de(criterios: tuple[Criterio, ...]) -> str:
-    """Deriva a área do próprio snapshot de critérios já persistido (`área afetada` é
-    sempre o primeiro critério avaliado, ver `avaliador_elegibilidade.avaliar`) — nunca
-    uma releitura ao vivo de `apolices.codigo_ibge_area` (AD-11).
+    """Deriva a área do próprio snapshot de critérios já persistido, buscando o critério
+    pelo nome estável `OPERANDO_AREA_AFETADA` — nunca pela posição (a ordem em que
+    `avaliador_elegibilidade.avaliar` produz os critérios é um detalhe de implementação,
+    não um contrato) — e nunca uma releitura ao vivo de `apolices.codigo_ibge_area`
+    (AD-11).
 
     Linhas semeadas de demonstração (`execucao_id IS NULL`) não têm critérios reais
     (migração `0007`); nunca alcançam um cliente real (a listagem filtra por
@@ -204,7 +207,10 @@ def _codigo_ibge_area_de(criterios: tuple[Criterio, ...]) -> str:
     aqui nunca é observável de fora.
     """
 
-    return criterios[0].valor_observado if criterios else ""
+    criterio_area = next(
+        (c for c in criterios if c.operando == OPERANDO_AREA_AFETADA), None
+    )
+    return criterio_area.valor_observado if criterio_area is not None else ""
 
 
 def _registro_de_linha(linha: tuple[object, ...]) -> RegistroElegibilidade:

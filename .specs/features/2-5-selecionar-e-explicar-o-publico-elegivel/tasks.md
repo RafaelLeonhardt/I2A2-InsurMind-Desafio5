@@ -294,3 +294,16 @@ O Verificador achou 1 **defeito de produção real** (blocker) e 7 lacunas de as
 **Gate check (backend, full)**: `uv run --directory src/backend pytest && ruff check . && pyright` — verde (378 testes). **Gate check (frontend, full)**: `npm test -- --run && npm run lint && npm run build` — verde (202 testes, mesmos avisos pré-existentes).
 
 **Commit**: `fix(elegibilidade): fechar lacunas do verificador da historia 2.5`
+
+## Fix Tasks (Verifier Round 2 — FAIL, `validation.md` de 2026-09-02)
+
+Rodada 2 confirmou o blocker genuinamente fechado (reverter `semeador.py` reproduz o `TypeError` original) e 6 dos 7 fixes da Rodada 1 mortos por mutação. Restaram 4 lacunas, todas de asserção — nenhum defeito de produção novo, exceto uma correção de robustez feita por precaução:
+
+- [x] **Fix 9 (Major)** — ELEG-06: o Fix 2/3 da Rodada 1 esqueceu de guardar o `canal` contra mudança nos dados originais (só `nome_segurado`/`codigo_ibge_area` ganharam teste). O código já lia `e.canal` (frozen) corretamente desde a Rodada 1 — só faltava a asserção. Estendido `test_nome_segurado_e_area_persistidos_sobrevivem_a_mudanca_dos_dados_originais` para também alterar `segurados.canal_preferido` depois de salvar e confirmar que o `canal` persistido não muda.
+- [x] **Fix 10 (Major)** — `_codigo_ibge_area_de` buscava o critério de área por **posição** (`criterios[0]`), não por nome — com um único critério persistido em cada fixture de teste, `criterios[0]` e `criterios[-1]` são indistinguíveis. Corrigido para buscar pelo `operando` (nova constante `OPERANDO_AREA_AFETADA` em `avaliador_elegibilidade.py`, reusada pelo próprio critério e pelo repositório) — a ordem dos 5 critérios deixa de ser um contrato implícito.
+- [x] **Fix 11 (Minor)** — ELEG-08: o Fix 7 da Rodada 1 só chegou ao backend; a fixture do frontend (`SuperficieEventoDecisao.test.tsx`) continuava simétrica (`1`/`1`). Alterada para `incluidos=2`/`excluidos=1`, com asserção do texto completo do parágrafo (não só a presença isolada de cada número).
+- [x] **Fix 12 (Minor)** — ELEG-09: o Fix 5 conferia os valores das células mas não o conjunto de cabeçalhos ("colunas estáveis" exigido pela AC). Adicionada asserção `getAllByRole('columnheader')` com a lista exata `['Operando', 'Valor observado', 'Resultado', 'Justificativa']`.
+
+**Gate check (backend, full)**: `uv run --directory src/backend pytest && ruff check . && pyright` — verde (378 testes, mesma contagem — fixes 9/10 fortalecem testes/código já existentes). **Gate check (frontend, full)**: `npm test -- --run && npm run lint && npm run build` — verde (202 testes).
+
+**Commit**: `fix(elegibilidade): fechar lacunas residuais do verificador (Round 2)`

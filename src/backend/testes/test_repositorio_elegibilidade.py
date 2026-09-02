@@ -330,11 +330,14 @@ def test_obter_por_id_de_linha_semeada_com_criterios_vazio_nao_lanca(tmp_path: P
 def test_nome_segurado_e_area_persistidos_sobrevivem_a_mudanca_dos_dados_originais(
     tmp_path: Path,
 ) -> None:
-    """ELEG-04.3 / AD-11: alterar `segurados.nome` ou `apolices.codigo_ibge_area` depois
-    de uma avaliação concluída não pode reescrever a explicação histórica já persistida."""
+    """ELEG-04.3 / AD-11: alterar `segurados.nome`, `segurados.canal_preferido` ou
+    `apolices.codigo_ibge_area` depois de uma avaliação concluída não pode reescrever a
+    explicação histórica já persistida — inclui o `canal`, nomeado pelo Success
+    Criterion #3 da spec ("alterar o canal preferencial... não altera o resultado
+    histórico dessa execução")."""
 
     caminho = preparar_banco(tmp_path)
-    id_segurado = inserir_segurado(caminho)
+    id_segurado = inserir_segurado(caminho, canal="whatsapp")
     id_apolice = inserir_apolice(caminho, id_segurado)
     id_regra = inserir_regra(caminho)
     id_evento = inserir_evento(caminho)
@@ -352,7 +355,9 @@ def test_nome_segurado_e_area_persistidos_sobrevivem_a_mudanca_dos_dados_origina
 
     with abrir_conexao(caminho) as conexao:
         conexao.execute(
-            "UPDATE segurados SET nome = 'Nome Alterado Depois' WHERE id = ?", [id_segurado]
+            "UPDATE segurados SET nome = 'Nome Alterado Depois', "
+            "canal_preferido = 'sms' WHERE id = ?",
+            [id_segurado],
         )
         conexao.execute(
             "UPDATE apolices SET codigo_ibge_area = '9999999' WHERE id = ?", [id_apolice]
@@ -363,6 +368,8 @@ def test_nome_segurado_e_area_persistidos_sobrevivem_a_mudanca_dos_dados_origina
     assert registro is not None
     assert registro.nome_segurado == "Nome Original"
     assert registro.codigo_ibge_area == AREA
+    assert registro.canal == RESULTADO_INCLUIDO.canal
+    assert registro.canal == "whatsapp"
 
 
 def test_duas_apolices_do_mesmo_segurado_geram_dois_resultados_distintos(

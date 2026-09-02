@@ -250,14 +250,15 @@ describe('superfície de evento e decisão', () => {
 describe('superfície de evento e decisão — público elegível', () => {
   it('mostra as quantidades de incluídos e excluídos', async () => {
     getAvaliacaoRisco.mockResolvedValue(null)
-    getElegibilidade.mockResolvedValue(elegibilidade())
+    getElegibilidade.mockResolvedValue(elegibilidade({ incluidos: 2, excluidos: 1 }))
 
     render(<SuperficieEventoDecisao execucaoId={EXECUCAO_ID} />)
 
     const secao = await screen.findByRole('region', { name: 'Público elegível' })
-    expect(within(secao).getAllByText('1')).toHaveLength(2)
-    expect(within(secao).getByText(/incluído/)).toBeInTheDocument()
-    expect(within(secao).getByText(/excluído/)).toBeInTheDocument()
+    const paragrafoQuantidades = within(secao).getByText(/incluíd/).closest('p')
+    expect(paragrafoQuantidades?.textContent?.replace(/\s+/g, ' ')).toContain(
+      '2 incluídos — 1 excluído',
+    )
   })
 
   it('mostra conjunto vazio como resultado válido, não como erro', async () => {
@@ -322,6 +323,16 @@ describe('superfície de evento e decisão — público elegível', () => {
       name: /Explicação — Maria Sintética/,
     })
     expect(within(explicacao).getByText(/regra v3/)).toBeInTheDocument()
+    const tabelaCriterios = within(explicacao).getByRole('table')
+    const cabecalhosCriterios = within(tabelaCriterios)
+      .getAllByRole('columnheader')
+      .map((cabecalho) => cabecalho.textContent)
+    expect(cabecalhosCriterios).toEqual([
+      'Operando',
+      'Valor observado',
+      'Resultado',
+      'Justificativa',
+    ])
     expect(within(explicacao).getByText('área afetada')).toBeInTheDocument()
     expect(within(explicacao).getByText('9990001')).toBeInTheDocument()
     expect(within(explicacao).getByText('Atende')).toBeInTheDocument()

@@ -13,6 +13,11 @@ MOTIVO_COBERTURA_AUSENTE = "cobertura_ausente"
 MOTIVO_NAO_PARTICIPA_DE_ALERTAS = "nao_participa_de_alertas"
 MOTIVO_INCLUIDO = "incluido"
 
+OPERANDO_AREA_AFETADA = "área afetada"
+"""Nome estável do critério de área — usado por `RepositorioElegibilidades` para derivar
+`codigo_ibge_area` do próprio snapshot de critérios já persistido, por nome, nunca por
+posição (a ordem dos critérios é um detalhe de `avaliar`, não um contrato)."""
+
 
 @dataclass(frozen=True, slots=True)
 class CandidatoElegibilidade:
@@ -53,7 +58,7 @@ def _criterio_area(candidato: CandidatoElegibilidade, evento: EventoMeteorologic
         else f"Área da apólice não corresponde à área do evento ({evento.area})."
     )
     return Criterio(
-        operando="área afetada",
+        operando=OPERANDO_AREA_AFETADA,
         valor_observado=candidato.codigo_ibge_area,
         atende=atende,
         justificativa=justificativa,
@@ -125,7 +130,7 @@ def _motivo_da_primeira_falha(criterios: tuple[Criterio, ...]) -> str:
     """Resolve o motivo tipado a partir do primeiro critério não atendido, em ordem fixa."""
 
     operando_para_motivo = {
-        "área afetada": MOTIVO_AREA_NAO_APLICAVEL,
+        OPERANDO_AREA_AFETADA: MOTIVO_AREA_NAO_APLICAVEL,
         "tipo da apólice": MOTIVO_APOLICE_INCOERENTE,
         "situação da apólice": MOTIVO_APOLICE_INATIVA,
         "cobertura exigida": MOTIVO_COBERTURA_AUSENTE,
