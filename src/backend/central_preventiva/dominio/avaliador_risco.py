@@ -19,6 +19,8 @@ MOTIVO_TIPO_NAO_SUPORTADO = "tipo_nao_suportado"
 MOTIVO_AREA_NAO_APLICAVEL = "area_nao_aplicavel"
 MOTIVO_ABAIXO_DO_LIMIAR = "abaixo_do_limiar"
 MOTIVO_RELEVANTE = "relevante"
+MOTIVO_SEM_REGRA_ATIVA = "sem_regra_ativa"
+"""Motivo de `sem_risco` quando não há regra ativa para o tipo do evento (ServicoAvaliacaoRisco)."""
 
 
 @dataclass(frozen=True, slots=True)

@@ -156,10 +156,12 @@ T6
 
 **Done when**:
 
-- [ ] Evento não relevante transiciona a execução para `sem_risco` com snapshot salvo, sem criar elegibilidade/mensagem/chamada de IA
-- [ ] Evento relevante transiciona para `avaliando_elegibilidade` com snapshot salvo
-- [ ] Ausência de regra ativa é tratada como `sem_risco` com motivo específico
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Evento não relevante transiciona a execução para `sem_risco` com snapshot salvo, sem criar elegibilidade/mensagem/chamada de IA
+- [x] Evento relevante transiciona para `avaliando_elegibilidade` com snapshot salvo
+- [x] Ausência de regra ativa é tratada como `sem_risco` com motivo específico
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+
+**Nota de implementação**: sem regra ativa, nenhum snapshot é persistido (não há `regra_id`/`regra_versao` real para referenciar — a coluna é `NOT NULL`) — apenas a transição para `sem_risco` acontece, e o `ResultadoAvaliacaoRisco` com `motivo=sem_regra_ativa` é devolvido ao chamador sem passar por `RepositorioAvaliacoesRisco`. `PortasAvaliacaoRisco` usa Protocols locais (mesmo padrão de `coleta_meteorologica.py`, AD-1) para não importar classes concretas de `adaptadores/` na camada de aplicação; `avaliar` é injetado como `Callable` com default `avaliador_risco.avaliar` (função pura do domínio).
 
 **Tests**: unit
 **Gate**: quick
