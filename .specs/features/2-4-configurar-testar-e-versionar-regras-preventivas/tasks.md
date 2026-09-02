@@ -81,9 +81,9 @@ T5
 
 **Done when**:
 
-- [ ] Configuração válida não produz erro
-- [ ] Cada classe de invalidez (tipo errado, faixa fora do limite, combinação obrigatória ausente, evento↔produto incoerente) produz erro específico com o campo identificado
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Configuração válida não produz erro
+- [x] Cada classe de invalidez (tipo errado, faixa fora do limite, combinação obrigatória ausente, evento↔produto incoerente) produz erro específico com o campo identificado
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
