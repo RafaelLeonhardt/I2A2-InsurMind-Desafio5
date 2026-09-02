@@ -427,3 +427,49 @@ def test_listar_candidatos_filtra_pela_area_da_apolice_nao_do_segurado(
     assert len(candidatos) == 1
     assert str(candidatos[0].apolice_id) == id_apolice
     assert candidatos[0].codigo_ibge_area == AREA
+
+
+def test_codigo_ibge_area_e_correto_mesmo_quando_area_nao_e_o_primeiro_criterio(
+    tmp_path: Path,
+) -> None:
+    """Round 3 do Verificador (Nota F): `_codigo_ibge_area_de` busca o critério de área
+    pelo `operando`, não pela posição — este teste prova isso persistindo um snapshot
+    onde "área afetada" fica no **meio** dos cinco critérios (nem primeiro, nem
+    último), matando tanto uma leitura por `criterios[0]` quanto por `criterios[-1]`."""
+
+    caminho = preparar_banco(tmp_path)
+    id_segurado = inserir_segurado(caminho)
+    id_apolice = inserir_apolice(caminho, id_segurado)
+    id_regra = inserir_regra(caminho)
+    id_evento = inserir_evento(caminho)
+    execucao_id = uuid4()
+
+    resultado_area_no_meio = ResultadoElegibilidade(
+        elegivel=True,
+        criterios=(
+            Criterio("tipo da apólice", "residencial", True, "Tipo corresponde."),
+            Criterio("situação da apólice", "ativa", True, "Apólice está ativa."),
+            Criterio("área afetada", AREA, True, "Área da apólice corresponde à área do evento."),
+            Criterio("cobertura exigida", "alagamento", True, "Cobertura presente."),
+            Criterio("participação em alertas", "True", True, "Participa de alertas."),
+        ),
+        canal="whatsapp",
+        motivo="incluido",
+        justificativa="Segurado e apólice atendem integralmente aos critérios da regra ativa.",
+    )
+
+    id_registro = RepositorioElegibilidades(caminho).salvar(
+        execucao_id,
+        id_evento,
+        id_regra,
+        id_segurado,
+        id_apolice,
+        "Pessoa Teste",
+        resultado_area_no_meio,
+    )
+    assert id_registro is not None
+
+    registro = RepositorioElegibilidades(caminho).obter_por_id(id_registro)
+
+    assert registro is not None
+    assert registro.codigo_ibge_area == AREA

@@ -102,16 +102,16 @@ A História 2.3 decide que um evento é relevante e avança a execução para `a
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| ELEG-01 | P1: Cálculo de elegibilidade por critérios objetivos | Design | Pending |
-| ELEG-02 | P1: Cálculo de elegibilidade por critérios objetivos | Design | Pending |
-| ELEG-03 | P1: Cálculo de elegibilidade por critérios objetivos | Design | Pending |
-| ELEG-04 | P1: Resultados incluído/excluído com snapshot imutável | Design | Pending |
-| ELEG-05 | P1: Resultados incluído/excluído com snapshot imutável | Design | Pending |
-| ELEG-06 | P1: Resultados incluído/excluído com snapshot imutável | Design | Pending |
-| ELEG-07 | P1: Resultados incluído/excluído com snapshot imutável | Design | Pending |
-| ELEG-08 | P2: Consulta, explicação e conjunto vazio válido | Design | Pending |
-| ELEG-09 | P2: Consulta, explicação e conjunto vazio válido | Design | Pending |
-| ELEG-10 | P2: Consulta, explicação e conjunto vazio válido | Design | Pending |
+| ELEG-01 | P1: Cálculo de elegibilidade por critérios objetivos | Design | Verified |
+| ELEG-02 | P1: Cálculo de elegibilidade por critérios objetivos | Design | Verified |
+| ELEG-03 | P1: Cálculo de elegibilidade por critérios objetivos | Design | Verified |
+| ELEG-04 | P1: Resultados incluído/excluído com snapshot imutável | Design | Verified |
+| ELEG-05 | P1: Resultados incluído/excluído com snapshot imutável | Design | Verified |
+| ELEG-06 | P1: Resultados incluído/excluído com snapshot imutável | Design | Verified |
+| ELEG-07 | P1: Resultados incluído/excluído com snapshot imutável | Design | Verified |
+| ELEG-08 | P2: Consulta, explicação e conjunto vazio válido | Design | Verified |
+| ELEG-09 | P2: Consulta, explicação e conjunto vazio válido | Design | Verified |
+| ELEG-10 | P2: Consulta, explicação e conjunto vazio válido | Design | Verified |
 
 **ID format:** `ELEG-NN`
 

@@ -307,3 +307,9 @@ Rodada 2 confirmou o blocker genuinamente fechado (reverter `semeador.py` reprod
 **Gate check (backend, full)**: `uv run --directory src/backend pytest && ruff check . && pyright` — verde (378 testes, mesma contagem — fixes 9/10 fortalecem testes/código já existentes). **Gate check (frontend, full)**: `npm test -- --run && npm run lint && npm run build` — verde (202 testes).
 
 **Commit**: `fix(elegibilidade): fechar lacunas residuais do verificador (Round 2)`
+
+## Round 3 (final) — PASS, com um fechamento opcional pós-verificação
+
+Round 3 confirmou **PASS pleno — 10/10 ELEG verificados**. Um resíduo Minor não bloqueante ficou registrado na "Nota F" do relatório (`_codigo_ibge_area_de` só tinha guarda com fixture de 1 critério; a classe de defeito já estava eliminada por construção e comprovada por contrafactual, mas nenhum teste persistia um snapshot de 5 critérios com "área afetada" fora da primeira posição). Como o próprio relatório trazia a receita de fechamento (~5 linhas) e não exigia nova rodada, foi aplicado depois do PASS, sem reabrir a verificação: `test_codigo_ibge_area_e_correto_mesmo_quando_area_nao_e_o_primeiro_criterio` (`test_repositorio_elegibilidade.py`) persiste um resultado de 5 critérios com "área afetada" no meio da tupla — morto manualmente contra `criterios[0]` **e** `criterios[-1]` antes de commitar (379 testes).
+
+**Commit**: `test(elegibilidade): fechar residuo minor da nota f (round 3)`
