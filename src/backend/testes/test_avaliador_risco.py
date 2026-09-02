@@ -26,6 +26,7 @@ REGRA_CHUVA = RegraSnapshot(
     limiar_meteorologico=50.0,
     area_aplicavel=AREA,
     apolice_tipo="residencial",
+    cobertura_exigida="alagamento",
     versao=1,
 )
 
@@ -35,6 +36,7 @@ REGRA_GRANIZO = RegraSnapshot(
     limiar_meteorologico=20.0,
     area_aplicavel=AREA,
     apolice_tipo="automovel",
+    cobertura_exigida="granizo",
     versao=1,
 )
 

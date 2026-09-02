@@ -78,8 +78,8 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5)
-    assert resultado.versao_final == 5
+    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6)
+    assert resultado.versao_final == 6
     assert tabelas(caminho) == TABELAS_ESPERADAS
     assert registros(caminho) == [
         (1, "schema inicial"),
@@ -87,6 +87,7 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
         (3, "resiliencia meteorologica"),
         (4, "avaliacao risco"),
         (5, "avaliacao risco sem regra"),
+        (6, "elegibilidade"),
     ]
 
 
@@ -97,13 +98,14 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 5
+    assert resultado.versao_final == 6
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
         (3, "resiliencia meteorologica"),
         (4, "avaliacao risco"),
         (5, "avaliacao risco sem regra"),
+        (6, "elegibilidade"),
     ]
 
 
@@ -206,6 +208,107 @@ def test_migracao_sem_regra_preserva_avaliacoes_e_aceita_regra_nula(tmp_path: Pa
         ).fetchone()
 
     assert linha_sem_regra == (None, None, "sem_regra_ativa")
+
+
+def test_migracao_elegibilidade_preserva_linha_semeada_com_backfill_correto(
+    tmp_path: Path,
+) -> None:
+    """A migração `0006` recria `elegibilidades_historicas` (AD-015): a linha semeada
+    existente ganha `execucao_id NULL`, `criterios` com o marcador de seed e `canal`
+    vindo de `segurados.canal_preferido` via JOIN (ELEG-04, ELEG-07)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho, list(MIGRACOES[:5])).aplicar_pendentes()
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO segurados (id, nome, codigo_ibge_area, canal_preferido, "
+            "participa_de_alertas) VALUES "
+            "('99999999-9999-9999-9999-999999999999', 'Teste', '9990001', 'sms', true)"
+        )
+        conexao.execute(
+            "INSERT INTO elegibilidades_historicas "
+            "(id, evento_id, regra_id, segurado_id, apolice_id, elegivel, justificativa) "
+            "VALUES ("
+            "'11111111-1111-1111-1111-111111111111', "
+            "'22222222-2222-2222-2222-222222222222', "
+            "'33333333-3333-3333-3333-333333333333', "
+            "'99999999-9999-9999-9999-999999999999', "
+            "'44444444-4444-4444-4444-444444444444', true, 'seed pré-migração')"
+        )
+
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        linha = conexao.execute(
+            "SELECT execucao_id, criterios, canal, justificativa FROM elegibilidades_historicas "
+            "WHERE id = '11111111-1111-1111-1111-111111111111'"
+        ).fetchone()
+    assert linha is not None
+    assert linha[0] is None
+    assert linha[1] == '{"origem": "seed_demonstrativo"}'
+    assert linha[2] == "sms"
+    assert linha[3] == "seed pré-migração"
+
+
+def test_migracao_elegibilidade_unique_permite_multiplas_linhas_semeadas_nulas(
+    tmp_path: Path,
+) -> None:
+    """`UNIQUE(execucao_id, ...)` com `execucao_id IS NULL` nunca colide entre linhas
+    semeadas (`NULL` é sempre distinto de `NULL`), mas dedup real (`execucao_id`
+    preenchido) continua funcionando via `INSERT ... ON CONFLICT DO NOTHING`."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        # Duas linhas com execucao_id NULL e todos os demais campos idênticos: não colidem.
+        for id_linha in (
+            "55555555-5555-5555-5555-555555555555",
+            "66666666-6666-6666-6666-666666666666",
+        ):
+            conexao.execute(
+                "INSERT INTO elegibilidades_historicas "
+                "(id, evento_id, regra_id, segurado_id, apolice_id, elegivel, "
+                "criterios, canal, justificativa) VALUES "
+                f"('{id_linha}', "
+                "'22222222-2222-2222-2222-222222222222', "
+                "'33333333-3333-3333-3333-333333333333', "
+                "'99999999-9999-9999-9999-999999999999', "
+                "'44444444-4444-4444-4444-444444444444', true, "
+                "'[]', 'sms', 'linha nula de teste')"
+            )
+        total_nulas = conexao.execute(
+            "SELECT count(*) FROM elegibilidades_historicas WHERE execucao_id IS NULL "
+            "AND evento_id = '22222222-2222-2222-2222-222222222222' "
+            "AND segurado_id = '99999999-9999-9999-9999-999999999999'"
+        ).fetchone()
+        assert total_nulas is not None
+        assert total_nulas[0] == 2
+
+        # Mesma combinação real (execucao_id preenchido) duas vezes: a segunda é no-op.
+        execucao_id = "77777777-7777-7777-7777-777777777777"
+        for id_linha in (
+            "88888888-8888-8888-8888-888888888888",
+            "89898989-8989-8989-8989-898989898989",
+        ):
+            conexao.execute(
+                "INSERT INTO elegibilidades_historicas "
+                "(id, execucao_id, evento_id, regra_id, segurado_id, apolice_id, "
+                "elegivel, criterios, canal, justificativa) VALUES "
+                f"('{id_linha}', '{execucao_id}', "
+                "'22222222-2222-2222-2222-222222222222', "
+                "'33333333-3333-3333-3333-333333333333', "
+                "'99999999-9999-9999-9999-999999999999', "
+                "'44444444-4444-4444-4444-444444444444', true, "
+                "'[]', 'sms', 'linha real de teste') "
+                "ON CONFLICT DO NOTHING"
+            )
+        total_reais = conexao.execute(
+            "SELECT count(*) FROM elegibilidades_historicas WHERE execucao_id = ?",
+            [execucao_id],
+        ).fetchone()
+        assert total_reais is not None
+        assert total_reais[0] == 1
 
 
 def test_recusa_versao_registrada_futura_sem_aplicar_mutacao(tmp_path: Path) -> None:

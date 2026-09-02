@@ -254,6 +254,8 @@ def dataset_sintetico_v1() -> ConjuntoSintetico:
                     "segurado_id",
                     "apolice_id",
                     "elegivel",
+                    "criterios",
+                    "canal",
                     "justificativa",
                 ),
                 linhas=(
@@ -264,6 +266,8 @@ def dataset_sintetico_v1() -> ConjuntoSintetico:
                         segurado_chuva_elegivel,
                         apolice_chuva_elegivel,
                         True,
+                        '{"origem": "seed_demonstrativo"}',
+                        "whatsapp",
                         "Apólice residencial ativa na área do evento, com cobertura de alagamento.",
                     ),
                     (
@@ -273,6 +277,8 @@ def dataset_sintetico_v1() -> ConjuntoSintetico:
                         segurado_chuva_nao_elegivel,
                         apolice_chuva_nao_elegivel,
                         False,
+                        '{"origem": "seed_demonstrativo"}',
+                        "email",
                         "Apólice cancelada no momento do evento de chuva intensa.",
                     ),
                     (
@@ -282,6 +288,8 @@ def dataset_sintetico_v1() -> ConjuntoSintetico:
                         segurado_granizo_elegivel,
                         apolice_granizo_elegivel,
                         True,
+                        '{"origem": "seed_demonstrativo"}',
+                        "sms",
                         "Apólice de automóvel ativa na área do evento e com cobertura de granizo.",
                     ),
                     (
@@ -291,6 +299,8 @@ def dataset_sintetico_v1() -> ConjuntoSintetico:
                         segurado_granizo_nao_elegivel,
                         apolice_granizo_nao_elegivel,
                         False,
+                        '{"origem": "seed_demonstrativo"}',
+                        "whatsapp",
                         "Apólice de automóvel sem a cobertura de granizo exigida pela regra.",
                     ),
                 ),

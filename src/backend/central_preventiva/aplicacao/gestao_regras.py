@@ -158,6 +158,7 @@ def _snapshot_candidato(regra_id: UUID, dados: DadosRegra) -> RegraSnapshot:
         limiar_meteorologico=dados.limiar_meteorologico,
         area_aplicavel=dados.area_aplicavel,
         apolice_tipo=dados.apolice_tipo,
+        cobertura_exigida=dados.cobertura_exigida,
         versao=0,
     )
 

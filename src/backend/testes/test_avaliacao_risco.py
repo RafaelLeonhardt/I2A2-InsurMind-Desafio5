@@ -27,6 +27,7 @@ REGRA_CHUVA = RegraSnapshot(
     limiar_meteorologico=50.0,
     area_aplicavel=AREA,
     apolice_tipo="residencial",
+    cobertura_exigida="alagamento",
     versao=7,  # não-trivial de propósito: discrimina "propaga a versão" de "grava um literal"
 )
 

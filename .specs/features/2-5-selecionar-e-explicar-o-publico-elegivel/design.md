@@ -42,7 +42,7 @@ graph TD
 
 | System | Integration Method |
 | --- | --- |
-| DuckDB | Migração `0005` recria `elegibilidades_historicas` por recreate-and-copy (AD-015) com as colunas novas, backfill das linhas semeadas e `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)` declarada no `CREATE` |
+| DuckDB | Migração `0006` recria `elegibilidades_historicas` por recreate-and-copy (AD-015) com as colunas novas, backfill das linhas semeadas e `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)` declarada no `CREATE` |
 
 ---
 
@@ -90,7 +90,7 @@ graph TD
 
 ## Data Models
 
-### Migração `0005_elegibilidade.sql`
+### Migração `0006_elegibilidade.sql`
 
 Recria `elegibilidades_historicas` por recreate-and-copy na transação da própria migração (**AD-015** — o DuckDB não suporta `ALTER ADD CONSTRAINT`, e a tabela já contém linhas semeadas do Épico 1 que precisam de backfill): `CREATE TABLE elegibilidades_historicas_nova (...)` com todas as colunas e constraints, `INSERT INTO ... SELECT` com os backfills abaixo, `DROP`, `RENAME`.
 
@@ -125,7 +125,7 @@ Constraint declarada no `CREATE`: `UNIQUE(execucao_id, evento_id, regra_id, segu
 | Decision | Choice | Rationale |
 | --- | --- | --- |
 | Mecanismo de "no máximo um resultado" | `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)`, não uma checagem em código | Consistente com a dedução de eventos por `UNIQUE` em 2.2 (mesma família de decisão já tomada no projeto); a constraint do banco é a garantia mais forte disponível |
-| Estratégia da migração `0005` | Recreate-and-copy com backfill das linhas semeadas (`execucao_id` nulo, `criterios` fixo, `canal` via join) — **AD-015** | O DuckDB não suporta `ALTER ADD CONSTRAINT`, e `NOT NULL` sem backfill falharia sobre as linhas semeadas do Épico 1; a constraint no `CREATE` preserva a semântica de `ON CONFLICT` do insert-or-noop (AD-010) |
+| Estratégia da migração `0006` | Recreate-and-copy com backfill das linhas semeadas (`execucao_id` nulo, `criterios` fixo, `canal` via join) — **AD-015** | O DuckDB não suporta `ALTER ADD CONSTRAINT`, e `NOT NULL` sem backfill falharia sobre as linhas semeadas do Épico 1; a constraint no `CREATE` preserva a semântica de `ON CONFLICT` do insert-or-noop (AD-010) |
 | Onde o canal preferencial é lido | Lido de `segurados.canal_preferido` no momento da avaliação e gravado como snapshot em `elegibilidades_historicas.canal` | Cumpre "canal deverá ser preservado... sem alterar o resultado dos demais critérios" — o snapshot desacopla o valor congelado do valor atual, que a História 5.6 (fora do Épico 2) poderá mudar sem afetar o histórico |
 
 ---

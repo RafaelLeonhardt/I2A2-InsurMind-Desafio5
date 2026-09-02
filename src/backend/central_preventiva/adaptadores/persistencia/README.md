@@ -139,18 +139,27 @@ Eventos meteorológicos observados ou sintéticos.
 
 ### `elegibilidades_historicas`
 
-Elegibilidades pré-calculadas da demonstração, com casos elegíveis e não elegíveis.
+Elegibilidades pré-calculadas da demonstração, com casos elegíveis e não elegíveis. Ver a
+tabela abaixo já atualizada com o estado pós-`0006` (colunas `execucao_id`, `criterios`,
+`canal`).
 
 | Coluna | Tipo | Restrições |
 | --- | --- | --- |
 | `id` | `UUID` | chave primária |
+| `execucao_id` | `UUID` | nulo identifica linha semeada de demonstração (migração `0006`); chave estrangeira lógica para `execucao_preventiva(id)` quando presente |
 | `evento_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `eventos_meteorologicos(id)` |
 | `regra_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `regras(id)` |
 | `segurado_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `segurados(id)` |
 | `apolice_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `apolices(id)` |
 | `elegivel` | `BOOLEAN` | `NOT NULL` |
+| `criterios` | `VARCHAR` | `NOT NULL`, JSON serializado com critério a critério, mesmo formato de `avaliacoes_risco.criterios` (migração `0006`) |
+| `canal` | `VARCHAR` | `NOT NULL`, canal preferencial do segurado congelado no momento da avaliação — nunca referência viva a `segurados.canal_preferido` (AD-11, migração `0006`) |
 | `justificativa` | `VARCHAR` | `NOT NULL` |
 | `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+
+`UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)` (migração `0006`) garante no
+máximo um resultado por combinação (AD-10); linhas semeadas com `execucao_id NULL` nunca colidem
+entre si.
 
 ### `execucao_preventiva`
 
@@ -288,3 +297,13 @@ para aceitar `NULL` (recreate-and-copy, AD-015: DuckDB não suporta `ALTER COLUM
 para que o terminal `sem_risco` sem regra ativa (RISCO-09) fique persistido e explicável, em vez
 de não gerar nenhuma linha. Ver a tabela `avaliacoes_risco` acima, já atualizada com o estado
 pós-`0005`.
+
+## Tabelas da migração `0006_elegibilidade`
+
+Nenhuma tabela nova — a migração recria `elegibilidades_historicas` por recreate-and-copy
+(AD-015: DuckDB não suporta `ALTER TABLE ADD COLUMN ... NOT NULL` nem `ADD CONSTRAINT` sobre uma
+tabela com linhas existentes), acrescentando `execucao_id`, `criterios`, `canal` e a `UNIQUE`
+de dedução (AD-10). As 4 linhas semeadas do Épico 1 recebem backfill determinístico:
+`execucao_id = NULL`, `criterios = '{"origem": "seed_demonstrativo"}'` e `canal` lido de
+`segurados.canal_preferido` via `JOIN` na própria migração. Ver a tabela `elegibilidades_historicas`
+acima, já atualizada com o estado pós-`0006`.

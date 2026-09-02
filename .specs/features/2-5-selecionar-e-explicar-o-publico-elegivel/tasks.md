@@ -70,24 +70,24 @@ T6
 
 ## Task Breakdown
 
-### T1: Migração `0005_elegibilidade.sql`
+### T1: Migração `0006_elegibilidade.sql`
 
 **What**: Recriar `elegibilidades_historicas` por recreate-and-copy (AD-015) com `execucao_id` (nulo = linha semeada), `criterios`, `canal` (backfill das linhas semeadas conforme o Design) e `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)` declarada no `CREATE`.
-**Where**: `src/backend/central_preventiva/adaptadores/persistencia/migracoes/0005_elegibilidade.sql`
+**Where**: `src/backend/central_preventiva/adaptadores/persistencia/migracoes/0006_elegibilidade.sql`
 **Depends on**: None
 **Reuses**: convenção de migração numerada
 **Requirement**: ELEG-04, ELEG-07
 
-**Tools**: MCP: NONE — Skill: NONE
+**Nota de implementação**: o Design nomeou a migração `0005`, mas a História 2.3 já ocupou esse número (`0005_avaliacao_risco_sem_regra.sql`, commitado antes desta história começar) — o design das 25 histórias foi escrito em lote antes da numeração sequencial real ser conhecida. Renumerada para `0006`, próximo número livre; mesma estratégia de conteúdo do Design, sem outra mudança. `semeador.py` também precisou ganhar as colunas `criterios`/`canal` na `TabelaSemeada` de `elegibilidades_historicas` (não previsto explicitamente no Design, mas necessário: o semeador roda após a migração, contra o schema já `NOT NULL`). `RegraSnapshot` (2.3) também ganhou o campo `cobertura_exigida` — não estava lá porque `avaliar_risco.avaliar` não o usa, mas `AvaliadorElegibilidade` (T2) precisa dele e é a mesma regra ativa consumida pelos dois avaliadores.
 
 **Done when**:
 
-- [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] Recreate-and-copy preserva todas as linhas semeadas com backfill correto: `execucao_id IS NULL`, `criterios = '{"origem": "seed_demonstrativo"}'`, `canal` vindo de `segurados.canal_preferido` (AD-015)
-- [ ] Teste cobre `INSERT ... ON CONFLICT DO NOTHING` sobre a `UNIQUE` recriada e a não-colisão entre linhas semeadas (`execucao_id` nulo)
-- [ ] `README.md` de persistência documenta as colunas novas, a `UNIQUE` e a estratégia de recreate
-- [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0005`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Migração aplica em transação própria, registrada em `schema_migracoes`
+- [x] Recreate-and-copy preserva todas as linhas semeadas com backfill correto: `execucao_id IS NULL`, `criterios = '{"origem": "seed_demonstrativo"}'`, `canal` vindo de `segurados.canal_preferido` (AD-015)
+- [x] Teste cobre `INSERT ... ON CONFLICT DO NOTHING` sobre a `UNIQUE` recriada e a não-colisão entre linhas semeadas (`execucao_id` nulo)
+- [x] `README.md` de persistência documenta as colunas novas, a `UNIQUE` e a estratégia de recreate
+- [x] `testes/test_migracoes.py` cobre a aplicação da migração `0006`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick

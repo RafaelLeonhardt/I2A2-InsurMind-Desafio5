@@ -18,13 +18,19 @@ MOTIVO_SEM_REGRA_ATIVA = "sem_regra_ativa"
 
 @dataclass(frozen=True, slots=True)
 class RegraSnapshot:
-    """Regra ativa consumida pelo avaliador, no formato necessário à decisão."""
+    """Regra ativa consumida pelos avaliadores de risco (2.3) e elegibilidade (2.5).
+
+    `cobertura_exigida` não é lida por `avaliar()` (relevância meteorológica não depende
+    de cobertura de apólice) — existe aqui porque é a mesma regra ativa consumida por
+    `AvaliadorElegibilidade` (2.5), que precisa dela para o critério de cobertura.
+    """
 
     id: UUID
     evento_tipo: TipoEventoMeteorologico
     limiar_meteorologico: float
     area_aplicavel: str
     apolice_tipo: str
+    cobertura_exigida: str
     versao: int
 
 

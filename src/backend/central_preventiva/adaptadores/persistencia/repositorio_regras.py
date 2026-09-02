@@ -75,7 +75,7 @@ class RepositorioRegras:
         with abrir_conexao(self._caminho) as conexao:
             linha = conexao.execute(
                 "SELECT id, evento_tipo, limiar_meteorologico, area_aplicavel, apolice_tipo, "
-                "versao FROM regras WHERE evento_tipo = ? AND estado = 'ativa' "
+                "cobertura_exigida, versao FROM regras WHERE evento_tipo = ? AND estado = 'ativa' "
                 "ORDER BY versao DESC LIMIT 1",
                 [evento_tipo.value],
             ).fetchone()
@@ -87,7 +87,8 @@ class RepositorioRegras:
             limiar_meteorologico=float(linha[2]),
             area_aplicavel=str(linha[3]),
             apolice_tipo=str(linha[4]),
-            versao=int(linha[5]),
+            cobertura_exigida=str(linha[5]),
+            versao=int(linha[6]),
         )
 
     def listar(self, evento_tipo: TipoEventoMeteorologico | None = None) -> list[Regra]:
