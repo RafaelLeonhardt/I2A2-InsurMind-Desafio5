@@ -260,3 +260,11 @@ O núcleo de segurança (concorrência otimista, coerência AD-013, hash de idem
 **Gate check (backend, full)**: `uv run --directory src/backend pytest && ruff check . && pyright` — verde (343 testes). **Gate check (frontend, full)**: `npm test -- --run && npm run lint && npm run build` — verde (189 testes, mesmos avisos pré-existentes).
 
 **Commit**: `fix(regras): fechar lacunas do verificador da historia 2.4`
+
+## Fix Tasks (Verifier Round 2 — FAIL, `validation.md` de 2026-09-02)
+
+Rodada 2 confirmou 7 dos 8 fixes da Rodada 1 genuínos (reinjeção dos mutantes M4/M5/M6 mortos; mutantes novos M7/M8/M9 mortos). Restou 1 lacuna Minor:
+
+- [x] **Fix 9 (Minor)** — REGRA-04: o "indicador visual" (terceiro sinal além de texto+ícone) não tinha nenhuma asserção — `data-indicador` e a classe `regra-estado-badge--{estado}` existiam no componente desde a Rodada 1, mas nunca eram checados no teste. Adicionadas as asserções `toHaveAttribute('data-indicador', ...)` e `toHaveClass('regra-estado-badge--...')` para ambos os estados em `SuperficieRegras.test.tsx`. Mutação de verificação (colapsar as duas badges na mesma classe, sem `data-indicador`) aplicada manualmente e confirmada morta antes de reverter.
+
+**Gate check**: backend 343 testes verde (inalterado); frontend 189 testes verde. **Commit**: `fix(regras): asserir o indicador visual da regra ativa (REGRA-04, Round 2)`

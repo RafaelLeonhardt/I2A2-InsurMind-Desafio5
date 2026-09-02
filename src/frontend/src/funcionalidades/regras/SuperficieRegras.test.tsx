@@ -94,6 +94,16 @@ describe('superfície de regras', () => {
     expect(iconeAtiva).toBeTruthy()
     expect(iconeSubstituida).toBeTruthy()
     expect(iconeAtiva).not.toBe(iconeSubstituida)
+
+    const badgeAtiva = linhaAtiva.querySelector('[data-indicador]')
+    const badgeSubstituida = linhaSubstituida.querySelector('[data-indicador]')
+    expect(badgeAtiva).toHaveAttribute('data-indicador', 'ativa')
+    expect(badgeSubstituida).toHaveAttribute('data-indicador', 'substituida')
+    expect(badgeAtiva).toHaveClass('regra-estado-badge--ativa')
+    expect(badgeSubstituida).toHaveClass('regra-estado-badge--substituida')
+    expect(badgeAtiva?.getAttribute('data-indicador')).not.toBe(
+      badgeSubstituida?.getAttribute('data-indicador'),
+    )
   })
 
   it('exibe as onze colunas da tabela de regras com os valores da regra ativa (REGRA-03)', async () => {
