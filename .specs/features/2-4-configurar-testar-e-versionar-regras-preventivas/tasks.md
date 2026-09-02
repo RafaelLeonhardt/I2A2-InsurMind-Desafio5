@@ -102,10 +102,10 @@ T5
 
 **Done when**:
 
-- [ ] `criar_nova_versao` com `versao_esperada` correta cria nova linha `ativa` e marca a anterior `substituida`, na mesma transação
-- [ ] `criar_nova_versao` com `versao_esperada` incorreta levanta `ConflitoVersao`, sem mutar nenhuma linha
-- [ ] `listar`/`obter_por_id` retornam versões anteriores inalteradas
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `criar_nova_versao` com `versao_esperada` correta cria nova linha `ativa` e marca a anterior `substituida`, na mesma transação
+- [x] `criar_nova_versao` com `versao_esperada` incorreta levanta `ConflitoVersao`, sem mutar nenhuma linha
+- [x] `listar`/`obter_por_id` retornam versões anteriores inalteradas
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick

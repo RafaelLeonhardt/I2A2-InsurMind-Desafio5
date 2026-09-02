@@ -1,12 +1,18 @@
-"""Testes do `RepositorioRegras`: leitura da regra ativa por tipo de evento."""
+"""Testes do `RepositorioRegras`: leitura e escrita versionada de `regras` (2.3/2.4)."""
 
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID, uuid4
+
+import pytest
 
 from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
 from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigracoes
-from central_preventiva.adaptadores.persistencia.repositorio_regras import RepositorioRegras
+from central_preventiva.adaptadores.persistencia.repositorio_regras import (
+    ConflitoVersao,
+    RepositorioRegras,
+)
 from central_preventiva.dominio.evento_meteorologico import TipoEventoMeteorologico
+from central_preventiva.dominio.validador_regra import DadosRegra
 
 
 def preparar_banco(tmp_path: Path) -> Path:
@@ -75,3 +81,81 @@ def test_obter_ativa_ignora_regra_substituida(tmp_path: Path) -> None:
     assert regra is not None
     assert str(regra.id) == id_ativa
     assert regra.versao == 2
+
+
+DADOS_NOVA_VERSAO_CHUVA = DadosRegra(
+    evento_tipo="chuva_intensa",
+    limiar_meteorologico=60.0,
+    area_aplicavel="9990001",
+    apolice_tipo="residencial",
+    cobertura_exigida="alagamento",
+    antecedencia_horas=48,
+    canal="email",
+)
+
+
+def test_criar_nova_versao_com_versao_esperada_correta_substitui_a_anterior(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    id_anterior = inserir_regra(caminho, "chuva_intensa", 50.0, "9990001", "residencial")
+
+    nova = RepositorioRegras(caminho).criar_nova_versao(
+        UUID(id_anterior), versao_esperada=1, dados=DADOS_NOVA_VERSAO_CHUVA
+    )
+
+    assert nova.versao == 2
+    assert nova.estado == "ativa"
+    assert nova.limiar_meteorologico == 60.0
+    assert nova.canal == "email"
+
+    anterior = RepositorioRegras(caminho).obter_por_id(UUID(id_anterior))
+    assert anterior is not None
+    assert anterior.estado == "substituida"
+
+    ativa = RepositorioRegras(caminho).obter_ativa(TipoEventoMeteorologico.CHUVA_INTENSA)
+    assert ativa is not None
+    assert ativa.id == nova.id
+    assert ativa.versao == 2
+
+
+def test_criar_nova_versao_com_versao_esperada_incorreta_levanta_conflito_sem_mutar(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    id_anterior = inserir_regra(caminho, "chuva_intensa", 50.0, "9990001", "residencial")
+
+    with pytest.raises(ConflitoVersao):
+        RepositorioRegras(caminho).criar_nova_versao(
+            UUID(id_anterior), versao_esperada=99, dados=DADOS_NOVA_VERSAO_CHUVA
+        )
+
+    anterior = RepositorioRegras(caminho).obter_por_id(UUID(id_anterior))
+    assert anterior is not None
+    assert anterior.estado == "ativa"
+    assert anterior.versao == 1
+    assert len(RepositorioRegras(caminho).listar()) == 1
+
+
+def test_listar_retorna_versoes_anteriores_inalteradas(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    id_substituida = inserir_regra(
+        caminho, "granizo", 10.0, "9990002", "automovel", versao=1, estado="substituida"
+    )
+    id_ativa = inserir_regra(
+        caminho, "granizo", 20.0, "9990002", "automovel", versao=2, estado="ativa"
+    )
+
+    regras = RepositorioRegras(caminho).listar(TipoEventoMeteorologico.GRANIZO)
+
+    ids = {str(regra.id) for regra in regras}
+    assert ids == {id_substituida, id_ativa}
+    substituida = next(r for r in regras if str(r.id) == id_substituida)
+    assert substituida.estado == "substituida"
+    assert substituida.limiar_meteorologico == 10.0
+
+
+def test_obter_por_id_de_regra_inexistente_devolve_none(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+
+    assert RepositorioRegras(caminho).obter_por_id(uuid4()) is None
