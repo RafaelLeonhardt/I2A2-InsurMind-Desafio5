@@ -124,11 +124,11 @@ T5
 
 **Done when**:
 
-- [ ] Configuração inválida bloqueia `testar`/`ativar` com motivo específico, sem criar versão
-- [ ] `testar` retorna, por cenário sintético, operando/valor observado/resultado/justificativa
-- [ ] `ativar` após teste válido cria nova versão ativa
-- [ ] Repetir `ativar` com a mesma `Idempotency-Key` e conteúdo idêntico devolve a resposta registrada; conteúdo diferente retorna `409`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Configuração inválida bloqueia `testar`/`ativar` com motivo específico, sem criar versão
+- [x] `testar` retorna, por cenário sintético, operando/valor observado/resultado/justificativa
+- [x] `ativar` após teste válido cria nova versão ativa
+- [x] Repetir `ativar` com a mesma `Idempotency-Key` e conteúdo idêntico devolve a resposta registrada; conteúdo diferente retorna `409`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick

@@ -167,6 +167,32 @@ class RepositorioEventosMeteorologicos:
             for linha in linhas
         )
 
+    def listar_sinteticos_por_tipo(
+        self, tipo: TipoEventoMeteorologico
+    ) -> tuple[EventoMeteorologico, ...]:
+        """Lista os eventos sintéticos do tipo informado (cenários de teste de regra, 2.4)."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute(
+                "SELECT id, tipo, area, periodo_inicio, periodo_fim, intensidade, "
+                "proveniencia, instante_observado FROM eventos_meteorologicos "
+                "WHERE tipo = ? AND proveniencia = 'sintetico' ORDER BY instante_observado",
+                [tipo.value],
+            ).fetchall()
+        return tuple(
+            EventoMeteorologico(
+                id=UUID(str(linha[0])),
+                tipo=TipoEventoMeteorologico(str(linha[1])),
+                area=str(linha[2]),
+                periodo_inicio=linha[3],
+                periodo_fim=linha[4],
+                intensidade=float(linha[5]),
+                proveniencia=ProvenienciaEvento(str(linha[6])),
+                instante_observado=linha[7],
+            )
+            for linha in linhas
+        )
+
 
 class RepositorioSincronizacoes:
     """Persiste e consulta o histórico de tentativas de sincronização meteorológica."""
