@@ -2,10 +2,24 @@
 
 **Date**: 2026-09-01
 **Spec**: `.specs/features/2-1-coletar-e-normalizar-dados-do-inmet/spec.md`
-**Diff range**: `43e3e3b..44fd7af` (14 commits, T1–T14)
-**Verifier**: independent sub-agent (author ≠ verifier), read-only sobre a árvore real
+**Diff range**: `43e3e3b..552b378` (15 commits — T1–T14 + o commit de correção `552b378`)
+**Verifier**: sub-agente independente (author ≠ verifier), read-only sobre a árvore real
 
-**Verdict**: ❌ **FAIL** — 1 mutante sobrevivente + 4 lacunas de cobertura ancorada em AC.
+**Verdict**: ✅ **PASS** — as 4 lacunas bloqueantes da Rodada 1 estão fechadas, com evidência empírica (mutantes mortos), e nenhum problema novo foi introduzido.
+
+---
+
+## Rodada 2 — re-verificação após Fix 1–4 (`552b378`)
+
+Esta é a **segunda rodada** de verificação. A Rodada 1 (`43e3e3b..44fd7af`) devolveu ❌ FAIL com 1 mutante sobrevivente (M2) e 4 lacunas de cobertura ancorada em AC. O orquestrador implementou Fix 1–4 e os entregou como `552b378 fix(meteorologia): fechar lacunas do verificador da historia 2.1`. Este Verifier re-derivou tudo do zero: releu spec, diff e testes, reexecutou os dois gates completos, re-injetou a **mesma** mutação M2 e uma mutação **nova** na área da correção de menor confiança, e mediu a flakiness do teste de polling.
+
+| Fix | Lacuna da Rodada 1 | Status Rodada 2 | Evidência |
+| --- | --- | --- | --- |
+| Fix 1 | Mutante M2 sobrevivente: `INTERVALO_SEGUNDOS_COLETA` 900→60 indetectável | ✅ **Fechada** | Sensor M2 re-injetado ⇒ **2 testes falham** (ver Sensor) |
+| Fix 2 | INMET-04 nunca exercitado com o agendador ativo (`TestClient` sem `lifespan`) | ✅ **Fechada** | `testes/test_meteorologia_api.py:148-180`, `with TestClient(...)`; 5/5 execuções verdes |
+| Fix 3 | Cláusula p95 ≤ 1 s de INMET-15 sem asserção | ✅ **Fechada** | `testes/test_meteorologia_api.py:282-307`, `perf_counter` + `assert p95 < 1.0` |
+| Fix 4 | INMET-07 campos temporais + INMET-06 estado não-`concluido` (UI imprimia o enum cru) | ✅ **Fechada** | `testes/test_normalizador_inmet.py:48-50`; `SuperficieFonteMeteorologica.tsx:27-32` + `.test.tsx:147,150,153-164`; sensor M3 mata a mutação do rótulo |
+| Fix 5 | Prova ao vivo do INMET (T4) não executada — sem egresso de rede | ⏭️ Dívida aceita | Já declarada em `adaptadores/meteorologia/README.md:17-34`; **não re-flagada** (Minor, não bloqueante, decidido na Rodada 1) |
 
 ---
 
@@ -14,18 +28,18 @@
 | Task | Status | Notes |
 | --- | --- | --- |
 | T1 `EventoMeteorologico` | ✅ Done | — |
-| T2 Migração `0002_meteorologia.sql` | ✅ Done | `testes/test_migracoes.py:74-104` cobre aplicação e idempotência |
-| T3 Portas de aplicação | ✅ Done | 3 `# SPEC_DEVIATION` documentados (`portas_meteorologia.py:86,95,112`), todos justificados e usados |
-| T4 Prova limitada + amostras congeladas | ⚠️ Partial | A prova ao vivo contra `apitempo.inmet.gov.br` **não foi executada** (sem egresso de rede); as fixtures são "reconstrução de melhor esforço", não captura real — declarado abertamente em `adaptadores/meteorologia/README.md:17-34` |
-| T5 `NormalizadorInmet` | ✅ Done | — |
+| T2 Migração `0002_meteorologia.sql` | ✅ Done | — |
+| T3 Portas de aplicação | ✅ Done | 3 `# SPEC_DEVIATION` (`portas_meteorologia.py:86,95,112`) — justificados e usados; ver nota L-013 abaixo |
+| T4 Prova limitada + amostras congeladas | ⚠️ Partial (dívida aceita) | Prova ao vivo não executada; fixtures são reconstrução de melhor esforço, declarada abertamente |
+| T5 `NormalizadorInmet` | ✅ Done | Fix 4 acrescentou asserção de valor nos campos temporais |
 | T6 `ClienteInmet` + dublê | ✅ Done | — |
 | T7 Repositórios DuckDB | ✅ Done | — |
 | T8 `ServicoColetaMeteorologica` | ✅ Done | — |
 | T9 Roteador HTTP | ✅ Done | — |
-| T10 `AgendadorMeteorologico` | ⚠️ Partial | Intervalo de produção (`INTERVALO_SEGUNDOS_COLETA = 900`) não é fixado por nenhuma asserção — ver Sensor M2 |
-| T11 Sincronizar OpenAPI | ✅ Done | `test_saude.py:33-38` fixa os 3 caminhos novos |
+| T10 `AgendadorMeteorologico` | ✅ **Done** (era ⚠️ Partial) | Fix 1 fixa o intervalo real de produção: `test_agendador_meteorologico.py:237` + `test_meteorologia_api.py:265` |
+| T11 Sincronizar OpenAPI | ✅ Done | — |
 | T12 Cliente HTTP do frontend | ✅ Done | — |
-| T13 Superfície "Fonte meteorológica" | ✅ Done | — |
+| T13 Superfície "Fonte meteorológica" | ✅ **Done** (corrigido desvio real) | A UI passou a exibir os rótulos do spec via `ROTULOS_ESTADO_SINCRONIZACAO` |
 | T14 Restauração ao estado inicial completo | ✅ Done | — |
 
 ---
@@ -36,73 +50,71 @@
 
 | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- |
-| INMET-01 — registrar campos, unidades, normalizações e mapeamento do endpoint escolhido | Documento de contrato campo-a-campo | `src/backend/central_preventiva/adaptadores/meteorologia/README.md:36-47` — tabela `Campo INMET → Mapeamento para EventoMeteorologico` (`CD_ESTACAO`, `CHUVA`/mm, `DT_MEDICAO`+`HR_MEDICAO`) | ⚠️ PASS com desvio documentado — o registro existe, mas a *prova limitada ao vivo* exigida pelo Goal/T4 não foi executada (`README.md:17-34`); nomes de campo não confirmados por chamada HTTP real |
-| INMET-02 — amostras congeladas, parsing determinístico, sem rede | Testes de parsing sobre amostras em disco, zero rede | `testes/test_normalizador_inmet.py:17,28-31` — `carregar_fixture` lê `testes/fixtures/inmet/*.json`; nenhum `httpx` importado no módulo. Bloqueio explícito de rede em `testes/test_meteorologia_api.py:22-31` (`raise AssertionError("chamada de rede real bloqueada em teste")`) | ✅ PASS |
-| INMET-03 — coleta na inicialização e no intervalo configurado | 1 coleta no boot, sem esperar o intervalo; sono de exatamente `INTERVALO_SEGUNDOS` | `testes/test_agendador_meteorologico.py:167` — `assert len(coletor.chamadas) == 1`; `:188` — `assert relogio.chamadas == [900]`; `:197-198` — `assert len(coletor.chamadas) == 2` / `assert relogio.chamadas == [900, 900]` | ⚠️ PASS parcial — o `900` asserido é o valor **injetado pelo teste** (`montar_agendador(..., intervalo_segundos=900)`), não a constante de produção; mutante M2 sobreviveu |
-| INMET-04 — atualização manual aceita independentemente do agendamento em curso | `202` para o POST manual mesmo com o agendador rodando | `testes/test_meteorologia_api.py:117` — `assert resposta.status_code == 202` | ❌ GAP — o `TestClient` é criado **sem** context manager (`test_meteorologia_api.py:71`), logo o `lifespan` (e o agendador) nunca roda nesses testes; nenhuma asserção cobre "independentemente do agendamento automático em curso" |
-| INMET-05 — persistir o trabalho antes de responder `202 Accepted` | Linha de sincronização persistida antes da resposta; HTTP `202` | `testes/test_coleta_meteorologica.py:177` — `assert sincronizacoes.chamadas_criar == 1`; `testes/test_meteorologia_api.py:117-120` — `assert resposta.status_code == 202` / `corpo["estado"] == "concluido"` / `corpo["registros_validos"] == 1`; `testes/test_repositorio_meteorologia.py:103-106` — `criar` persiste `estado == COLETANDO`, `registros_validos == 0`, `finalizado_em is None` | ✅ PASS |
-| INMET-06 — interface exibe `Coletando`/`Normalizando`/`Concluído`/`Falha` refletindo o estado persistido | Um dos quatro estados, refletindo o estado real | `src/frontend/.../SuperficieFonteMeteorologica.test.tsx:128` — `expect(screen.getByText(/Manual — concluido — 2026-08-30T12:00:00\+00:00/))` | ⚠️ Spec-precision gap — só `concluido` é asserido; a UI imprime o valor cru do enum (`concluido`), sem o rótulo acentuado do spec (`SuperficieFonteMeteorologica.tsx:150,164` — há `ROTULOS_*` para tipo e origem, nenhum para estado); `normalizando` nunca é persistido por nenhum caminho de código (coleta é síncrona) |
+| INMET-01 — registrar campos, unidades, normalizações e mapeamento | Documento de contrato campo-a-campo | `src/backend/central_preventiva/adaptadores/meteorologia/README.md:36-47` — tabela `Campo INMET → EventoMeteorologico` | ⚠️ PASS com desvio documentado (Fix 5, dívida aceita) |
+| INMET-02 — amostras congeladas, parsing determinístico, sem rede | Parsing sobre amostras em disco, zero rede | `testes/test_normalizador_inmet.py:28-31` (`carregar_fixture`); bloqueio de rede em `testes/test_meteorologia_api.py:22-31` | ✅ PASS |
+| INMET-03 — coleta na inicialização e no **intervalo configurado** | 1 coleta no boot sem esperar; intervalo de produção = 900 s (15 min) | `testes/test_agendador_meteorologico.py:167` — `assert len(coletor.chamadas) == 1`; **`:237` — `assert relogio.chamadas == [900]` com `AgendadorMeteorologico` instanciado SEM `intervalo_segundos`** (helper propaga `None` ⇒ default de produção, `agendador_meteorologico.py:44`); `test_meteorologia_api.py:265` — `assert proxima_consulta == iniciado_em + timedelta(seconds=900)` | ✅ **PASS** (era ⚠️ parcial) — o `900` esperado é **hardcoded**, não importado de `INTERVALO_SEGUNDOS_COLETA`, então a asserção não acompanha a constante |
+| INMET-04 — atualização manual aceita **independentemente do agendamento em curso** | `202` para o POST manual com o agendador rodando; ambas as tentativas persistidas | `testes/test_meteorologia_api.py:161` — `with TestClient(criar_aplicacao(...)) as cliente:` (lifespan real ⇒ `AgendadorMeteorologico` ativo); `:167` — `assert resposta_manual.status_code == 202`; `:178` — `assert {"automatica", "manual"} <= origens`; `:180` — `assert len(ids_requisicao) == len(resultados)` | ✅ **PASS** (era ❌ GAP) |
+| INMET-05 — persistir o trabalho antes de responder `202 Accepted` | Linha persistida antes da resposta; HTTP `202` | `testes/test_coleta_meteorologica.py:177`; `testes/test_meteorologia_api.py:117-120`; `testes/test_repositorio_meteorologia.py:103-106` | ✅ PASS |
+| INMET-06 — interface exibe `Coletando`/`Normalizando`/`Concluído`/`Falha` refletindo o estado persistido | Rótulos exatos do spec, mapeados do estado real | `SuperficieFonteMeteorologica.tsx:27-32` — `ROTULOS_ESTADO_SINCRONIZACAO` (`coletando→Coletando`, `normalizando→Normalizando`, `concluido→Concluído`, `falha→Falha`), aplicado em `:157` e `:171`; `SuperficieFonteMeteorologica.test.tsx:147,150` — `getByText(/Manual — Concluído — .../)`; `:160,162` — `getByText(/Automática — Falha — .../)` e `/… — motivo: campo_ausente/` | ✅ **PASS** (era ⚠️ spec-precision) — o desvio real (UI imprimia o enum cru) foi corrigido, não apenas coberto por teste |
 
 ### P1: Normalização com proveniência e rejeição de dados inválidos
 
 | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- |
-| INMET-07 — resposta válida vira `EventoMeteorologico` com tipo, área, período, intensidade, medidas normalizadas, instante observado | Todos os campos do evento normalizados | `testes/test_normalizador_inmet.py:43-46` — `assert evento.tipo == TipoEventoMeteorologico.CHUVA_INTENSA`, `evento.area == "9990001"`, `evento.intensidade == 55.4` | ⚠️ PASS parcial — `periodo_inicio`/`periodo_fim`/`instante_observado` **não têm asserção de valor** em nenhum teste; a derivação `DT_MEDICAO`+`HR_MEDICAO` → `instante_observado` e a janela de 1 h (`normalizador_inmet.py:90-106`) ficam sem cobertura de valor |
-| INMET-08 — proveniência `real_inmet`, sem expor o formato externo ao domínio | `proveniencia == real_inmet` | `testes/test_normalizador_inmet.py:44` — `assert evento.proveniencia == ProvenienciaEvento.REAL_INMET`; `testes/test_meteorologia_api.py:187` — `assert eventos[0]["proveniencia"] == "real_inmet"` | ✅ PASS |
-| INMET-09 — campo ausente / medida inválida / geografia não reconhecida ⇒ nenhum evento | `evento is None` nos três casos | `testes/test_normalizador_inmet.py:68` (campo ausente), `:78` (fora de faixa), `:88` (não numérico), `:99` (geografia), `:108` (corpo malformado) — todos `assert resultado.evento is None` | ✅ PASS |
-| INMET-10 — rejeição termina com código e motivo inspecionáveis | Motivo tipado consultável, sem avançar | `testes/test_normalizador_inmet.py:69` — `assert motivo_rejeicao == MotivoRejeicao.CAMPO_AUSENTE`; `:79`/`:89` — `MEDIDA_INVALIDA`; `:100` — `GEOGRAFIA_NAO_RECONHECIDA`; `testes/test_coleta_meteorologica.py:209` — `assert resultado.motivo_falha == "campo_ausente"`; `testes/test_repositorio_meteorologia.py:153` — `assert atualizada.motivo_falha == "campo_ausente"` (persistido) | ✅ PASS |
+| INMET-07 — resposta válida vira `EventoMeteorologico` com tipo, área, período, intensidade, medidas, instante observado | Todos os campos, inclusive os temporais | `testes/test_normalizador_inmet.py:43-46` — `tipo == CHUVA_INTENSA`, `area == "9990001"`, `intensidade == 55.4`; **`:48` — `instante_observado == datetime(2026,8,30,18,0)`; `:49` — `periodo_inicio == datetime(2026,8,30,17,0)`; `:50` — `periodo_fim == datetime(2026,8,30,18,0)`** (derivação `DT_MEDICAO`+`HR_MEDICAO` e janela de 1 h agora ancoradas por valor) | ✅ **PASS** (era ⚠️ parcial) |
+| INMET-08 — proveniência `real_inmet` | `proveniencia == real_inmet` | `testes/test_normalizador_inmet.py:44`; `testes/test_meteorologia_api.py:225` | ✅ PASS |
+| INMET-09 — campo ausente / medida inválida / geografia não reconhecida ⇒ nenhum evento | `evento is None` nos três casos | `testes/test_normalizador_inmet.py:71,81,91,102,111` — `assert resultado.evento is None` | ✅ PASS |
+| INMET-10 — rejeição com código e motivo inspecionáveis | Motivo tipado consultável | `testes/test_normalizador_inmet.py:72,82,92,103`; `testes/test_coleta_meteorologica.py:209`; `testes/test_repositorio_meteorologia.py:153` | ✅ PASS |
 
 ### P2: Observabilidade, histórico e idempotência da sincronização
 
 | Criterion | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- |
-| INMET-11 — persistir início, término, resultado, registros válidos e `requisicao_id` | Todos os cinco campos persistidos | `testes/test_repositorio_meteorologia.py:103-106` — `sincronizacao.requisicao_id == requisicao_id`, `estado == COLETANDO`, `registros_validos == 0`, `finalizado_em is None`; `:129-131` — `estado == CONCLUIDO`, `registros_validos == 1`, `finalizado_em is not None`; `:153` — `motivo_falha == "campo_ausente"` | ✅ PASS |
-| INMET-12 — não logar cabeçalhos, credenciais nem corpo externo integral | Nenhum log com esses conteúdos | `testes/test_coleta_meteorologica.py:265-266` — `assert "CHUVA" not in saida.out` / `not in saida.err` | ⚠️ PASS fraco — asserção sobre um único token (`CHUVA`) e só no caso de uso; nenhum teste equivalente para `ClienteInmet` (`cliente_inmet.py`) nem para o roteador, que são os pontos onde cabeçalhos/credenciais existiriam |
-| INMET-13 — UI exibe tipo, local, período, intensidade, origem e horário | Os seis campos por evento | `SuperficieFonteMeteorologica.test.tsx:90-95` — `getByText('Chuva intensa')`, `getByText('9990001')`, `getByText(/2026-08-30T17:00:00\+00:00.*2026-08-30T18:00:00\+00:00/)`, `getByText('55.4')`, `getByText('INMET (real)')`, `getAllByText('2026-08-30T18:00:00+00:00')` | ✅ PASS |
-| INMET-14 — alternativa em lista operável por teclado e leitor de tela | Seleção via teclado, estado exposto à AT | `SuperficieFonteMeteorologica.test.tsx:107-118` — `expect(botaoSelecionar).toHaveFocus()`, `keyboard('{Enter}')`, `toHaveAttribute('aria-pressed','true')`, `getByRole('row', …)).toHaveAttribute('aria-selected','true')` | ✅ PASS |
-| INMET-15 — última tentativa, última válida, próxima consulta e resultados anteriores, só com dados persistidos, ≤ 1 s p95 | Os 4 marcos + latência p95 ≤ 1 s | `testes/test_meteorologia_api.py:214-223` — `set(corpo) == {ultima_tentativa, ultima_valida, proxima_consulta, resultados_anteriores}`, `corpo["ultima_tentativa"]["estado"] == "concluido"`, `corpo["ultima_valida"]["estado"] == "concluido"`, `len(corpo["resultados_anteriores"]) == 1`; `:233-236` — marcos nulos sem coleta | ❌ GAP parcial — a cláusula **`em até 1 segundo no percentil 95`** não tem nenhuma asserção em todo o repositório (nenhum `perf_counter`/`elapsed`/`p95` nos testes); `proxima_consulta` só é asserido como `is not None` (`:222`), nunca como `iniciado_em + 900 s` |
-| INMET-16 — mesma `Idempotency-Key` não inicia outra coleta e devolve a resposta registrada | Zero segunda coleta; corpo idêntico | `testes/test_meteorologia_api.py:141-142` — `assert primeira.json() == segunda.json()` e `assert len(chamadas) == 1` (dublê de transporte instrumentado); `testes/test_coleta_meteorologica.py:233-236` — `len(coletor.chamadas) == 1`, `sincronizacoes.chamadas_criar == 1`, `segunda.sincronizacao.id == primeira.sincronizacao.id`, `segunda.aceito_em == primeira.aceito_em` | ✅ PASS (evidência forte) |
-| INMET-17 — restauração repõe o estado inicial completo, wipe por catálogo com lista de exceções | Tabelas fora da lista vazias; exceções intactas; reseed determinístico | `testes/test_semeador.py:252` — `assert depois[0] == 0` (`sincronizacoes_meteorologicas`); `:274-275` — `assert area is not None` e `versao_depois == versao_antes` (`areas_monitoradas_inmet` + `schema_migracoes`); `:279` — `assert frozenset({"schema_migracoes","areas_monitoradas_inmet"}) == TABELAS_EXCECAO_RESTAURACAO`; `:147` — `contagens(caminho) == contagens_originais` (reseed) | ✅ PASS |
+| INMET-11 — persistir início, término, resultado, registros válidos e correlação | Os cinco campos | `testes/test_repositorio_meteorologia.py:103-106,129-131,153` | ✅ PASS |
+| INMET-12 — não logar cabeçalhos, credenciais nem corpo externo | Nenhum log com esses conteúdos | `testes/test_coleta_meteorologica.py:265-266` — `assert "CHUVA" not in saida.out / saida.err` | ⚠️ PASS com evidência fraca (carry-over da Rodada 1, Minor, não bloqueante) — asserção sobre um único token e só no caso de uso; sem teste equivalente para `ClienteInmet` |
+| INMET-13 — UI exibe tipo, local, período, intensidade, origem e horário | Os seis campos | `SuperficieFonteMeteorologica.test.tsx:102-115` | ✅ PASS |
+| INMET-14 — alternativa em lista operável por teclado e leitor de tela | Seleção via teclado, estado exposto à AT | `SuperficieFonteMeteorologica.test.tsx:117-138` — `toHaveFocus()`, `keyboard('{Enter}')`, `aria-pressed`, `aria-selected` | ✅ PASS |
+| INMET-15 — 4 marcos, só dados persistidos, **≤ 1 s no p95** | Marcos corretos + orçamento de latência p95 | `testes/test_meteorologia_api.py:252-266` — conjunto exato de chaves, `estado == "concluido"` nos dois marcos, `proxima_consulta == iniciado_em + 900 s`, `len(resultados_anteriores) == 1`; **`:282-307` — `p95_segundos()` com `time.perf_counter()` sobre 20 repetições, `assert p95_segundos(CAMINHO_EVENTOS) < 1.0` e `assert p95_segundos(CAMINHO_SINCRONIZACOES) < 1.0`**; `:274-279` — marcos nulos sem coleta | ✅ **PASS** (era ❌ GAP parcial) |
+| INMET-16 — mesma `Idempotency-Key` não inicia outra coleta | Zero segunda coleta; corpo idêntico | `testes/test_meteorologia_api.py:144-145` — `primeira.json() == segunda.json()`, `len(chamadas) == 1`; `testes/test_coleta_meteorologica.py:233-236` | ✅ PASS (evidência forte) |
+| INMET-17 — restauração repõe o estado inicial completo (AD-014) | Tabelas fora da lista vazias; exceções intactas | `testes/test_semeador.py:252,274-275,279,147` | ✅ PASS |
 
-**Status**: ❌ 2 GAPs (INMET-04, INMET-15/p95) + 4 PASS-parcial/spec-precision (INMET-01, INMET-03, INMET-06, INMET-07, INMET-12); 10 ACs plenamente ancorados.
-
----
-
-## Payload/Conjunction Rule (rotas + repositórios)
-
-| Camada | Verificação | Resultado |
-| --- | --- | --- |
-| `POST /api/v1/meteorologia/coletas` | Além do `202`, asserta `corpo["estado"] == "concluido"` e `corpo["registros_validos"] == 1` (`test_meteorologia_api.py:119-120`) | ✅ valores, não só status |
-| Erros do roteador | `422`/`404` asseridos junto com `content-type` `application/problem+json` e `codigo` estável (`:99-101`, `:154-156`) | ✅ |
-| `GET /eventos` | Conjunto exato de campos (`:185`) + valores `tipo == "chuva_intensa"`, `proveniencia == "real_inmet"` (`:186-187`) | ✅ |
-| `GET /sincronizacoes` | Conjunto exato de chaves + `estado == "concluido"` nos dois marcos (`:214-221`) | ⚠️ `proxima_consulta` só `is not None` (`:222`) — valor não verificado |
-| Idempotência | Igualdade de corpo **e** contagem de chamadas ao transporte (`:141-142`) | ✅ não é "a chamada aconteceu" |
-| Repositórios | Round-trip de igualdade de entidade (`test_repositorio_meteorologia.py:80`), campos de estado/motivo/ordenação (`:129-131`, `:153`, `:183`) | ✅ estado real, não mocks |
-| Lifespan/agendador | `test_agendador_meteorologico.py:242-259` — o único assert é `resposta.status_code == 200` de `/api/v1/saude` | ⚠️ não asserta que a task foi iniciada nem cancelada; o nome do teste promete mais do que a asserção entrega |
+**Status**: ✅ 15/17 ACs plenamente ancorados no valor definido pelo spec; 2 residuais **não bloqueantes** (INMET-01 dívida da prova ao vivo — Fix 5 aceito; INMET-12 evidência fraca — carry-over da Rodada 1, mesma classificação de então).
 
 ---
 
 ## Discrimination Sensor
 
 Depth: lightweight (2 mutações), uma worktree descartável por mutação, árvore real nunca tocada.
-Baseline `git status --porcelain` antes do sensor: vazio. Após ambas as mutações: vazio; `git worktree list` mostra só a árvore principal em `44fd7af`.
+Baseline `git status --porcelain` antes do sensor: **vazio**. Após cada mutação e após ambas: **vazio**; `git worktree list` mostra só a árvore principal em `552b378`. `git stash` não foi usado.
 
-| # | File:line | Mutation | Test executado | Killed? |
+| # | File:line | Mutation | Suíte executada | Killed? |
 | --- | --- | --- | --- | --- |
-| M1 | `adaptadores/meteorologia/normalizador_inmet.py:17` | Limite de plausibilidade `INTENSIDADE_MAXIMA_PLAUSIVEL = 500.0` → `99999.0` (fronteira de faixa física) | `testes/test_normalizador_inmet.py` | ✅ **Killed** — `test_medida_fora_de_faixa_plausivel_e_rejeitada_sem_criar_evento` falhou (`assert resultado.evento is None` recebeu um `EventoMeteorologico`) |
-| M2 | `aplicacao/portas_meteorologia.py:64` | Intervalo de coleta automática `INTERVALO_SEGUNDOS_COLETA = 900` → `60` (15 min → 1 min em produção) | `testes/test_agendador_meteorologico.py` + `testes/test_meteorologia_api.py`, depois a **suíte backend inteira** | ❌ **SURVIVED** — 14/14 e depois 235/235 testes passaram com o intervalo de produção alterado |
+| M2 (re-injetada) | `aplicacao/portas_meteorologia.py:64` | `INTERVALO_SEGUNDOS_COLETA = 900` → `60` (15 min → 1 min em produção) — **exatamente a mutação que sobreviveu na Rodada 1** | `uv run --directory src/backend pytest` (suíte completa, 238 testes) | ✅ **Killed** — 2 falhas: `test_agendador_meteorologico.py::test_intervalo_padrao_de_producao_e_900_segundos` e `test_meteorologia_api.py::test_get_sincronizacoes_retorna_200_com_os_campos_esperados_apos_coleta` (`assert proxima_consulta == iniciado_em + timedelta(seconds=900)`) |
+| M3 (nova) | `SuperficieFonteMeteorologica.tsx:31` | `ROTULOS_ESTADO_SINCRONIZACAO.falha: 'Falha'` → `'Erro'` (rótulo de estado exigido pelo spec, área da Fix 4 — a de menor confiança por ser um mapa de strings) | `npm test --prefix src/frontend -- --run` (113 testes) | ✅ **Killed** — `SuperficieFonteMeteorologica.test.tsx:160` falhou (`Unable to find an element with the text: /Automática — Falha — .../`) |
 
-**Causa raiz do M2**: `test_agendador_meteorologico.py:139,180` injeta `intervalo_segundos=900` explicitamente em vez de exercitar o valor padrão, e o único outro consumidor da constante — `proxima_consulta` em `adaptadores/http/meteorologia.py:312` — só é verificado como `is not None` (`test_meteorologia_api.py:222`). Nenhuma asserção liga o comportamento observável ao `900` de produção.
+**Result**: **2/2 killed** — ✅ PASS. A Rodada 1 fechou em 1/2; o mutante que sobreviveu agora é morto por dois testes independentes (unitário do agendador + rota HTTP), em camadas diferentes.
 
-**Result**: 1/2 killed — ❌ FAIL.
+---
+
+## Flakiness Check (Fix 2 — maior risco de instabilidade)
+
+`test_post_manual_e_aceito_independentemente_do_agendamento_automatico_em_curso` usa um laço de polling (40 iterações × `time.sleep(0.05)` = **2,0 s de orçamento**) contra uma task de segundo plano real dirigida pelo `lifespan`.
+
+| Execução | 1 | 2 | 3 | 4 | 5 |
+| --- | --- | --- | --- | --- | --- |
+| Resultado | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+**5/5 verdes.** Duração medida do teste: **0,17 s** contra 2,0 s de orçamento — folga de ~12×. O laço tem `break` na condição de sucesso, então o custo real é uma iteração ou duas.
+
+Risco de flakiness da Fix 3 (assert de latência) também medido: 40 requisições em **0,39 s** totais (~10 ms por requisição) contra um limiar de 1,0 s — folga de ~100×. Ambos os testes têm margem larga o bastante para não serem sensíveis a jitter de CI.
 
 ---
 
 ## Edge Cases (spec.md)
 
-- [x] Resposta 200 com medida fora de faixa fisicamente plausível ⇒ inválida, sem evento — `testes/test_normalizador_inmet.py:72-79` (e confirmado pelo sensor M1)
-- [ ] Duas coletas (automática e manual) aceitas quase simultaneamente ⇒ ambas persistidas como tentativas correlacionadas distintas — **NÃO coberto**: nenhum teste do escopo cria duas coletas concorrentes (`grep` por `gather(`/`simultan`/`concorren` nos testes desta feature: zero ocorrências)
-- [x] Amostra congelada atualizada ⇒ testes determinísticos continuam sem rede — as fixtures são carregadas de disco por `carregar_fixture` (`test_normalizador_inmet.py:28-31`), sem nenhuma dependência de rede
+- [x] Resposta 200 com medida fora de faixa fisicamente plausível ⇒ inválida, sem evento — `testes/test_normalizador_inmet.py:75-82` (sensor M1 da Rodada 1 já provou discriminação)
+- [x] **Duas coletas (automática e manual) quase simultâneas ⇒ ambas persistidas como tentativas correlacionadas distintas** — **agora coberto** por `testes/test_meteorologia_api.py:178,180`: com o agendador automático rodando via `lifespan`, o POST manual é aceito e `GET /sincronizacoes` devolve as duas origens com `requisicao_id` distintos (era ❌ na Rodada 1)
+- [x] Amostra congelada atualizada ⇒ testes determinísticos continuam sem rede — fixtures lidas de disco por `carregar_fixture`
 
 ---
 
@@ -110,103 +122,97 @@ Baseline `git status --porcelain` antes do sensor: vazio. Após ambas as mutaç�
 
 | Principle | Status |
 | --- | --- |
-| Minimum code (nada além do pedido) | ✅ |
-| Sem abstrações para código de uso único | ✅ |
+| Minimum code (nada além do pedido) | ✅ — a Fix 4 adicionou 6 linhas de produção (`ROTULOS_ESTADO_SINCRONIZACAO`), no mesmo padrão dos mapas `ROTULOS_TIPO`/`ROTULOS_ORIGEM` já existentes |
+| Sem abstrações para código de uso único | ✅ — `p95_segundos` é uma função local ao teste, não um utilitário exportado |
 | Sem "flexibilidade" desnecessária | ✅ |
-| Só arquivos exigidos pelas tasks tocados | ✅ |
-| Não "melhorou" código não relacionado | ✅ (`test_inicializador.py`/`test_migracoes.py`/`test_saude.py` mudaram só pelo efeito real da migração `0002` e dos endpoints novos) |
-| Segue os padrões existentes (fábrica de roteador, `Protocol` como porta, `problem+json`, fixture `autouse` de bloqueio de rede) | ✅ |
-| Aprovaria em revisão sênior? | ⚠️ — sim, com as ressalvas de M2 e INMET-15 |
-| Testes mapeiam ACs e não são rasos | ⚠️ — ver INMET-06/07/12 |
-| Spec-anchored outcome check | ❌ — INMET-04 e a cláusula p95 de INMET-15 sem evidência |
-| Coverage Expectation por camada (domínio 1:1; rotas feliz+borda+erro) | ✅ — rotas cobrem feliz, vazio, erro 422/404, idempotência e CORS |
-| Todo teste do escopo mapeia a um AC/edge case/Done-when | ✅ — nenhum teste órfão |
+| Só arquivos exigidos pelas fixes tocados | ✅ — 3 testes backend, 2 arquivos frontend, mais os artefatos `.specs/` |
+| Não "melhorou" código não relacionado | ✅ |
+| Segue os padrões existentes | ✅ |
+| Aprovaria em revisão sênior? | ✅ |
+| Testes mapeiam ACs e não são rasos | ✅ |
+| Spec-anchored outcome check (valor asserido = valor do spec) | ✅ — as 4 lacunas fechadas; `900` e `Concluído`/`Falha` são hardcoded, não derivados da própria produção |
+| Coverage Expectation por camada | ✅ |
+| Todo teste do escopo mapeia a um AC/edge case/Done-when | ✅ — os 3 testes novos declaram o AC no docstring (INMET-03/04/15) |
 | Diretrizes documentadas seguidas | ✅ — `AGENTS.md` (PT-BR, dados sintéticos, sem rede real); `README.md` (comandos de verificação) |
 
-Observação de dívida: 3 marcadores `# SPEC_DEVIATION` em `aplicacao/portas_meteorologia.py:86,95,112` (métodos `buscar_por_id`, `listar_ativas`, `listar`) — todos justificados, usados e necessários; nenhum é código especulativo.
+**Anti-tautologia verificada explicitamente**: ambos os novos assertos de intervalo hardcodam `900` em vez de importar `INTERVALO_SEGUNDOS_COLETA` — se importassem, a asserção acompanharia a mutação e M2 sobreviveria de novo. Confirmado por `grep`: `INTERVALO_SEGUNDOS_COLETA` não aparece em nenhum arquivo de teste, só em comentários explicando por quê.
+
+**Nenhuma asserção enfraquecida.** A única asserção pré-existente substituída foi `assert corpo["proxima_consulta"] is not None` → `assert proxima_consulta == iniciado_em + timedelta(seconds=900)` (**fortalecida**); e no frontend `concluido` → `Concluído` (agora casa com o rótulo do spec, também **fortalecida**).
 
 ---
 
 ## Gate Check
 
-- **Gate command (Build, backend)**: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
-- **Gate command (Build, frontend)**: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
-- **Result**: confirmados verdes pelo orquestrador imediatamente antes do despacho deste Verifier (backend pytest, ruff, pyright; frontend vitest, lint, build). Este Verifier não os reexecutou para aprovação — a suíte backend completa foi executada apenas dentro da worktree descartável do sensor M2, onde passou 235/235 **com o mutante aplicado** (essa é a evidência do sobrevivente, não uma aprovação de gate).
-- **Test integrity**: nenhum teste removido no intervalo `43e3e3b..44fd7af`; nenhuma asserção enfraquecida — as três mudanças em testes pré-existentes (`test_migracoes.py`, `test_inicializador.py`, `test_saude.py`) **fortalecem** as asserções (versões `[1] → [1, 2]`, tabelas e caminhos novos fixados).
-- **Delta**: +7 arquivos de teste novos (5 backend, 2 frontend), +~1.400 linhas de teste.
-- **Skipped**: nenhum.
+Ambos os gates Build reexecutados por este Verifier na árvore real, em `552b378`:
+
+| Gate | Comando | Resultado |
+| --- | --- | --- |
+| Build (backend) | `uv run --directory src/backend pytest && ruff check . && pyright` | ✅ **238 passed**, 0 failed, 0 skipped, em 5,03 s · `ruff`: `All checks passed!` · `pyright`: `0 errors, 0 warnings, 0 informations` |
+| Build (frontend) | `npm test -- --run && npm run lint && npm run build` | ✅ **113 passed** (18 arquivos) · `oxlint`: 6 warnings, **todos pré-existentes** (`react(only-export-components)` ×2 em `PerfilContexto.tsx`, `react(set-state-in-effect)` ×4 em superfícies, incluindo `SuperficieFonteMeteorologica.tsx:49`, cujo `useEffect` é anterior à correção — apenas deslocado 7 linhas pelo mapa novo); **0 warnings novos** · `vite build`: `✓ built in 229ms` |
+
+**Test integrity**:
+
+| Métrica | `43e3e3b` (pré-feature) | `552b378` (pós-fix) | Delta |
+| --- | --- | --- | --- |
+| `def test_` backend | 149 | 200 | **+51** |
+| Casos `it(...)` frontend | 57 | 64 | **+7** |
+| pytest coletados | — | 238 | +3 vs. Rodada 1 (235) |
+| vitest coletados | — | 113 | +1 vs. Rodada 1 (112) |
+
+Nenhum teste removido; nenhuma asserção enfraquecida; nenhum `skip`.
 
 ---
 
-## Fix Plans
+## Observações residuais (Minor, não bloqueantes — nenhuma justifica FAIL)
 
-### Fix 1: Fixar o intervalo de coleta automática de produção (mutante sobrevivente M2)
+1. **INMET-12, evidência fraca** (carry-over da Rodada 1, não roteada como fix): o não-vazamento de cabeçalhos/credenciais é asserido por um único token (`"CHUVA"`) e apenas no caso de uso; `ClienteInmet` — o ponto onde cabeçalhos e a URL base efetivamente existem — não tem teste de log equivalente. Classificação inalterada em relação à Rodada 1.
+2. **Rótulos `Coletando`/`Normalizando` presentes mas não asseridos**: `ROTULOS_ESTADO_SINCRONIZACAO` mapeia os quatro estados, mas só `Concluído` e `Falha` têm asserção. O spec exige que a UI exiba *um dos quatro*, e os dois estados terminais estão provados; além disso, `EstadoSincronizacao.NORMALIZANDO` (`portas_meteorologia.py:25`) **nunca é persistido por nenhum caminho de código** — o serviço grava `COLETANDO` (`coleta_meteorologica.py:165`) e fecha direto em `CONCLUIDO`/`FALHA`, porque a execução é síncrona. Estado declarado no enum e no `CHECK` da migração, mas inalcançável. Vale registrar no spec ou remover em uma história futura.
+3. **Fix 5 (dívida aceita, não re-flagada)**: prova limitada ao vivo contra `apitempo.inmet.gov.br` segue não executada por falta de egresso de rede; declarada em `adaptadores/meteorologia/README.md:17-34`.
+4. **L-013 ainda aberta**: os 3 `# SPEC_DEVIATION` em `portas_meteorologia.py:86,95,112` continuam no código e `design.md` **não** registra os métodos adicionados (`buscar_por_id`, `listar_ativas`, `listar`) — `grep` por esses nomes em `design.md` devolve 0 ocorrências. Lição L-013 pede exatamente o oposto (dobrar a descoberta de volta ao documento de design em vez de deixar o marcador como registro). Documentação, não comportamento; Minor.
 
-- **Root cause**: `testes/test_agendador_meteorologico.py:139,180` injeta o intervalo em vez de exercitar `INTERVALO_SEGUNDOS_COLETA`; `proxima_consulta` só é verificado como não-nulo.
-- **Fix task**: adicionar (a) um teste que instancie `AgendadorMeteorologico` **sem** `intervalo_segundos` e asserte `relogio.chamadas == [900]`, e (b) em `test_meteorologia_api.py`, asserter `proxima_consulta == ultima_tentativa.iniciado_em + 900 s`.
-- **Verify**: repetir a mutação `900 → 60` e confirmar falha.
-- **Priority**: Major
+---
 
-### Fix 2: Cobrir INMET-04 (manual aceita com o agendamento em curso)
+## Lessons Layer
 
-- **Root cause**: `test_meteorologia_api.py:71` cria o `TestClient` fora de context manager, então o `lifespan`/agendador nunca roda nos testes de rota.
-- **Fix task**: um teste que use `with TestClient(...) as cliente:` (lifespan ativo, agendador rodando) e faça o `POST /coletas`, assertando `202` e que ambas as tentativas (automática e manual) aparecem como linhas distintas com `requisicao_id` diferentes em `GET /sincronizacoes` — o que cobre também o edge case das duas coletas quase simultâneas.
-- **Priority**: Major
-
-### Fix 3: Cobrir a cláusula de latência p95 de INMET-15
-
-- **Root cause**: nenhum teste mede tempo de resposta; a cláusula "até 1 segundo no percentil 95" nunca é verificada.
-- **Fix task**: teste de orçamento de latência sobre `GET /sincronizacoes` e `GET /eventos` com histórico semeado, medindo com `perf_counter` sobre N repetições e assertando o p95 < 1 s — ou, se o time decidir que isso não é testável de forma estável localmente, registrar a decisão no spec e rebaixar a cláusula a não-verificável.
-- **Priority**: Major
-
-### Fix 4: Ancorar INMET-07 nos campos temporais e INMET-06 no estado exibido
-
-- **Root cause**: `periodo_inicio`/`periodo_fim`/`instante_observado` não têm asserção de valor; a UI só é testada com `concluido` e imprime o enum cru.
-- **Fix task**: (a) assertar em `test_normalizador_inmet.py` que `instante_observado == datetime(2026,8,30,18,0)` e `periodo_inicio == instante_observado - 1h`; (b) adicionar caso de UI com `estado = "falha"` (e `motivoFalha`) e decidir se o spec exige rótulos acentuados (`Concluído`) — se sim, adicionar `ROTULOS_ESTADO`.
-- **Priority**: Minor
-
-### Fix 5 (não bloqueante): fechar a dívida da prova ao vivo do INMET (T4)
-
-- **Root cause**: sem egresso de rede na sessão de implementação; fixtures são reconstrução, não captura (`adaptadores/meteorologia/README.md:17-34`).
-- **Fix task**: quando houver rede, executar a prova pontual, confrontar os nomes de campo e atualizar as fixtures + o README.
-- **Priority**: Minor (já declarado como dívida explícita)
+L-009 a L-013 seguem em `.specs/lessons.json` com `status: candidate` — ciclo de vida normal (viram `promoted` só após recorrência). As condições concretas que originaram L-009 a L-012 estão **fechadas** neste commit (provado pelo sensor e pelas asserções acima). L-013 permanece **aberta** na sua condição de fundo (item 4 das observações residuais). Nenhuma lição nova foi destilada: esta rodada é um PASS limpo e não produziu nenhuma falha fundamentada nova (mutante sobrevivente, AC descoberta, ou desvio de spec inédito).
 
 ---
 
 ## Requirement Traceability Update
 
-| Requirement | Previous | New |
+| Requirement | Rodada 1 | Rodada 2 |
 | --- | --- | --- |
-| INMET-01 | Implementing | ⚠️ Verified com desvio documentado |
-| INMET-02 | Implementing | ✅ Verified |
-| INMET-03 | Implementing | ⚠️ Needs Fix (Fix 1) |
-| INMET-04 | Implementing | ❌ Needs Fix (Fix 2) |
-| INMET-05 | Implementing | ✅ Verified |
-| INMET-06 | Implementing | ⚠️ Needs Fix (Fix 4) |
-| INMET-07 | Implementing | ⚠️ Needs Fix (Fix 4) |
-| INMET-08 | Implementing | ✅ Verified |
-| INMET-09 | Implementing | ✅ Verified |
-| INMET-10 | Implementing | ✅ Verified |
-| INMET-11 | Implementing | ✅ Verified |
-| INMET-12 | Implementing | ⚠️ Verified (evidência fraca) |
-| INMET-13 | Implementing | ✅ Verified |
-| INMET-14 | Implementing | ✅ Verified |
-| INMET-15 | Implementing | ❌ Needs Fix (Fix 3) |
-| INMET-16 | Implementing | ✅ Verified |
-| INMET-17 | Implementing | ✅ Verified |
+| INMET-01 | ⚠️ Verified com desvio documentado | ⚠️ Verified com desvio documentado (Fix 5, dívida aceita) |
+| INMET-02 | ✅ Verified | ✅ Verified |
+| INMET-03 | ⚠️ Needs Fix (Fix 1) | ✅ **Verified** |
+| INMET-04 | ❌ Needs Fix (Fix 2) | ✅ **Verified** |
+| INMET-05 | ✅ Verified | ✅ Verified |
+| INMET-06 | ⚠️ Needs Fix (Fix 4) | ✅ **Verified** |
+| INMET-07 | ⚠️ Needs Fix (Fix 4) | ✅ **Verified** |
+| INMET-08 | ✅ Verified | ✅ Verified |
+| INMET-09 | ✅ Verified | ✅ Verified |
+| INMET-10 | ✅ Verified | ✅ Verified |
+| INMET-11 | ✅ Verified | ✅ Verified |
+| INMET-12 | ⚠️ Verified (evidência fraca) | ⚠️ Verified (evidência fraca — inalterada) |
+| INMET-13 | ✅ Verified | ✅ Verified |
+| INMET-14 | ✅ Verified | ✅ Verified |
+| INMET-15 | ❌ Needs Fix (Fix 3) | ✅ **Verified** |
+| INMET-16 | ✅ Verified | ✅ Verified |
+| INMET-17 | ✅ Verified | ✅ Verified |
 
 ---
 
 ## Summary
 
-**Overall**: ⚠️ Issues — implementação sólida e bem estruturada, com lacunas de *discriminação de teste*, não de comportamento.
+**Overall**: ✅ **Ready**
 
-**Spec-anchored check**: 10/17 ACs plenamente ancorados; 5 parciais/spec-precision; 2 GAPs.
-**Sensor**: 1/2 mutantes mortos (M2 sobreviveu).
-**Gate**: verde (confirmado pelo orquestrador antes do despacho).
+**Spec-anchored check**: 15/17 ACs plenamente ancorados; 2 residuais não bloqueantes (INMET-01 dívida aceita, INMET-12 evidência fraca inalterada). Rodada 1: 10/17.
+**Sensor**: **2/2 mutantes mortos** (M2 re-injetado ⇒ killed por 2 testes em camadas distintas; M3 novo ⇒ killed). Rodada 1: 1/2.
+**Gate**: backend 238 passed / 0 failed, ruff limpo, pyright 0 erros; frontend 113 passed, lint com 6 warnings pré-existentes (0 novos), build OK.
+**Flakiness**: Fix 2 verde 5/5, folga de ~12× no orçamento de polling; Fix 3 com folga de ~100× no limiar de latência.
 
-**O que funciona**: normalização com rejeição tipada em todos os branches (M1 morto prova discriminação real); idempotência ponta a ponta com contagem de chamadas ao transporte (evidência forte); persistência de sincronização com início/término/estado/registros/correlação; restauração AD-014 orientada por catálogo com lista de exceções fixada por asserção; superfície acessível com seleção por teclado; contrato OpenAPI e tipos do frontend em sincronia.
+**O que funciona**: intervalo de coleta de produção agora é comportamento observável e protegido em duas camadas; INMET-04 é exercitado com o agendador realmente rodando, o que também fecha o edge case das duas coletas quase simultâneas; a cláusula p95 tem asserção de verdade; a UI passou a exibir os rótulos exatos do spec (correção de um desvio real, não só de cobertura); todo o resto verificado na Rodada 1 permanece intacto, sem regressão nem enfraquecimento de asserção.
 
-**Problemas encontrados**: (1) o intervalo de produção de 15 min pode ser alterado sem quebrar nenhum teste; (2) INMET-04 nunca exercita coleta manual com o agendador ativo; (3) a cláusula de p95 ≤ 1 s de INMET-15 não é verificada em lugar nenhum; (4) campos temporais do evento e estados não-`concluido` da UI sem asserção de valor.
+**Problemas encontrados**: nenhum bloqueante. Quatro observações Minor registradas acima, das quais duas (Fix 5 e INMET-12) são carry-over já classificados na Rodada 1, uma é documentação (L-013) e uma é um estado de enum inalcançável (`normalizando`).
 
-**Next steps**: rotear Fix 1–4 como fix tasks para um implementador e re-verificar (ciclo máximo de 3 iterações). Fix 5 pode seguir como dívida registrada.
+**Next steps**: marcar a História 2.1 como concluída. Levar as observações 2 e 4 para o backlog de arrumação; a observação 3 (prova ao vivo) quando houver rede.
