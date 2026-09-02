@@ -126,12 +126,14 @@ T6
 
 **Tools**: MCP: NONE — Skill: NONE
 
+**Nota de implementação**: o Design não especificava `segurado_id`/`apolice_id` como parâmetros de `salvar` (só `resultado`), mas `ResultadoElegibilidade` não carrega esses ids (são do candidato, não do resultado da avaliação) — `salvar` recebe os dois explicitamente, mesmo padrão de `RepositorioAvaliacoesRisco.salvar` (2.3) que recebe `evento_id`/`regra_id` fora do `resultado`. Extraída `serializacao_criterios.py` compartilhada entre `repositorio_avaliacoes_risco.py` e este módulo, para não duplicar o mesmo formato JSON de `Criterio`.
+
 **Done when**:
 
-- [ ] `listar_candidatos` retorna todos os segurados+apólices da área informada
-- [ ] `salvar` chamado duas vezes para a mesma combinação produz uma única linha (violação de `UNIQUE` tratada como no-op, não erro não tratado)
-- [ ] `contar_por_execucao` retorna quantidades corretas de incluídos/excluídos
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `listar_candidatos` retorna todos os segurados+apólices da área informada
+- [x] `salvar` chamado duas vezes para a mesma combinação produz uma única linha (violação de `UNIQUE` tratada como no-op, não erro não tratado)
+- [x] `contar_por_execucao` retorna quantidades corretas de incluídos/excluídos
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick

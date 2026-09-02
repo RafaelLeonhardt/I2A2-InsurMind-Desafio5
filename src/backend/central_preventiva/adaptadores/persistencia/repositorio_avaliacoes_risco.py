@@ -1,12 +1,15 @@
 """Repositório do snapshot imutável da avaliação de relevância meteorológica (AD-11)."""
 
-import json
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from uuid import UUID, uuid4
 
 from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
+from central_preventiva.adaptadores.persistencia.serializacao_criterios import (
+    desserializar_criterios,
+    serializar_criterios,
+)
 from central_preventiva.dominio.avaliador_risco import Criterio, ResultadoAvaliacaoRisco
 
 
@@ -28,36 +31,6 @@ class AvaliacaoRisco:
     criterios: tuple[Criterio, ...]
     motivo: str
     criado_em: datetime
-
-
-def _serializar_criterios(criterios: tuple[Criterio, ...]) -> str:
-    """Serializa os critérios avaliados em JSON, na ordem em que foram produzidos."""
-
-    return json.dumps(
-        [
-            {
-                "operando": criterio.operando,
-                "valor_observado": criterio.valor_observado,
-                "atende": criterio.atende,
-                "justificativa": criterio.justificativa,
-            }
-            for criterio in criterios
-        ]
-    )
-
-
-def _desserializar_criterios(bruto: str) -> tuple[Criterio, ...]:
-    """Reconstrói os critérios avaliados a partir do JSON persistido."""
-
-    return tuple(
-        Criterio(
-            operando=item["operando"],
-            valor_observado=item["valor_observado"],
-            atende=item["atende"],
-            justificativa=item["justificativa"],
-        )
-        for item in json.loads(bruto)
-    )
 
 
 class RepositorioAvaliacoesRisco:
@@ -95,7 +68,7 @@ class RepositorioAvaliacoesRisco:
                     regra_id,
                     regra_versao,
                     resultado.relevante,
-                    _serializar_criterios(resultado.criterios),
+                    serializar_criterios(resultado.criterios),
                     resultado.motivo,
                 ],
             )
@@ -119,7 +92,7 @@ class RepositorioAvaliacoesRisco:
             regra_id=None if linha[3] is None else UUID(str(linha[3])),
             regra_versao=None if linha[4] is None else int(linha[4]),
             relevante=bool(linha[5]),
-            criterios=_desserializar_criterios(str(linha[6])),
+            criterios=desserializar_criterios(str(linha[6])),
             motivo=str(linha[7]),
             criado_em=linha[8],
         )
