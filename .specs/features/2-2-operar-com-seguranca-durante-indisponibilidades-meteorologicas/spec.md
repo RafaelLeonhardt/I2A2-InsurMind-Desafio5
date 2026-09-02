@@ -122,30 +122,30 @@ A História 2.1 entrega a coleta feliz do INMET, mas nada garante hoje o que aco
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| RESIL-01 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Implementing |
-| RESIL-02 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Implementing |
-| RESIL-03 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Implementing |
-| RESIL-04 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Implementing |
-| RESIL-05 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Implementing |
-| RESIL-06 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Implementing |
-| RESIL-07 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Implementing |
-| RESIL-08 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Implementing |
-| RESIL-09 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Implementing |
-| RESIL-10 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Implementing |
-| RESIL-11 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Implementing |
-| RESIL-12 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Implementing |
-| RESIL-13 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Implementing |
-| RESIL-14 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Implementing |
-| RESIL-15 | P2: Estados visíveis da fonte e cobertura de valores-limite | Design | Implementing |
-| RESIL-16 | P2: Estados visíveis da fonte e cobertura de valores-limite | Design | Implementing |
-| RESIL-17 | P2: Estados visíveis da fonte e cobertura de valores-limite | Design | Implementing |
-| RESIL-18 | P2: Estados visíveis da fonte e cobertura de valores-limite | Design | Implementing |
+| RESIL-01 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Verified |
+| RESIL-02 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Verified |
+| RESIL-03 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Verified |
+| RESIL-04 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Verified |
+| RESIL-05 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Verified |
+| RESIL-06 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Verified |
+| RESIL-07 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Verified |
+| RESIL-08 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Verified |
+| RESIL-09 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Verified |
+| RESIL-10 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Verified |
+| RESIL-11 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Verified |
+| RESIL-12 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Verified |
+| RESIL-13 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Verified |
+| RESIL-14 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Verified |
+| RESIL-15 | P2: Estados visíveis da fonte e cobertura de valores-limite | Design | Verified |
+| RESIL-16 | P2: Estados visíveis da fonte e cobertura de valores-limite | Design | Verified |
+| RESIL-17 | P2: Estados visíveis da fonte e cobertura de valores-limite | Design | Verified |
+| RESIL-18 | P2: Estados visíveis da fonte e cobertura de valores-limite | Design | Verified |
 
 **ID format:** `RESIL-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 18 total, 0 mapped to tasks, 18 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 18 total, 18 verified (Verifier PASS, `validation.md`, rodada 3 de 2026-09-02)
 
 ---
 
