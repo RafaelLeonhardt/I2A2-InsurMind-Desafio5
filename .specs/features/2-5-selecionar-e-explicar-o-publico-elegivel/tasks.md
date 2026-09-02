@@ -99,17 +99,17 @@ T6
 **What**: Função pura que avalia área, tipo/situação da apólice, coberturas e participação em alertas, devolvendo `incluido`/`excluido` com critério a critério; canal preferencial preservado sem afetar o resultado.
 **Where**: `src/backend/central_preventiva/dominio/avaliador_elegibilidade.py`
 **Depends on**: None
-**Reuses**: mesmo padrão estrutural de `AvaliadorRisco` (2.3)
+**Reuses**: mesmo padrão estrutural de `AvaliadorRisco` (2.3); reusa `Criterio` (2.3) em vez de duplicar a mesma forma de valor
 **Requirement**: ELEG-01, ELEG-02, ELEG-03
 
-**Tools**: MCP: NONE — Skill: NONE
+**Nota de implementação**: o Design tipava `avaliar(segurado: Segurado, apolice: ApoliceSnapshot, ...)`, mas `dominio/segurado.py` já tinha um `Segurado` (id, nome) construído para um propósito não relacionado (seletor de perfil em `aplicacao/contexto.py`) — estendê-lo ou criar um `ApoliceSnapshot` irmão criaria dois objetos que o avaliador sempre precisa zipar juntos (a spec já trata "segurado+apólice" como uma combinação inseparável, nunca um sem o outro). Substituído por um único `CandidatoElegibilidade` com campos planos, próprio deste avaliador — mesma decisão estrutural de manter tipos de domínio estreitos por consumidor.
 
 **Done when**:
 
-- [ ] Segurado+apólice que atendem todos os critérios → `incluido` com todos os critérios satisfeitos
-- [ ] Cada critério de exclusão testado isoladamente (área fora, apólice não `ativa`, cobertura ausente, `participa_de_alertas = false`) produz `excluido` com o motivo específico
-- [ ] Canal preferencial diferente não muda o resultado de inclusão/exclusão
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Segurado+apólice que atendem todos os critérios → `incluido` com todos os critérios satisfeitos
+- [x] Cada critério de exclusão testado isoladamente (área fora, apólice não `ativa`, cobertura ausente, `participa_de_alertas = false`) produz `excluido` com o motivo específico
+- [x] Canal preferencial diferente não muda o resultado de inclusão/exclusão
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
