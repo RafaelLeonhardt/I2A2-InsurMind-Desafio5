@@ -6,15 +6,15 @@ As Histórias 2.1–2.5 entregam, isoladamente, coleta, resiliência, relevânci
 
 ## Goals
 
-- [ ] Uma coleta meteorológica válida dispara automaticamente normalização, avaliação de relevância e, quando aplicável, cálculo de elegibilidade, sem cliques intermediários, com cada transição persistida como marco correlacionado
-- [ ] Evento sem risco e evento relevante sem elegíveis terminam, respectivamente, em `sem_risco` e `sem_elegiveis`, com causas e contagens consultáveis, sem criar mensagem, simulação ou chamada à OpenAI
-- [ ] Evento relevante com público elegível persiste o marco `publico_elegivel_formado` e transiciona atomicamente para `aguardando_geracao`, encerrando a etapa determinística como `Pronto para geração`, sem exigir ação humana e sem criar mensagens
-- [ ] Marina vê quantidade total e prévia do público (segurado, apólice, localização, canal, motivo) ao abrir a execução, com acesso à explicação completa antes de qualquer geração
-- [ ] Qualquer um dos três resultados determinísticos é reconstruído do DuckDB ao atualizar a página ou reidratar a execução, sem recalcular ou duplicar
-- [ ] Uma execução reidratada em `aguardando_geracao` reutiliza o público preservado sem recálculo quando o fluxo completo retomar a fase de IA, com preflight automático protegido por idempotência
-- [ ] O mesmo comando de execução repetido com a mesma `Idempotency-Key` e conteúdo devolve o resultado já registrado; conteúdo diferente retorna `409`
-- [ ] Falha interna não recuperável alcança um estado terminal explícito com código, causa, impacto e último marco durável, nunca permanecendo indefinidamente em processamento
-- [ ] A interface distingue etapas concluídas, etapa corrente, encerramento e exceção por texto, ícone e traço, com atualizações importantes anunciadas de forma acessível
+- [x] Uma coleta meteorológica válida dispara automaticamente normalização, avaliação de relevância e, quando aplicável, cálculo de elegibilidade, sem cliques intermediários, com cada transição persistida como marco correlacionado
+- [x] Evento sem risco e evento relevante sem elegíveis terminam, respectivamente, em `sem_risco` e `sem_elegiveis`, com causas e contagens consultáveis, sem criar mensagem, simulação ou chamada à OpenAI
+- [x] Evento relevante com público elegível persiste o marco `publico_elegivel_formado` e transiciona atomicamente para `aguardando_geracao`, encerrando a etapa determinística como `Pronto para geração`, sem exigir ação humana e sem criar mensagens
+- [x] Marina vê quantidade total e prévia do público (segurado, apólice, localização, canal, motivo) ao abrir a execução, com acesso à explicação completa antes de qualquer geração
+- [x] Qualquer um dos três resultados determinísticos é reconstruído do DuckDB ao atualizar a página ou reidratar a execução, sem recalcular ou duplicar
+- [ ] Uma execução reidratada em `aguardando_geracao` reutiliza o público preservado sem recálculo quando o fluxo completo retomar a fase de IA, com preflight automático protegido por idempotência — **deferido ao Épico 3** (ver Out of Scope): `aguardando_geracao` é o checkpoint em que esta história termina; o preflight automático não é implementado aqui
+- [x] O mesmo comando de execução repetido com a mesma `Idempotency-Key` e conteúdo devolve o resultado já registrado; conteúdo diferente retorna `409`
+- [x] Falha interna não recuperável alcança um estado terminal explícito com código, causa, impacto e último marco durável, nunca permanecendo indefinidamente em processamento
+- [x] A interface distingue etapas concluídas, etapa corrente, encerramento e exceção por texto, ícone e traço, com atualizações importantes anunciadas de forma acessível
 
 ## Out of Scope
 
@@ -104,18 +104,18 @@ As Histórias 2.1–2.5 entregam, isoladamente, coleta, resiliência, relevânci
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| RUNNER-01 | P1: Orquestração automática ponta a ponta da etapa determinística | Design | Pending |
-| RUNNER-02 | P1: Orquestração automática ponta a ponta da etapa determinística | Design | Pending |
-| RUNNER-03 | P1: Três resultados determinísticos e checkpoint de geração | Design | Pending |
-| RUNNER-04 | P1: Três resultados determinísticos e checkpoint de geração | Design | Pending |
-| RUNNER-05 | P1: Três resultados determinísticos e checkpoint de geração | Design | Pending |
-| RUNNER-06 | P1: Três resultados determinísticos e checkpoint de geração | Design | Pending |
-| RUNNER-07 | P2: Reidratação, idempotência e falha terminal explícita | Design | Pending |
-| RUNNER-08 | P2: Reidratação, idempotência e falha terminal explícita | Design | Pending |
-| RUNNER-09 | P2: Reidratação, idempotência e falha terminal explícita | Design | Pending |
-| RUNNER-10 | P2: Reidratação, idempotência e falha terminal explícita | Design | Pending |
-| RUNNER-11 | P2: Reidratação, idempotência e falha terminal explícita | Design | Pending |
-| RUNNER-12 | P2: Reidratação, idempotência e falha terminal explícita | Design | Pending |
+| RUNNER-01 | P1: Orquestração automática ponta a ponta da etapa determinística | Execute | Verified |
+| RUNNER-02 | P1: Orquestração automática ponta a ponta da etapa determinística | Execute | Verified |
+| RUNNER-03 | P1: Três resultados determinísticos e checkpoint de geração | Execute | Verified |
+| RUNNER-04 | P1: Três resultados determinísticos e checkpoint de geração | Execute | Verified |
+| RUNNER-05 | P1: Três resultados determinísticos e checkpoint de geração | Execute | Verified |
+| RUNNER-06 | P1: Três resultados determinísticos e checkpoint de geração | Execute | Verified |
+| RUNNER-07 | P2: Reidratação, idempotência e falha terminal explícita | Execute | Verified |
+| RUNNER-08 | P2: Reidratação, idempotência e falha terminal explícita | Execute | Verified |
+| RUNNER-09 | P2: Reidratação, idempotência e falha terminal explícita | Execute | Verified |
+| RUNNER-10 | P2: Reidratação, idempotência e falha terminal explícita | Execute | Verified |
+| RUNNER-11 | P2: Reidratação, idempotência e falha terminal explícita | Execute | Verified |
+| RUNNER-12 | P2: Reidratação, idempotência e falha terminal explícita | Execute | Verified |
 
 **ID format:** `RUNNER-NN`
 
@@ -127,8 +127,8 @@ As Histórias 2.1–2.5 entregam, isoladamente, coleta, resiliência, relevânci
 
 ## Success Criteria
 
-- [ ] Uma coleta válida com evento relevante e público elegível avança sozinha, sem clique intermediário, até `aguardando_geracao`
-- [ ] Os três terminais (`sem_risco`, `sem_elegiveis`, `aguardando_geracao`) nunca disparam chamada à OpenAI nem criam mensagem
-- [ ] Reidratar qualquer execução após reinício do backend reproduz exatamente o mesmo estado, marcos e contagens, sem duplicar nada
-- [ ] Repetir o comando de execução com a mesma `Idempotency-Key` nunca cria uma segunda execução
-- [ ] Uma falha interna não recuperável sempre termina em um estado terminal explícito, nunca em processamento indefinido
+- [x] Uma coleta válida com evento relevante e público elegível avança sozinha, sem clique intermediário, até `aguardando_geracao`
+- [x] Os três terminais (`sem_risco`, `sem_elegiveis`, `aguardando_geracao`) nunca disparam chamada à OpenAI nem criam mensagem
+- [x] Reidratar qualquer execução após reinício do backend reproduz exatamente o mesmo estado, marcos e contagens, sem duplicar nada
+- [x] Repetir o comando de execução com a mesma `Idempotency-Key` nunca cria uma segunda execução
+- [x] Uma falha interna não recuperável sempre termina em um estado terminal explícito, nunca em processamento indefinido

@@ -156,6 +156,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: RISCO-05/RISCO-06 - src/backend/central_preventiva/dominio/avaliador_risco.py:102-137 (domain)
 - last seen: 2026-09-02T12:08:04Z
 
+### L-025 - When a GET endpoint's response fields are added to satisfy an AC, verify the frontend actually renders those specific fields instead of independently re-fetching the same data from another endpoint - a passing test can mock unused fields without ever asserting they are displayed.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `execucao,frontend-api-contract` · harmful: 0
+- features: 2-6-encerrar-ou-encaminhar-a-execucao-preventiva
+- evidence: validation.md#Finding-1 (SuperficieExecucao.tsx never reads execucao.publicoElegivelTotal/publicoElegivelPrevia) (execucao,frontend-api-contract)
+- last seen: 2026-09-02T18:21:42Z
+
+### L-026 - When a spec enumerates several distinct observable attributes for a state (e.g. codigo, causa, impacto, ultimo marco), verify each one is a literal, separately inspectable field - not silently folded into another field's free text.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `execucao,estados-terminais` · harmful: 0
+- features: 2-6-encerrar-ou-encaminhar-a-execucao-preventiva
+- evidence: validation.md#Finding-2 (spec P2 AC5: falha interna deve expor codigo causa impacto e ultimo marco, mas nenhum campo impacto e' anexado ao marco falhou_coleta) (execucao,estados-terminais)
+- last seen: 2026-09-02T18:21:42Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
