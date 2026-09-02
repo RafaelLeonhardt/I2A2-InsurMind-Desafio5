@@ -69,22 +69,22 @@ T6
 
 ## Task Breakdown
 
-### T1: Migração `0006_marcos_execucao.sql`
+### T1: Migração `0008_marcos_execucao.sql`
 
 **What**: Criar `marcos_execucao`; atualizar `adaptadores/persistencia/README.md`.
-**Where**: `src/backend/central_preventiva/adaptadores/persistencia/migracoes/0006_marcos_execucao.sql`
+**Where**: `src/backend/central_preventiva/adaptadores/persistencia/migracoes/0008_marcos_execucao.sql`
 **Depends on**: None
 **Reuses**: convenção de migração numerada
 **Requirement**: RUNNER-02
 
-**Tools**: MCP: NONE — Skill: NONE
+**Nota de implementação**: o Design nomeou a migração `0006`, mas as Histórias 2.5 (`0006_elegibilidade`) e sua correção (`0007`) já ocuparam esse espaço antes desta história começar — mesma situação já registrada em 2.4 e 2.5: os designs das 25 histórias foram escritos em lote antes da numeração sequencial real. Renumerada para `0008`, próximo número livre, mesmo conteúdo do Design.
 
 **Done when**:
 
-- [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] `README.md` documenta `marcos_execucao`
-- [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0006`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Migração aplica em transação própria, registrada em `schema_migracoes`
+- [x] `README.md` documenta `marcos_execucao`
+- [x] `testes/test_migracoes.py` cobre a aplicação da migração `0008`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick

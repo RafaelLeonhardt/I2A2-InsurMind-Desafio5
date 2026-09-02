@@ -52,7 +52,7 @@ graph TD
 
 | System | Integration Method |
 | --- | --- |
-| DuckDB | Migração `0006` adiciona `marcos_execucao` (histórico de transições correlacionadas) |
+| DuckDB | Migração `0008` adiciona `marcos_execucao` (histórico de transições correlacionadas) |
 | Backend lifespan | `GerenciadorExecucoes.retomar_pendentes()` chamado uma vez no `lifespan`, antes do `AgendadorMeteorologico` iniciar |
 
 ---
@@ -84,7 +84,7 @@ graph TD
 
 ## Data Models
 
-### Migração `0006_marcos_execucao.sql`
+### Migração `0008_marcos_execucao.sql`
 
 #### `marcos_execucao` (nova)
 

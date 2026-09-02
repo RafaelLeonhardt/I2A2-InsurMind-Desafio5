@@ -70,7 +70,7 @@ def test_inicializacao_em_banco_ausente_cria_schema_e_semeia(
 
     inicializador.executar()
 
-    assert versoes_registradas(caminho) == [1, 2, 3, 4, 5, 6, 7]
+    assert versoes_registradas(caminho) == [1, 2, 3, 4, 5, 6, 7, 8]
     assert contagens(caminho) == {
         "segurados": 4,
         "apolices": 4,
@@ -96,7 +96,7 @@ def test_reexecucao_relata_ja_preparado_sem_alterar_as_contagens(
 
     assert capsys.readouterr().out.startswith("Dados já preparados")
     assert contagens(caminho) == contagens_iniciais
-    assert versoes_registradas(caminho) == [1, 2, 3, 4, 5, 6, 7]
+    assert versoes_registradas(caminho) == [1, 2, 3, 4, 5, 6, 7, 8]
 
 
 def test_configuracao_invalida_interrompe_sem_revelar_valores(

@@ -31,6 +31,7 @@ TABELAS_ESPERADAS = {
     "excecoes_operacionais",
     "cenarios_sinteticos_ativados",
     "avaliacoes_risco",
+    "marcos_execucao",
 }
 
 REGISTRO_MINIMO = (
@@ -78,8 +79,8 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7)
-    assert resultado.versao_final == 7
+    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8)
+    assert resultado.versao_final == 8
     assert tabelas(caminho) == TABELAS_ESPERADAS
     assert registros(caminho) == [
         (1, "schema inicial"),
@@ -89,6 +90,7 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
         (5, "avaliacao risco sem regra"),
         (6, "elegibilidade"),
         (7, "elegibilidade correcoes"),
+        (8, "marcos execucao"),
     ]
 
 
@@ -99,7 +101,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 7
+    assert resultado.versao_final == 8
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
@@ -108,6 +110,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
         (5, "avaliacao risco sem regra"),
         (6, "elegibilidade"),
         (7, "elegibilidade correcoes"),
+        (8, "marcos execucao"),
     ]
 
 
@@ -416,6 +419,43 @@ def test_documentacao_registra_fronteiras_e_exemplos_limitrofes_dos_limiares() -
     assert "nenhuma fronteira exclusiva está configurada" in documento
     for exemplo in ("49.9", "50.0", "50.1"):
         assert exemplo in documento
+
+
+def test_migracao_marcos_execucao_aceita_causa_nula_e_correlaciona_por_execucao(
+    tmp_path: Path,
+) -> None:
+    """A migração `0008` cria `marcos_execucao`: `causa` é opcional (marco de sucesso não
+    tem causa) e vários marcos se correlacionam pelo mesmo `execucao_id` (RUNNER-02)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+    execucao_id = "11111111-1111-1111-1111-111111111111"
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO execucao_preventiva (id, estado, versao) VALUES (?, 'coletando', 1)",
+            [execucao_id],
+        )
+        conexao.execute(
+            "INSERT INTO marcos_execucao (id, execucao_id, marco, causa) VALUES "
+            "('22222222-2222-2222-2222-222222222222', ?, 'coleta_concluida', NULL)",
+            [execucao_id],
+        )
+        conexao.execute(
+            "INSERT INTO marcos_execucao (id, execucao_id, marco, causa) VALUES "
+            "('33333333-3333-3333-3333-333333333333', ?, 'falhou_processamento', "
+            "'ValueError: motivo sintético')",
+            [execucao_id],
+        )
+        marcos = conexao.execute(
+            "SELECT marco, causa FROM marcos_execucao WHERE execucao_id = ? ORDER BY criado_em",
+            [execucao_id],
+        ).fetchall()
+
+    assert marcos == [
+        ("coleta_concluida", None),
+        ("falhou_processamento", "ValueError: motivo sintético"),
+    ]
 
 
 def test_migracoes_versionadas_tem_versoes_unicas_e_ordenadas() -> None:

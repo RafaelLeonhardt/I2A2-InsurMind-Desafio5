@@ -328,3 +328,21 @@ Recreate-and-copy (AD-015), na mesma tabela `elegibilidades_historicas`:
   como snapshot em `RepositorioElegibilidades.salvar`; as 4 linhas semeadas recebem backfill via
   `JOIN` em `segurados.nome` na própria migração (última vez que essa tabela é lida ao vivo para
   preencher esta coluna).
+
+## Tabelas da migração `0008_marcos_execucao`
+
+### `marcos_execucao`
+
+Histórico de transições de uma execução preventiva, correlacionadas por `execucao_id`
+(RUNNER-02, AD-10) — o `GerenciadorExecucoes` (2.6) grava um marco a cada etapa concluída
+(`coleta_concluida`, `avaliacao_risco_concluida`, `publico_elegivel_formado`, ou o próprio
+nome do estado terminal alcançado), permitindo que a reidratação (RUNNER-07) reconstrua o
+que aconteceu sem recalcular nada.
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `execucao_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `execucao_preventiva(id)` |
+| `marco` | `VARCHAR` | `NOT NULL` |
+| `causa` | `VARCHAR` | nulo quando não aplicável (marco de sucesso, não de falha) |
+| `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
