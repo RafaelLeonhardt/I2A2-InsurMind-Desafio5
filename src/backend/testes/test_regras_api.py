@@ -88,6 +88,10 @@ def test_get_regras_lista_todas_as_versoes(tmp_path: Path) -> None:
     assert resposta.status_code == 200
     corpo = resposta.json()
     assert len(corpo["regras"]) == 2
+    estados = {regra["estado"] for regra in corpo["regras"]}
+    versoes = {regra["versao"] for regra in corpo["regras"]}
+    assert estados == {"ativa", "substituida"}
+    assert versoes == {1, 2}
 
 
 def test_get_regra_por_id_encontrada_retorna_200(tmp_path: Path) -> None:
@@ -136,8 +140,15 @@ def test_post_testar_configuracao_valida_devolve_um_caso_por_cenario(tmp_path: P
     assert resposta.status_code == 200
     corpo = resposta.json()
     assert len(corpo["casos"]) == 1
-    assert corpo["casos"][0]["relevante"] is True
-    assert len(corpo["casos"][0]["criterios"]) == 2
+    caso = corpo["casos"][0]
+    assert caso["relevante"] is True
+    assert caso["motivo"] == "relevante"
+    criterio_intensidade = next(
+        c for c in caso["criterios"] if c["operando"].startswith("intensidade")
+    )
+    assert criterio_intensidade["valor_observado"] == "72.5 mm"
+    assert criterio_intensidade["atende"] is True
+    assert "60.0 mm" in criterio_intensidade["justificativa"]
 
 
 def test_post_testar_configuracao_invalida_retorna_422_com_erros_por_campo(
@@ -223,6 +234,39 @@ def test_post_ativar_versao_esperada_desatualizada_retorna_409(tmp_path: Path) -
 
     assert resposta.status_code == 409
     assert resposta.json()["codigo"] == "conflito_versao"
+
+
+def test_post_ativar_duas_edicoes_concorrentes_com_a_mesma_versao_esperada_so_a_primeira_confirma(
+    tmp_path: Path,
+) -> None:
+    """REGRA-11 literal: duas tentativas concorrentes informam a mesma versao_esperada (1);
+    só a primeira transação válida é confirmada, a segunda recebe 409 sem mutar nada."""
+
+    caminho = preparar_banco(tmp_path)
+    id_regra = inserir_regra(caminho)
+    inserir_evento_sintetico(caminho)
+    cliente = cliente_para(caminho)
+    corpo_requisicao = {**DADOS_CHUVA_VALIDOS, "versao_esperada": 1}
+
+    primeira = cliente.post(
+        f"/api/v1/regras/{id_regra}/ativar",
+        json=corpo_requisicao,
+        headers={"Idempotency-Key": "chave-concorrente-1"},
+    )
+    segunda = cliente.post(
+        f"/api/v1/regras/{id_regra}/ativar",
+        json=corpo_requisicao,
+        headers={"Idempotency-Key": "chave-concorrente-2"},
+    )
+
+    assert primeira.status_code == 200
+    assert primeira.json()["versao"] == 2
+    assert segunda.status_code == 409
+    assert segunda.json()["codigo"] == "conflito_versao"
+
+    regras = cliente.get("/api/v1/regras").json()["regras"]
+    assert len(regras) == 2
+    assert {r["versao"] for r in regras} == {1, 2}
 
 
 def test_post_ativar_repetido_com_mesma_chave_e_corpo_devolve_a_mesma_resposta(

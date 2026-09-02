@@ -106,6 +106,20 @@ def test_antecedencia_horas_fora_da_faixa_produz_erro() -> None:
     assert any(erro.campo == "antecedencia_horas" for erro in resultado.erros)
 
 
+def test_antecedencia_horas_imediatamente_abaixo_e_acima_da_fronteira_produz_erro() -> None:
+    """REGRA-02: exemplos imediatamente abaixo (0) e acima (169) da fronteira [1, 168]."""
+
+    from dataclasses import replace
+
+    dados_abaixo = replace(DADOS_CHUVA_VALIDOS, antecedencia_horas=0)
+    dados_acima = replace(DADOS_CHUVA_VALIDOS, antecedencia_horas=169)
+
+    assert validar(dados_abaixo).valida is False
+    assert any(erro.campo == "antecedencia_horas" for erro in validar(dados_abaixo).erros)
+    assert validar(dados_acima).valida is False
+    assert any(erro.campo == "antecedencia_horas" for erro in validar(dados_acima).erros)
+
+
 def test_antecedencia_horas_no_limite_inferior_e_superior_e_valida() -> None:
     from dataclasses import replace
 

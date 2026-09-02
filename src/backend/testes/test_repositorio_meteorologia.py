@@ -89,6 +89,71 @@ def test_buscar_evento_inexistente_devolve_none_sem_lancar(tmp_path: Path) -> No
     assert RepositorioEventosMeteorologicos(caminho).buscar_por_id(uuid4()) is None
 
 
+def test_listar_sinteticos_por_tipo_exclui_eventos_reais_do_mesmo_tipo(tmp_path: Path) -> None:
+    """2.4 T3: o teste determinístico de uma regra só pode usar cenários sintéticos — um
+    evento real do mesmo tipo (ex.: coletado do INMET) nunca deve ser incluído."""
+
+    caminho = preparar_banco(tmp_path)
+    repo = RepositorioEventosMeteorologicos(caminho)
+    sintetico = EventoMeteorologico(
+        id=uuid4(),
+        tipo=TipoEventoMeteorologico.CHUVA_INTENSA,
+        area="9990001",
+        periodo_inicio=datetime(2026, 3, 10, 6, 0, 0),
+        periodo_fim=datetime(2026, 3, 10, 18, 0, 0),
+        intensidade=72.5,
+        proveniencia=ProvenienciaEvento.SINTETICO,
+        instante_observado=datetime(2026, 3, 9, 18, 0, 0),
+    )
+    real = EventoMeteorologico(
+        id=uuid4(),
+        tipo=TipoEventoMeteorologico.CHUVA_INTENSA,
+        area="9990001",
+        periodo_inicio=datetime(2026, 8, 30, 17, 0, 0),
+        periodo_fim=datetime(2026, 8, 30, 18, 0, 0),
+        intensidade=55.4,
+        proveniencia=ProvenienciaEvento.REAL_INMET,
+        instante_observado=datetime(2026, 8, 30, 18, 0, 0),
+    )
+    repo.salvar(sintetico)
+    repo.salvar(real)
+
+    resultado = repo.listar_sinteticos_por_tipo(TipoEventoMeteorologico.CHUVA_INTENSA)
+
+    assert [evento.id for evento in resultado] == [sintetico.id]
+
+
+def test_listar_sinteticos_por_tipo_filtra_por_tipo_de_evento(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    repo = RepositorioEventosMeteorologicos(caminho)
+    chuva = EventoMeteorologico(
+        id=uuid4(),
+        tipo=TipoEventoMeteorologico.CHUVA_INTENSA,
+        area="9990001",
+        periodo_inicio=datetime(2026, 3, 10, 6, 0, 0),
+        periodo_fim=datetime(2026, 3, 10, 18, 0, 0),
+        intensidade=72.5,
+        proveniencia=ProvenienciaEvento.SINTETICO,
+        instante_observado=datetime(2026, 3, 9, 18, 0, 0),
+    )
+    granizo = EventoMeteorologico(
+        id=uuid4(),
+        tipo=TipoEventoMeteorologico.GRANIZO,
+        area="9990002",
+        periodo_inicio=datetime(2026, 3, 12, 14, 0, 0),
+        periodo_fim=datetime(2026, 3, 12, 20, 0, 0),
+        intensidade=31.0,
+        proveniencia=ProvenienciaEvento.SINTETICO,
+        instante_observado=datetime(2026, 3, 12, 8, 0, 0),
+    )
+    repo.salvar(chuva)
+    repo.salvar(granizo)
+
+    resultado = repo.listar_sinteticos_por_tipo(TipoEventoMeteorologico.GRANIZO)
+
+    assert [evento.id for evento in resultado] == [granizo.id]
+
+
 def test_criar_sincronizacao_persiste_em_estado_coletando(tmp_path: Path) -> None:
     caminho = preparar_banco(tmp_path)
     inserir_area_monitorada(caminho, "A701", "9990001")

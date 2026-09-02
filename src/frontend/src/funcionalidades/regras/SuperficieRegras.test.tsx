@@ -76,6 +76,59 @@ describe('superfície de regras', () => {
     expect(within(linhaAtiva!).getByText('Ativa').closest('span')?.querySelector('svg')).toBeTruthy()
   })
 
+  it('usa um ícone diferente para a versão ativa e a substituída (REGRA-04)', async () => {
+    getRegras.mockResolvedValue([REGRA_ATIVA, REGRA_SUBSTITUIDA])
+
+    render(<SuperficieRegras />)
+
+    await screen.findByRole('table')
+    const linhas = screen.getAllByRole('row')
+    const linhaAtiva = linhas.find((linha) => within(linha).queryByText('Ativa'))!
+    const linhaSubstituida = linhas.find((linha) => within(linha).queryByText('Substituída'))!
+
+    const iconeAtiva = linhaAtiva.querySelector('[data-icone-nome]')?.getAttribute('data-icone-nome')
+    const iconeSubstituida = linhaSubstituida
+      .querySelector('[data-icone-nome]')
+      ?.getAttribute('data-icone-nome')
+
+    expect(iconeAtiva).toBeTruthy()
+    expect(iconeSubstituida).toBeTruthy()
+    expect(iconeAtiva).not.toBe(iconeSubstituida)
+  })
+
+  it('exibe as onze colunas da tabela de regras com os valores da regra ativa (REGRA-03)', async () => {
+    getRegras.mockResolvedValue([REGRA_ATIVA])
+
+    render(<SuperficieRegras />)
+
+    const tabela = await screen.findByRole('table')
+    const cabecalhos = within(tabela)
+      .getAllByRole('columnheader')
+      .map((cabecalho) => cabecalho.textContent)
+    expect(cabecalhos).toEqual([
+      'Tipo de evento',
+      'Severidade',
+      'Limiar',
+      'Área',
+      'Apólice',
+      'Cobertura',
+      'Antecedência',
+      'Canal',
+      'Versão',
+      'Estado',
+      'Ação',
+    ])
+
+    const linha = within(tabela).getAllByRole('row')[1]
+    expect(within(linha).getByText('Chuva intensa')).toBeInTheDocument()
+    expect(within(linha).getByText('9990001')).toBeInTheDocument()
+    expect(within(linha).getByText('Residencial')).toBeInTheDocument()
+    expect(within(linha).getByText('alagamento')).toBeInTheDocument()
+    expect(within(linha).getByText('24h')).toBeInTheDocument()
+    expect(within(linha).getByText('WhatsApp')).toBeInTheDocument()
+    expect(within(linha).getByText('1')).toBeInTheDocument()
+  })
+
   it('só permite editar a versão ativa', async () => {
     getRegras.mockResolvedValue([REGRA_ATIVA, REGRA_SUBSTITUIDA])
 
@@ -194,6 +247,37 @@ describe('superfície de regras', () => {
       REGRA_ATIVA.versao,
       expect.objectContaining({ limiarMeteorologico: 50 }),
     )
+  })
+
+  it('abre a edição e dispara o teste inteiramente por teclado, com foco visível (REGRA-14)', async () => {
+    getRegras.mockResolvedValue([REGRA_ATIVA])
+    testarRegra.mockResolvedValue([
+      {
+        eventoId: '33333333-3333-3333-3333-333333333333',
+        relevante: true,
+        motivo: 'relevante',
+        criterios: [],
+      },
+    ])
+    const usuario = userEvent.setup()
+
+    render(<SuperficieRegras />)
+    const botaoEditar = await screen.findByRole('button', { name: 'Editar' })
+    botaoEditar.focus()
+    expect(botaoEditar).toHaveFocus()
+    await usuario.keyboard('{Enter}')
+
+    const campoLimiar = await screen.findByLabelText('Limiar meteorológico')
+    campoLimiar.focus()
+    expect(campoLimiar).toHaveFocus()
+
+    const botaoTestar = screen.getByRole('button', { name: 'Testar' })
+    botaoTestar.focus()
+    expect(botaoTestar).toHaveFocus()
+    await usuario.keyboard('{Enter}')
+
+    expect(await screen.findByText(/Resultado do teste determinístico/)).toBeInTheDocument()
+    expect(testarRegra).toHaveBeenCalledTimes(1)
   })
 
   it('reinvalida o teste quando o formulário é editado depois de testar', async () => {

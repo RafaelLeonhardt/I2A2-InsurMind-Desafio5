@@ -258,13 +258,8 @@ class ServicoGestaoRegras:
                 )
             return _desserializar_ativacao(registrada.corpo)
 
-        resultado_validacao = self._portas.validar(dados)
-        if not resultado_validacao.valida:
-            raise ConfiguracaoInvalida(resultado_validacao.erros)
-
-        candidata = _snapshot_candidato(regra_anterior_id, dados)
-        eventos = self._portas.eventos.listar_sinteticos_por_tipo(candidata.evento_tipo)
-        if not eventos:
+        casos = self.testar(regra_anterior_id, dados)
+        if not casos:
             raise NenhumCenarioAplicavel(dados.evento_tipo)
 
         nova_regra = self._portas.regras.criar_nova_versao(

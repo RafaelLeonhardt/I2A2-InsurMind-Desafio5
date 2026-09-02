@@ -112,13 +112,16 @@ class RepositorioIdempotenciaFalso:
 
 def montar_servico(
     eventos: tuple[EventoMeteorologico, ...] = (),
+    avaliar: object = None,
 ) -> tuple[ServicoGestaoRegras, RepositorioRegrasFalso, RepositorioIdempotenciaFalso]:
     regras = RepositorioRegrasFalso()
     idempotencia = RepositorioIdempotenciaFalso()
+    kwargs = {"avaliar": avaliar} if avaliar is not None else {}
     portas = PortasGestaoRegras(
         regras=regras,  # type: ignore[arg-type]
         eventos=RepositorioEventosFalso(eventos),  # type: ignore[arg-type]
         idempotencia=idempotencia,  # type: ignore[arg-type]
+        **kwargs,  # type: ignore[arg-type]
     )
     return ServicoGestaoRegras(portas), regras, idempotencia
 
@@ -210,6 +213,28 @@ def test_ativar_repetido_com_mesma_chave_e_hash_devolve_resposta_registrada_sem_
 
     assert segunda == primeira
     assert len(regras.chamadas) == 1
+
+
+def test_ativar_reexecuta_o_avaliador_para_cada_cenario_sintetico() -> None:
+    """A docstring/OpenAPI de `ativar` promete "reexecutar o teste determinístico" — este
+    teste prova que a chamada real acontece, não só que a validação e a contagem de
+    cenários passam (achado do Verificador da Rodada 1: 0 chamadas reais a `avaliar`)."""
+
+    chamadas: list[tuple[EventoMeteorologico, object]] = []
+
+    def avaliar_espiao(evento: EventoMeteorologico, regra: object) -> object:
+        chamadas.append((evento, regra))
+        from central_preventiva.dominio import avaliador_risco
+
+        return avaliador_risco.avaliar(evento, regra)  # type: ignore[arg-type]
+
+    evento = evento_sintetico_chuva()
+    servico, _, _ = montar_servico((evento,), avaliar=avaliar_espiao)
+
+    servico.ativar(uuid4(), 1, DADOS_CHUVA_VALIDOS, "chave-espiao", "hash-espiao")
+
+    assert len(chamadas) == 1
+    assert chamadas[0][0] is evento
 
 
 def test_ativar_mesma_chave_com_hash_diferente_levanta_conflito_idempotencia() -> None:

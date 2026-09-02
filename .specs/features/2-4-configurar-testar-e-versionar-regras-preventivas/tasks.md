@@ -241,3 +241,22 @@ T4 → T5
 | T5: Superfície "Regras" | Componente React | unit | unit | ✅ OK |
 
 **Rules confirmed**: nenhum `Tests: none` nesta história; nenhuma task adia teste.
+
+---
+
+## Fix Tasks (Verifier Round 1 — FAIL, `validation.md` de 2026-09-02)
+
+O núcleo de segurança (concorrência otimista, coerência AD-013, hash de idempotência) foi mutado e sobreviveu — os gaps eram todos de asserção, não de comportamento em produção. Corrigidas nesta rodada:
+
+- [x] **Fix 1 (Major)** — REGRA-14: nenhuma citação `file:line` para operação por teclado. Adicionado teste em `SuperficieRegras.test.tsx` que foca o botão `Editar` (`toHaveFocus()`), abre o formulário com `keyboard('{Enter}')`, foca o campo e o botão `Testar` e dispara o teste por `{Enter}`, confirmando o painel de resultado — mesmo padrão já usado em `SuperficieFonteMeteorologica.test.tsx`.
+- [x] **Fix 2 (Major)** — REGRA-04: mutante sobrevivente (M6) colapsando os dois ícones da tabela no mesmo símbolo. Adicionado `data-icone-nome` distinto em cada ícone (`check-circle`/`clock-counter-clockwise`) e um teste que assere `iconeAtiva !== iconeSubstituida`. Mutação reaplicada manualmente e confirmada morta.
+- [x] **Fix 3 (Major)** — REGRA-02: mutante sobrevivente (M5) alargando a faixa de `antecedencia_horas` em uma unidade nos dois extremos. Adicionado teste com os valores imediatamente abaixo (`0`) e acima (`169`) da fronteira `[1, 168]`. Mutação reaplicada e confirmada morta.
+- [x] **Fix 4 (Major)** — mutante sobrevivente (M4) removendo o filtro `proveniencia = 'sintetico'` de `listar_sinteticos_por_tipo`. Adicionados dois testes em `test_repositorio_meteorologia.py`: um insere um evento sintético e um real do mesmo tipo e confere que só o sintético volta; outro confere o filtro por `tipo`. Mutação reaplicada e confirmada morta.
+- [x] **Fix 5 (Minor)** — REGRA-03: nenhum teste conferia o conjunto de colunas nem os valores derivados da tabela. Adicionado teste que assere as 11 colunas exatas e os valores de severidade/cobertura/antecedência/canal/versão da regra ativa.
+- [x] **Fix 6 (Minor)** — a docstring de `ServicoGestaoRegras.ativar` e a `description` publicada no OpenAPI afirmavam "reexecuta o teste determinístico", mas a sonda do Verificador mediu zero chamadas a `avaliar` durante `ativar`. Corrigido pela opção (b): `ativar` agora chama `self.testar(...)` internamente (reuso, não duplicação de lógica) antes de criar a nova versão, tornando a afirmação verdadeira. Novo teste com um `avaliar` espião confirma exatamente 1 chamada por cenário sintético.
+- [x] **Fix 7 (Minor)** — REGRA-11 só tinha o caminho equivalente (`versao_esperada` obsoleta), não o cenário literal de duas tentativas com a mesma versão; REGRA-10 não tinha nenhum teste nesta história. Adicionados: um teste HTTP com duas ativações concorrentes usando `versao_esperada=1` e chaves de idempotência distintas (`200` depois `409`); um teste de repositório que salva uma avaliação de risco, ativa uma nova versão da regra e relê a avaliação, confirmando `regra_id`/`regra_versao` inalterados (AD-11).
+- [x] **Fix 8 (Minor)** — `GET /regras` e `POST .../testar` asseriam só contagens. Fortalecidas para conferir `estado`/`versao` de cada regra e os valores reais de `valor_observado`/`justificativa` do critério de intensidade.
+
+**Gate check (backend, full)**: `uv run --directory src/backend pytest && ruff check . && pyright` — verde (343 testes). **Gate check (frontend, full)**: `npm test -- --run && npm run lint && npm run build` — verde (189 testes, mesmos avisos pré-existentes).
+
+**Commit**: `fix(regras): fechar lacunas do verificador da historia 2.4`

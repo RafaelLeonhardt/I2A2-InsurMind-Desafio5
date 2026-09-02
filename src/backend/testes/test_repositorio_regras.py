@@ -7,10 +7,14 @@ import pytest
 
 from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
 from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigracoes
+from central_preventiva.adaptadores.persistencia.repositorio_avaliacoes_risco import (
+    RepositorioAvaliacoesRisco,
+)
 from central_preventiva.adaptadores.persistencia.repositorio_regras import (
     ConflitoVersao,
     RepositorioRegras,
 )
+from central_preventiva.dominio.avaliador_risco import Criterio, ResultadoAvaliacaoRisco
 from central_preventiva.dominio.evento_meteorologico import TipoEventoMeteorologico
 from central_preventiva.dominio.validador_regra import DadosRegra
 
@@ -159,3 +163,40 @@ def test_obter_por_id_de_regra_inexistente_devolve_none(tmp_path: Path) -> None:
     caminho = preparar_banco(tmp_path)
 
     assert RepositorioRegras(caminho).obter_por_id(uuid4()) is None
+
+
+def test_ativar_nova_versao_nao_recalcula_avaliacao_ja_salva_com_a_versao_anterior(
+    tmp_path: Path,
+) -> None:
+    """REGRA-10: uma execução iniciada antes da alteração preserva o snapshot da versão
+    originalmente aplicada — ativar uma nova versão da regra nunca reescreve uma
+    avaliação já persistida (AD-11)."""
+
+    caminho = preparar_banco(tmp_path)
+    id_regra = inserir_regra(caminho, "chuva_intensa", 50.0, "9990001", "residencial")
+    execucao_id = uuid4()
+    evento_id = uuid4()
+    resultado = ResultadoAvaliacaoRisco(
+        relevante=True,
+        criterios=(
+            Criterio(
+                operando="intensidade (mm acumulados no período)",
+                valor_observado="72.5 mm",
+                atende=True,
+                justificativa="Intensidade observada atinge o limiar de 50.0 mm.",
+            ),
+        ),
+        motivo="relevante",
+    )
+    RepositorioAvaliacoesRisco(caminho).salvar(execucao_id, evento_id, UUID(id_regra), 1, resultado)
+
+    RepositorioRegras(caminho).criar_nova_versao(
+        UUID(id_regra), versao_esperada=1, dados=DADOS_NOVA_VERSAO_CHUVA
+    )
+
+    avaliacao = RepositorioAvaliacoesRisco(caminho).obter_por_execucao(execucao_id)
+    assert avaliacao is not None
+    assert avaliacao.regra_id == UUID(id_regra)
+    assert avaliacao.regra_versao == 1
+    assert avaliacao.relevante is True
+    assert avaliacao.criterios == resultado.criterios

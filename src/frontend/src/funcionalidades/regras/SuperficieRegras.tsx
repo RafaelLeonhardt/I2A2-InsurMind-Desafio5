@@ -261,9 +261,18 @@ export function SuperficieRegras() {
                           data-indicador={regra.estado}
                         >
                           {regra.estado === 'ativa' ? (
-                            <CheckCircleIcon aria-hidden="true" size={16} weight="fill" />
+                            <CheckCircleIcon
+                              aria-hidden="true"
+                              data-icone-nome="check-circle"
+                              size={16}
+                              weight="fill"
+                            />
                           ) : (
-                            <ClockCounterClockwiseIcon aria-hidden="true" size={16} />
+                            <ClockCounterClockwiseIcon
+                              aria-hidden="true"
+                              data-icone-nome="clock-counter-clockwise"
+                              size={16}
+                            />
                           )}
                           {regra.estado === 'ativa' ? 'Ativa' : 'Substituída'}
                         </span>
