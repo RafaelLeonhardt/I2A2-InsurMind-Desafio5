@@ -19,6 +19,9 @@ from central_preventiva.adaptadores.http.dados_sinteticos import (
 from central_preventiva.adaptadores.http.elegibilidade import (
     criar_roteador as criar_roteador_elegibilidade,
 )
+from central_preventiva.adaptadores.http.execucao_preventiva import (
+    criar_roteador as criar_roteador_execucao_preventiva,
+)
 from central_preventiva.adaptadores.http.meteorologia import (
     criar_roteador as criar_roteador_meteorologia,
 )
@@ -102,6 +105,10 @@ def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
     )
     aplicacao.include_router(
         criar_roteador_elegibilidade(configuracao_ativa),
+        prefix="/api/v1",
+    )
+    aplicacao.include_router(
+        criar_roteador_execucao_preventiva(configuracao_ativa),
         prefix="/api/v1",
     )
     return aplicacao

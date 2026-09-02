@@ -2,6 +2,7 @@
 (RUNNER-01..12, AD-7)."""
 
 import asyncio
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Protocol
 from uuid import UUID
@@ -92,9 +93,9 @@ class _RepositorioExecucaoPreventiva(Protocol):
     def transicionar(
         self, execucao_id: UUID, versao_esperada: int, novo_estado: EstadoExecucao
     ) -> None: ...
-    def listar_nao_terminais(self) -> list[UUID]: ...
+    def listar_nao_terminais(self) -> Sequence[UUID]: ...
     def registrar_marco(self, execucao_id: UUID, marco: str, causa: str | None = None) -> None: ...
-    def listar_marcos(self, execucao_id: UUID) -> list[_Marco]: ...
+    def listar_marcos(self, execucao_id: UUID) -> Sequence[_Marco]: ...
 
 
 class _RepositorioAreasMonitoradas(Protocol):

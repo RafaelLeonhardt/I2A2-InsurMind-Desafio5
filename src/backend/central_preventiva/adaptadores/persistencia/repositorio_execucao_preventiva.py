@@ -74,7 +74,12 @@ class RepositorioExecucaoPreventiva:
         return execucao_id
 
     def obter(self, execucao_id: UUID) -> SnapshotExecucao:
-        """Lê o estado e a versão atuais da execução informada."""
+        """Lê o estado e a versão atuais da execução informada.
+
+        Assume que a execução existe (uso interno, apenas por chamadores que acabaram
+        de criá-la ou já a leram de `listar_nao_terminais`). Para uma origem externa
+        (ex.: um `execucao_id` de URL), use `buscar`, que devolve `None`.
+        """
 
         with abrir_conexao(self._caminho) as conexao:
             linha = conexao.execute(
@@ -82,6 +87,22 @@ class RepositorioExecucaoPreventiva:
                 [execucao_id],
             ).fetchone()
         assert linha is not None, f"execução {execucao_id} não encontrada"
+        return SnapshotExecucao(
+            id=UUID(str(linha[0])),
+            estado=EstadoExecucao(str(linha[1])),
+            versao=int(linha[2]),
+        )
+
+    def buscar(self, execucao_id: UUID) -> SnapshotExecucao | None:
+        """Lê o estado e a versão da execução informada, ou `None` se não existir."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            linha = conexao.execute(
+                "SELECT id, estado, versao FROM execucao_preventiva WHERE id = ?",
+                [execucao_id],
+            ).fetchone()
+        if linha is None:
+            return None
         return SnapshotExecucao(
             id=UUID(str(linha[0])),
             estado=EstadoExecucao(str(linha[1])),

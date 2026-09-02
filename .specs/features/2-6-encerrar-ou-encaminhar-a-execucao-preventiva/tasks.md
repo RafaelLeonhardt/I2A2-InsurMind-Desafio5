@@ -156,13 +156,15 @@ T6
 
 **Tools**: MCP: NONE — Skill: NONE
 
+**Nota de implementação**: `RepositorioExecucaoPreventiva.obter` (2.2) assume que a execução existe (`assert`) — adequado para chamadores internos que acabaram de criar/ler a linha, mas não para um `execucao_id` vindo de uma URL externa. Adicionado `buscar(execucao_id) -> SnapshotExecucao | None`, sem alterar `obter`.
+
 **Done when**:
 
-- [ ] `POST` sem `Idempotency-Key` retorna erro `application/problem+json`
-- [ ] `POST` com chave nova retorna `202` com `execucao_id`
-- [ ] `GET` reflete estado, marcos e, quando `aguardando_geracao`, quantidade total + prévia do público
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `POST` sem `Idempotency-Key` retorna erro `application/problem+json`
+- [x] `POST` com chave nova retorna `202` com `execucao_id`
+- [x] `GET` reflete estado, marcos e, quando `aguardando_geracao`, quantidade total + prévia do público
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full

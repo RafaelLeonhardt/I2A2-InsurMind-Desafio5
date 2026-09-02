@@ -143,6 +143,46 @@
         "title": "ProblemaElegibilidade",
         "type": "object"
       },
+      "ProblemaExecucao": {
+        "additionalProperties": false,
+        "description": "Falha da operação de execução, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaExecucao",
+        "type": "object"
+      },
       "ProblemaMeteorologia": {
         "additionalProperties": false,
         "description": "Falha de uma operação meteorológica, com ocorrência, impacto e próxima ação segura.",
@@ -882,6 +922,77 @@
         "title": "RespostaEventos",
         "type": "object"
       },
+      "RespostaExecucao": {
+        "additionalProperties": false,
+        "description": "Estado, marcos e, quando aplicável, prévia do público elegível de uma execução.",
+        "properties": {
+          "estado": {
+            "description": "Estado atual da execução.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "id": {
+            "description": "Identificador da execução.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "marcos": {
+            "description": "Marcos de transição já persistidos, na ordem em que ocorreram.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaMarco"
+            },
+            "title": "Marcos",
+            "type": "array"
+          },
+          "publico_elegivel_previa": {
+            "description": "Amostra de até 5 incluídos no público elegível; vazia fora de 'aguardando_geracao'.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaPreviaPublico"
+            },
+            "title": "Publico Elegivel Previa",
+            "type": "array"
+          },
+          "publico_elegivel_total": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Quantidade total de incluídos no público elegível; nulo fora de 'aguardando_geracao'.",
+            "title": "Publico Elegivel Total"
+          }
+        },
+        "required": [
+          "id",
+          "estado",
+          "marcos",
+          "publico_elegivel_total",
+          "publico_elegivel_previa"
+        ],
+        "title": "RespostaExecucao",
+        "type": "object"
+      },
+      "RespostaExecucaoAceita": {
+        "additionalProperties": false,
+        "description": "Ack público de uma execução criada ou já em andamento com a mesma chave.",
+        "properties": {
+          "execucao_id": {
+            "description": "Identificador da execução criada ou já em andamento.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "execucao_id"
+        ],
+        "title": "RespostaExecucaoAceita",
+        "type": "object"
+      },
       "RespostaHistoricoSincronizacoes": {
         "additionalProperties": false,
         "description": "Histórico de sincronização, com os marcos exigidos pela consulta de Marina.",
@@ -937,6 +1048,64 @@
           "resultados_anteriores"
         ],
         "title": "RespostaHistoricoSincronizacoes",
+        "type": "object"
+      },
+      "RespostaMarco": {
+        "additionalProperties": false,
+        "description": "Um marco de transição já persistido da execução.",
+        "properties": {
+          "causa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Causa registrada, ou nula quando não houve falha.",
+            "title": "Causa"
+          },
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC em que o marco foi registrado.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "marco": {
+            "description": "Nome do marco de transição.",
+            "title": "Marco",
+            "type": "string"
+          }
+        },
+        "required": [
+          "marco",
+          "causa",
+          "criado_em"
+        ],
+        "title": "RespostaMarco",
+        "type": "object"
+      },
+      "RespostaPreviaPublico": {
+        "additionalProperties": false,
+        "description": "Um item da amostra do público elegível formado.",
+        "properties": {
+          "canal": {
+            "description": "Canal preferencial do segurado, no momento da avaliação.",
+            "title": "Canal",
+            "type": "string"
+          },
+          "nome_segurado": {
+            "description": "Nome do segurado sintético incluído.",
+            "title": "Nome Segurado",
+            "type": "string"
+          }
+        },
+        "required": [
+          "nome_segurado",
+          "canal"
+        ],
+        "title": "RespostaPreviaPublico",
         "type": "object"
       },
       "RespostaRegra": {
@@ -1421,6 +1590,23 @@
         "title": "SolicitacaoColeta",
         "type": "object"
       },
+      "SolicitacaoExecucao": {
+        "additionalProperties": false,
+        "description": "Corpo da solicitação de início de execução: a área monitorada a avaliar.",
+        "properties": {
+          "area_id": {
+            "description": "Identificador da área monitorada a avaliar.",
+            "format": "uuid",
+            "title": "Area Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "area_id"
+        ],
+        "title": "SolicitacaoExecucao",
+        "type": "object"
+      },
       "SolicitacaoRegra": {
         "additionalProperties": false,
         "description": "Configuração de regra proposta, no formato aceito por `testar`/`ativar`.",
@@ -1550,6 +1736,139 @@
         "summary": "Restaurar os dados sintéticos da demonstração",
         "tags": [
           "Dados sintéticos"
+        ]
+      }
+    },
+    "/api/v1/execucoes": {
+      "post": {
+        "description": "Inicia, de forma idempotente, a orquestração completa de coleta, avaliação de risco e avaliação de elegibilidade para a área informada, sem exigir nenhum clique manual intermediário (RUNNER-01). Exige o cabeçalho `Idempotency-Key` em toda requisição.",
+        "operationId": "iniciar_execucao_api_v1_execucoes_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitacaoExecucao"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaExecucaoAceita"
+                }
+              }
+            },
+            "description": "Execução aceita e em andamento."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaExecucao"
+                }
+              }
+            },
+            "description": "Área monitorada desconhecida."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaExecucao"
+                }
+              }
+            },
+            "description": "Conflito de idempotência."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaExecucao"
+                }
+              }
+            },
+            "description": "Requisição sem o cabeçalho `Idempotency-Key`."
+          }
+        },
+        "summary": "Iniciar uma execução preventiva",
+        "tags": [
+          "Execução"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_id}": {
+      "get": {
+        "description": "Devolve o estado atual, os marcos de transição já persistidos e, quando o estado é 'aguardando_geracao', a quantidade total e uma prévia do público elegível formado (RUNNER-05).",
+        "operationId": "consultar_execucao_api_v1_execucoes__execucao_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaExecucao"
+                }
+              }
+            },
+            "description": "Execução encontrada."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaExecucao"
+                }
+              }
+            },
+            "description": "Execução inexistente."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaExecucao"
+                }
+              }
+            },
+            "description": "O identificador da execução não é um UUID válido."
+          }
+        },
+        "summary": "Consultar o acompanhamento de uma execução preventiva",
+        "tags": [
+          "Execução"
         ]
       }
     },

@@ -1,6 +1,7 @@
 """Testes do `RepositorioExecucaoPreventiva`: criação, leitura e transição otimista (AD-008)."""
 
 from pathlib import Path
+from uuid import uuid4
 
 import pytest
 
@@ -139,6 +140,19 @@ def test_registrar_marco_persiste_causa_opcional_e_correlaciona_por_execucao(
     assert [m.marco for m in marcos] == ["coleta_concluida", "falhou_processamento"]
     assert marcos[0].causa is None
     assert marcos[1].causa == "ValueError: motivo sintético"
+
+
+def test_buscar_execucao_inexistente_devolve_none(tmp_path: Path) -> None:
+    repositorio = RepositorioExecucaoPreventiva(preparar_banco(tmp_path))
+
+    assert repositorio.buscar(uuid4()) is None
+
+
+def test_buscar_execucao_existente_devolve_o_mesmo_snapshot_de_obter(tmp_path: Path) -> None:
+    repositorio = RepositorioExecucaoPreventiva(preparar_banco(tmp_path))
+    execucao_id = repositorio.criar(EstadoExecucao.COLETANDO)
+
+    assert repositorio.buscar(execucao_id) == repositorio.obter(execucao_id)
 
 
 def test_listar_marcos_de_execucao_sem_nenhum_marco_devolve_lista_vazia(
