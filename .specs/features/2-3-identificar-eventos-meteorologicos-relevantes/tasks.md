@@ -132,10 +132,12 @@ T6
 
 **Done when**:
 
-- [ ] `obter_ativa` retorna a regra com `estado = ativa` para o tipo de evento; `None` se nenhuma existir
-- [ ] `salvar` persiste snapshot completo (evento, regra, versão, critérios serializados, motivo)
-- [ ] `obter_por_execucao` recupera o snapshot salvo sem recalcular
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `obter_ativa` retorna a regra com `estado = ativa` para o tipo de evento; `None` se nenhuma existir
+- [x] `salvar` persiste snapshot completo (evento, regra, versão, critérios serializados, motivo)
+- [x] `obter_por_execucao` recupera o snapshot salvo sem recalcular
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+
+**Nota de implementação**: `salvar` ganhou um parâmetro explícito `regra_versao: int` além dos listados no design — `regra_id` (UUID) e `ResultadoAvaliacaoRisco` não carregam a versão, mas `avaliacoes_risco.regra_versao` é `NOT NULL` (AD-11: snapshot de versão, não referência viva). `AvaliacaoRisco` (registro completo persistido, distinto do `ResultadoAvaliacaoRisco` puro do domínio) vive em `repositorio_avaliacoes_risco.py`, mesmo padrão de `SnapshotExecucao` em `repositorio_execucao_preventiva.py` (2.2 T2).
 
 **Tests**: integration
 **Gate**: quick
