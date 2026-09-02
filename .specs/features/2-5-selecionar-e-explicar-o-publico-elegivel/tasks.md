@@ -150,12 +150,14 @@ T6
 
 **Tools**: MCP: NONE — Skill: NONE
 
+**Nota de implementação**: a transição de estado da execução (`avaliando_elegibilidade` → `aguardando_geracao`/`sem_elegiveis`) fica fora deste serviço, como o Design já previu — a História 2.6 decide entre os dois terminais a partir da contagem devolvida por `avaliar_publico`.
+
 **Done when**:
 
-- [ ] Evento sem nenhum candidato elegível retorna conjunto vazio válido, sem erro e sem chamada de IA
-- [ ] Reprocessar a mesma execução não duplica nenhum resultado
-- [ ] Snapshots (segurado, apólice, evento, regra) preservados mesmo que dados originais mudem depois
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Evento sem nenhum candidato elegível retorna conjunto vazio válido, sem erro e sem chamada de IA
+- [x] Reprocessar a mesma execução não duplica nenhum resultado
+- [x] Snapshots (segurado, apólice, evento, regra) preservados mesmo que dados originais mudem depois
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
