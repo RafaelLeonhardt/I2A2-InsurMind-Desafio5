@@ -1,6 +1,7 @@
 """Repositório DuckDB de `execucao_preventiva`, com concorrência otimista (AD-008)."""
 
 from dataclasses import dataclass
+from datetime import datetime
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -42,6 +43,15 @@ class SnapshotExecucao:
     id: UUID
     estado: EstadoExecucao
     versao: int
+
+
+@dataclass(frozen=True, slots=True)
+class Marco:
+    """Um marco de transição persistido de uma execução (RUNNER-02)."""
+
+    marco: str
+    causa: str | None
+    criado_em: datetime
 
 
 class RepositorioExecucaoPreventiva:
@@ -104,6 +114,52 @@ class RepositorioExecucaoPreventiva:
             ).fetchone()
         if resultado is None:
             raise ConflitoVersao(execucao_id, versao_esperada)
+
+    def listar_nao_terminais(self) -> list[UUID]:
+        """Lista os ids de execuções ainda fora de `ESTADOS_TERMINAIS` (RUNNER-07).
+
+        Usada por `GerenciadorExecucoes.retomar_pendentes` no boot do backend — filtra em
+        Python, não em SQL, para que `ESTADOS_TERMINAIS` (AD-004) continue sendo a única
+        fonte de verdade sobre quais estados encerram a execução.
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute("SELECT id, estado FROM execucao_preventiva").fetchall()
+        return [
+            UUID(str(id_))
+            for id_, estado in linhas
+            if not eh_terminal(EstadoExecucao(str(estado)))
+        ]
+
+    def registrar_marco(
+        self, execucao_id: UUID, marco: str, causa: str | None = None
+    ) -> None:
+        """Persiste um marco de transição correlacionado à execução (RUNNER-02, AD-10)."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            conexao.execute(
+                "INSERT INTO marcos_execucao (id, execucao_id, marco, causa) "
+                "VALUES (?, ?, ?, ?)",
+                [uuid4(), execucao_id, marco, causa],
+            )
+
+    def listar_marcos(self, execucao_id: UUID) -> list[Marco]:
+        """Lista os marcos da execução, em ordem cronológica (RUNNER-07, reidratação)."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute(
+                "SELECT marco, causa, criado_em FROM marcos_execucao "
+                "WHERE execucao_id = ? ORDER BY criado_em",
+                [execucao_id],
+            ).fetchall()
+        return [
+            Marco(
+                marco=str(marco),
+                causa=None if causa is None else str(causa),
+                criado_em=criado_em,
+            )
+            for marco, causa, criado_em in linhas
+        ]
 
 
 class RepositorioExcecoesOperacionais:

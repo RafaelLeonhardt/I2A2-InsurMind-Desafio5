@@ -101,3 +101,51 @@ def test_registrar_excecao_operacional_persiste_causa_tentativas_e_impacto(
     assert linha[1] == "TimeoutException: timeout"
     assert linha[2] == 3
     assert linha[3] == "Coleta meteorológica indisponível."
+
+
+def test_listar_nao_terminais_exclui_estados_terminais(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    repositorio = RepositorioExecucaoPreventiva(caminho)
+
+    id_coletando = repositorio.criar(EstadoExecucao.COLETANDO)
+    id_avaliando = repositorio.criar(EstadoExecucao.AVALIANDO_ELEGIBILIDADE)
+    id_aguardando = repositorio.criar(EstadoExecucao.AGUARDANDO_GERACAO)
+    id_sem_risco = repositorio.criar(EstadoExecucao.SEM_RISCO)
+    id_sem_elegiveis = repositorio.criar(EstadoExecucao.SEM_ELEGIVEIS)
+    id_falhou = repositorio.criar(EstadoExecucao.FALHOU_COLETA)
+
+    nao_terminais = set(repositorio.listar_nao_terminais())
+
+    assert {id_coletando, id_avaliando, id_aguardando} <= nao_terminais
+    assert id_sem_risco not in nao_terminais
+    assert id_sem_elegiveis not in nao_terminais
+    assert id_falhou not in nao_terminais
+
+
+def test_registrar_marco_persiste_causa_opcional_e_correlaciona_por_execucao(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    repositorio = RepositorioExecucaoPreventiva(caminho)
+    execucao_id = repositorio.criar(EstadoExecucao.COLETANDO)
+
+    repositorio.registrar_marco(execucao_id, "coleta_concluida")
+    repositorio.registrar_marco(
+        execucao_id, "falhou_processamento", causa="ValueError: motivo sintético"
+    )
+
+    marcos = repositorio.listar_marcos(execucao_id)
+
+    assert [m.marco for m in marcos] == ["coleta_concluida", "falhou_processamento"]
+    assert marcos[0].causa is None
+    assert marcos[1].causa == "ValueError: motivo sintético"
+
+
+def test_listar_marcos_de_execucao_sem_nenhum_marco_devolve_lista_vazia(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    repositorio = RepositorioExecucaoPreventiva(caminho)
+    execucao_id = repositorio.criar(EstadoExecucao.COLETANDO)
+
+    assert repositorio.listar_marcos(execucao_id) == []

@@ -101,11 +101,13 @@ T6
 
 **Tools**: MCP: NONE — Skill: NONE
 
+**Nota de implementação**: acrescentado também `listar_marcos(execucao_id) -> list[Marco]` (não pedido literalmente pelo Design, mas necessário para o `GET` de T4 e a reidratação de RUNNER-07 exibirem os marcos já persistidos).
+
 **Done when**:
 
-- [ ] `listar_nao_terminais` retorna apenas execuções fora de `ESTADOS_TERMINAIS`
-- [ ] `registrar_marco` persiste marco com timestamp e causa opcional
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `listar_nao_terminais` retorna apenas execuções fora de `ESTADOS_TERMINAIS`
+- [x] `registrar_marco` persiste marco com timestamp e causa opcional
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
