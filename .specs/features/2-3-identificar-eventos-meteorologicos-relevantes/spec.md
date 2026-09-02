@@ -129,7 +129,7 @@ As Histórias 2.1 e 2.2 entregam eventos meteorológicos normalizados e resilien
 | RISCO-10 | P1: Transições de estado a partir do resultado da relevância | Design | Implementing |
 | RISCO-11 | P2: Explicabilidade da decisão e progresso em tempo real | Design | Implementing |
 | RISCO-12 | P2: Explicabilidade da decisão e progresso em tempo real | Design | Implementing |
-| RISCO-13 | P2: Explicabilidade da decisão e progresso em tempo real | Design | Pending |
+| RISCO-13 | P2: Explicabilidade da decisão e progresso em tempo real | Design | Implementing |
 
 **ID format:** `RISCO-NN`
 

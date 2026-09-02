@@ -205,11 +205,13 @@ T6
 
 **Done when**:
 
-- [ ] Critérios exibidos em colunas estáveis (operando, valor, resultado, justificativa)
-- [ ] Relevância/sem risco/dado inválido distinguíveis sem depender só de cor
-- [ ] Nenhum cálculo de relevância replicado no componente
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Critérios exibidos em colunas estáveis (operando, valor, resultado, justificativa)
+- [x] Relevância/sem risco/dado inválido distinguíveis sem depender só de cor
+- [x] Nenhum cálculo de relevância replicado no componente
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+
+**Nota de implementação**: tipos gerados a partir do `openapi.json` local (`openapi-typescript ../backend/.../openapi.json`), equivalente ao `gerar-tipos-api` contra um servidor ao vivo. `getAvaliacaoRisco` devolve `null` (não lança) para o 404 "ainda não avaliado" — é um estado real de progresso (RISCO-13: `aguardando`), distinto de uma falha real (`indisponivel`); só rede/422/5xx lançam `ErroAvaliacaoRisco`. `SuperficieEventoDecisao` recebe `execucaoId` como prop — como `SuperficieFonteMeteorologica` (2.1/2.2), não está fiada à navegação principal (`App.tsx`/`PerfilContexto`), que ainda não suporta rotas parametrizadas; mesma lacuna já registrada em `STATE.md` para as demais superfícies "profundas" desta linha de histórias, a fechar por uma história de integração futura (ex.: linha do tempo 4.4).
 
 **Tests**: unit
 **Gate**: full
