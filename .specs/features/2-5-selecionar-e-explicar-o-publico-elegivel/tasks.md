@@ -200,11 +200,11 @@ T6
 
 **Done when**:
 
-- [ ] Quantidades e tabela exibidas com segurado sintético, apólice, localização, canal, resultado
-- [ ] Explicação de cada linha acessível por teclado, sem depender de hover
-- [ ] Inclusões/exclusões distinguíveis por texto+ícone+cor
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Quantidades e tabela exibidas com segurado sintético, apólice, localização, canal, resultado
+- [x] Explicação de cada linha acessível por teclado, sem depender de hover
+- [x] Inclusões/exclusões distinguíveis por texto+ícone+cor
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados (gerado via `openapi-typescript` direto do `openapi.json` local)
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full

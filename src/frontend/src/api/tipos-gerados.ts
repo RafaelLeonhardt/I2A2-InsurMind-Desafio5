@@ -44,6 +44,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/execucoes/{execucao_id}/elegibilidade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o público elegível de uma execução
+         * @description Devolve as quantidades de incluídos e excluídos e a lista do público avaliado, com segurado sintético, apólice, localização, canal e resultado. Uma execução sem nenhum resultado devolve quantidades zeradas e lista vazia.
+         */
+        get: operations["consultar_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/execucoes/{execucao_id}/elegibilidade/{registro_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar a explicação completa de um resultado de elegibilidade
+         * @description Devolve regra e versão, operando, valor observado, resultado e justificativa de cada critério da decisão de elegibilidade já tomada, sem recalcular nada.
+         */
+        get: operations["consultar_registro_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade__registro_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/meteorologia/cenarios-sinteticos/{identificador}/ativar": {
         parameters: {
             query?: never;
@@ -387,6 +427,37 @@ export interface components {
             proxima_acao: string;
         };
         /**
+         * ProblemaElegibilidade
+         * @description Falha da consulta de elegibilidade, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaElegibilidade: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
          * ProblemaMeteorologia
          * @description Falha de uma operação meteorológica, com ocorrência, impacto e próxima ação segura.
          */
@@ -657,6 +728,32 @@ export interface components {
             valor_observado: string;
         };
         /**
+         * RespostaCriterioElegibilidade
+         * @description Um critério avaliado: operando, valor observado, resultado e justificativa.
+         */
+        RespostaCriterioElegibilidade: {
+            /**
+             * Atende
+             * @description Se o valor observado atende ao critério.
+             */
+            atende: boolean;
+            /**
+             * Justificativa
+             * @description Explicação em português brasileiro do resultado.
+             */
+            justificativa: string;
+            /**
+             * Operando
+             * @description O que foi comparado (ex.: área afetada, cobertura).
+             */
+            operando: string;
+            /**
+             * Valor Observado
+             * @description Valor observado para este critério.
+             */
+            valor_observado: string;
+        };
+        /**
          * RespostaCriterioTeste
          * @description Um critério avaliado no teste determinístico: operando, valor, resultado e justificativa.
          */
@@ -728,6 +825,110 @@ export interface components {
              * @description Estado de prontidão de cada uma das 4 dependências monitoradas.
              */
             dependencias: components["schemas"]["RespostaDependencia"][];
+        };
+        /**
+         * RespostaDetalheElegibilidade
+         * @description Explicação completa de um resultado de elegibilidade (ELEG-09).
+         */
+        RespostaDetalheElegibilidade: {
+            /**
+             * Apolice Id
+             * Format: uuid
+             * @description Identificador da apólice avaliada.
+             */
+            apolice_id: string;
+            /**
+             * Canal
+             * @description Canal preferencial do segurado, no momento da avaliação.
+             */
+            canal: string;
+            /**
+             * Codigo Ibge Area
+             * @description Código IBGE da área da apólice avaliada.
+             */
+            codigo_ibge_area: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC da avaliação.
+             */
+            criado_em: string;
+            /**
+             * Criterios
+             * @description Critérios avaliados, na ordem aplicada.
+             */
+            criterios: components["schemas"]["RespostaCriterioElegibilidade"][];
+            /**
+             * Elegivel
+             * @description Se a combinação foi incluída no público elegível.
+             */
+            elegivel: boolean;
+            /**
+             * Evento Id
+             * Format: uuid
+             * @description Identificador do evento meteorológico avaliado.
+             */
+            evento_id: string;
+            /**
+             * Execucao Id
+             * Format: uuid
+             * @description Identificador da execução avaliada.
+             */
+            execucao_id: string;
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador do resultado de elegibilidade.
+             */
+            id: string;
+            /**
+             * Justificativa
+             * @description Explicação objetiva do resultado, em português.
+             */
+            justificativa: string;
+            /**
+             * Nome Segurado
+             * @description Nome do segurado sintético avaliado.
+             */
+            nome_segurado: string;
+            /**
+             * Regra Id
+             * Format: uuid
+             * @description Identificador da versão de regra usada na avaliação.
+             */
+            regra_id: string;
+            /**
+             * Regra Versao
+             * @description Versão da regra usada na avaliação.
+             */
+            regra_versao: number;
+            /**
+             * Segurado Id
+             * Format: uuid
+             * @description Identificador do segurado avaliado.
+             */
+            segurado_id: string;
+        };
+        /**
+         * RespostaElegibilidade
+         * @description Quantidades e lista do público avaliado de uma execução (ELEG-08).
+         */
+        RespostaElegibilidade: {
+            /**
+             * Excluidos
+             * @description Quantidade de resultados excluídos.
+             */
+            excluidos: number;
+            /**
+             * Incluidos
+             * @description Quantidade de resultados incluídos.
+             */
+            incluidos: number;
+            /**
+             * Registros
+             * @description Resultados de elegibilidade, mais recentes primeiro.
+             */
+            registros: components["schemas"]["RespostaResumoElegibilidade"][];
         };
         /**
          * RespostaEvento
@@ -895,6 +1096,44 @@ export interface components {
              * @constant
              */
             status: "restaurado";
+        };
+        /**
+         * RespostaResumoElegibilidade
+         * @description Um resultado de elegibilidade na listagem: segurado, apólice, localização, canal.
+         */
+        RespostaResumoElegibilidade: {
+            /**
+             * Apolice Id
+             * Format: uuid
+             * @description Identificador da apólice avaliada.
+             */
+            apolice_id: string;
+            /**
+             * Canal
+             * @description Canal preferencial do segurado, no momento da avaliação.
+             */
+            canal: string;
+            /**
+             * Codigo Ibge Area
+             * @description Código IBGE da área da apólice avaliada.
+             */
+            codigo_ibge_area: string;
+            /**
+             * Elegivel
+             * @description Se a combinação foi incluída no público elegível.
+             */
+            elegivel: boolean;
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador do resultado de elegibilidade.
+             */
+            id: string;
+            /**
+             * Nome Segurado
+             * @description Nome do segurado sintético avaliado.
+             */
+            nome_segurado: string;
         };
         /**
          * RespostaSaude
@@ -1261,6 +1500,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaAvaliacaoRisco"];
+                };
+            };
+        };
+    };
+    consultar_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execucao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Público elegível encontrado (pode ser vazio). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaElegibilidade"];
+                };
+            };
+            /** @description O identificador da execução não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaElegibilidade"];
+                };
+            };
+        };
+    };
+    consultar_registro_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade__registro_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execucao_id: string;
+                registro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado de elegibilidade encontrado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaDetalheElegibilidade"];
+                };
+            };
+            /** @description Resultado inexistente ou de outra execução. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaElegibilidade"];
+                };
+            };
+            /** @description Algum identificador informado não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaElegibilidade"];
                 };
             };
         };

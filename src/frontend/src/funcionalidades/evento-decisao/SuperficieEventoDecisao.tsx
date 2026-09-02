@@ -10,6 +10,13 @@ import {
   ErroAvaliacaoRisco,
   getAvaliacaoRisco,
 } from '../../api/avaliacaoRisco'
+import {
+  type DetalheElegibilidade,
+  type Elegibilidade,
+  ErroElegibilidade,
+  getDetalheElegibilidade,
+  getElegibilidade,
+} from '../../api/elegibilidade'
 import './SuperficieEventoDecisao.css'
 
 type EstadoCarregamento = 'carregando' | 'aguardando' | 'disponivel' | 'indisponivel'
@@ -59,6 +66,17 @@ const ROTULOS_MOTIVO: Record<string, string> = {
   sem_regra_ativa: 'Nenhuma regra ativa para este tipo de evento.',
 }
 
+type EstadoElegibilidade = 'carregando' | 'disponivel' | 'indisponivel'
+
+function IconeResultadoElegibilidade({ elegivel }: { elegivel: boolean }) {
+  if (elegivel) {
+    return (
+      <CheckCircleIcon aria-hidden="true" data-icone-nome="check-circle" size={16} weight="fill" />
+    )
+  }
+  return <XCircleIcon aria-hidden="true" data-icone-nome="x-circle" size={16} weight="fill" />
+}
+
 type PropriedadesSuperficieEventoDecisao = {
   execucaoId: string
 }
@@ -73,6 +91,16 @@ export function SuperficieEventoDecisao({ execucaoId }: PropriedadesSuperficieEv
   const [estado, definirEstado] = useState<EstadoCarregamento>('carregando')
   const [avaliacao, definirAvaliacao] = useState<AvaliacaoRisco | null>(null)
   const [falha, definirFalha] = useState<ErroAvaliacaoRisco | null>(null)
+
+  const [estadoElegibilidade, definirEstadoElegibilidade] =
+    useState<EstadoElegibilidade>('carregando')
+  const [elegibilidade, definirElegibilidade] = useState<Elegibilidade | null>(null)
+  const [falhaElegibilidade, definirFalhaElegibilidade] = useState<ErroElegibilidade | null>(null)
+  const [registroSelecionadoId, definirRegistroSelecionadoId] = useState<string | null>(null)
+  const [detalheSelecionado, definirDetalheSelecionado] = useState<DetalheElegibilidade | null>(
+    null,
+  )
+  const [carregandoDetalhe, definirCarregandoDetalhe] = useState(false)
 
   useEffect(() => {
     let cancelado = false
@@ -95,6 +123,49 @@ export function SuperficieEventoDecisao({ execucaoId }: PropriedadesSuperficieEv
       cancelado = true
     }
   }, [execucaoId])
+
+  useEffect(() => {
+    let cancelado = false
+    definirEstadoElegibilidade('carregando')
+    definirRegistroSelecionadoId(null)
+    definirDetalheSelecionado(null)
+
+    getElegibilidade(execucaoId)
+      .then((resultado) => {
+        if (cancelado) return
+        definirElegibilidade(resultado)
+        definirFalhaElegibilidade(null)
+        definirEstadoElegibilidade('disponivel')
+      })
+      .catch((causa: unknown) => {
+        if (cancelado) return
+        definirFalhaElegibilidade(causa instanceof ErroElegibilidade ? causa : null)
+        definirEstadoElegibilidade('indisponivel')
+      })
+
+    return () => {
+      cancelado = true
+    }
+  }, [execucaoId])
+
+  async function abrirCriterios(registroId: string) {
+    if (registroSelecionadoId === registroId) {
+      definirRegistroSelecionadoId(null)
+      definirDetalheSelecionado(null)
+      return
+    }
+    definirRegistroSelecionadoId(registroId)
+    definirCarregandoDetalhe(true)
+    definirDetalheSelecionado(null)
+    try {
+      const detalhe = await getDetalheElegibilidade(execucaoId, registroId)
+      definirDetalheSelecionado(detalhe)
+    } catch {
+      definirDetalheSelecionado(null)
+    } finally {
+      definirCarregandoDetalhe(false)
+    }
+  }
 
   const categoria = avaliacao ? calcularCategoria(avaliacao) : null
 
@@ -167,6 +238,123 @@ export function SuperficieEventoDecisao({ execucaoId }: PropriedadesSuperficieEv
               ))}
             </tbody>
           </table>
+        </section>
+      )}
+
+      {estadoElegibilidade === 'carregando' && (
+        <p role="status">Carregando público elegível…</p>
+      )}
+
+      {estadoElegibilidade === 'indisponivel' && (
+        <div role="alert">
+          <p>
+            <strong>Indisponível</strong>
+          </p>
+          <p>
+            <strong>Ocorrência:</strong>{' '}
+            {falhaElegibilidade?.ocorrencia ?? 'Falha desconhecida ao consultar a elegibilidade.'}
+          </p>
+          <p>
+            <strong>Impacto:</strong> {falhaElegibilidade?.impacto ?? ''}
+          </p>
+          <p>
+            <strong>Próxima ação:</strong> {falhaElegibilidade?.proximaAcao ?? ''}
+          </p>
+        </div>
+      )}
+
+      {estadoElegibilidade === 'disponivel' && elegibilidade && (
+        <section aria-labelledby="titulo-publico-elegivel">
+          <h2 id="titulo-publico-elegivel">Público elegível</h2>
+          <p>
+            <strong>{elegibilidade.incluidos}</strong> incluído
+            {elegibilidade.incluidos === 1 ? '' : 's'} — <strong>{elegibilidade.excluidos}</strong>{' '}
+            excluído{elegibilidade.excluidos === 1 ? '' : 's'}
+          </p>
+
+          {elegibilidade.registros.length === 0 ? (
+            <p>Nenhum segurado avaliado até o momento.</p>
+          ) : (
+            <table className="tabela-publico-elegivel">
+              <caption className="sr-only">
+                Público elegível avaliado, com explicação por linha sem depender de hover
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Segurado</th>
+                  <th scope="col">Apólice</th>
+                  <th scope="col">Localização</th>
+                  <th scope="col">Canal</th>
+                  <th scope="col">Resultado</th>
+                  <th scope="col">Explicação</th>
+                </tr>
+              </thead>
+              <tbody>
+                {elegibilidade.registros.map((registro) => (
+                  <tr key={registro.id}>
+                    <td>{registro.nomeSegurado}</td>
+                    <td>{registro.apoliceId}</td>
+                    <td>{registro.codigoIbgeArea}</td>
+                    <td>{registro.canal}</td>
+                    <td>
+                      <span
+                        className={`resultado-elegibilidade-badge resultado-elegibilidade-badge--${registro.elegivel ? 'incluido' : 'excluido'}`}
+                        data-indicador={registro.elegivel ? 'incluido' : 'excluido'}
+                      >
+                        <IconeResultadoElegibilidade elegivel={registro.elegivel} />
+                        {registro.elegivel ? 'Incluído' : 'Excluído'}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        aria-expanded={registroSelecionadoId === registro.id}
+                        onClick={() => abrirCriterios(registro.id)}
+                        type="button"
+                      >
+                        {registroSelecionadoId === registro.id ? 'Ocultar critérios' : 'Ver critérios'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+
+          {registroSelecionadoId && carregandoDetalhe && (
+            <p role="status">Carregando explicação…</p>
+          )}
+
+          {registroSelecionadoId && !carregandoDetalhe && detalheSelecionado && (
+            <section aria-labelledby="titulo-explicacao-elegibilidade">
+              <h3 id="titulo-explicacao-elegibilidade">
+                Explicação — {detalheSelecionado.nomeSegurado} (regra v{detalheSelecionado.regraVersao})
+              </h3>
+              <p>{detalheSelecionado.justificativa}</p>
+              <table className="tabela-criterios-elegibilidade">
+                <caption className="sr-only">
+                  Critérios avaliados na decisão de elegibilidade
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Operando</th>
+                    <th scope="col">Valor observado</th>
+                    <th scope="col">Resultado</th>
+                    <th scope="col">Justificativa</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {detalheSelecionado.criterios.map((criterio) => (
+                    <tr key={criterio.operando}>
+                      <td>{criterio.operando}</td>
+                      <td>{criterio.valorObservado}</td>
+                      <td>{criterio.atende ? 'Atende' : 'Não atende'}</td>
+                      <td>{criterio.justificativa}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          )}
         </section>
       )}
     </main>

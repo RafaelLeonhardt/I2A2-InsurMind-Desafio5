@@ -47,3 +47,39 @@
   vertical-align: top;
   border-bottom: 1px solid #e2e8f0;
 }
+
+.tabela-publico-elegivel,
+.tabela-criterios-elegibilidade {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.tabela-publico-elegivel th,
+.tabela-publico-elegivel td,
+.tabela-criterios-elegibilidade th,
+.tabela-criterios-elegibilidade td {
+  padding: 0.6rem 0.8rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.resultado-elegibilidade-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.resultado-elegibilidade-badge--incluido {
+  color: #15803d;
+  background: #dcfce7;
+}
+
+.resultado-elegibilidade-badge--excluido {
+  color: #b91c1c;
+  background: #fee2e2;
+}
