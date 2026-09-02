@@ -180,11 +180,13 @@ T6
 
 **Done when**:
 
-- [ ] `200` com os critérios detalhados quando a avaliação existe
-- [ ] `404`/`application/problem+json` quando a execução não tem avaliação de risco ainda
-- [ ] Roteador incluído em `composicao/api.py`
-- [ ] `openapi.json` regenerado e `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `200` com os critérios detalhados quando a avaliação existe
+- [x] `404`/`application/problem+json` quando a execução não tem avaliação de risco ainda
+- [x] Roteador incluído em `composicao/api.py`
+- [x] `openapi.json` regenerado e `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+
+**Nota de implementação**: `execucao_id` é recebido como `str` (não `UUID`) e validado manualmente, devolvendo `422` próprio (`ProblemaAvaliacaoRisco`) em vez do `422`/`HTTPValidationError` genérico que o FastAPI gera por coerção automática de tipo — esse schema built-in não tem `description` nos campos e quebraria `test_todo_campo_dos_schemas_sob_api_v1_tem_description_em_portugues`. Mesmo padrão implícito já seguido por todo endpoint existente que declara seu próprio `422` no `responses=`.
 
 **Tests**: integration
 **Gate**: full

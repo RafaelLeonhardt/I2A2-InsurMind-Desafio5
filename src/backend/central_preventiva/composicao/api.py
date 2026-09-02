@@ -7,6 +7,9 @@ from contextlib import asynccontextmanager, suppress
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from central_preventiva.adaptadores.http.avaliacao_risco import (
+    criar_roteador as criar_roteador_avaliacao_risco,
+)
 from central_preventiva.adaptadores.http.contexto import (
     criar_roteador as criar_roteador_contexto,
 )
@@ -81,6 +84,10 @@ def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
     )
     aplicacao.include_router(
         criar_roteador_meteorologia(configuracao_ativa),
+        prefix="/api/v1",
+    )
+    aplicacao.include_router(
+        criar_roteador_avaliacao_risco(configuracao_ativa),
         prefix="/api/v1",
     )
     return aplicacao

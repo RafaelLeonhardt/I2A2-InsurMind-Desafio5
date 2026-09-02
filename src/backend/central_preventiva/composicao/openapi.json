@@ -1,6 +1,46 @@
 {
   "components": {
     "schemas": {
+      "ProblemaAvaliacaoRisco": {
+        "additionalProperties": false,
+        "description": "Falha da consulta de avaliação de risco, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaAvaliacaoRisco",
+        "type": "object"
+      },
       "ProblemaContexto": {
         "additionalProperties": false,
         "description": "Falha da consulta do segurado padrão, com ocorrência, impacto e próxima ação segura.",
@@ -161,6 +201,71 @@
         "title": "ProblemaRestauracao",
         "type": "object"
       },
+      "RespostaAvaliacaoRisco": {
+        "additionalProperties": false,
+        "description": "Snapshot público da avaliação de relevância meteorológica de uma execução.",
+        "properties": {
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC da avaliação.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "criterios": {
+            "description": "Critérios avaliados, na ordem aplicada.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaCriterio"
+            },
+            "title": "Criterios",
+            "type": "array"
+          },
+          "evento_id": {
+            "description": "Identificador do evento meteorológico avaliado.",
+            "format": "uuid",
+            "title": "Evento Id",
+            "type": "string"
+          },
+          "execucao_id": {
+            "description": "Identificador da execução avaliada.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "motivo": {
+            "description": "Motivo tipado do resultado.",
+            "title": "Motivo",
+            "type": "string"
+          },
+          "regra_id": {
+            "description": "Identificador da regra aplicada.",
+            "format": "uuid",
+            "title": "Regra Id",
+            "type": "string"
+          },
+          "regra_versao": {
+            "description": "Versão da regra no momento da avaliação.",
+            "title": "Regra Versao",
+            "type": "integer"
+          },
+          "relevante": {
+            "description": "Se o evento foi considerado relevante.",
+            "title": "Relevante",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "execucao_id",
+          "evento_id",
+          "regra_id",
+          "regra_versao",
+          "relevante",
+          "criterios",
+          "motivo",
+          "criado_em"
+        ],
+        "title": "RespostaAvaliacaoRisco",
+        "type": "object"
+      },
       "RespostaColetaAceita": {
         "additionalProperties": false,
         "description": "Ack público de uma solicitação de coleta manual aceita ou já registrada.",
@@ -215,6 +320,40 @@
           "aceito_em"
         ],
         "title": "RespostaColetaAceita",
+        "type": "object"
+      },
+      "RespostaCriterio": {
+        "additionalProperties": false,
+        "description": "Um critério avaliado: operando, valor observado, resultado e justificativa.",
+        "properties": {
+          "atende": {
+            "description": "Se o valor observado atende ao critério.",
+            "title": "Atende",
+            "type": "boolean"
+          },
+          "justificativa": {
+            "description": "Explicação em português brasileiro do resultado.",
+            "title": "Justificativa",
+            "type": "string"
+          },
+          "operando": {
+            "description": "O que foi comparado (ex.: área aplicável, intensidade).",
+            "title": "Operando",
+            "type": "string"
+          },
+          "valor_observado": {
+            "description": "Valor observado no evento para este critério.",
+            "title": "Valor Observado",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operando",
+          "valor_observado",
+          "atende",
+          "justificativa"
+        ],
+        "title": "RespostaCriterio",
         "type": "object"
       },
       "RespostaDependencia": {
@@ -779,6 +918,59 @@
         "summary": "Restaurar os dados sintéticos da demonstração",
         "tags": [
           "Dados sintéticos"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_id}/avaliacao-risco": {
+      "get": {
+        "description": "Devolve o operando, o valor observado, o resultado e a justificativa de cada critério da decisão de risco já tomada para a execução, sem recalcular nada.",
+        "operationId": "consultar_avaliacao_risco_api_v1_execucoes__execucao_id__avaliacao_risco_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaAvaliacaoRisco"
+                }
+              }
+            },
+            "description": "Avaliação de risco encontrada."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaAvaliacaoRisco"
+                }
+              }
+            },
+            "description": "A execução ainda não tem avaliação de risco."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaAvaliacaoRisco"
+                }
+              }
+            },
+            "description": "O identificador da execução não é um UUID válido."
+          }
+        },
+        "summary": "Consultar o detalhe da decisão de risco de uma execução",
+        "tags": [
+          "Risco"
         ]
       }
     },
