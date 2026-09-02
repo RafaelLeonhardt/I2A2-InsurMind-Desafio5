@@ -131,8 +131,8 @@ A História 2.1 entrega a coleta feliz do INMET, mas nada garante hoje o que aco
 | RESIL-07 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Pending |
 | RESIL-08 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Implementing |
 | RESIL-09 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Pending |
-| RESIL-10 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Pending |
-| RESIL-11 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Pending |
+| RESIL-10 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Implementing |
+| RESIL-11 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Implementing |
 | RESIL-12 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Pending |
 | RESIL-13 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Implementing |
 | RESIL-14 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Pending |

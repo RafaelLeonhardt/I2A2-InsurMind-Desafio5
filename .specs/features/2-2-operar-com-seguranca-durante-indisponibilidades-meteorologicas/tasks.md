@@ -162,9 +162,11 @@ T7
 
 **Done when**:
 
-- [ ] Devolve resposta bruta determinística de um cenário sintético existente
-- [ ] Normalizado pelo `NormalizadorInmet` de 2.1, resulta em `proveniencia = sintetico`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Devolve resposta bruta determinística de um cenário sintético existente
+- [x] Normalizado pelo `NormalizadorInmet` de 2.1, resulta em `proveniencia = sintetico`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+
+**Nota de implementação**: o período do payload usa o horário corrente (`agora`, injetável) em vez dos valores históricos literais de `semeador.py` (`2026-03-12 14h–20h`) — reproduzi-los ativaria sempre a mesma `UNIQUE(tipo, area, periodo_inicio, periodo_fim)` (T1) já ocupada pelo evento semeado, e o `ON CONFLICT DO NOTHING` faria a ativação do cenário nunca produzir um evento novo visível durante a demonstração.
 
 **Tests**: unit
 **Gate**: quick
