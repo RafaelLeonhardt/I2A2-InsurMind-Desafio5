@@ -101,6 +101,26 @@ Regras objetivas de risco e elegibilidade, versionadas por substituição.
 | `estado` | `VARCHAR` | `NOT NULL`, `CHECK` em `ativa`, `substituida`, padrão `ativa` |
 | `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
 
+#### Limiares de relevância (`AvaliadorRisco`, História 2.3)
+
+`limiar_meteorologico` é o único limiar numérico consumido pelo `AvaliadorRisco`
+(`dominio/avaliador_risco.py`), lido da regra `ativa` de cada `evento_tipo` — nenhuma
+constante paralela existe no código (a única fonte de verdade é esta tabela, semeada por
+`semeador.py`).
+
+| `evento_tipo` | Limiar padrão da demonstração | Fronteira | Justificativa |
+| --- | --- | --- | --- |
+| `chuva_intensa` | `50.0` mm acumulados no período do evento | **Inclusiva** (`intensidade >= limiar`) | Valor de referência de classificações meteorológicas públicas para "chuva forte/muito forte" em 24h; default de demonstração, não um valor operacional real |
+| `granizo` | Nenhum (relevante por ocorrência do tipo) | Não se aplica — nenhuma fronteira exclusiva está configurada nesta demonstração | Estações automáticas do INMET não reportam severidade de granizo (AD-013); a ocorrência do tipo já é o gatilho, sujeito só ao critério de área aplicável |
+
+**Exemplos no valor-limite de `chuva_intensa` (fronteira inclusiva):**
+
+| Intensidade observada | Resultado | Por quê |
+| --- | --- | --- |
+| `49.9` mm | Não relevante | Abaixo do limiar |
+| `50.0` mm | **Relevante** | No limiar exato — fronteira inclusiva |
+| `50.1` mm | Relevante | Acima do limiar |
+
 ### `eventos_meteorologicos`
 
 Eventos meteorológicos observados ou sintéticos.

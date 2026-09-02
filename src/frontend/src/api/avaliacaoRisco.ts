@@ -9,12 +9,17 @@ export type Criterio = {
   justificativa: string
 }
 
-/** Snapshot público da avaliação de relevância meteorológica de uma execução. */
+/**
+ * Snapshot público da avaliação de relevância meteorológica de uma execução.
+ *
+ * `regraId`/`regraVersao` são nulos quando não havia regra ativa para o tipo do evento
+ * (RISCO-09) — a decisão terminal `sem_risco` ainda fica persistida e explicável.
+ */
 export type AvaliacaoRisco = {
   execucaoId: string
   eventoId: string
-  regraId: string
-  regraVersao: number
+  regraId: string | null
+  regraVersao: number | null
   relevante: boolean
   criterios: Criterio[]
   motivo: string

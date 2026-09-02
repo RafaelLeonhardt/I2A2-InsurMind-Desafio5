@@ -27,7 +27,7 @@ REGRA_CHUVA = RegraSnapshot(
     limiar_meteorologico=50.0,
     area_aplicavel=AREA,
     apolice_tipo="residencial",
-    versao=1,
+    versao=7,  # não-trivial de propósito: discrimina "propaga a versão" de "grava um literal"
 )
 
 
@@ -54,14 +54,16 @@ class RegrasFalsas:
 
 class AvaliacoesFalsas:
     def __init__(self) -> None:
-        self.salvas: list[tuple[UUID, UUID, UUID, int, ResultadoAvaliacaoRisco]] = []
+        self.salvas: list[
+            tuple[UUID, UUID, UUID | None, int | None, ResultadoAvaliacaoRisco]
+        ] = []
 
     def salvar(
         self,
         execucao_id: UUID,
         evento_id: UUID,
-        regra_id: UUID,
-        regra_versao: int,
+        regra_id: UUID | None,
+        regra_versao: int | None,
         resultado: ResultadoAvaliacaoRisco,
     ) -> UUID:
         id_avaliacao = uuid4()
@@ -114,15 +116,27 @@ def test_evento_relevante_transiciona_para_avaliando_elegibilidade_com_snapshot_
     assert execucoes.transicoes == [(execucao_id, 1, EstadoExecucao.AVALIANDO_ELEGIBILIDADE)]
 
 
-def test_ausencia_de_regra_ativa_e_tratada_como_sem_risco_com_motivo_especifico() -> None:
+def test_ausencia_de_regra_ativa_persiste_snapshot_com_regra_nula_e_transiciona_sem_risco() -> (
+    None
+):
+    """RISCO-09: a decisão terminal sem regra ativa fica persistida e explicável, não
+    apenas em memória — `regra_id`/`regra_versao` ficam nulos (migração 0005)."""
+
     servico, avaliacoes, execucoes = montar_servico(None)
     execucao_id = uuid4()
+    evento = evento_chuva(72.5)
 
-    resultado = servico.avaliar_evento(execucao_id, 1, evento_chuva(72.5))
+    resultado = servico.avaliar_evento(execucao_id, 1, evento)
 
     assert resultado.relevante is False
     assert resultado.motivo == MOTIVO_SEM_REGRA_ATIVA
-    assert avaliacoes.salvas == []
+    assert len(avaliacoes.salvas) == 1
+    execucao_salva, evento_salvo, regra_salva, versao_salva, resultado_salvo = avaliacoes.salvas[0]
+    assert execucao_salva == execucao_id
+    assert evento_salvo == evento.id
+    assert regra_salva is None
+    assert versao_salva is None
+    assert resultado_salvo.motivo == MOTIVO_SEM_REGRA_ATIVA
     assert execucoes.transicoes == [(execucao_id, 1, EstadoExecucao.SEM_RISCO)]
 
 

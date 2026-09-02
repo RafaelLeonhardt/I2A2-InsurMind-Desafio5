@@ -78,14 +78,15 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2, 3, 4)
-    assert resultado.versao_final == 4
+    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5)
+    assert resultado.versao_final == 5
     assert tabelas(caminho) == TABELAS_ESPERADAS
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
         (3, "resiliencia meteorologica"),
         (4, "avaliacao risco"),
+        (5, "avaliacao risco sem regra"),
     ]
 
 
@@ -96,12 +97,13 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 4
+    assert resultado.versao_final == 5
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
         (3, "resiliencia meteorologica"),
         (4, "avaliacao risco"),
+        (5, "avaliacao risco sem regra"),
     ]
 
 
@@ -159,6 +161,51 @@ def test_migracao_resiliencia_preserva_eventos_existentes_e_aplica_unique(
         ).fetchone()
 
     assert apos_conflito == (1,)
+
+
+def test_migracao_sem_regra_preserva_avaliacoes_e_aceita_regra_nula(tmp_path: Path) -> None:
+    """A migração `0005` recria `avaliacoes_risco` (AD-015) preservando linhas existentes
+    e relaxa `regra_id`/`regra_versao` para `NULL` (RISCO-09: terminal sem regra ativa)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho, list(MIGRACOES[:4])).aplicar_pendentes()
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO avaliacoes_risco "
+            "(id, execucao_id, evento_id, regra_id, regra_versao, relevante, criterios, "
+            "motivo) VALUES "
+            "('11111111-1111-1111-1111-111111111111', "
+            "'22222222-2222-2222-2222-222222222222', "
+            "'33333333-3333-3333-3333-333333333333', "
+            "'44444444-4444-4444-4444-444444444444', 1, true, '[]', 'relevante')"
+        )
+
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        linha = conexao.execute(
+            "SELECT id, regra_id, motivo FROM avaliacoes_risco"
+        ).fetchone()
+        assert linha is not None
+        assert str(linha[0]) == "11111111-1111-1111-1111-111111111111"
+        assert str(linha[1]) == "44444444-4444-4444-4444-444444444444"
+        assert linha[2] == "relevante"
+
+        conexao.execute(
+            "INSERT INTO avaliacoes_risco "
+            "(id, execucao_id, evento_id, regra_id, regra_versao, relevante, criterios, "
+            "motivo) VALUES "
+            "('55555555-5555-5555-5555-555555555555', "
+            "'66666666-6666-6666-6666-666666666666', "
+            "'77777777-7777-7777-7777-777777777777', "
+            "NULL, NULL, false, '[]', 'sem_regra_ativa')"
+        )
+        linha_sem_regra = conexao.execute(
+            "SELECT regra_id, regra_versao, motivo FROM avaliacoes_risco "
+            "WHERE id = '55555555-5555-5555-5555-555555555555'"
+        ).fetchone()
+
+    assert linha_sem_regra == (None, None, "sem_regra_ativa")
 
 
 def test_recusa_versao_registrada_futura_sem_aplicar_mutacao(tmp_path: Path) -> None:
@@ -242,6 +289,20 @@ def test_documentacao_versionada_descreve_todas_as_tabelas_criadas() -> None:
         assert tabela in documento
     for termo in ("chave primária", "chave estrangeira", "restriç", "timestamp", "migraç"):
         assert termo in documento
+
+
+def test_documentacao_registra_fronteiras_e_exemplos_limitrofes_dos_limiares() -> None:
+    """RISCO-02: a documentação explicita, para cada limiar, qual fronteira é inclusiva/
+    exclusiva, com exemplos no valor-limite — não só nos testes do motor."""
+
+    documento = Path("central_preventiva/adaptadores/persistencia/README.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "inclusiva" in documento.lower()
+    assert "nenhuma fronteira exclusiva está configurada" in documento
+    for exemplo in ("49.9", "50.0", "50.1"):
+        assert exemplo in documento
 
 
 def test_migracoes_versionadas_tem_versoes_unicas_e_ordenadas() -> None:

@@ -128,6 +128,36 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: src/frontend/src/funcionalidades/fonte-meteorologica/SuperficieFonteMeteorologica.tsx:99 - mutante 'diffMinutos < 60' -> '<= 60' sobreviveu (34/34 passaram) (frontend)
 - last seen: 2026-09-02T04:09:44Z
 
+### L-020 - Choose fixture values that differ from plausible hardcoded defaults so a wrong-value bug cannot pass the assertion.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `testing` · harmful: 0
+- features: 2-3-identificar-eventos-meteorologicos-relevantes
+- evidence: M2 - src/backend/central_preventiva/aplicacao/avaliacao_risco.py:96 / testes/test_avaliacao_risco.py:30 (testing)
+- last seen: 2026-09-02T12:08:04Z
+
+### L-021 - When a NOT NULL column blocks persisting an outcome an acceptance criterion requires, relax the schema instead of silently skipping the write.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `persistence` · harmful: 0
+- features: 2-3-identificar-eventos-meteorologicos-relevantes
+- evidence: RISCO-09 - src/backend/central_preventiva/aplicacao/avaliacao_risco.py:86-93 (persistence)
+- last seen: 2026-09-02T12:08:04Z
+
+### L-022 - Put threshold boundary examples in the documentation artifact the requirement names, not only in the test file.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `docs` · harmful: 0
+- features: 2-3-identificar-eventos-meteorologicos-relevantes
+- evidence: RISCO-02 - .specs/features/2-3-identificar-eventos-meteorologicos-relevantes/design.md:136 (docs)
+- last seen: 2026-09-02T12:08:04Z
+
+### L-023 - Compare and assert every operand a requirement enumerates, or record explicitly why an operand is not compared.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `domain` · harmful: 0
+- features: 2-3-identificar-eventos-meteorologicos-relevantes
+- evidence: RISCO-05/RISCO-06 - src/backend/central_preventiva/dominio/avaliador_risco.py:102-137 (domain)
+- last seen: 2026-09-02T12:08:04Z
+
+### L-024 - When a requirement demands distinction by text, icon and color, assert that all three signals differ across categories.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 2-3-identificar-eventos-meteorologicos-relevantes
+- evidence: RISCO-12 - src/frontend/src/funcionalidades/evento-decisao/SuperficieEventoDecisao.test.tsx:80-126 (frontend)
+- last seen: 2026-09-02T12:08:04Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

@@ -33,8 +33,8 @@ class _RepositorioAvaliacoesRisco(Protocol):
         self,
         execucao_id: UUID,
         evento_id: UUID,
-        regra_id: UUID,
-        regra_versao: int,
+        regra_id: UUID | None,
+        regra_versao: int | None,
         resultado: ResultadoAvaliacaoRisco,
     ) -> UUID:
         """Persiste o snapshot completo da avaliação."""
@@ -77,9 +77,9 @@ class ServicoAvaliacaoRisco:
         """Avalia o evento contra a regra ativa e transiciona a execução de acordo.
 
         Sem regra ativa para o tipo do evento, a execução termina em `sem_risco` com
-        motivo específico, sem persistir snapshot (não há regra a referenciar) e sem
-        criar elegibilidade, mensagem ou chamada de IA — mesmo efeito de um evento
-        que não atinge os critérios.
+        código e motivo persistidos (RISCO-09) — `regra_id`/`regra_versao` ficam nulos
+        (não há regra real a referenciar, migração 0005), mas o snapshot existe, sem
+        criar elegibilidade, mensagem ou chamada de IA.
         """
 
         regra = self._portas.regras.obter_ativa(evento.tipo)
@@ -87,6 +87,7 @@ class ServicoAvaliacaoRisco:
             resultado = ResultadoAvaliacaoRisco(
                 relevante=False, criterios=(), motivo=MOTIVO_SEM_REGRA_ATIVA
             )
+            self._portas.avaliacoes.salvar(execucao_id, evento.id, None, None, resultado)
             self._portas.execucoes.transicionar(
                 execucao_id, versao_esperada, EstadoExecucao.SEM_RISCO
             )

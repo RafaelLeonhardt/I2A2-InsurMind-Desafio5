@@ -36,11 +36,19 @@ const ROTULOS_CATEGORIA: Record<CategoriaDecisao, string> = {
 }
 
 function IconeCategoria({ categoria }: { categoria: CategoriaDecisao }) {
-  if (categoria === 'relevante') return <WarningIcon aria-hidden="true" size={18} weight="fill" />
-  if (categoria === 'dado_invalido') {
-    return <XCircleIcon aria-hidden="true" size={18} weight="fill" />
+  if (categoria === 'relevante') {
+    return (
+      <WarningIcon aria-hidden="true" data-icone-nome="warning" size={18} weight="fill" />
+    )
   }
-  return <CheckCircleIcon aria-hidden="true" size={18} weight="fill" />
+  if (categoria === 'dado_invalido') {
+    return (
+      <XCircleIcon aria-hidden="true" data-icone-nome="x-circle" size={18} weight="fill" />
+    )
+  }
+  return (
+    <CheckCircleIcon aria-hidden="true" data-icone-nome="check-circle" size={18} weight="fill" />
+  )
 }
 
 const ROTULOS_MOTIVO: Record<string, string> = {

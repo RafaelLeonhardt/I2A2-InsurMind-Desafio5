@@ -12,13 +12,18 @@ from central_preventiva.dominio.avaliador_risco import Criterio, ResultadoAvalia
 
 @dataclass(frozen=True, slots=True)
 class AvaliacaoRisco:
-    """Snapshot persistido de uma avaliação de risco, pronto para consulta (RISCO-11)."""
+    """Snapshot persistido de uma avaliação de risco, pronto para consulta (RISCO-11).
+
+    `regra_id`/`regra_versao` são nulos quando não havia regra ativa para o tipo do
+    evento (RISCO-09) — não há regra real a referenciar, mas a decisão terminal ainda
+    fica persistida e explicável.
+    """
 
     id: UUID
     execucao_id: UUID
     evento_id: UUID
-    regra_id: UUID
-    regra_versao: int
+    regra_id: UUID | None
+    regra_versao: int | None
     relevante: bool
     criterios: tuple[Criterio, ...]
     motivo: str
@@ -67,11 +72,15 @@ class RepositorioAvaliacoesRisco:
         self,
         execucao_id: UUID,
         evento_id: UUID,
-        regra_id: UUID,
-        regra_versao: int,
+        regra_id: UUID | None,
+        regra_versao: int | None,
         resultado: ResultadoAvaliacaoRisco,
     ) -> UUID:
-        """Persiste o snapshot completo da avaliação: evento, regra, versão e critérios."""
+        """Persiste o snapshot completo da avaliação: evento, regra, versão e critérios.
+
+        `regra_id`/`regra_versao` são `None` quando não havia regra ativa para o tipo
+        do evento — a decisão (`sem_risco`, motivo `sem_regra_ativa`) ainda é persistida.
+        """
 
         id_avaliacao = uuid4()
         with abrir_conexao(self._caminho) as conexao:
@@ -107,8 +116,8 @@ class RepositorioAvaliacoesRisco:
             id=UUID(str(linha[0])),
             execucao_id=UUID(str(linha[1])),
             evento_id=UUID(str(linha[2])),
-            regra_id=UUID(str(linha[3])),
-            regra_versao=int(linha[4]),
+            regra_id=None if linha[3] is None else UUID(str(linha[3])),
+            regra_versao=None if linha[4] is None else int(linha[4]),
             relevante=bool(linha[5]),
             criterios=_desserializar_criterios(str(linha[6])),
             motivo=str(linha[7]),

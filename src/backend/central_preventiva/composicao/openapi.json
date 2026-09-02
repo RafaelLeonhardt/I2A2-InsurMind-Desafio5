@@ -237,15 +237,29 @@
             "type": "string"
           },
           "regra_id": {
-            "description": "Identificador da regra aplicada.",
-            "format": "uuid",
-            "title": "Regra Id",
-            "type": "string"
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Identificador da regra aplicada, ou nulo se não havia regra ativa.",
+            "title": "Regra Id"
           },
           "regra_versao": {
-            "description": "Versão da regra no momento da avaliação.",
-            "title": "Regra Versao",
-            "type": "integer"
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Versão da regra no momento da avaliação, ou nulo se não havia regra ativa.",
+            "title": "Regra Versao"
           },
           "relevante": {
             "description": "Se o evento foi considerado relevante.",

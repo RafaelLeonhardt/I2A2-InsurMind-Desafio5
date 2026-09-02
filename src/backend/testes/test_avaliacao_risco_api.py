@@ -78,6 +78,37 @@ def test_get_avaliacao_risco_retorna_200_com_criterios_detalhados(tmp_path: Path
     assert corpo["criterios"][1]["valor_observado"] == "72.5 mm"
 
 
+def inserir_avaliacao_sem_regra_ativa(caminho: Path, execucao_id: str) -> None:
+    """RISCO-09: decisão terminal `sem_risco` sem regra ativa — `regra_id`/`regra_versao` nulos."""
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO avaliacoes_risco "
+            "(id, execucao_id, evento_id, regra_id, regra_versao, relevante, criterios, motivo) "
+            "VALUES (?, ?, ?, NULL, NULL, false, '[]', 'sem_regra_ativa')",
+            [uuid4(), execucao_id, uuid4()],
+        )
+
+
+def test_get_avaliacao_risco_sem_regra_ativa_retorna_200_nao_404(tmp_path: Path) -> None:
+    """Uma execução já decidida como sem_risco (sem regra ativa) é distinguível de uma
+    execução que ainda não alcançou a etapa de avaliação — nunca um 404 idêntico (RISCO-09)."""
+
+    caminho = preparar_banco(tmp_path)
+    execucao_id = str(uuid4())
+    inserir_avaliacao_sem_regra_ativa(caminho, execucao_id)
+
+    resposta = cliente_para(caminho).get(f"/api/v1/execucoes/{execucao_id}/avaliacao-risco")
+
+    assert resposta.status_code == 200
+    corpo = resposta.json()
+    assert corpo["relevante"] is False
+    assert corpo["motivo"] == "sem_regra_ativa"
+    assert corpo["regra_id"] is None
+    assert corpo["regra_versao"] is None
+    assert corpo["criterios"] == []
+
+
 def test_get_avaliacao_risco_sem_avaliacao_retorna_404_problem_json(tmp_path: Path) -> None:
     caminho = preparar_banco(tmp_path)
 

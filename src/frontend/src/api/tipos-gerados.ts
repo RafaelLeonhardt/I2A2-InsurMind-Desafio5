@@ -418,15 +418,14 @@ export interface components {
             motivo: string;
             /**
              * Regra Id
-             * Format: uuid
-             * @description Identificador da regra aplicada.
+             * @description Identificador da regra aplicada, ou nulo se não havia regra ativa.
              */
-            regra_id: string;
+            regra_id: string | null;
             /**
              * Regra Versao
-             * @description Versão da regra no momento da avaliação.
+             * @description Versão da regra no momento da avaliação, ou nulo se não havia regra ativa.
              */
-            regra_versao: number;
+            regra_versao: number | null;
             /**
              * Relevante
              * @description Se o evento foi considerado relevante.

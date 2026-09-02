@@ -86,7 +86,7 @@ describe('superfície de evento e decisão', () => {
     const badge = container.querySelector('[data-icone="relevante"]')
     expect(badge).toBeInTheDocument()
     expect(badge).toHaveClass('categoria-decisao-badge--relevante')
-    expect(badge?.querySelector('svg')).toBeInTheDocument()
+    expect(badge?.querySelector('svg[data-icone-nome="warning"]')).toBeInTheDocument()
   })
 
   it('mostra a categoria Sem risco quando o evento não atinge os critérios', async () => {
@@ -111,6 +111,7 @@ describe('superfície de evento e decisão', () => {
     expect(screen.getByText('Não atende')).toBeInTheDocument()
     const badge = container.querySelector('[data-icone="sem_risco"]')
     expect(badge).toHaveClass('categoria-decisao-badge--sem_risco')
+    expect(badge?.querySelector('svg[data-icone-nome="check-circle"]')).toBeInTheDocument()
   })
 
   it('mostra a categoria Dado inválido quando o tipo de evento não é suportado', async () => {
@@ -123,6 +124,33 @@ describe('superfície de evento e decisão', () => {
     await screen.findByText('Dado inválido')
     const badge = container.querySelector('[data-icone="dado_invalido"]')
     expect(badge).toHaveClass('categoria-decisao-badge--dado_invalido')
+    expect(badge?.querySelector('svg[data-icone-nome="x-circle"]')).toBeInTheDocument()
+  })
+
+  it('usa um ícone diferente para cada uma das três categorias (RISCO-12)', async () => {
+    getAvaliacaoRisco
+      .mockResolvedValueOnce(avaliacao({ relevante: true, motivo: 'relevante' }))
+      .mockResolvedValueOnce(avaliacao({ relevante: false, motivo: 'abaixo_do_limiar' }))
+      .mockResolvedValueOnce(avaliacao({ relevante: false, motivo: 'tipo_nao_suportado' }))
+
+    const relevanteRender = render(<SuperficieEventoDecisao execucaoId={EXECUCAO_ID} />)
+    await screen.findByText('Relevante')
+    const iconeRelevante = relevanteRender.container.querySelector('[data-icone-nome]')
+    relevanteRender.unmount()
+
+    const semRiscoRender = render(<SuperficieEventoDecisao execucaoId={EXECUCAO_ID} />)
+    await screen.findByText('Sem risco')
+    const iconeSemRisco = semRiscoRender.container.querySelector('[data-icone-nome]')
+    semRiscoRender.unmount()
+
+    const dadoInvalidoRender = render(<SuperficieEventoDecisao execucaoId={EXECUCAO_ID} />)
+    await screen.findByText('Dado inválido')
+    const iconeDadoInvalido = dadoInvalidoRender.container.querySelector('[data-icone-nome]')
+
+    const nomes = [iconeRelevante, iconeSemRisco, iconeDadoInvalido].map((icone) =>
+      icone?.getAttribute('data-icone-nome'),
+    )
+    expect(new Set(nomes).size).toBe(3)
   })
 
   it('mostra Indisponível com ocorrência, impacto e próxima ação quando a consulta falha', async () => {

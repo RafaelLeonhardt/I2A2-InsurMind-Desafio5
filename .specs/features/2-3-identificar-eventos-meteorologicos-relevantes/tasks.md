@@ -283,3 +283,19 @@ T5 → T6
 | T6: Superfície "Evento e decisão" | Componente React | unit | unit | ✅ OK |
 
 **Rules confirmed**: nenhum `Tests: none` nesta história; nenhuma task adia teste.
+
+---
+
+## Fix Tasks (Verifier Round 1 — FAIL, `validation.md` de 2026-09-02)
+
+O primeiro `validation.md` reportou FAIL: 1 gap fundamentado (RISCO-09, caminho `sem_regra_ativa`) + 1 mutante sobrevivente (M2) + 3 lacunas menores. Corrigidas nesta rodada:
+
+- [x] **Fix 1 (Major)** — RISCO-09: terminal `sem_risco` sem regra ativa não persistia código/motivo, deixando uma execução já decidida indistinguível de uma ainda não avaliada (a API devolvia `404`, a UI mostrava "Em processamento" para sempre). Migração `0005` relaxa `avaliacoes_risco.regra_id`/`regra_versao` para aceitar `NULL` (recreate-and-copy, AD-015 — DuckDB não suporta `ALTER COLUMN DROP NOT NULL`); `ServicoAvaliacaoRisco` passa a chamar `salvar(execucao_id, evento.id, None, None, resultado)` nesse caminho; `RespostaAvaliacaoRisco.regra_id`/`regra_versao` viram opcionais no contrato HTTP. A rota agora devolve `200` (não `404`) para essa execução, com `criterios: []` e `motivo: "sem_regra_ativa"`.
+- [x] **Fix 2 (Major)** — mutante sobrevivente: `REGRA_CHUVA.versao` nos testes valia `1`, idêntico ao literal mais plausível de um bug (`salvar(..., 1, ...)` em vez de `salvar(..., regra.versao, ...)`), tornando a asserção não discriminante. Trocado para `versao=7` em `test_avaliacao_risco.py` e `regra_versao=7` em `test_repositorio_avaliacoes_risco.py`; mutação reaplicada manualmente e confirmada morta antes de reverter.
+- [x] **Fix 3 (Minor)** — RISCO-12: nenhum teste comparava os ícones entre as três categorias (só a presença de um `<svg>` no caso `relevante`). Cada ícone ganhou `data-icone-nome` distinto; novo teste confere que os três nomes diferem entre si. Mutação (dois ícones iguais) confirmada morta.
+- [x] **Fix 4 (Minor)** — RISCO-02: exemplos de fronteira (`49.9`/`50.0`/`50.1`) existiam só em teste, nunca em documentação. Adicionada seção "Limiares de relevância" em `adaptadores/persistencia/README.md` com a tabela de fronteira, os três exemplos e a declaração explícita de que nenhum limiar exclusivo está configurado na demonstração; novo teste confere a presença desses termos no README.
+- [x] **Fix 5 (Minor)** — `LIMIAR_CHUVA_INTENSA_MM` em `dominio/avaliador_risco.py` era uma cópia morta e não referenciada do default semeado em `semeador.py` (risco de divergência silenciosa). Removida; a justificativa foi para o README (Fix 4).
+
+**Gate check (backend, full)**: `uv run --directory src/backend pytest && ruff check . && pyright` — verde. **Gate check (frontend, full)**: `npm test -- --run && npm run lint && npm run build` — verde (mesmos avisos pré-existentes).
+
+**Commit**: `fix(risco): fechar lacunas do verificador da historia 2.3`

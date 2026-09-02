@@ -46,7 +46,7 @@ def test_salvar_persiste_snapshot_completo_e_obter_por_execucao_recupera_sem_rec
     repositorio = RepositorioAvaliacoesRisco(caminho)
 
     id_avaliacao = repositorio.salvar(
-        execucao_id, evento_id, regra_id, regra_versao=1, resultado=RESULTADO_RELEVANTE
+        execucao_id, evento_id, regra_id, regra_versao=7, resultado=RESULTADO_RELEVANTE
     )
     avaliacao = repositorio.obter_por_execucao(execucao_id)
 
@@ -55,7 +55,7 @@ def test_salvar_persiste_snapshot_completo_e_obter_por_execucao_recupera_sem_rec
     assert avaliacao.execucao_id == execucao_id
     assert avaliacao.evento_id == evento_id
     assert avaliacao.regra_id == regra_id
-    assert avaliacao.regra_versao == 1
+    assert avaliacao.regra_versao == 7
     assert avaliacao.relevante is True
     assert avaliacao.motivo == "relevante"
     assert avaliacao.criterios == RESULTADO_RELEVANTE.criterios
@@ -68,3 +68,25 @@ def test_obter_por_execucao_sem_avaliacao_devolve_none(tmp_path: Path) -> None:
     avaliacao = RepositorioAvaliacoesRisco(caminho).obter_por_execucao(uuid4())
 
     assert avaliacao is None
+
+
+def test_salvar_com_regra_nula_persiste_e_recupera_sem_regra_ativa(tmp_path: Path) -> None:
+    """RISCO-09: terminal `sem_risco` sem regra ativa fica persistido com `regra_id`/
+    `regra_versao` nulos (migração 0005), não referências vivas nem valores inventados."""
+
+    caminho = preparar_banco(tmp_path)
+    execucao_id, evento_id = uuid4(), uuid4()
+    resultado_sem_regra = ResultadoAvaliacaoRisco(
+        relevante=False, criterios=(), motivo="sem_regra_ativa"
+    )
+    repositorio = RepositorioAvaliacoesRisco(caminho)
+
+    repositorio.salvar(execucao_id, evento_id, None, None, resultado_sem_regra)
+    avaliacao = repositorio.obter_por_execucao(execucao_id)
+
+    assert avaliacao is not None
+    assert avaliacao.regra_id is None
+    assert avaliacao.regra_versao is None
+    assert avaliacao.relevante is False
+    assert avaliacao.motivo == "sem_regra_ativa"
+    assert avaliacao.criterios == ()

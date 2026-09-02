@@ -8,13 +8,6 @@ from central_preventiva.dominio.evento_meteorologico import (
     TipoEventoMeteorologico,
 )
 
-LIMIAR_CHUVA_INTENSA_MM = 50.0
-"""Chuva acumulada (mm) no período do evento a partir da qual é relevante (fronteira inclusiva).
-
-Valor de referência de classificações meteorológicas públicas para "chuva forte/muito forte"
-em 24h; default de demonstração, não um valor operacional real (ver `design.md` da 2.3).
-"""
-
 MOTIVO_TIPO_NAO_SUPORTADO = "tipo_nao_suportado"
 MOTIVO_AREA_NAO_APLICAVEL = "area_nao_aplicavel"
 MOTIVO_ABAIXO_DO_LIMIAR = "abaixo_do_limiar"

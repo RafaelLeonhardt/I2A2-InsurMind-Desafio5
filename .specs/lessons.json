@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 20,
+  "next_id": 25,
   "lessons": [
     {
       "id": "L-001",
@@ -349,6 +349,96 @@
       ],
       "created": "2026-09-02T04:09:44Z",
       "last_seen": "2026-09-02T04:09:44Z"
+    },
+    {
+      "id": "L-020",
+      "key": "surviving_mutant::choose fixture values that differ from plausible hardcoded defaults so a wrong value bug cannot pass the assertion",
+      "text": "Choose fixture values that differ from plausible hardcoded defaults so a wrong-value bug cannot pass the assertion.",
+      "signal": "surviving_mutant",
+      "scope": "testing",
+      "status": "candidate",
+      "features": [
+        "2-3-identificar-eventos-meteorologicos-relevantes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M2 - src/backend/central_preventiva/aplicacao/avaliacao_risco.py:96 / testes/test_avaliacao_risco.py:30 (testing)"
+      ],
+      "created": "2026-09-02T12:08:04Z",
+      "last_seen": "2026-09-02T12:08:04Z"
+    },
+    {
+      "id": "L-021",
+      "key": "ac_gap::when a not null column blocks persisting an outcome an acceptance criterion requires relax the schema instead of silently skipping the write",
+      "text": "When a NOT NULL column blocks persisting an outcome an acceptance criterion requires, relax the schema instead of silently skipping the write.",
+      "signal": "ac_gap",
+      "scope": "persistence",
+      "status": "candidate",
+      "features": [
+        "2-3-identificar-eventos-meteorologicos-relevantes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "RISCO-09 - src/backend/central_preventiva/aplicacao/avaliacao_risco.py:86-93 (persistence)"
+      ],
+      "created": "2026-09-02T12:08:04Z",
+      "last_seen": "2026-09-02T12:08:04Z"
+    },
+    {
+      "id": "L-022",
+      "key": "spec_precision_gap::put threshold boundary examples in the documentation artifact the requirement names not only in the test file",
+      "text": "Put threshold boundary examples in the documentation artifact the requirement names, not only in the test file.",
+      "signal": "spec_precision_gap",
+      "scope": "docs",
+      "status": "candidate",
+      "features": [
+        "2-3-identificar-eventos-meteorologicos-relevantes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "RISCO-02 - .specs/features/2-3-identificar-eventos-meteorologicos-relevantes/design.md:136 (docs)"
+      ],
+      "created": "2026-09-02T12:08:04Z",
+      "last_seen": "2026-09-02T12:08:04Z"
+    },
+    {
+      "id": "L-023",
+      "key": "spec_precision_gap::compare and assert every operand a requirement enumerates or record explicitly why an operand is not compared",
+      "text": "Compare and assert every operand a requirement enumerates, or record explicitly why an operand is not compared.",
+      "signal": "spec_precision_gap",
+      "scope": "domain",
+      "status": "candidate",
+      "features": [
+        "2-3-identificar-eventos-meteorologicos-relevantes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "RISCO-05/RISCO-06 - src/backend/central_preventiva/dominio/avaliador_risco.py:102-137 (domain)"
+      ],
+      "created": "2026-09-02T12:08:04Z",
+      "last_seen": "2026-09-02T12:08:04Z"
+    },
+    {
+      "id": "L-024",
+      "key": "spec_precision_gap::when a requirement demands distinction by text icon and color assert that all three signals differ across categories",
+      "text": "When a requirement demands distinction by text, icon and color, assert that all three signals differ across categories.",
+      "signal": "spec_precision_gap",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "2-3-identificar-eventos-meteorologicos-relevantes"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "RISCO-12 - src/frontend/src/funcionalidades/evento-decisao/SuperficieEventoDecisao.test.tsx:80-126 (frontend)"
+      ],
+      "created": "2026-09-02T12:08:04Z",
+      "last_seen": "2026-09-02T12:08:04Z"
     }
   ]
 }

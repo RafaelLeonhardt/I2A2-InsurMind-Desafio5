@@ -34,8 +34,12 @@ class RespostaAvaliacaoRisco(BaseModel):
 
     execucao_id: UUID = Field(description="Identificador da execução avaliada.")
     evento_id: UUID = Field(description="Identificador do evento meteorológico avaliado.")
-    regra_id: UUID = Field(description="Identificador da regra aplicada.")
-    regra_versao: int = Field(description="Versão da regra no momento da avaliação.")
+    regra_id: UUID | None = Field(
+        description="Identificador da regra aplicada, ou nulo se não havia regra ativa."
+    )
+    regra_versao: int | None = Field(
+        description="Versão da regra no momento da avaliação, ou nulo se não havia regra ativa."
+    )
     relevante: bool = Field(description="Se o evento foi considerado relevante.")
     criterios: list[RespostaCriterio] = Field(description="Critérios avaliados, na ordem aplicada.")
     motivo: str = Field(description="Motivo tipado do resultado.")
