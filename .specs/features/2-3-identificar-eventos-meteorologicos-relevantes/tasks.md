@@ -106,12 +106,14 @@ T6
 
 **Done when**:
 
-- [ ] Evento de tipo não suportado retorna resultado "não suportado" sem avaliar limiar
-- [ ] Chuva intensa abaixo do limiar (49.9mm) → não relevante; no limiar exato (50.0mm) → relevante (fronteira inclusiva); acima (50.1mm) → relevante
-- [ ] Granizo com `tipo = granizo` → sempre relevante (gatilho por ocorrência)
-- [ ] Mesma entrada avaliada duas vezes produz resultado e justificativa idênticos
-- [ ] Nenhuma chamada a qualquer porta de IA em nenhum caminho
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Evento de tipo não suportado retorna resultado "não suportado" sem avaliar limiar
+- [x] Chuva intensa abaixo do limiar (49.9mm) → não relevante; no limiar exato (50.0mm) → relevante (fronteira inclusiva); acima (50.1mm) → relevante
+- [x] Granizo com `tipo = granizo` → sempre relevante (gatilho por ocorrência)
+- [x] Mesma entrada avaliada duas vezes produz resultado e justificativa idênticos
+- [x] Nenhuma chamada a qualquer porta de IA em nenhum caminho
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+
+**Nota de implementação**: granizo também checa "área aplicável" (não só ocorrência) — a spec/design falam de "comparar medidas, área, severidade e período" para AMBOS os produtos, e o edge case "evento sem área reconhecida → não relevante, não erro técnico" se aplica aos dois tipos, não só chuva. O teste de "tipo não suportado" usa um valor de string arbitrário no campo `tipo` (o `EventoMeteorologico` não valida em runtime) já que `TipoEventoMeteorologico` só tem os dois valores suportados — o branch é uma defesa contra dado externo malformado, não um caminho alcançável pelo enum em si.
 
 **Tests**: unit
 **Gate**: quick
