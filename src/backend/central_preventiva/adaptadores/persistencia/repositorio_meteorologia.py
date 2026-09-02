@@ -94,13 +94,19 @@ class RepositorioEventosMeteorologicos:
         self._caminho = caminho
 
     def salvar(self, evento: EventoMeteorologico) -> None:
-        """Persiste o evento meteorológico normalizado em `eventos_meteorologicos`."""
+        """Persiste o evento meteorológico normalizado, sem duplicar por conteúdo (AD-010).
+
+        `UNIQUE (tipo, area, periodo_inicio, periodo_fim)` (migração 0003) mais o
+        insert-or-noop garantem que uma coleta que observa o mesmo evento de novo (ex.:
+        recuperação real após um cenário sintético) não duplica a linha.
+        """
 
         with abrir_conexao(self._caminho) as conexao:
             conexao.execute(
                 "INSERT INTO eventos_meteorologicos "
                 "(id, tipo, area, periodo_inicio, periodo_fim, intensidade, proveniencia, "
-                "instante_observado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                "instante_observado) VALUES (?, ?, ?, ?, ?, ?, ?, ?) "
+                "ON CONFLICT DO NOTHING",
                 [
                     evento.id,
                     evento.tipo.value,

@@ -87,12 +87,14 @@ T7
 
 **Done when**:
 
-- [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] `eventos_meteorologicos` é recriada por recreate-and-copy (`CREATE` nova com a `UNIQUE` declarada → `INSERT ... SELECT` → `DROP` → `RENAME`), preservando todas as linhas existentes (AD-015)
-- [ ] Teste cobre `INSERT ... ON CONFLICT DO NOTHING` sobre a `UNIQUE` recriada — o insert-or-noop (AD-010) funciona na tabela resultante
-- [ ] `README.md` documenta as três tabelas novas e a `UNIQUE` adicionada (com a estratégia de recreate registrada)
-- [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0003`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Migração aplica em transação própria, registrada em `schema_migracoes`
+- [x] `eventos_meteorologicos` é recriada por recreate-and-copy (`CREATE` nova com a `UNIQUE` declarada → `INSERT ... SELECT` → `DROP` → `RENAME`), preservando todas as linhas existentes (AD-015)
+- [x] Teste cobre `INSERT ... ON CONFLICT DO NOTHING` sobre a `UNIQUE` recriada — o insert-or-noop (AD-010) funciona na tabela resultante
+- [x] `README.md` documenta as três tabelas novas e a `UNIQUE` adicionada (com a estratégia de recreate registrada)
+- [x] `testes/test_migracoes.py` cobre a aplicação da migração `0003`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+
+**Nota de implementação**: a `UNIQUE` nova quebrava imediatamente `RepositorioEventosMeteorologicos.salvar` (2.1), que fazia `INSERT` simples — fixtures de teste reusam os mesmos campos-chave entre chamadas. Corrigido nesta task (não em T5) para manter o gate verde entre tasks: `salvar` passou a usar `INSERT ... ON CONFLICT DO NOTHING` (AD-010), efeito colateral direto e inevitável de adicionar a constraint.
 
 **Tests**: integration
 **Gate**: quick

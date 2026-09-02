@@ -189,3 +189,54 @@ Histórico de cada tentativa de coleta meteorológica (manual ou automática).
 | `motivo_falha` | `VARCHAR` | nulo se `estado != 'falha'` |
 | `iniciado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
 | `finalizado_em` | `TIMESTAMP` | nulo enquanto em andamento |
+
+## Tabelas da migração `0003_resiliencia_meteorologica`
+
+### `eventos_meteorologicos` — `UNIQUE` de deduplicação (recreate-and-copy)
+
+A migração `0003` adiciona `UNIQUE (tipo, area, periodo_inicio, periodo_fim)` a `eventos_meteorologicos`
+recriando a tabela dentro da própria transação (AD-015): `CREATE TABLE eventos_meteorologicos_nova`
+com a constraint declarada no `CREATE`, `INSERT INTO ... SELECT` preservando todas as linhas
+existentes, `DROP TABLE`, `ALTER TABLE ... RENAME`. Necessário porque o DuckDB não suporta
+`ALTER TABLE ADD CONSTRAINT`. A constraint de tabela (não um índice posterior) é o que garante a
+semântica de `INSERT ... ON CONFLICT DO NOTHING` exigida pelo insert-or-noop de AD-010 — a coleta
+real que recupera um evento já registrado sinteticamente (ou vice-versa) não duplica a linha.
+
+### `tentativas_coleta_meteorologica`
+
+Registra cada tentativa individual de uma coleta com retry (número, resultado, início e término).
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `sincronizacao_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `sincronizacoes_meteorologicas(id)` |
+| `numero_tentativa` | `INTEGER` | `NOT NULL`, `CHECK` entre 1 e 3 |
+| `codigo_resultado` | `VARCHAR` | `NOT NULL`, `CHECK` em `sucesso`, `timeout`, `erro_transporte`, `status_erro` |
+| `iniciado_em` | `TIMESTAMP` | `NOT NULL`, timestamp |
+| `finalizado_em` | `TIMESTAMP` | `NOT NULL`, timestamp |
+
+### `excecoes_operacionais`
+
+Registra a exceção operacional (causa, tentativas, impacto) quando uma execução esgota as
+tentativas e alcança `falhou_coleta`.
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `execucao_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `execucao_preventiva(id)` |
+| `causa` | `VARCHAR` | `NOT NULL` |
+| `tentativas` | `INTEGER` | `NOT NULL` |
+| `impacto` | `VARCHAR` | `NOT NULL` |
+| `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+
+### `cenarios_sinteticos_ativados`
+
+Rastreia quando/qual cenário sintético de contingência foi ativado, para a interface explicar a
+origem sintética da coleta.
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `sincronizacao_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `sincronizacoes_meteorologicas(id)` |
+| `identificador_cenario` | `VARCHAR` | `NOT NULL`, id determinístico do cenário sintético do conjunto demonstrativo |
+| `ativado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |

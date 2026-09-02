@@ -27,6 +27,9 @@ TABELAS_ESPERADAS = {
     "chaves_idempotencia",
     "areas_monitoradas_inmet",
     "sincronizacoes_meteorologicas",
+    "tentativas_coleta_meteorologica",
+    "excecoes_operacionais",
+    "cenarios_sinteticos_ativados",
 }
 
 REGISTRO_MINIMO = (
@@ -74,10 +77,14 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2)
-    assert resultado.versao_final == 2
+    assert resultado.versoes_aplicadas == (1, 2, 3)
+    assert resultado.versao_final == 3
     assert tabelas(caminho) == TABELAS_ESPERADAS
-    assert registros(caminho) == [(1, "schema inicial"), (2, "meteorologia")]
+    assert registros(caminho) == [
+        (1, "schema inicial"),
+        (2, "meteorologia"),
+        (3, "resiliencia meteorologica"),
+    ]
 
 
 def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
@@ -87,8 +94,12 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 2
-    assert registros(caminho) == [(1, "schema inicial"), (2, "meteorologia")]
+    assert resultado.versao_final == 3
+    assert registros(caminho) == [
+        (1, "schema inicial"),
+        (2, "meteorologia"),
+        (3, "resiliencia meteorologica"),
+    ]
 
 
 def test_migracao_meteorologia_e_idempotente_sobre_banco_ja_migrado(tmp_path: Path) -> None:
@@ -102,6 +113,49 @@ def test_migracao_meteorologia_e_idempotente_sobre_banco_ja_migrado(tmp_path: Pa
 
     assert resultado.versoes_aplicadas == ()
     assert {"areas_monitoradas_inmet", "sincronizacoes_meteorologicas"} <= tabelas(caminho)
+
+
+def test_migracao_resiliencia_preserva_eventos_existentes_e_aplica_unique(
+    tmp_path: Path,
+) -> None:
+    """A migração `0003` recria `eventos_meteorologicos` (AD-015) preservando linhas semeadas
+    por migrações anteriores e habilita o insert-or-noop de deduplicação (AD-010)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho, [MIGRACOES[0], MIGRACOES[1]]).aplicar_pendentes()
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO eventos_meteorologicos "
+            "(id, tipo, area, periodo_inicio, periodo_fim, intensidade, proveniencia, "
+            "instante_observado) VALUES "
+            "('11111111-1111-1111-1111-111111111111', 'chuva_intensa', '9990001', "
+            "'2026-08-30 17:00:00', '2026-08-30 18:00:00', 55.4, 'real_inmet', "
+            "'2026-08-30 18:00:00')"
+        )
+
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        linhas = conexao.execute(
+            "SELECT id, tipo FROM eventos_meteorologicos"
+        ).fetchall()
+        assert [(str(id_), tipo) for id_, tipo in linhas] == [
+            ("11111111-1111-1111-1111-111111111111", "chuva_intensa")
+        ]
+
+        conexao.execute(
+            "INSERT INTO eventos_meteorologicos "
+            "(id, tipo, area, periodo_inicio, periodo_fim, intensidade, proveniencia, "
+            "instante_observado) VALUES "
+            "('22222222-2222-2222-2222-222222222222', 'chuva_intensa', '9990001', "
+            "'2026-08-30 17:00:00', '2026-08-30 18:00:00', 99.9, 'real_inmet', "
+            "'2026-08-30 18:00:00') ON CONFLICT DO NOTHING"
+        )
+        apos_conflito = conexao.execute(
+            "SELECT count(*) FROM eventos_meteorologicos"
+        ).fetchone()
+
+    assert apos_conflito == (1,)
 
 
 def test_recusa_versao_registrada_futura_sem_aplicar_mutacao(tmp_path: Path) -> None:
