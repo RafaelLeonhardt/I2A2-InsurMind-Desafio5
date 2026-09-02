@@ -8,7 +8,11 @@
 
 Corroborated across multiple features. Safe to apply as guidance.
 
-_none_
+### L-024 - When a requirement demands distinction by text, icon and color, assert that all three signals differ across categories.
+- signal: `spec_precision_gap` · recurrence: 2 feature(s) · scope: `frontend` · harmful: 0
+- features: 2-3-identificar-eventos-meteorologicos-relevantes, 2-4-configurar-testar-e-versionar-regras-preventivas
+- evidence: RISCO-12 - src/frontend/src/funcionalidades/evento-decisao/SuperficieEventoDecisao.test.tsx:80-126 (frontend) (+1 more)
+- last seen: 2026-09-02T14:42:34Z
 
 ## Candidates (under observation - do NOT load as guidance yet)
 
@@ -150,12 +154,6 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `domain` · harmful: 0
 - features: 2-3-identificar-eventos-meteorologicos-relevantes
 - evidence: RISCO-05/RISCO-06 - src/backend/central_preventiva/dominio/avaliador_risco.py:102-137 (domain)
-- last seen: 2026-09-02T12:08:04Z
-
-### L-024 - When a requirement demands distinction by text, icon and color, assert that all three signals differ across categories.
-- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
-- features: 2-3-identificar-eventos-meteorologicos-relevantes
-- evidence: RISCO-12 - src/frontend/src/funcionalidades/evento-decisao/SuperficieEventoDecisao.test.tsx:80-126 (frontend)
 - last seen: 2026-09-02T12:08:04Z
 
 ## Quarantined (failed when applied - ignore)

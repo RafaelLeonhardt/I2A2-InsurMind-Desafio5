@@ -257,7 +257,7 @@ O núcleo de segurança (concorrência otimista, coerência AD-013, hash de idem
 - [x] **Fix 7 (Minor)** — REGRA-11 só tinha o caminho equivalente (`versao_esperada` obsoleta), não o cenário literal de duas tentativas com a mesma versão; REGRA-10 não tinha nenhum teste nesta história. Adicionados: um teste HTTP com duas ativações concorrentes usando `versao_esperada=1` e chaves de idempotência distintas (`200` depois `409`); um teste de repositório que salva uma avaliação de risco, ativa uma nova versão da regra e relê a avaliação, confirmando `regra_id`/`regra_versao` inalterados (AD-11).
 - [x] **Fix 8 (Minor)** — `GET /regras` e `POST .../testar` asseriam só contagens. Fortalecidas para conferir `estado`/`versao` de cada regra e os valores reais de `valor_observado`/`justificativa` do critério de intensidade.
 
-**Gate check (backend, full)**: `uv run --directory src/backend pytest && ruff check . && pyright` — verde (343 testes). **Gate check (frontend, full)**: `npm test -- --run && npm run lint && npm run build` — verde (189 testes, mesmos avisos pré-existentes).
+**Gate check (backend, full)**: `uv run --directory src/backend pytest && ruff check . && pyright` — verde (340 testes). **Gate check (frontend, full)**: `npm test -- --run && npm run lint && npm run build` — verde (189 testes, mesmos avisos pré-existentes).
 
 **Commit**: `fix(regras): fechar lacunas do verificador da historia 2.4`
 
@@ -267,4 +267,4 @@ Rodada 2 confirmou 7 dos 8 fixes da Rodada 1 genuínos (reinjeção dos mutantes
 
 - [x] **Fix 9 (Minor)** — REGRA-04: o "indicador visual" (terceiro sinal além de texto+ícone) não tinha nenhuma asserção — `data-indicador` e a classe `regra-estado-badge--{estado}` existiam no componente desde a Rodada 1, mas nunca eram checados no teste. Adicionadas as asserções `toHaveAttribute('data-indicador', ...)` e `toHaveClass('regra-estado-badge--...')` para ambos os estados em `SuperficieRegras.test.tsx`. Mutação de verificação (colapsar as duas badges na mesma classe, sem `data-indicador`) aplicada manualmente e confirmada morta antes de reverter.
 
-**Gate check**: backend 343 testes verde (inalterado); frontend 189 testes verde. **Commit**: `fix(regras): asserir o indicador visual da regra ativa (REGRA-04, Round 2)`
+**Gate check**: backend 340 testes verde (inalterado); frontend 189 testes verde. **Commit**: `fix(regras): asserir o indicador visual da regra ativa (REGRA-04, Round 2)`

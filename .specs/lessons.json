@@ -428,17 +428,19 @@
       "text": "When a requirement demands distinction by text, icon and color, assert that all three signals differ across categories.",
       "signal": "spec_precision_gap",
       "scope": "frontend",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "2-3-identificar-eventos-meteorologicos-relevantes"
+        "2-3-identificar-eventos-meteorologicos-relevantes",
+        "2-4-configurar-testar-e-versionar-regras-preventivas"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "RISCO-12 - src/frontend/src/funcionalidades/evento-decisao/SuperficieEventoDecisao.test.tsx:80-126 (frontend)"
+        "RISCO-12 - src/frontend/src/funcionalidades/evento-decisao/SuperficieEventoDecisao.test.tsx:80-126 (frontend)",
+        "REGRA-04 - src/frontend/src/funcionalidades/regras/SuperficieRegras.tsx:259-278 (mutant M6/M10 survived Round 1/2) (frontend)"
       ],
       "created": "2026-09-02T12:08:04Z",
-      "last_seen": "2026-09-02T12:08:04Z"
+      "last_seen": "2026-09-02T14:42:34Z"
     }
   ]
 }

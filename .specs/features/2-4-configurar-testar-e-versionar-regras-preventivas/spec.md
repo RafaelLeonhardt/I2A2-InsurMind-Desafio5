@@ -108,21 +108,21 @@ A História 2.3 consome a regra ativa da tabela `regras`, mas nada ainda permite
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| REGRA-01 | P1: Consulta e edição validada de regras | Design | Pending |
-| REGRA-02 | P1: Consulta e edição validada de regras | Design | Pending |
-| REGRA-03 | P1: Consulta e edição validada de regras | Design | Pending |
-| REGRA-04 | P1: Consulta e edição validada de regras | Design | Pending |
-| REGRA-05 | P1: Consulta e edição validada de regras | Design | Pending |
-| REGRA-06 | P1: Consulta e edição validada de regras | Design | Pending |
-| REGRA-07 | P1: Teste determinístico e ativação versionada | Design | Pending |
-| REGRA-08 | P1: Teste determinístico e ativação versionada | Design | Pending |
-| REGRA-09 | P1: Teste determinístico e ativação versionada | Design | Pending |
-| REGRA-10 | P1: Teste determinístico e ativação versionada | Design | Pending |
-| REGRA-11 | P2: Concorrência, idempotência e acessibilidade | Design | Pending |
-| REGRA-12 | P2: Concorrência, idempotência e acessibilidade | Design | Pending |
-| REGRA-13 | P2: Concorrência, idempotência e acessibilidade | Design | Pending |
-| REGRA-14 | P2: Concorrência, idempotência e acessibilidade | Design | Pending |
-| REGRA-15 | P2: Concorrência, idempotência e acessibilidade | Design | Pending |
+| REGRA-01 | P1: Consulta e edição validada de regras | Design | Verified |
+| REGRA-02 | P1: Consulta e edição validada de regras | Design | Verified |
+| REGRA-03 | P1: Consulta e edição validada de regras | Design | Verified |
+| REGRA-04 | P1: Consulta e edição validada de regras | Design | Verified |
+| REGRA-05 | P1: Consulta e edição validada de regras | Design | Verified |
+| REGRA-06 | P1: Consulta e edição validada de regras | Design | Verified |
+| REGRA-07 | P1: Teste determinístico e ativação versionada | Design | Verified |
+| REGRA-08 | P1: Teste determinístico e ativação versionada | Design | Verified |
+| REGRA-09 | P1: Teste determinístico e ativação versionada | Design | Verified |
+| REGRA-10 | P1: Teste determinístico e ativação versionada | Design | Verified |
+| REGRA-11 | P2: Concorrência, idempotência e acessibilidade | Design | Verified |
+| REGRA-12 | P2: Concorrência, idempotência e acessibilidade | Design | Verified |
+| REGRA-13 | P2: Concorrência, idempotência e acessibilidade | Design | Verified |
+| REGRA-14 | P2: Concorrência, idempotência e acessibilidade | Design | Verified |
+| REGRA-15 | P2: Concorrência, idempotência e acessibilidade | Design | Verified |
 
 **ID format:** `REGRA-NN`
 
