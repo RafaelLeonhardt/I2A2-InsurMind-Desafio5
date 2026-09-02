@@ -2,18 +2,25 @@
 
 from pathlib import Path
 from typing import Any
+from uuid import uuid4
 
 import pytest
+from fastapi.testclient import TestClient
 
 from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
 from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigracoes
+from central_preventiva.adaptadores.persistencia.repositorio_execucao_preventiva import (
+    RepositorioExecucaoPreventiva,
+)
 from central_preventiva.adaptadores.persistencia.semeador import SemeadorDadosSinteticos
 from central_preventiva.aplicacao.portas_persistencia import (
     MigracoesPendentes,
     VersaoSchemaFutura,
 )
 from central_preventiva.composicao import servidor
+from central_preventiva.composicao.api import criar_aplicacao
 from central_preventiva.composicao.configuracao import Configuracao
+from central_preventiva.dominio.estados_execucao import EstadoExecucao
 
 
 def configuracao_para(caminho: Path) -> Configuracao:
@@ -123,3 +130,77 @@ def test_servidor_recusa_schema_com_migracoes_pendentes(
     assert "Execute o comando de inicialização" in str(captura.value)
     assert chamada == {}
     assert tabelas_do_banco(caminho) == set()
+
+
+AREA = "9990099"
+"""Código IBGE dedicado a este teste, fora dos usados pelo `SemeadorDadosSinteticos`
+(9990001/9990002), para que a contagem do público elegível não misture segurados
+sintéticos já semeados com os desta história."""
+
+
+def semear_execucao_pendente_em_avaliando_elegibilidade(caminho: Path) -> str:
+    """Persiste uma execução presa em `avaliando_elegibilidade`, como se o processo
+    tivesse sido reiniciado logo após a avaliação de risco (RUNNER-07)."""
+
+    execucao_id = RepositorioExecucaoPreventiva(caminho).criar(
+        EstadoExecucao.AVALIANDO_ELEGIBILIDADE
+    )
+    evento_id = str(uuid4())
+    regra_id = str(uuid4())
+    segurado_id = str(uuid4())
+    apolice_id = str(uuid4())
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO eventos_meteorologicos (id, tipo, area, periodo_inicio, "
+            "periodo_fim, intensidade, proveniencia, instante_observado) VALUES "
+            "(?, 'chuva_intensa', ?, '2026-03-10 06:00:00', '2026-03-10 18:00:00', "
+            "72.5, 'sintetico', '2026-03-09 18:00:00')",
+            [evento_id, AREA],
+        )
+        conexao.execute(
+            "INSERT INTO regras (id, evento_tipo, limiar_meteorologico, area_aplicavel, "
+            "apolice_tipo, cobertura_exigida, antecedencia_horas, canal, versao, estado) "
+            "VALUES (?, 'chuva_intensa', 50.0, ?, 'residencial', 'alagamento', 24, "
+            "'whatsapp', 1, 'ativa')",
+            [regra_id, AREA],
+        )
+        conexao.execute(
+            "INSERT INTO avaliacoes_risco (id, execucao_id, evento_id, regra_id, "
+            "regra_versao, relevante, criterios, motivo) VALUES "
+            "(?, ?, ?, ?, 1, true, '[]', 'relevante')",
+            [str(uuid4()), str(execucao_id), evento_id, regra_id],
+        )
+        conexao.execute(
+            "INSERT INTO segurados (id, nome, codigo_ibge_area, canal_preferido, "
+            "participa_de_alertas) VALUES (?, 'Pessoa Retomada de Teste', ?, "
+            "'whatsapp', true)",
+            [segurado_id, AREA],
+        )
+        conexao.execute(
+            "INSERT INTO apolices (id, segurado_id, numero, tipo, situacao, "
+            "vigencia_inicio, vigencia_fim, coberturas, endereco_risco_sintetico, "
+            "codigo_ibge_area) VALUES (?, ?, 'NUM-RETOMADA', 'residencial', 'ativa', "
+            "'2026-01-01', '2026-12-31', ['alagamento'], 'Rua Teste', ?)",
+            [apolice_id, segurado_id, AREA],
+        )
+    return str(execucao_id)
+
+
+def test_lifespan_retoma_execucao_nao_terminal_persistida_antes_do_boot(
+    tmp_path: Path,
+) -> None:
+    """RUNNER-07: uma execução travada em `avaliando_elegibilidade` de antes do reinício
+    é retomada automaticamente no boot, sem recriar o evento nem recalcular o risco."""
+
+    caminho = preparar_banco_atual(tmp_path)
+    execucao_id = semear_execucao_pendente_em_avaliando_elegibilidade(caminho)
+    configuracao = configuracao_para(caminho)
+
+    with TestClient(criar_aplicacao(configuracao)) as cliente:
+        resposta = cliente.get(f"/api/v1/execucoes/{execucao_id}")
+
+    assert resposta.status_code == 200
+    corpo = resposta.json()
+    assert corpo["estado"] == "aguardando_geracao"
+    assert corpo["publico_elegivel_total"] == 1
+    assert "publico_elegivel_formado" in [m["marco"] for m in corpo["marcos"]]

@@ -22,6 +22,7 @@ from central_preventiva.adaptadores.http.elegibilidade import (
 from central_preventiva.adaptadores.http.execucao_preventiva import (
     criar_roteador as criar_roteador_execucao_preventiva,
 )
+from central_preventiva.adaptadores.http.execucao_preventiva import montar_portas_execucao
 from central_preventiva.adaptadores.http.meteorologia import (
     criar_roteador as criar_roteador_meteorologia,
 )
@@ -36,15 +37,25 @@ from central_preventiva.adaptadores.http.regras import (
 )
 from central_preventiva.adaptadores.http.saude import roteador as roteador_saude
 from central_preventiva.aplicacao.coleta_meteorologica import ServicoColetaMeteorologica
+from central_preventiva.aplicacao.gerenciador_execucoes import GerenciadorExecucoes
 from central_preventiva.composicao.agendador_meteorologico import AgendadorMeteorologico
 from central_preventiva.composicao.configuracao import Configuracao, obter_configuracao
 
 
 @asynccontextmanager
 async def _lifespan(aplicacao: FastAPI) -> AsyncGenerator[None]:
-    """Inicia o agendador meteorológico no boot e o cancela de forma limpa no shutdown (AD-006)."""
+    """Retoma execuções não terminais e inicia o agendador meteorológico no boot,
+    cancelando-o de forma limpa no shutdown (AD-006).
+
+    A retomada (RUNNER-07) roda antes do agendador começar a produzir novas coletas,
+    para que nenhuma execução pendente de antes do reinício compita por atenção com
+    coletas novas antes de ser resolvida.
+    """
 
     configuracao_ativa: Configuracao = aplicacao.state.configuracao
+    gerenciador = GerenciadorExecucoes(montar_portas_execucao(configuracao_ativa))
+    await gerenciador.retomar_pendentes()
+
     portas = montar_portas_coleta(configuracao_ativa)
     agendador = AgendadorMeteorologico(ServicoColetaMeteorologica(portas), portas.areas)
     tarefa = asyncio.create_task(agendador.executar_em_segundo_plano())

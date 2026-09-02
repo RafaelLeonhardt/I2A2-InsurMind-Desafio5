@@ -183,9 +183,9 @@ T6
 
 **Done when**:
 
-- [ ] Uma execução não terminal persistida antes do boot é retomada automaticamente ao iniciar o servidor
-- [ ] Ordem de inicialização documentada (retomada antes do agendador de coleta)
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] Uma execução não terminal persistida antes do boot é retomada automaticamente ao iniciar o servidor
+- [x] Ordem de inicialização documentada (retomada antes do agendador de coleta)
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full
