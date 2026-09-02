@@ -92,6 +92,36 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: aplicacao/portas_meteorologia.py:86,95,112 (ports)
 - last seen: 2026-09-02T01:54:08Z
 
+### L-014 - Test the intersection where two derivation conditions hold at once, so branch priority order is pinned instead of incidental.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas
+- evidence: validation.md Sensor #3 — SuperficieFonteMeteorologica.tsx:55-58 (frontend)
+- last seen: 2026-09-02T03:53:01Z
+
+### L-015 - Implement and assert every noun listed in an acceptance criterion outcome, including derived values the API does not already return.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `backend` · harmful: 0
+- features: 2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas
+- evidence: RESIL-06 — nenhuma ocorrencia de 'idade' em adaptadores/http, api/, funcionalidades/ (backend)
+- last seen: 2026-09-02T03:53:01Z
+
+### L-016 - When an acceptance criterion demands text, icon and color, assert all three dimensions, not only the text label.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas
+- evidence: RESIL-15 — SuperficieFonteMeteorologica.test.tsx:225-307 asserts only text (frontend)
+- last seen: 2026-09-02T03:53:01Z
+
+### L-017 - Define in the spec which state wins when more than one state condition is true at the same time.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
+- features: 2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas
+- evidence: RESIL-15/16 — spec.md:104 nao define precedencia entre estados (spec)
+- last seen: 2026-09-02T03:53:01Z
+
+### L-018 - State explicitly whether a configurable value must be externally configurable at runtime or a named constant is sufficient.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
+- features: 2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas
+- evidence: RESIL-03 — spec.md:33 pede env var, README.md:89-92 entrega constantes (spec)
+- last seen: 2026-09-02T03:53:01Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

@@ -31,6 +31,7 @@ from central_preventiva.adaptadores.persistencia.repositorio_meteorologia import
     RepositorioTentativasColeta,
 )
 from central_preventiva.aplicacao.coleta_meteorologica import (
+    IMPACTO_COLETA_INDISPONIVEL,
     AreaMonitoradaInexistente,
     PortasColetaMeteorologica,
     ServicoColetaMeteorologica,
@@ -355,7 +356,7 @@ def test_executar_coleta_com_erro_de_transporte_persistente_esgota_retentativas(
     assert excecao_execucao_id == execucao_id
     assert "TimeoutException" in causa
     assert tentativas == 3
-    assert impacto != ""
+    assert impacto == IMPACTO_COLETA_INDISPONIVEL
 
 
 def test_repetir_solicitar_coleta_manual_com_mesma_chave_nao_dispara_nova_coleta() -> None:

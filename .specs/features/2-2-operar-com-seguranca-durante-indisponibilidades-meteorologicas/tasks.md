@@ -318,3 +318,23 @@ T6 → T7
 | T7: Extensão da superfície | Componente React | unit | unit | ✅ OK |
 
 **Rules confirmed**: nenhum `Tests: none` nesta história; nenhuma task adia teste.
+
+---
+
+## Fix Tasks (Verifier Round 1 — FAIL, `validation.md` de 2026-09-02)
+
+O primeiro `validation.md` reportou FAIL: 1 mutante sobrevivente + 2 gaps de comportamento (RESIL-06, RESIL-09) + 4 lacunas de precisão/asserção. Corrigidas nesta rodada:
+
+- [x] **Fix 1** — mutante sobrevivente na ordem de prioridade de `calcularEstadoFonte` (`recuperada`/`degradada`): precedência documentada explicitamente no docstring da função (RESIL-14 "voltou a ficar disponível" pesa mais que "precisou de mais de uma tentativa"; `indisponivel` também documentado como vencedor sobre `sintetica`) e cobertura por 2 testes de interseção que forçam as duas condições simultaneamente. Mutação reaplicada manualmente e confirmada morta antes de reverter.
+- [x] **Fix 2** — RESIL-06 "idade calculada" nunca implementada: `calcularIdade(instanteObservado, agora)` (função pura, exportada e testada com 4 casos de fronteira) adicionada como coluna "Idade" na tabela de eventos.
+- [x] **Fix 3** — RESIL-09 snapshot antigo não marcado como desatualizado: aviso textual + ícone (`role="note"`) exibido só no estado `Indisponível`, testado presente e ausente.
+- [x] **Fix 4** — RESIL-15 ícone/cor sem asserção: teste novo confere `data-icone`, a classe `estado-fonte-badge--${estado}` e a presença do SVG do ícone.
+- [x] **Fix 5** — RESIL-16 ausência de ações não asserida em 2 dos 6 estados: testes novos cobrem `em_tentativa` e `recuperada`.
+- [x] **Fix 6** — linha da Test Coverage Matrix não cumprida: `testes/test_repositorio_meteorologia.py` estendido com 4 testes lendo de volta `tentativas_coleta_meteorologica` (incluindo valores de `iniciado_em`/`finalizado_em`, não só presença) e `cenarios_sinteticos_ativados` do DuckDB real. Assertiva fraca `impacto != ""` (RESIL-08) trocada por comparação exata com `IMPACTO_COLETA_INDISPONIVEL`.
+
+Não corrigidos nesta rodada (aceitos como dívida menor, já registrados no `validation.md`): RESIL-03 (constantes em vez de variável de ambiente — desvio já justificado no README), RESIL-13 (indicador acessível do ícone sintético sem asserção própria), RESIL-14 (retomada do agendamento automático sem teste dedicado — garantida estruturalmente), RESIL-18 (3 testes de rota aguardam ~3,3s de backoff real — trade-off aceito na Nota de T6), edge case de reinício do backend com execução em `coletando` (limitação conhecida de 2.1, coleta síncrona).
+
+**Gate check (backend, full)**: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright` — verde.
+**Gate check (frontend, full)**: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend` — verde (mesmos avisos pré-existentes de `oxlint`, nenhum novo tipo de aviso).
+
+**Commit**: `fix(meteorologia): fechar lacunas do verificador da historia 2.2`

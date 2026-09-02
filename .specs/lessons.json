@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 14,
+  "next_id": 19,
   "lessons": [
     {
       "id": "L-001",
@@ -241,6 +241,96 @@
       ],
       "created": "2026-09-02T01:54:08Z",
       "last_seen": "2026-09-02T01:54:08Z"
+    },
+    {
+      "id": "L-014",
+      "key": "surviving_mutant::test the intersection where two derivation conditions hold at once so branch priority order is pinned instead of incidental",
+      "text": "Test the intersection where two derivation conditions hold at once, so branch priority order is pinned instead of incidental.",
+      "signal": "surviving_mutant",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md Sensor #3 — SuperficieFonteMeteorologica.tsx:55-58 (frontend)"
+      ],
+      "created": "2026-09-02T03:53:01Z",
+      "last_seen": "2026-09-02T03:53:01Z"
+    },
+    {
+      "id": "L-015",
+      "key": "ac_gap::implement and assert every noun listed in an acceptance criterion outcome including derived values the api does not already return",
+      "text": "Implement and assert every noun listed in an acceptance criterion outcome, including derived values the API does not already return.",
+      "signal": "ac_gap",
+      "scope": "backend",
+      "status": "candidate",
+      "features": [
+        "2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "RESIL-06 — nenhuma ocorrencia de 'idade' em adaptadores/http, api/, funcionalidades/ (backend)"
+      ],
+      "created": "2026-09-02T03:53:01Z",
+      "last_seen": "2026-09-02T03:53:01Z"
+    },
+    {
+      "id": "L-016",
+      "key": "ac_gap::when an acceptance criterion demands text icon and color assert all three dimensions not only the text label",
+      "text": "When an acceptance criterion demands text, icon and color, assert all three dimensions, not only the text label.",
+      "signal": "ac_gap",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "RESIL-15 — SuperficieFonteMeteorologica.test.tsx:225-307 asserts only text (frontend)"
+      ],
+      "created": "2026-09-02T03:53:01Z",
+      "last_seen": "2026-09-02T03:53:01Z"
+    },
+    {
+      "id": "L-017",
+      "key": "spec_precision_gap::define in the spec which state wins when more than one state condition is true at the same time",
+      "text": "Define in the spec which state wins when more than one state condition is true at the same time.",
+      "signal": "spec_precision_gap",
+      "scope": "spec",
+      "status": "candidate",
+      "features": [
+        "2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "RESIL-15/16 — spec.md:104 nao define precedencia entre estados (spec)"
+      ],
+      "created": "2026-09-02T03:53:01Z",
+      "last_seen": "2026-09-02T03:53:01Z"
+    },
+    {
+      "id": "L-018",
+      "key": "spec_precision_gap::state explicitly whether a configurable value must be externally configurable at runtime or a named constant is sufficient",
+      "text": "State explicitly whether a configurable value must be externally configurable at runtime or a named constant is sufficient.",
+      "signal": "spec_precision_gap",
+      "scope": "spec",
+      "status": "candidate",
+      "features": [
+        "2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "RESIL-03 — spec.md:33 pede env var, README.md:89-92 entrega constantes (spec)"
+      ],
+      "created": "2026-09-02T03:53:01Z",
+      "last_seen": "2026-09-02T03:53:01Z"
     }
   ]
 }

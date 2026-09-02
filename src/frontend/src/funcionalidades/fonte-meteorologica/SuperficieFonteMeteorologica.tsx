@@ -32,6 +32,18 @@ type EstadoCarregamento = 'carregando' | 'disponivel' | 'indisponivel'
  *   (RESIL-14) — um instante depois vira `operacional` de novo.
  * - `degradada`: a última sincronização concluiu, mas precisou de mais de uma tentativa.
  * - `operacional`: nenhuma das condições acima — inclui "nenhuma coleta ainda".
+ *
+ * **Precedência quando mais de uma condição vale** (a spec não define uma ordem — decisão
+ * de implementação registrada aqui, coberta por teste de interseção):
+ * 1. `em_tentativa` e `indisponivel` vêm do estado bruto da própria sincronização e são
+ *    checados primeiro — refletem o que está acontecendo agora, mais urgente que qualquer
+ *    leitura derivada.
+ * 2. `indisponivel` vence `sintetica`: uma tentativa que falhou agora é mais urgente do que
+ *    uma ativação sintética antiga ainda aparecer como o evento mais recente.
+ * 3. `recuperada` vence `degradada`: "o INMET voltou depois de ficar indisponível" (RESIL-14)
+ *    é a notícia mais relevante para Marina do que "precisou de mais de uma tentativa" —
+ *    uma nova tentativa que recupera após `falhou_coleta` e ainda precisa de 2 tentativas
+ *    cai exatamente nessa interseção e deve mostrar `recuperada`.
  */
 export type EstadoFonte =
   | 'operacional'
@@ -76,6 +88,21 @@ function IconeEstadoFonte({ estado }: { estado: EstadoFonte }) {
   if (estado === 'indisponivel') return <XCircleIcon aria-hidden="true" size={18} weight="fill" />
   if (estado === 'sintetica') return <FlaskIcon aria-hidden="true" size={18} weight="fill" />
   return <ArrowClockwiseIcon aria-hidden="true" size={18} weight="fill" />
+}
+
+/** Idade do snapshot em relação a `agora`, calculada a partir de `instanteObservado` (RESIL-06). */
+export function calcularIdade(instanteObservado: string, agora: Date = new Date()): string {
+  const observado = new Date(instanteObservado)
+  const diffMinutos = Math.max(0, Math.floor((agora.getTime() - observado.getTime()) / 60000))
+
+  if (diffMinutos < 1) return 'agora mesmo'
+  if (diffMinutos < 60) return `${diffMinutos} min atrás`
+
+  const diffHoras = Math.floor(diffMinutos / 60)
+  if (diffHoras < 24) return `${diffHoras} h atrás`
+
+  const diffDias = Math.floor(diffHoras / 24)
+  return `${diffDias} d atrás`
 }
 
 const ROTULOS_TIPO: Record<string, string> = {
@@ -240,6 +267,13 @@ export function SuperficieFonteMeteorologica() {
 
           <section aria-labelledby="titulo-eventos-meteorologicos">
             <h2 id="titulo-eventos-meteorologicos">Eventos meteorológicos</h2>
+            {estadoFonte === 'indisponivel' && (
+              <p role="note" className="aviso-snapshot-desatualizado">
+                <WarningIcon aria-hidden="true" size={16} weight="fill" />
+                <strong> Dados desatualizados:</strong> a última coleta falhou; os eventos abaixo
+                refletem o último snapshot válido, não uma leitura atual.
+              </p>
+            )}
             {eventos.length === 0 ? (
               <p>Nenhum evento meteorológico normalizado até o momento.</p>
             ) : (
@@ -255,6 +289,7 @@ export function SuperficieFonteMeteorologica() {
                     <th scope="col">Intensidade</th>
                     <th scope="col">Origem</th>
                     <th scope="col">Horário</th>
+                    <th scope="col">Idade</th>
                     <th scope="col">Seleção</th>
                   </tr>
                 </thead>
@@ -271,6 +306,7 @@ export function SuperficieFonteMeteorologica() {
                         <td>{evento.intensidade}</td>
                         <td>{ROTULOS_ORIGEM_EVENTO[evento.proveniencia] ?? evento.proveniencia}</td>
                         <td>{evento.instanteObservado}</td>
+                        <td>{calcularIdade(evento.instanteObservado)}</td>
                         <td>
                           <button
                             aria-pressed={selecionado}

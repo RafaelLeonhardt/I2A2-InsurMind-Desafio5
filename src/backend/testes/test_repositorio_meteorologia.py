@@ -8,10 +8,13 @@ from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
 from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigracoes
 from central_preventiva.adaptadores.persistencia.repositorio_meteorologia import (
     RepositorioAreasMonitoradas,
+    RepositorioCenariosSinteticosAtivados,
     RepositorioEventosMeteorologicos,
     RepositorioSincronizacoes,
+    RepositorioTentativasColeta,
 )
 from central_preventiva.aplicacao.portas_meteorologia import (
+    CodigoResultadoTentativa,
     EstadoSincronizacao,
     OrigemSincronizacao,
 )
@@ -187,3 +190,81 @@ def test_listar_recentes_com_historico_vazio_nao_lanca(tmp_path: Path) -> None:
     caminho = preparar_banco(tmp_path)
 
     assert RepositorioSincronizacoes(caminho).listar_recentes() == ()
+
+
+def _criar_sincronizacao(caminho: Path) -> object:
+    inserir_area_monitorada(caminho, "A701", "9990001")
+    area = RepositorioAreasMonitoradas(caminho).buscar_por_codigo_estacao("A701")
+    assert area is not None
+    return RepositorioSincronizacoes(caminho).criar(
+        requisicao_id=uuid4(),
+        area_monitorada_id=area.id,
+        origem=OrigemSincronizacao.MANUAL,
+        estado=EstadoSincronizacao.COLETANDO,
+    )
+
+
+def test_registrar_tentativa_persiste_numero_codigo_e_instantes(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    sincronizacao = _criar_sincronizacao(caminho)
+    inicio = datetime(2026, 8, 30, 12, 0, 0)
+    fim = datetime(2026, 8, 30, 12, 0, 5)
+
+    RepositorioTentativasColeta(caminho).registrar_tentativa(
+        sincronizacao.id, 1, CodigoResultadoTentativa.TIMEOUT, inicio, fim  # type: ignore[attr-defined]
+    )
+    tentativas = RepositorioTentativasColeta(caminho).listar_tentativas(sincronizacao.id)  # type: ignore[attr-defined]
+
+    assert len(tentativas) == 1
+    assert tentativas[0].numero_tentativa == 1
+    assert tentativas[0].codigo_resultado == CodigoResultadoTentativa.TIMEOUT
+    assert tentativas[0].iniciado_em == inicio
+    assert tentativas[0].finalizado_em == fim
+
+
+def test_listar_tentativas_ordena_por_numero_crescente(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    sincronizacao = _criar_sincronizacao(caminho)
+    repositorio = RepositorioTentativasColeta(caminho)
+    repositorio.registrar_tentativa(
+        sincronizacao.id,  # type: ignore[attr-defined]
+        2,
+        CodigoResultadoTentativa.SUCESSO,
+        datetime(2026, 8, 30, 12, 0, 3),
+        datetime(2026, 8, 30, 12, 0, 4),
+    )
+    repositorio.registrar_tentativa(
+        sincronizacao.id,  # type: ignore[attr-defined]
+        1,
+        CodigoResultadoTentativa.TIMEOUT,
+        datetime(2026, 8, 30, 12, 0, 0),
+        datetime(2026, 8, 30, 12, 0, 1),
+    )
+
+    tentativas = repositorio.listar_tentativas(sincronizacao.id)  # type: ignore[attr-defined]
+
+    assert [tentativa.numero_tentativa for tentativa in tentativas] == [1, 2]
+
+
+def test_listar_tentativas_sem_nenhuma_registrada_devolve_tupla_vazia(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    sincronizacao = _criar_sincronizacao(caminho)
+
+    assert RepositorioTentativasColeta(caminho).listar_tentativas(sincronizacao.id) == ()  # type: ignore[attr-defined]
+
+
+def test_registrar_cenario_sintetico_ativado_persiste_a_ativacao(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    sincronizacao = _criar_sincronizacao(caminho)
+
+    RepositorioCenariosSinteticosAtivados(caminho).registrar(
+        sincronizacao.id, "granizo-demonstrativo"  # type: ignore[attr-defined]
+    )
+
+    with abrir_conexao(caminho) as conexao:
+        linha = conexao.execute(
+            "SELECT sincronizacao_id, identificador_cenario FROM cenarios_sinteticos_ativados"
+        ).fetchone()
+    assert linha is not None
+    assert str(linha[0]) == str(sincronizacao.id)  # type: ignore[attr-defined]
+    assert linha[1] == "granizo-demonstrativo"
