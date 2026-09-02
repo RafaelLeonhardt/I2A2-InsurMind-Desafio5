@@ -1,11 +1,17 @@
 # História 2.3: Identificar eventos meteorológicos relevantes — Validation
 
 **Date**: 2026-09-02
+**Rodada**: **ROUND 2** (re-verificação após correções)
 **Spec**: `.specs/features/2-3-identificar-eventos-meteorologicos-relevantes/spec.md`
-**Diff range**: `6b2108c..22b2906` (6 commits, T1–T6; 25 arquivos, +2157/−46)
-**Verifier**: independent sub-agent (author ≠ verifier) — read-only sobre a árvore real; mutações apenas em worktrees descartáveis
+**Diff range**: `6b2108c..1122288` (7 commits — T1–T6 + o commit de correção `1122288`)
+**Diff das correções em isolado**: `22b2906..1122288`
+**Verifier**: sub-agente independente (author ≠ verifier), distinto do verificador da Round 1 — read-only sobre a árvore real; mutações apenas em worktrees descartáveis
 
-**Verdict**: ❌ **FAIL** — 1 mutante sobrevivente (M2) + 1 lacuna de AC fundamentada (RISCO-09, caminho `sem_regra_ativa`). Todos os gates estão verdes; as lacunas são de *discriminação de teste* e de *persistência de explicabilidade*, não de build.
+**Verdict**: ✅ **PASS**
+
+**Histórico**: Round 1 (`6b2108c..22b2906`) → ❌ FAIL (1 lacuna de AC fundamentada em RISCO-09 + mutante M2 sobrevivente + 3 lacunas menores) → Fix 1–5 implementados pelo orquestrador e commitados em `1122288` → Round 2 (este relatório) → ✅ PASS.
+
+Todas as cinco correções foram **verificadas de forma independente na árvore real** (não aceitas do sumário): a lacuna de RISCO-09 está fechada em todas as camadas, o mutante M2 está morto, a distinção por ícone está asserida, os exemplos limítrofes chegaram à documentação e a constante morta foi removida. Uma **regressão menor e não bloqueante de documentação** foi encontrada e está registrada em Fix Plans (Fix 6).
 
 ---
 
@@ -13,75 +19,98 @@
 
 | Task | Status | Notes |
 | --- | --- | --- |
-| T1 — Migração `0004_avaliacao_risco` | ✅ Done | Tabela + README + `test_migracoes.py`/`test_inicializador.py` estendidos |
-| T2 — `AvaliadorRisco` (motor determinístico) | ✅ Done | Função pura; adição de "área aplicável" para granizo justificada (ver RISCO-06) |
-| T3 — `RepositorioRegras` / `RepositorioAvaliacoesRisco` | ✅ Done | `regra_versao` explícito conforme Nota de implementação |
-| T4 — `ServicoAvaliacaoRisco` | ⚠️ Partial | Caminho `sem_regra_ativa` não persiste código/motivo (ver RISCO-09); serviço não é chamado por nenhum caminho de produção |
-| T5 — Endpoint HTTP de detalhe | ✅ Done | Roteador incluído em `composicao/api.py:89-92`; `openapi.json` sincronizado |
-| T6 — Superfície "Evento e decisão" | ⚠️ Partial | Componente não montado em nenhuma rota (lacuna declarada pelo autor em `tasks.md` T6 / `STATE.md`) |
+| T1 — Migração `0004_avaliacao_risco` | ✅ Done | — |
+| T2 — `AvaliadorRisco` (motor determinístico) | ✅ Done | Constante morta `LIMIAR_CHUVA_INTENSA_MM` removida (Fix 5, confirmado: zero ocorrências no repositório) |
+| T3 — `RepositorioRegras` / `RepositorioAvaliacoesRisco` | ✅ Done | `regra_id`/`regra_versao` agora `UUID \| None` / `int \| None` na dataclass, no `salvar` e na desserialização (`repositorio_avaliacoes_risco.py:34-35,75-76,119-120`) |
+| T4 — `ServicoAvaliacaoRisco` | ✅ Done | Era ⚠️ Partial na Round 1; o caminho `sem_regra_ativa` agora persiste snapshot (`aplicacao/avaliacao_risco.py:90`). Continua não alcançável por caminho de produção (lacuna declarada pelo autor, fora de escopo desta história) |
+| T5 — Endpoint HTTP de detalhe | ✅ Done | Modelo relaxado (`adaptadores/http/avaliacao_risco.py:37-42`); `openapi.json` re-sincronizado e **guardado por teste** (ver Payload/Contrato) |
+| T6 — Superfície "Evento e decisão" | ✅ Done | Ícones distintos por categoria; tipos do frontend nulos. Componente segue não montado em rota (lacuna declarada pelo autor em `tasks.md` T6 / `STATE.md`) |
+| Fix 1–5 (Verifier Round 1) | ✅ Done | Verificados um a um abaixo |
+
+---
+
+## Verificação das correções da Round 1
+
+| Fix | O que Round 1 pediu | Verificação independente (Round 2) | Resultado |
+| --- | --- | --- | --- |
+| **Fix 1** — RISCO-09 persistir código/motivo | Terminal `sem_risco` sem regra ativa deve gravar código e motivo | Migração `0005_avaliacao_risco_sem_regra.sql:10-29` recria a tabela (recreate-and-copy, precedente AD-015/migração 0003) com `regra_id UUID` e `regra_versao INTEGER` **sem** `NOT NULL`, copiando todas as linhas antes do `DROP`. Serviço: `aplicacao/avaliacao_risco.py:90` — `self._portas.avaliacoes.salvar(execucao_id, evento.id, None, None, resultado)` **antes** da transição (`:91-93`). Rota: devolve `200` porque o snapshot passa a existir — nenhuma lógica de rota precisou mudar, só o modelo (`http/avaliacao_risco.py:37-42`). Frontend: `api/avaliacaoRisco.ts:20-21` `regraId: string \| null` | ✅ **Fechado** |
+| **Fix 2** — mutante M2 | Fixture de versão não trivial | `testes/test_avaliacao_risco.py:30` — `versao=7` (com comentário explicando o porquê); `testes/test_repositorio_avaliacoes_risco.py:49,58` — `regra_versao=7`. **Mutante M2 re-injetado e agora morto** (ver Sensor) | ✅ **Fechado** |
+| **Fix 3** — RISCO-12 distinção por ícone | Asserir que os três ícones diferem | `SuperficieEventoDecisao.tsx:41,46,50` — `data-icone-nome` `warning` / `x-circle` / `check-circle`; `SuperficieEventoDecisao.test.tsx:153` — `expect(new Set(nomes).size).toBe(3)`, mais três asserções por categoria em `:89,:114,:127`. **Colisão de ícone re-injetada e morta** (ver Sensor) | ✅ **Fechado** |
+| **Fix 4** — RISCO-02 exemplos limítrofes na documentação | Tabela de fronteira + exemplos + declaração de ausência de fronteira exclusiva | `adaptadores/persistencia/README.md:104-122` — seção "Limiares de relevância", tabela por `evento_tipo` com fronteira **Inclusiva** (`:113`), declaração "nenhuma fronteira exclusiva está configurada nesta demonstração" (`:114`) e os três exemplos `49.9`/`50.0`/`50.1` (`:120-122`). Guardado por `testes/test_migracoes.py:294-305` | ✅ **Fechado** |
+| **Fix 5** — constante morta | Remover `LIMIAR_CHUVA_INTENSA_MM` | `grep -rn LIMIAR_CHUVA_INTENSA_MM src/` → zero ocorrências. A justificativa migrou para o README (`:113`, coluna "Justificativa"), como Fix 4 previu | ✅ **Fechado** |
 
 ---
 
 ## Spec-Anchored Acceptance Criteria
 
-| Criterion | Spec-defined outcome | `file:line` + assertion | Result |
+| Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + asserção | Result |
 | --- | --- | --- | --- |
-| **RISCO-01** — centralizar limiares em configuração versionada e legível, com valores padrão e justificativa | Limiar de chuva = 50.0 mm, versionado, com justificativa documentada | Config: tabela `regras` (`versao`/`estado`), default semeado em `src/backend/central_preventiva/adaptadores/persistencia/semeador.py:189-190` (`"chuva_intensa", 50.0`); leitura versionada em `repositorio_regras.py:27-29` (`WHERE estado='ativa' ORDER BY versao DESC`); justificativa em `design.md:136-138`; schema documentado em `adaptadores/persistencia/README.md` (seção `0004`). Teste: `testes/test_repositorio_regras.py:50` — `assert regra.limiar_meteorologico == 50.0`; `:77-78` — `assert regra.versao == 2` (regra `substituida` ignorada) | ✅ PASS (com ressalva, ver Code Quality #1) |
-| **RISCO-02** — documentação SHALL explicitar fronteiras inclusivas/exclusivas, **com exemplos limítrofes** | Para cada limiar: qual lado da fronteira é relevante + exemplos no valor-limite | Fronteira inclusiva documentada em `design.md:136` (`intensidade >= 50.0` — fronteira **inclusiva**) e ecoada em runtime na justificativa (`dominio/avaliador_risco.py:111-112`). Exemplos limítrofes existem **apenas como testes** (`testes/test_avaliador_risco.py:69` `49.9`, `:79` `50.0`, `:86` `50.1`), não em nenhum artefato de documentação; nenhum limiar é documentado como exclusivo nem o documento declara que não há fronteira exclusiva configurada | ⚠️ **Spec-precision gap** |
-| **RISCO-03** — reconhecer chuva intensa e granizo como suportados | Ambos avaliados, não rejeitados | `dominio/avaliador_risco.py:99` (guarda de tipo); `testes/test_avaliador_risco.py:81-82` — `assert resultado.relevante is True` / `motivo == MOTIVO_RELEVANTE` (chuva); `:105-108` — idem + `criterio_ocorrencia.atende is True` (granizo) | ✅ PASS |
-| **RISCO-04** — tipo diferente → registrado como não suportado **sem avançar** | Resultado "não suportado", limiar não avaliado | `dominio/avaliador_risco.py:99-100` → `_rejeitar_tipo_nao_suportado`; `testes/test_avaliador_risco.py:133` — `assert resultado.motivo == MOTIVO_TIPO_NAO_SUPORTADO`; `:134` — `assert len(resultado.criterios) == 1` (prova que o ramo de limiar nunca foi executado, apesar de `intensidade=999.0` em `:126`) | ✅ PASS |
-| **RISCO-05** — chuva: comparar medidas, área, severidade e período com a regra do **residencial**, resultado determinístico com valores e critérios | Resultado com valores observados + critérios aplicados | `dominio/avaliador_risco.py:102-126`; `testes/test_avaliador_risco.py:72-75` — `motivo == MOTIVO_ABAIXO_DO_LIMIAR`, `criterio_intensidade.atende is False`, `valor_observado == "49.9 mm"`; `:96-99` — `motivo == MOTIVO_AREA_NAO_APLICAVEL`, `criterio_area.valor_observado == AREA_OUTRA` | ⚠️ **Spec-precision gap** (ver nota A) |
-| **RISCO-06** — granizo: idem contra a regra do **automóvel** | Resultado determinístico com valores e critérios | `dominio/avaliador_risco.py:128-137`; `testes/test_avaliador_risco.py:105-108` (relevante por ocorrência) e `:114-115` — `assert resultado.motivo == MOTIVO_AREA_NAO_APLICAVEL` (fora da área) | ⚠️ **Spec-precision gap** (ver notas A e B) |
-| **RISCO-07** — mesma entrada + mesma versão de regra → resultado e justificativa idênticos | Igualdade byte-a-byte de resultado e justificativa | `dominio/avaliador_risco.py:92-137` (função pura, sem I/O, sem estado); `testes/test_avaliador_risco.py:143` — `assert primeira == segunda` (dataclass `frozen` compara `relevante`, toda a tupla de `Criterio` incluindo strings de justificativa, e `motivo`) | ✅ PASS |
-| **RISCO-08** — nenhum LLM, prompt ou heurística probabilística participa da decisão | Zero envolvimento de IA em qualquer caminho | Estrutural: `dominio/avaliador_risco.py:1-9` importa apenas stdlib + domínio; `testes/test_camadas.py:7-36` proíbe, por varredura AST de todo `dominio/*.py`, importar `central_preventiva.adaptadores` (onde viveria qualquer cliente OpenAI); `aplicacao/avaliacao_risco.py:54-63` declara exatamente 3 portas + a função pura — nenhuma porta de IA existe para ser chamada | ✅ PASS (evidência estrutural, ver nota C) |
-| **RISCO-09** — evento sem critérios → terminal `sem_risco` **com código e motivo persistidos**, sem elegibilidade/mensagem/OpenAI | Estado `sem_risco` + código e motivo gravados | `aplicacao/avaliacao_risco.py:98-103`; `testes/test_avaliacao_risco.py:103` — `assert execucoes.transicoes == [(execucao_id, 1, EstadoExecucao.SEM_RISCO)]` (tupla exata) e `:102` — `assert len(avaliacoes.salvas) == 1` (motivo persistido em `avaliacoes_risco.motivo`). **Sub-caso `sem_regra_ativa`**: `aplicacao/avaliacao_risco.py:86-93` retorna antes de `salvar`; `testes/test_avaliacao_risco.py:125` — `assert avaliacoes.salvas == []`, `:124` — `motivo == MOTIVO_SEM_REGRA_ATIVA` (apenas em memória) | ❌ **GAP** (ver nota D) |
-| **RISCO-10** — evento relevante → `avaliando_elegibilidade` preservando snapshot imutável do evento e da versão da regra | Transição + snapshot de `evento_id`, `regra_id`, `regra_versao` | `aplicacao/avaliacao_risco.py:96-103`; `testes/test_avaliacao_risco.py:114` — `assert execucoes.transicoes == [(execucao_id, 1, EstadoExecucao.AVALIANDO_ELEGIBILIDADE)]`; `:137-141` — `execucao_salva == execucao_id`, `evento_salvo == evento.id`, `regra_salva == REGRA_CHUVA.id`, `versao_salva == REGRA_CHUVA.versao`. Imutabilidade: `repositorio_avaliacoes_risco.py:78-93` só `INSERT`, `:99-103` só `SELECT` (nenhum `UPDATE`/`DELETE`); `migracoes/0004_avaliacao_risco.sql` grava `regra_versao INTEGER NOT NULL` como valor, não referência | ⚠️ PASS enfraquecido — **mutante M2 sobreviveu** exatamente nesta asserção de versão |
-| **RISCO-11** — detalhe exibe operando, valor observado, resultado e justificativa de cada critério | As 4 colunas por critério | Backend: `testes/test_avaliacao_risco_api.py:75-78` — `len(corpo["criterios"]) == 2`, `criterios[0]["operando"] == "área aplicável"`, `criterios[0]["atende"] is True`, `criterios[1]["valor_observado"] == "72.5 mm"` (round-trip JSON real, do `INSERT` ao corpo HTTP). Repositório: `testes/test_repositorio_avaliacoes_risco.py:61` — `assert avaliacao.criterios == RESULTADO_RELEVANTE.criterios` (tupla completa, incluindo justificativas). Frontend: `SuperficieEventoDecisao.test.tsx:72-77` — `getByText('área aplicável')`, `getByText('9990001')`, `getAllByText('Atende')).toHaveLength(2)`, justificativa integral | ✅ PASS (não alcançável na app, ver nota E) |
-| **RISCO-12** — distinguir relevância / ausência de risco / dado inválido por **texto, ícone e cor** | Tríade texto+ícone+cor por categoria | `SuperficieEventoDecisao.tsx:27-44`; `SuperficieEventoDecisao.test.tsx:85-89` — `findByText('Relevante')` + `toHaveClass('categoria-decisao-badge--relevante')` + `badge?.querySelector('svg')` presente; `:110-113` — `findByText('Sem risco')` + classe `--sem_risco`; `:123-125` — `findByText('Dado inválido')` + classe `--dado_invalido`. Cores em `SuperficieEventoDecisao.css:22-35` | ⚠️ **Spec-precision gap** (ver nota F) |
-| **RISCO-13** — progresso reflete a etapa real da máquina de estados; frontend não recalcula nem antecipa resultado | Progresso real, zero recálculo | `SuperficieEventoDecisao.test.tsx:54` — estado `carregando`; `:62-63` — `findByText(/Em processamento/)` + `queryByRole('table')).not.toBeInTheDocument()` (nada antecipado); `:144-145` — `toHaveBeenCalledWith(EXECUCAO_ID)` e `toHaveBeenCalledTimes(1)`; `:133-134` — falha real vira `role="alert"` "Indisponível", distinta de "aguardando". Cliente: `api/avaliacaoRisco.test.ts:79` — `resolves.toBeNull()` no 404; `:91-92` — 422 vira `ErroAvaliacaoRisco` com `codigo === 'execucao_id_invalido'`; `:101-102` — rede vira `codigo === 'falha_de_rede'`, `status` `null` | ✅ PASS |
+| **RISCO-01** — centralizar limiares em configuração versionada e legível, com valores padrão e justificativa | Limiar de chuva = `50.0` mm, versionado, com justificativa documentada | Config: tabela `regras` (`versao`/`estado`); default semeado em `adaptadores/persistencia/semeador.py:189-190` (`"chuva_intensa", 50.0`); leitura versionada em `repositorio_regras.py:27-29` (`WHERE estado='ativa' ORDER BY versao DESC`); justificativa agora em `adaptadores/persistencia/README.md:113`. Teste: `testes/test_repositorio_regras.py:50` — `assert regra.limiar_meteorologico == 50.0`; `:77-78` — `assert regra.versao == 2` (regra `substituida` ignorada). **Melhorado na Round 2**: a duplicata morta do default no domínio foi removida, então a tabela `regras` é agora literalmente a única fonte de verdade | ✅ PASS |
+| **RISCO-02** — documentação SHALL explicitar fronteiras inclusivas/exclusivas, **com exemplos limítrofes** | Por limiar: qual lado da fronteira é relevante + exemplos no valor-limite | `adaptadores/persistencia/README.md:104-122`: tabela de limiares com fronteira `Inclusiva (intensidade >= limiar)` (`:113`), "nenhuma fronteira exclusiva está configurada nesta demonstração" (`:114`), tabela de exemplos `49.9` → Não relevante / `50.0` → **Relevante** / `50.1` → Relevante (`:120-122`). Guarda automatizada: `testes/test_migracoes.py:302` — `assert "nenhuma fronteira exclusiva está configurada" in documento` e `:303-304` — `for exemplo in ("49.9","50.0","50.1"): assert exemplo in documento`. Comportamento correspondente asserido em `testes/test_avaliador_risco.py:69,79,86` | ✅ **PASS** (era ⚠️ na Round 1) |
+| **RISCO-03** — reconhecer chuva intensa e granizo como suportados | Ambos avaliados, não rejeitados | `dominio/avaliador_risco.py:92` (guarda de tipo); `testes/test_avaliador_risco.py:81-82` — `resultado.relevante is True` / `motivo == MOTIVO_RELEVANTE` (chuva); `:105-108` — idem + `criterio_ocorrencia.atende is True` (granizo) | ✅ PASS |
+| **RISCO-04** — tipo diferente → registrado como não suportado **sem avançar** | Resultado "não suportado", limiar não avaliado | `dominio/avaliador_risco.py:92-93` → `_rejeitar_tipo_nao_suportado`; `testes/test_avaliador_risco.py:133` — `motivo == MOTIVO_TIPO_NAO_SUPORTADO`; `:134` — `len(resultado.criterios) == 1` (prova que o ramo de limiar nunca rodou, apesar de `intensidade=999.0` em `:126`) | ✅ PASS |
+| **RISCO-05** — chuva: comparar medidas, área, severidade e período com a regra do **residencial**, resultado determinístico com valores e critérios | Resultado com valores observados + critérios aplicados | `dominio/avaliador_risco.py:95-119`; `testes/test_avaliador_risco.py:72-75` — `motivo == MOTIVO_ABAIXO_DO_LIMIAR`, `criterio_intensidade.atende is False`, `valor_observado == "49.9 mm"`; `:96-99` — `motivo == MOTIVO_AREA_NAO_APLICAVEL` | ⚠️ **Spec-precision gap** (nota A — inalterado desde a Round 1; fora do escopo das correções desta rodada) |
+| **RISCO-06** — granizo: idem contra a regra do **automóvel** | Resultado determinístico com valores e critérios | `dominio/avaliador_risco.py:121-130`; `testes/test_avaliador_risco.py:105-108` e `:114-115` — `motivo == MOTIVO_AREA_NAO_APLICAVEL` | ⚠️ **Spec-precision gap** (notas A e B — inalterado, fora do escopo desta rodada) |
+| **RISCO-07** — mesma entrada + mesma versão de regra → resultado e justificativa idênticos | Igualdade byte-a-byte | `dominio/avaliador_risco.py:85-130` (função pura, sem I/O nem estado); `testes/test_avaliador_risco.py:143` — `assert primeira == segunda` (dataclass `frozen`: compara `relevante`, toda a tupla de `Criterio` com as strings de justificativa, e `motivo`) | ✅ PASS |
+| **RISCO-08** — nenhum LLM, prompt ou heurística probabilística participa da decisão | Zero envolvimento de IA em qualquer caminho | Estrutural: `dominio/avaliador_risco.py:1-9` importa só stdlib + domínio; `testes/test_camadas.py:7-36` proíbe, por varredura AST de todo `dominio/*.py`, importar `central_preventiva.adaptadores`; `aplicacao/avaliacao_risco.py:54-63` declara exatamente 3 portas + a função pura — nenhuma porta de IA existe para ser chamada. O novo caminho `sem_regra_ativa` (`:87-94`) também não introduz nenhuma chamada | ✅ PASS (evidência estrutural, nota C) |
+| **RISCO-09** — evento sem critérios → terminal `sem_risco` **com código e motivo persistidos**, sem elegibilidade/mensagem/OpenAI | Estado `sem_risco` + código e motivo gravados, para **todo** caminho terminal | Caminho normal: `aplicacao/avaliacao_risco.py:96-104`; `testes/test_avaliacao_risco.py:103` — `execucoes.transicoes == [(execucao_id, 1, EstadoExecucao.SEM_RISCO)]`. **Sub-caso `sem_regra_ativa` (a lacuna da Round 1)**: `aplicacao/avaliacao_risco.py:90` grava o snapshot; `testes/test_avaliacao_risco.py:133` — `assert len(avaliacoes.salvas) == 1`, `:137-139` — `regra_salva is None`, `versao_salva is None`, `resultado_salvo.motivo == MOTIVO_SEM_REGRA_ATIVA`, `:140` — transição exata para `SEM_RISCO`. Repositório real: `testes/test_repositorio_avaliacoes_risco.py:87-92` — round-trip DuckDB com `regra_id is None`/`regra_versao is None`/`motivo == "sem_regra_ativa"`/`criterios == ()`. Rota: `testes/test_avaliacao_risco_api.py:103-109` — `status_code == 200` (**não 404**), `motivo == "sem_regra_ativa"`, `regra_id is None`, `criterios == []`. Migração: `testes/test_migracoes.py:166-208` — preserva linhas existentes **e** aceita `NULL`. Nenhuma elegibilidade/mensagem/IA: as 3 portas do serviço não incluem nenhuma delas (`aplicacao/avaliacao_risco.py:54-63`) | ✅ **PASS** (era ❌ GAP na Round 1) |
+| **RISCO-10** — evento relevante → `avaliando_elegibilidade` preservando snapshot imutável do evento e da versão da regra | Transição + snapshot de `evento_id`, `regra_id`, `regra_versao` | `aplicacao/avaliacao_risco.py:96-104`; `testes/test_avaliacao_risco.py:116` — `execucoes.transicoes == [(execucao_id, 1, EstadoExecucao.AVALIANDO_ELEGIBILIDADE)]`; `:150-154` — `execucao_salva == execucao_id`, `evento_salvo == evento.id`, `regra_salva == REGRA_CHUVA.id`, `versao_salva == REGRA_CHUVA.versao` **com `versao=7`** (`:30`), agora discriminante. Imutabilidade: `repositorio_avaliacoes_risco.py:88` só `INSERT`, `:110` só `SELECT` (nenhum `UPDATE`/`DELETE` em nenhuma das duas migrações); `regra_versao` gravada como valor, não referência | ✅ **PASS** (mutante M2 agora morto — era ⚠️ enfraquecido na Round 1) |
+| **RISCO-11** — detalhe exibe operando, valor observado, resultado e justificativa de cada critério | As 4 colunas por critério | Backend: `testes/test_avaliacao_risco_api.py:75-78` — `len(corpo["criterios"]) == 2`, `criterios[0]["operando"] == "área aplicável"`, `criterios[0]["atende"] is True`, `criterios[1]["valor_observado"] == "72.5 mm"` (round-trip real do `INSERT` DuckDB ao corpo HTTP). Repositório: `testes/test_repositorio_avaliacoes_risco.py:61` — `criterios == RESULTADO_RELEVANTE.criterios` (tupla completa com justificativas). Frontend: `SuperficieEventoDecisao.test.tsx:72-77` + tabela de 4 colunas em `SuperficieEventoDecisao.tsx:149-169` | ✅ PASS (não alcançável na app, nota E) |
+| **RISCO-12** — distinguir relevância / ausência de risco / dado inválido por **texto, ícone e cor** | Tríade texto+ícone+cor por categoria | **Texto**: `SuperficieEventoDecisao.test.tsx:85` `findByText('Relevante')`, `:110` `'Sem risco'`, `:123` `'Dado inválido'`. **Ícone**: `:89` `svg[data-icone-nome="warning"]`, `:114` `"check-circle"`, `:127` `"x-circle"`, e sobretudo `:153` — `expect(new Set(nomes).size).toBe(3)` renderizando as três categorias e provando que os identificadores são **par a par distintos**. **Cor**: `toHaveClass('categoria-decisao-badge--{categoria}')` nas três, com as cores em `SuperficieEventoDecisao.css:22-35` (proxy por classe; o jsdom não carrega CSS) | ✅ **PASS** (era ⚠️ na Round 1) |
+| **RISCO-13** — progresso reflete a etapa real da máquina de estados; frontend não recalcula nem antecipa resultado | Progresso real, zero recálculo | `SuperficieEventoDecisao.test.tsx:54` — estado `carregando`; `:62-63` — `findByText(/Em processamento/)` + `queryByRole('table')).not.toBeInTheDocument()`; `:170-171` — `toHaveBeenCalledWith(EXECUCAO_ID)` / `toHaveBeenCalledTimes(1)`; falha real vira `role="alert"` "Indisponível". Cliente: `api/avaliacaoRisco.test.ts:79` — `resolves.toBeNull()` no 404; `:91-92` — 422 → `codigo === 'execucao_id_invalido'`; `:101-102` — rede → `codigo === 'falha_de_rede'`. **Melhorado na Round 2**: o 404 deixou de encobrir o terminal `sem_regra_ativa` (ver RISCO-09), então "Em processamento" agora só aparece para execuções genuinamente não avaliadas | ✅ PASS (reforçado) |
 
-**Status**: ❌ 1 GAP (RISCO-09) + ⚠️ 4 spec-precision gaps (RISCO-02, 05, 06, 12); 8 ACs plenamente cobertos.
+**Status**: ✅ **13/13 ACs cobertos**; 11 plenamente casados com o resultado definido pela spec, 2 ⚠️ spec-precision gaps herdados (RISCO-05/06) que a própria Round 1 declarou fora do escopo das correções — a spec não define um resultado preciso para a comparação de "período", logo não há valor a asserir.
 
-### Notas de julgamento
+### Notas de julgamento (herdadas da Round 1, re-conferidas e mantidas)
 
-**A — "severidade e período" (RISCO-05/06).** A spec manda comparar quatro operandos: *medidas, área, severidade e período*. O motor compara dois: `área` (`avaliador_risco.py:77`) e `intensidade` (`:105`). "Severidade" está dobrada dentro de `intensidade`; "período" **não é comparado com nada** — `RegraSnapshot` não carrega nenhum campo de janela temporal contra o qual `periodo_inicio`/`periodo_fim` pudessem ser confrontados. Defensável (a medida já é "mm acumulados no período"), mas a spec não define o resultado preciso de uma comparação de período, então isso é lacuna de precisão da spec, não falha de implementação.
+**A — "severidade e período" (RISCO-05/06).** A spec enumera quatro operandos; o motor compara dois (`área`, `intensidade`). "Severidade" está dobrada em `intensidade`; "período" não é comparado com nada — `RegraSnapshot` não carrega campo de janela temporal. Re-confirmado no código atual: `dominio/avaliador_risco.py:95-130` inalterado pelo commit de correção. Continua lacuna de precisão da spec, não falha de implementação.
 
-**B — "produto correto" (RISCO-05/06).** A spec exige a regra ativa *associada ao seguro residencial* (chuva) e *automóvel* (granizo). `repositorio_regras.py:28` filtra **apenas** por `evento_tipo = ? AND estado = 'ativa'` — `apolice_tipo` é transportado em `RegraSnapshot` (`:39`) mas nunca verificado nem asserido. A ligação existe só nos dados semeados (`semeador.py:189-193` chuva→`residencial`; `:201-204` granizo→`automovel`) e nenhum teste a afirma: `test_repositorio_regras.py:52` assere `apolice_tipo == "residencial"` sobre uma linha que o próprio teste inseriu com esse valor — round-trip, não prova de associação. Uma inversão dos produtos na configuração semeada passaria por todos os testes.
+**B — "produto correto" (RISCO-05/06).** `repositorio_regras.py:28` filtra apenas por `evento_tipo` e `estado='ativa'`; `apolice_tipo` é transportado mas nunca verificado. A ligação residencial/automóvel existe só nos dados semeados (`semeador.py:189-193`, `:201-204`). Inalterado — fora do escopo desta rodada.
 
-**C — RISCO-08 (zero IA).** A ausência de IA é garantida estruturalmente e a evidência é sólida, mas é *inferencial*: `test_camadas.py:12-19` não lista `openai` na tupla de importações proibidas — proíbe `central_preventiva.adaptadores`, que é onde o cliente vive hoje. A garantia depende dessa localização se manter.
+**C — RISCO-08 (zero IA).** Garantia estrutural sólida mas inferencial: `test_camadas.py:12-19` proíbe `central_preventiva.adaptadores`, não literalmente `openai`. Inalterado.
 
-**D — RISCO-09, caminho `sem_regra_ativa` (lacuna fundamentada).** A AC exige terminal `sem_risco` "com **código e motivo persistidos**". No caminho normal de não relevância isso acontece (`avaliacoes_risco.motivo`). No caminho "sem regra ativa" **nada é persistido**: `aplicacao/avaliacao_risco.py:86-93` pula `salvar` (justificado — `regra_id`/`regra_versao` são `NOT NULL` em `0004_avaliacao_risco.sql`), e `RepositorioExecucaoPreventiva.transicionar` (`repositorio_execucao_preventiva.py:81-83`) não recebe motivo algum; `execucao_preventiva` (`0001_schema_inicial.sql:80-86`) não tem coluna de motivo/código. O `ResultadoAvaliacaoRisco` com `motivo=sem_regra_ativa` existe apenas em memória e é descartado ao fim do processo. Consequência observável, não apenas um registro faltante: `GET .../avaliacao-risco` devolve `404 avaliacao_risco_inexistente`, o cliente devolve `null` (`avaliacaoRisco.ts:135-137`) e a superfície mostra "Em processamento — a execução ainda não alcançou a etapa de avaliação de risco" (`SuperficieEventoDecisao.tsx:104-109`) para uma execução **já decidida e terminal**. A decisão do autor não é errada em si (a coluna realmente é `NOT NULL`), mas a consequência — decisão terminal sem explicabilidade persistida — não foi fechada.
+**E — Alcance real.** `ServicoAvaliacaoRisco.avaliar_evento` e `SuperficieEventoDecisao` seguem sem caminho de produção — lacuna de integração declarada pelo autor em `tasks.md` T6 e `STATE.md`. RISCO-09/10 estão verificados no nível unitário + repositório real + rota HTTP real, não ponta a ponta pela aplicação em execução.
 
-**E — Alcance real da superfície.** `SuperficieEventoDecisao` não é importada por nenhum arquivo fora da própria pasta, e `ServicoAvaliacaoRisco.avaliar_evento` não é chamado por nenhum caminho de produção (só por testes) — nenhuma linha de `avaliacoes_risco` é produzida pelo sistema em execução. O autor declarou a lacuna de navegação em `tasks.md` T6 e em `STATE.md`, a fechar por história de integração futura. RISCO-09/10 estão portanto verificados no nível unitário, não ponta a ponta.
+### Julgamentos da Round 1 mantidos (re-conferidos, não re-litigados)
 
-**F — RISCO-12, a tríade.** Texto ✅ (`findByText` das três categorias). Cor ⚠️ — asserida por *nome de classe* como proxy; o jsdom não carrega o CSS, então nenhum teste observa cor. Ícone ❌ — apenas o caso `relevante` assere que *existe* um `<svg>`; nenhum teste assere que os três ícones **diferem** (`WarningIcon` / `XCircleIcon` / `CheckCircleIcon`, `SuperficieEventoDecisao.tsx:39-43`). Trocar dois ícones entre si sobreviveria à suíte. Como a AC exige distinção *por ícone*, a asserção não alcança o resultado definido pela spec.
-
-### Julgamentos solicitados explicitamente
-
-- **RISCO-01/02 — reuso da tabela `regras` em vez de arquivo de config dedicado**: **satisfaz** "centralizado, versionado e legível". `regras` é literalmente uma configuração versionada (`versao` + `estado`, com `substituida` ignorada — provado em `test_repositorio_regras.py:64-78`), o valor padrão está semeado num único lugar e a justificativa está registrada. O que **não** é satisfeito é a segunda metade de RISCO-02: os "exemplos limítrofes" nunca chegaram a um artefato de documentação — vivem só como testes.
-- **RISCO-03/04 — teste do tipo não suportado via string arbitrária**: **desenho legítimo de teste**, não red flag. O enum tem só dois membros, então o ramo é uma defesa contra dado externo malformado atravessando a fronteira de normalização de 2.1; o `# type: ignore` é a única forma de exercitá-lo, e a alternativa (remover a guarda) apagaria uma defesa que a própria spec pede. A asserção `len(criterios) == 1` com `intensidade=999.0` prova que o limiar não foi tocado — é forte, não cerimonial.
-- **RISCO-06 — granizo checar "área aplicável"**: **justificado pela spec, não scope creep**. RISCO-06 diz literalmente "comparar medidas, **área**, severidade e período" para granizo também, e o terceiro Edge Case da spec ("evento sem a área aplicável reconhecida → não relevante, registrando o motivo, e não como erro técnico") não é tipado por evento. A Tech Decision "sempre relevante por ocorrência" (`design.md:137`) só afirma que **não há limiar de intensidade** para granizo — não que a área seja ignorada. A adição fecha um edge case que o atalho do design deixaria aberto.
-- **RISCO-13 — 404 tratado como estado de progresso, não erro**: **correto**. O backend só devolve 404 quando não existe snapshot, o que é uma posição real da máquina de estados, e o estado é distinguido de falha real (`indisponivel`, testado em `:128-135`). A única ressalva é a nota D: esse mesmo 404 hoje também encobre o caso terminal `sem_regra_ativa`.
+Reuso da tabela `regras` satisfaz "centralizado, versionado e legível" (RISCO-01); o teste de tipo não suportado por bypass de enum é desenho legítimo (RISCO-03/04); granizo checar "área aplicável" é exigido pela spec, não scope creep (RISCO-06); o 404 como estado de progresso no frontend está correto (RISCO-13) — e agora está *mais* correto, porque deixou de cobrir um caso terminal.
 
 ---
 
 ## Discrimination Sensor
 
-Worktree isolada (`git worktree add --detach <scratch> 22b2906`), um ciclo por mutação, removida logo após cada verificação.
+Worktree isolada por mutação (`git worktree add --detach <scratch> 1122288`), removida imediatamente após cada verificação. Escopo estreito por instrução: re-injetar as duas falhas que a Round 1 mandou fechar, mais uma nova no caminho de menor confiança (a migração `0005`).
 
 | # | Mutação | File:line | Descrição | Testes executados | Killed? |
 | --- | --- | --- | --- | --- | --- |
-| M1 | Fronteira inclusiva | `dominio/avaliador_risco.py:105` | `evento.intensidade >= regra.limiar_meteorologico` → `>` | `testes/test_avaliador_risco.py` | ✅ **Killed** — `test_chuva_no_limiar_exato_e_relevante_fronteira_inclusiva` falhou (`assert False is True`) |
-| M2 | Versão da regra persistida | `aplicacao/avaliacao_risco.py:96` | `salvar(..., regra.versao, ...)` → `salvar(..., 1, ...)` (literal) | `testes/test_avaliacao_risco.py` | ❌ **SURVIVED** — 4 passed |
-| M3 | Classificação de categoria no frontend | `SuperficieEventoDecisao.tsx:28` | `motivo === 'tipo_nao_suportado'` → `motivo === 'abaixo_do_limiar'` no mapeamento para `dado_invalido` | `SuperficieEventoDecisao.test.tsx` | ✅ **Killed** — 2 failed / 6 passed |
+| M2′ | **Re-injeção do sobrevivente da Round 1** | `aplicacao/avaliacao_risco.py:97` | `salvar(..., regra.versao, ...)` → `salvar(..., 1, ...)` (literal) | `testes/test_avaliacao_risco.py` | ✅ **Killed** — `test_snapshot_salvo_carrega_execucao_evento_regra_e_versao_corretos` falhou em `:154` com `AssertionError: assert 1 == 7` |
+| M4 | **Re-injeção da colisão de ícone** | `SuperficieEventoDecisao.tsx:46` | `data-icone-nome="x-circle"` → `"check-circle"` (dois ícones iguais) | `SuperficieEventoDecisao.test.tsx` | ✅ **Killed** — 2 failed / 7 passed; o teste de RISCO-12 falhou em `:153` com `expected 2 to be 3`, mais o teste por categoria |
+| M5 | **Nova — perda silenciosa de dados no recreate-and-copy** | `migracoes/0005_avaliacao_risco_sem_regra.sql:22-26` | Removido o `INSERT INTO avaliacoes_risco_nova SELECT ... FROM avaliacoes_risco` — a tabela é recriada vazia e as linhas existentes somem no `DROP` | `testes/test_migracoes.py`, `testes/test_inicializador.py` | ✅ **Killed** — `test_migracao_sem_regra_preserva_avaliacoes_e_aceita_regra_nula` falhou em `:189` com `assert None is not None` |
 
-**Sensor depth**: lightweight (3 mutações; a M2 foi escolhida deliberadamente para sondar uma fraqueza suspeita de fixture, não para confirmar um kill provável)
+**Traçado sem mutação (mecanicamente certo, sem gastar ciclo de worktree)**: remover de volta a chamada `salvar` do caminho sem regra (`aplicacao/avaliacao_risco.py:90` — a regressão exata da Round 1) seria morto por `testes/test_avaliacao_risco.py:133` (`assert len(avaliacoes.salvas) == 1` → `0 == 1`) e por `:134` (desempacotamento de `avaliacoes.salvas[0]` → `IndexError`).
 
-**Result**: 2/3 killed — ❌ **FAIL**
+**Sensor depth**: lightweight (3 mutações — 2 re-injeções dirigidas dos achados da Round 1 + 1 nova no caminho de maior risco introduzido pela correção)
 
-**Análise do sobrevivente M2**: as fixtures de `test_avaliacao_risco.py` usam `versao=1` (`:30`), e `test_repositorio_avaliacoes_risco.py:49` também grava `regra_versao=1`. Como o valor da fixture coincide com o literal mais plausível de um bug, a asserção `versao_salva == REGRA_CHUVA.versao` (`test_avaliacao_risco.py:140`) não consegue distinguir "propaga a versão da regra" de "grava 1". Isso é crítico para AD-11: o snapshot de versão é justamente o mecanismo que impede uma regra futura de reescrever a justificativa histórica; um bug de versão errada passaria despercebido. `test_repositorio_regras.py:78` já usa `versao=2` e mostra que a suíte sabe usar um valor não trivial — o caminho do serviço apenas não o faz.
+**Result**: **3/3 killed** — ✅ **PASS**
 
-**Verificação de isolamento**: `git status --porcelain` vazio antes e depois; `git worktree list` mostra apenas a árvore real em `22b2906`. Nenhum resíduo.
+**Verificação de isolamento**: `git status --porcelain` vazio antes e depois de cada ciclo; `git worktree list` mostra apenas a árvore real em `1122288`. Nenhum resíduo.
+
+---
+
+## Verificação de regressão (foco: relaxamento de `NOT NULL` pela migração `0005`)
+
+A pergunta central desta rodada: relaxar `avaliacoes_risco.regra_id`/`regra_versao` pode ter quebrado algum leitor que assumia presença.
+
+| Verificação | Método | Resultado |
+| --- | --- | --- |
+| **Quem lê a tabela `avaliacoes_risco`?** | `grep -rn "avaliacoes_risco" src/backend/central_preventiva src/frontend/src` | Apenas **dois** consumidores: `repositorio_avaliacoes_risco.py` (`INSERT` em `:88`, `SELECT` em `:110`) e `adaptadores/http/avaliacao_risco.py` (que só usa o repositório). **Nenhum relatório, nenhum `JOIN`, nenhuma agregação, nenhum outro `SELECT`.** Superfície de regressão fechada |
+| **A desserialização aguenta `NULL`?** | Leitura de `repositorio_avaliacoes_risco.py:119-120` | `regra_id=None if linha[3] is None else UUID(str(linha[3]))` e idem para `regra_versao` — o antigo `UUID(str(None))` teria levantado `ValueError`. Coberto por `testes/test_repositorio_avaliacoes_risco.py:83-92` (round-trip real em DuckDB) |
+| **Linhas pré-existentes sobrevivem à recriação?** | Teste + mutação M5 | `testes/test_migracoes.py:172-193` insere uma linha sob o schema `0004`, aplica a `0005` e assere `id`, `regra_id` e `motivo` preservados. Mutação M5 confirma que a asserção é discriminante |
+| **Contagem/ordem de migrações consistente** | `testes/test_migracoes.py:81-82,89` e `:100,:107`; `testes/test_inicializador.py:73,99` | `versoes_aplicadas == (1,2,3,4,5)`, `versao_final == 5`, registro `(5, "avaliacao risco sem regra")`, e reexecução idempotente. Verde |
+| **Contrato OpenAPI sincronizado ponta a ponta** | `testes/test_openapi_sincronizado.py:29-35` | `assert documento_ao_vivo == snapshot` — **igualdade exata** do documento vivo contra `composicao/openapi.json` versionado. O snapshot commitado carrega `anyOf: [{format:uuid,type:string},{type:null}]` para `regra_id` e `anyOf: [{type:integer},{type:null}]` para `regra_versao`. Portanto o contrato publicado reflete de fato a nulidade, e não pode divergir em silêncio |
+| **Tipos do frontend refletem a nulidade (não só o backend)** | `src/api/tipos-gerados.ts:421,426` + `src/api/avaliacaoRisco.ts:103-110` | `tipos-gerados.ts` regenerado: `regra_id: string \| null`, `regra_versao: number \| null`. Crucialmente, `paraAvaliacaoRisco` é **tipada a partir de** `components['schemas']['RespostaAvaliacaoRisco']` e atribui `regraId: corpo.regra_id` — se `AvaliacaoRisco.regraId` tivesse ficado `string`, o `tsc` do `npm run build` teria falhado. A propagação da nulidade é **verificada por tipo**, não editada à mão. `npm run build` verde confirma |
+| **Estado novo alcançável na UI** | `SuperficieEventoDecisao.tsx:27-30,59` | `motivo === 'sem_regra_ativa'` com `relevante === false` cai em `calcularCategoria` → `'sem_risco'` (rótulo "Sem risco", ícone `check-circle`, classe `--sem_risco`) e o texto já existia em `ROTULOS_MOTIVO:59` ("Nenhuma regra ativa para este tipo de evento."). **Sem crash, sem `undefined` na tela.** Com `criterios: []` a tabela renderiza cabeçalho e corpo vazio — correto, mas não coberto por teste de frontend (ver Fix 7, Cosmético) |
+| **Asserções enfraquecidas em algum lugar?** | Diff `22b2906..1122288` de todos os arquivos de teste | **Nenhuma.** Todas as edições fortalecem: `assert avaliacoes.salvas == []` → bloco de 6 asserções; `querySelector('svg')` → `svg[data-icone-nome="warning"]`; `regra_versao=1` → `7`. Nenhum teste removido; nenhum `skip`/`xfail` introduzido |
 
 ---
 
@@ -89,14 +118,16 @@ Worktree isolada (`git worktree add --detach <scratch> 22b2906`), um ciclo por m
 
 | Alvo | Asserção verifica valor real? | Evidência |
 | --- | --- | --- |
-| `GET .../avaliacao-risco` 200 | ✅ Sim — round-trip JSON completo, não só status | `test_avaliacao_risco_api.py:70-78`: status `200` **e** `execucao_id`, `relevante is True`, `motivo == "relevante"`, `len(criterios) == 2`, `criterios[0]["operando"]`, `criterios[0]["atende"] is True`, `criterios[1]["valor_observado"] == "72.5 mm"` — os critérios saem de um `INSERT` real em DuckDB (`:23-46`), atravessam `_desserializar_criterios` e o modelo Pydantic |
-| `GET` 404 | ✅ Sim | `:86-88`: status + `content-type` `application/problem+json` + `codigo == "avaliacao_risco_inexistente"` |
-| `GET` 422 (id malformado) | ✅ Sim | `:96-98`: status + `content-type` + `codigo == "execucao_id_invalido"` — confirma o `422` próprio, não o `HTTPValidationError` do FastAPI |
-| `RepositorioAvaliacoesRisco.salvar`/`obter_por_execucao` | ✅ Sim | `test_repositorio_avaliacoes_risco.py:54-62`: os 8 campos do snapshot, incluindo `regra_versao == 1` e `criterios == RESULTADO_RELEVANTE.criterios` (tupla inteira, com justificativas) |
-| `RepositorioRegras.obter_ativa` | ⚠️ Parcial | `test_repositorio_regras.py:49-53` assere id/limiar/área/produto/versão, mas `apolice_tipo` é round-trip do valor que o próprio teste inseriu (nota B) |
-| `ServicoAvaliacaoRisco` — chamada a `salvar` | ⚠️ Parcial | `test_avaliacao_risco.py:136-141` inspeciona a tupla real de argumentos (não "foi chamado"), mas `regra_versao` é indistinguível do literal `1` — ver M2 |
+| `GET .../avaliacao-risco` 200 (com regra) | ✅ Sim | `test_avaliacao_risco_api.py:70-78` — status **e** `execucao_id`, `relevante`, `motivo`, `len(criterios) == 2`, `operando`, `atende`, `valor_observado == "72.5 mm"` |
+| `GET .../avaliacao-risco` 200 (**sem regra ativa**, novo) | ✅ Sim | `test_avaliacao_risco_api.py:103-109` — status `200` **e** `relevante is False`, `motivo == "sem_regra_ativa"`, `regra_id is None`, `regra_versao is None`, `criterios == []`. Não é "status 200" isolado |
+| `GET` 404 | ✅ Sim | `:118-120` — status + `content-type application/problem+json` + `codigo == "avaliacao_risco_inexistente"`. **Continua distinguindo** o caso "ainda não avaliada" do terminal já decidido |
+| `GET` 422 (id malformado) | ✅ Sim | `:128-130` — status + content-type + `codigo == "execucao_id_invalido"` |
+| `RepositorioAvaliacoesRisco.salvar`/`obter_por_execucao` (com regra) | ✅ Sim | `test_repositorio_avaliacoes_risco.py:54-62` — os 8 campos, incluindo `regra_versao == 7` (não trivial) e a tupla inteira de `criterios` |
+| `RepositorioAvaliacoesRisco` (regra nula, novo) | ✅ Sim | `:87-92` — `regra_id is None`, `regra_versao is None`, `relevante is False`, `motivo`, `criterios == ()` |
+| `ServicoAvaliacaoRisco` — chamada a `salvar` | ✅ Sim (era ⚠️ na Round 1) | `test_avaliacao_risco.py:150-154` inspeciona a tupla real de argumentos e `versao_salva == 7` é agora discriminante (provado por M2′) |
+| `RepositorioRegras.obter_ativa` | ⚠️ Parcial | `test_repositorio_regras.py:49-53` — `apolice_tipo` segue round-trip do valor inserido pelo próprio teste (nota B, fora do escopo) |
 
-Nenhuma asserção do tipo "a chamada aconteceu" ou "status 200" isolada foi encontrada. A regra é respeitada; as duas ressalvas são de *escolha de valor de fixture*, não de forma da asserção.
+Nenhuma asserção do tipo "a chamada aconteceu" ou "status isolado". A regra é respeitada.
 
 ---
 
@@ -104,32 +135,42 @@ Nenhuma asserção do tipo "a chamada aconteceu" ou "status 200" isolada foi enc
 
 | Princípio | Status |
 | --- | --- |
-| Minimum code | ⚠️ — `LIMIAR_CHUVA_INTENSA_MM` (`dominio/avaliador_risco.py:11`) é declarado com docstring de justificativa mas **não é referenciado em lugar nenhum** do repositório (única ocorrência). É uma segunda cópia, morta, do default que vive em `semeador.py:190`, livre para divergir em silêncio |
-| Surgical changes | ✅ — apenas arquivos exigidos pelas tasks; edições em testes existentes limitadas à contagem de migração e à lista de paths |
-| No scope creep | ✅ — a checagem de área para granizo é exigida pela spec, não uma extensão (ver julgamentos) |
-| Matches patterns | ✅ — `Protocol`s locais como em `coleta_meteorologica.py` (AD-1); `AvaliacaoRisco` no repositório como `SnapshotExecucao`; `problem+json` correlacionado como nos roteadores existentes; migração numerada com relações como comentário (AD-005) |
-| Spec-anchored outcome check | ❌ — RISCO-09 (`sem_regra_ativa`) não atinge o resultado definido pela spec; RISCO-12 não assere a distinção por ícone |
-| Per-layer Coverage Expectation | ⚠️ — domínio 1:1 com as ACs ✅; rota cobre feliz + 404 + 422 ✅; mas nenhum teste exercita o caminho ponta a ponta (serviço não é chamado em produção) |
-| Every test maps to a spec requirement | ✅ — nenhum teste órfão nos 7 arquivos novos |
-| Documented guidelines followed | ✅ — `AGENTS.md`, `README.md`; sem threshold dedicado, defaults fortes aplicados |
+| Minimum code | ✅ — a constante morta foi removida (Fix 5); a migração `0005` faz exatamente uma coisa; a rota HTTP não ganhou nenhum ramo novo (o `200` emerge do snapshot passar a existir, não de um `if` adicional) |
+| Surgical changes | ✅ — apenas os arquivos exigidos pelos Fix 1–5; nenhuma edição em código não relacionado |
+| No scope creep | ✅ — nenhum campo, endpoint ou abstração além do necessário para persistir a decisão terminal |
+| Matches patterns | ⚠️ — o recreate-and-copy segue o precedente da migração `0003` (AD-015) e o comentário de relação como na `0004` ✅; **porém** o README, que documenta uma seção por migração (`## Tabelas da migração 0001/0002/0003/0004`), **não ganhou seção para a `0005`**, e a tabela da `0004` (`README.md:274-275`) ainda declara `regra_id`/`regra_versao` como `NOT NULL` — hoje factualmente incorreto. Ver Fix 6 |
+| Spec-anchored outcome check | ✅ — 11/13 ACs casam com o resultado definido pela spec; os 2 restantes são lacunas de precisão da própria spec, explicitamente fora do escopo desta rodada |
+| Per-layer Coverage Expectation | ✅ — domínio 1:1 com as ACs; rota cobre feliz + **feliz sem regra** + 404 + 422; migração cobre preservação + nulidade. Ressalva conhecida: nenhum caminho de produção exercita o serviço (nota E, declarado pelo autor) |
+| Every test maps to a spec requirement | ✅ — os 4 testes novos citam RISCO-09 (3) e RISCO-02 (1) nos docstrings; o teste novo de frontend cita RISCO-12. Nenhum teste órfão |
+| Documented guidelines followed | ✅ — `AGENTS.md`, `README.md` de persistência, AD-015 (recreate-and-copy), AD-11 (versão como valor) |
 
 ---
 
 ## Edge Cases
 
-- [x] **Valor-limite de fronteira inclusiva → relevante** — `test_avaliador_risco.py:79-82` (`50.0` → `relevante is True`)
-- [x] **Valor-limite de fronteira exclusiva → não relevante** — vacuamente satisfeito: nenhum limiar exclusivo está configurado. Não coberto por teste (não há o que testar) e não declarado como tal na documentação — contribui para o gap de RISCO-02
-- [x] **Área não reconhecida → não relevante com motivo, não erro técnico** — `test_avaliador_risco.py:95-99` (chuva) e `:114-115` (granizo); ambos retornam `ResultadoAvaliacaoRisco`, nenhuma exceção
+- [x] **Valor-limite de fronteira inclusiva → relevante** — `testes/test_avaliador_risco.py:79-82` (`50.0` → `relevante is True`); agora **também documentado** em `README.md:121`
+- [x] **Valor-limite de fronteira exclusiva → não relevante** — vacuamente satisfeito e **agora declarado como tal** na documentação (`README.md:114`: "nenhuma fronteira exclusiva está configurada nesta demonstração"), com guarda automatizada em `test_migracoes.py:302`. Era o ponto aberto da Round 1
+- [x] **Área não reconhecida → não relevante com motivo, não erro técnico** — `testes/test_avaliador_risco.py:95-99` (chuva) e `:114-115` (granizo); ambos devolvem `ResultadoAvaliacaoRisco`, nenhuma exceção
+- [x] **(novo) Sem regra ativa para o tipo → terminal `sem_risco` explicável, não um 404 indistinguível** — `test_avaliacao_risco.py:133-140`, `test_repositorio_avaliacoes_risco.py:83-92`, `test_avaliacao_risco_api.py:103-109`
 
 ---
 
 ## Gate Check
 
 - **Gate command (Build)**: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright` + `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
-- **Resultado**: backend **288 passed, 0 failed, 0 skipped**; frontend **163 passed em 20 arquivos, 0 failed**. `ruff`/`pyright`/`lint`/`build` confirmados verdes pelo orquestrador ao longo de toda a implementação, mais recentemente imediatamente antes deste despacho — o Verificador não os reexecutou para fins de aprovação; a contagem de testes acima foi coletada para registro
-- **Test count antes da feature**: 268 backend / 151 frontend (derivado dos arquivos de teste novos)
-- **Test count depois**: 288 backend / 163 frontend
-- **Delta**: +20 backend (`test_avaliador_risco` 8, `test_avaliacao_risco` 4, `test_repositorio_regras` 3, `test_repositorio_avaliacoes_risco` 2, `test_avaliacao_risco_api` 3), +12 frontend (`avaliacaoRisco.test.ts` 4, `SuperficieEventoDecisao.test.tsx` 8). Nenhum teste removido; nenhuma asserção existente enfraquecida (as edições em `test_migracoes.py`/`test_inicializador.py`/`test_saude.py` apenas estendem listas exatas)
+- **Executado nesta rodada pelo próprio Verificador** (não herdado do orquestrador):
+  - `pytest`: **292 passed**, 0 failed, 0 skipped (exit 0)
+  - `ruff check .`: **All checks passed!**
+  - `pyright`: **0 errors, 0 warnings, 0 informations**
+  - `vitest --run`: **164 passed** em 20 arquivos, 0 failed (exit 0)
+  - `npm run lint`: exit 0 (8 warnings pré-existentes de `react-hooks`/fast-refresh, nenhuma nova nem em arquivo desta história além de `SuperficieEventoDecisao.tsx:79`, que já existia na Round 1)
+  - `npm run build`: **✓ built in 228ms** (exit 0) — confirma a checagem de tipos da propagação de nulidade
+- **Test count antes da feature**: 268 backend / 151 frontend
+- **Test count após a Round 1**: 288 backend / 163 frontend
+- **Test count após as correções (Round 2)**: **292 backend / 164 frontend**
+- **Delta da rodada de correção**: **+4 backend** (`test_avaliacao_risco_api` +1 `sem_regra_ativa` 200; `test_migracoes` +2 preservação/nulidade e documentação de fronteiras; `test_repositorio_avaliacoes_risco` +1 regra nula) e **+1 frontend** (distinção de ícones, RISCO-12)
+- **Delta total da feature**: +24 backend / +13 frontend
+- **Test Integrity**: contagem **só cresceu**; nenhum teste removido; nenhuma asserção enfraquecida (todas as edições fortalecem — ver tabela de regressão)
 - **Skipped**: nenhum
 - **Failures**: nenhuma
 
@@ -137,68 +178,67 @@ Nenhuma asserção do tipo "a chamada aconteceu" ou "status 200" isolada foi enc
 
 ## Fix Plans
 
-### Fix 1: Persistir código e motivo do terminal `sem_risco` sem regra ativa (RISCO-09)
+Nenhum bloqueador. Dois itens registrados para acompanhamento — **não bloqueiam o PASS** e não devem consumir a terceira iteração de correção desta história.
 
-- **Root cause**: `aplicacao/avaliacao_risco.py:86-93` pula `salvar` porque `avaliacoes_risco.regra_id`/`regra_versao` são `NOT NULL`, e `transicionar` não carrega motivo — logo o motivo `sem_regra_ativa` só existe em memória. Uma execução terminal fica indistinguível, na API e na tela, de uma ainda não avaliada.
-- **Fix task**: tornar `regra_id`/`regra_versao` anuláveis em `avaliacoes_risco` (migração `0005`) e persistir o snapshot também no caminho sem regra, com `criterios` vazio e `motivo=sem_regra_ativa`; ou, alternativamente, gravar motivo/código em `execucao_preventiva`. Cobrir com um teste de serviço que assere `avaliacoes.salvas` não vazio com `motivo == MOTIVO_SEM_REGRA_ATIVA`, e um teste de rota que assere `200` (não `404`) para essa execução.
-- **Priority**: Major
+### Fix 6: Atualizar a documentação versionada do schema para a migração `0005` (Minor)
 
-### Fix 2: Fortalecer a asserção de `regra_versao` no serviço (mutante M2)
+- **Root cause**: regressão introduzida pela própria correção do Fix 1. `adaptadores/persistencia/README.md:274-275` continua declarando `regra_id` como `NOT NULL, chave estrangeira lógica para regras(id)` e `regra_versao` como `NOT NULL`, o que deixou de ser verdade em `1122288`. Além disso o README tem uma seção por migração (`## Tabelas da migração 0001…0004`) e a `0005` não ganhou nenhuma — apesar de existir o precedente exato da `0003`, que documenta sua própria alteração recreate-and-copy em `README.md:215`. O documento se descreve como "Documento versionado do schema operacional", então a divergência é um defeito factual num artefato versionado.
+- **Por que passou despercebido**: `test_migracoes.py:281-291` só assere que os *nomes de tabela* e alguns termos genéricos aparecem no README — não valida nulidade nem exige uma seção por migração.
+- **Fix task**: acrescentar `## Tabelas da migração 0005_avaliacao_risco_sem_regra` no mesmo formato da `0003`, explicando o relaxamento e o motivo (RISCO-09), e corrigir as duas linhas da tabela da `0004` para refletir que as colunas aceitam `NULL` quando não havia regra ativa. Verificar: o README menciona `0005` e nenhuma das duas colunas aparece mais como `NOT NULL`.
+- **Priority**: Minor (documentação; nenhuma AC depende disso, nenhum comportamento afetado)
 
-- **Root cause**: fixtures usam `versao=1`, idêntico ao literal mais provável de um bug, tornando a asserção não discriminante.
-- **Fix task**: mudar `REGRA_CHUVA.versao` em `testes/test_avaliacao_risco.py:30` para um valor não trivial (ex.: `7`) e manter `assert versao_salva == REGRA_CHUVA.versao`; idem em `test_repositorio_avaliacoes_risco.py:49`. Rever o mutante M2 e confirmar o kill.
-- **Priority**: Major
+### Fix 7: Cobrir a renderização de `sem_regra_ativa` na superfície (Cosmético)
 
-### Fix 3: Asserir a distinção por ícone entre as três categorias (RISCO-12)
+- **Root cause**: o Fix 1 tornou `motivo: 'sem_regra_ativa'` com `criterios: []` um estado **alcançável** na UI pela primeira vez (antes o 404 desviava para "Em processamento"). O componente o trata corretamente por construção — cai na categoria `sem_risco` e o rótulo já existe em `SuperficieEventoDecisao.tsx:59` — mas nenhum teste de frontend exercita esse motivo, e a tabela de critérios renderiza cabeçalho com corpo vazio.
+- **Fix task**: um caso em `SuperficieEventoDecisao.test.tsx` com `motivo: 'sem_regra_ativa'`, `criterios: []`, asserindo "Sem risco" + "Nenhuma regra ativa para este tipo de evento."; opcionalmente suprimir a tabela quando `criterios.length === 0`.
+- **Priority**: Cosmético
 
-- **Root cause**: `SuperficieEventoDecisao.test.tsx` assere presença de `<svg>` apenas no caso `relevante` e nunca compara os ícones entre categorias; a AC exige distinção por ícone.
-- **Fix task**: adicionar `data-testid`/`aria-label` distinto por ícone em `SuperficieEventoDecisao.tsx:38-44` e asserir, nos três testes de categoria, que o identificador do ícone difere.
-- **Priority**: Minor
+---
 
-### Fix 4: Levar os exemplos limítrofes para a documentação (RISCO-02)
+## Lições da Round 1 — condições subjacentes
 
-- **Root cause**: `49.9 / 50.0 / 50.1` existe só como teste; nenhum artefato de documentação traz exemplos limítrofes, e não há declaração de que nenhuma fronteira exclusiva está configurada.
-- **Fix task**: acrescentar em `adaptadores/persistencia/README.md` (ou no docstring do módulo) uma tabela de fronteira por limiar com os três exemplos e a nota "nenhum limiar exclusivo configurado nesta demonstração".
-- **Priority**: Minor
+Nenhuma lição nova distilada nesta rodada (PASS sem sinal fundamentado novo além do Fix 6, que é documentação e já está coberto conceitualmente por L-022). Estado das lições da Round 1 em `.specs/lessons.json`:
 
-### Fix 5: Remover a constante morta `LIMIAR_CHUVA_INTENSA_MM`
-
-- **Root cause**: cópia não referenciada do default que vive em `semeador.py:190`; risco de divergência silenciosa.
-- **Fix task**: remover `dominio/avaliador_risco.py:11-16`, movendo a justificativa para o README junto do Fix 4.
-- **Priority**: Minor
+| Lição | Texto | Condição subjacente fechada nesta feature? |
+| --- | --- | --- |
+| **L-020** | Escolher valores de fixture diferentes de defaults plausíveis, para que um bug de valor errado não passe pela asserção | ✅ Fechada — `versao=7` em `test_avaliacao_risco.py:30` e `test_repositorio_avaliacoes_risco.py:49`; mutante M2′ morto |
+| **L-021** | Quando uma coluna `NOT NULL` impede persistir um resultado exigido por uma AC, relaxar o schema em vez de pular a escrita em silêncio | ✅ Fechada — migração `0005` + `avaliacao_risco.py:90` |
+| **L-022** | Levar exemplos de fronteira de limiar ao artefato de documentação nomeado pelo requisito, não só ao arquivo de teste | ✅ Fechada para RISCO-02 — `README.md:104-122`, guardado por `test_migracoes.py:294-305`. (O Fix 6 é a mesma família de risco — doc versionada divergindo do código — reincidindo em outro ponto; se recorrer numa próxima feature, vale promover L-022 de `candidate` a estabelecida) |
+| **L-023** | Comparar e asserir cada operando enumerado por um requisito, ou registrar explicitamente por que um operando não é comparado | ⚠️ **Aberta por decisão** — RISCO-05/06 ("período") seguem sem comparação e sem registro explícito no código; a Round 1 declarou isso fora do escopo desta rodada de correção |
+| **L-024** | Quando um requisito exige distinção por texto, ícone e cor, asserir que os três sinais diferem entre categorias | ✅ Fechada — `SuperficieEventoDecisao.test.tsx:153` (`new Set(nomes).size === 3`); colisão de ícone morta pela mutação M4. Ressalva: "cor" segue asserida por nome de classe (o jsdom não carrega CSS) — limite de ferramenta, não de asserção |
 
 ---
 
 ## Requirement Traceability Update
 
-| Requirement | Previous Status | New Status |
+| Requirement | Round 1 Status | Round 2 Status |
 | --- | --- | --- |
-| RISCO-01 | Implementing | ✅ Verified |
-| RISCO-02 | Implementing | ⚠️ Spec-precision gap |
-| RISCO-03 | Implementing | ✅ Verified |
-| RISCO-04 | Implementing | ✅ Verified |
-| RISCO-05 | Implementing | ⚠️ Spec-precision gap |
-| RISCO-06 | Implementing | ⚠️ Spec-precision gap |
-| RISCO-07 | Implementing | ✅ Verified |
-| RISCO-08 | Implementing | ✅ Verified |
-| RISCO-09 | Implementing | ❌ Needs Fix |
-| RISCO-10 | Implementing | ⚠️ Verified com teste fraco (M2) |
-| RISCO-11 | Implementing | ✅ Verified |
-| RISCO-12 | Implementing | ⚠️ Spec-precision gap |
-| RISCO-13 | Implementing | ✅ Verified |
+| RISCO-01 | ✅ Verified | ✅ Verified |
+| RISCO-02 | ⚠️ Spec-precision gap | ✅ **Verified** |
+| RISCO-03 | ✅ Verified | ✅ Verified |
+| RISCO-04 | ✅ Verified | ✅ Verified |
+| RISCO-05 | ⚠️ Spec-precision gap | ⚠️ Spec-precision gap (fora de escopo, nota A/B) |
+| RISCO-06 | ⚠️ Spec-precision gap | ⚠️ Spec-precision gap (fora de escopo, nota A/B) |
+| RISCO-07 | ✅ Verified | ✅ Verified |
+| RISCO-08 | ✅ Verified | ✅ Verified |
+| RISCO-09 | ❌ Needs Fix | ✅ **Verified** |
+| RISCO-10 | ⚠️ Verified com teste fraco | ✅ **Verified** (M2′ morto) |
+| RISCO-11 | ✅ Verified | ✅ Verified |
+| RISCO-12 | ⚠️ Spec-precision gap | ✅ **Verified** |
+| RISCO-13 | ✅ Verified | ✅ Verified |
 
 ---
 
 ## Summary
 
-**Overall**: ⚠️ Issues — não pronto para marcar concluído
+**Overall**: ✅ **Ready**
 
-**Spec-anchored check**: 8/13 ACs plenamente casados com o resultado definido pela spec; 4 spec-precision gaps; 1 GAP fundamentado (RISCO-09)
-**Sensor**: 2/3 mutantes mortos (M2 sobreviveu)
-**Gate**: 288 backend + 163 frontend passed, 0 failed, 0 skipped
+**Spec-anchored check**: 13/13 ACs cobertos com citação `file:line`; **11/13 casam exatamente com o resultado definido pela spec**; 2 spec-precision gaps herdados (RISCO-05/06, "período") que a Round 1 declarou fora do escopo — a spec não define o resultado preciso, então não há valor a asserir
+**Sensor**: **3/3 mutantes mortos** (as 2 falhas que a Round 1 mandou fechar, re-injetadas e agora mortas; + 1 nova no recreate-and-copy da migração `0005`)
+**Gate**: 292 backend + 164 frontend passed, 0 failed, 0 skipped; `ruff`/`pyright`/`lint`/`build` verdes — **todos re-executados pelo Verificador nesta rodada**
 
-**O que funciona**: o motor determinístico é genuinamente puro e a fronteira inclusiva de 50.0 mm está exercitada nos três pontos (49.9/50.0/50.1) e provada discriminante por M1. AD-5 é honrado de forma estrutural, não por convenção. O snapshot é imutável por construção (só `INSERT`/`SELECT`, `regra_versao` como valor). A rota HTTP faz round-trip real dos critérios do DuckDB até o corpo JSON. O caminho "sem regra ativa" pula a persistência de forma **deliberada e asserida** (`avaliacoes.salvas == []`), não por acidente. A adição de "área aplicável" ao granizo é exigida pela spec, não scope creep, e o teste de tipo não suportado é desenho legítimo.
+**O que funciona**: as cinco correções fazem o que prometem, verificado no código real e não pelo sumário. A lacuna de RISCO-09 está fechada em **todas as camadas** — migração, repositório, serviço, rota HTTP e tipos do frontend — e cada camada tem asserção própria sobre o valor real, não sobre "a chamada aconteceu". O relaxamento de `NOT NULL` foi feito pelo caminho seguro (recreate-and-copy com preservação provada por mutação) e **não tem nenhum outro leitor no repositório** que pudesse assumir presença: só o repositório e a rota tocam a tabela. A nulidade propaga ponta a ponta de forma **verificada por máquina**, não por revisão: o snapshot `openapi.json` é guardado por igualdade exata contra o documento vivo (`test_openapi_sincronizado.py:35`), e o mapeamento do frontend é tipado a partir do schema gerado, de modo que o `tsc` do build reprovaria uma divergência. O mutante M2 da Round 1 está morto com uma mensagem clara (`assert 1 == 7`). A distinção por ícone de RISCO-12 é agora asserida como distinção real (conjunto de três nomes), não como mera presença de `<svg>`. Os exemplos limítrofes de RISCO-02 chegaram à documentação com guarda automatizada. Nenhuma asserção foi enfraquecida em lugar nenhum e a contagem de testes só cresceu.
 
-**Problemas encontrados**: (1) o terminal `sem_risco` por falta de regra ativa não persiste código nem motivo, deixando uma execução decidida indistinguível de uma não avaliada na API e na tela — Fix 1; (2) a asserção de `regra_versao` no serviço não é discriminante porque a fixture vale `1` — Fix 2; (3) a distinção por ícone exigida por RISCO-12 não é asserida — Fix 3; (4) os exemplos limítrofes de RISCO-02 nunca chegaram à documentação — Fix 4; (5) constante de limiar morta e duplicada — Fix 5. Contexto adicional (não bloqueante, já declarado pelo autor): nem `ServicoAvaliacaoRisco` nem `SuperficieEventoDecisao` são alcançáveis em produção ainda.
+**Problemas encontrados**: nenhum bloqueador. Uma regressão **menor de documentação** introduzida pela própria correção — `README.md:274-275` ainda declara `regra_id`/`regra_versao` como `NOT NULL` e a migração `0005` não ganhou seção no documento versionado do schema, apesar do precedente da `0003` (Fix 6, Minor). E um estado de UI recém-alcançável (`sem_regra_ativa` com zero critérios) que o componente trata corretamente por construção mas nenhum teste de frontend exercita (Fix 7, Cosmético). Contexto conhecido e já declarado pelo autor, inalterado: nem `ServicoAvaliacaoRisco` nem `SuperficieEventoDecisao` são alcançáveis por caminho de produção — lacuna de integração a fechar em história futura.
 
-**Next steps**: rotear Fix 1 e Fix 2 (Major) para um implementador; Fix 3–5 (Minor) podem acompanhar. Reverificar com foco em M2 e no caminho `sem_regra_ativa` após as correções.
+**Next steps**: marcar a História 2.3 como concluída. Fix 6 e Fix 7 podem acompanhar a próxima história que tocar persistência ou a superfície de decisão; nenhum dos dois justifica uma terceira iteração de correção nesta história.

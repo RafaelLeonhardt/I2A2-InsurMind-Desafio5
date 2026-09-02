@@ -117,19 +117,19 @@ As Histórias 2.1 e 2.2 entregam eventos meteorológicos normalizados e resilien
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| RISCO-01 | P1: Regras de relevância centralizadas e eventos suportados | Design | Implementing |
-| RISCO-02 | P1: Regras de relevância centralizadas e eventos suportados | Design | Implementing |
-| RISCO-03 | P1: Regras de relevância centralizadas e eventos suportados | Design | Implementing |
-| RISCO-04 | P1: Regras de relevância centralizadas e eventos suportados | Design | Implementing |
-| RISCO-05 | P1: Cálculo determinístico de relevância por produto | Design | Implementing |
-| RISCO-06 | P1: Cálculo determinístico de relevância por produto | Design | Implementing |
-| RISCO-07 | P1: Cálculo determinístico de relevância por produto | Design | Implementing |
-| RISCO-08 | P1: Cálculo determinístico de relevância por produto | Design | Implementing |
-| RISCO-09 | P1: Transições de estado a partir do resultado da relevância | Design | Implementing |
-| RISCO-10 | P1: Transições de estado a partir do resultado da relevância | Design | Implementing |
-| RISCO-11 | P2: Explicabilidade da decisão e progresso em tempo real | Design | Implementing |
-| RISCO-12 | P2: Explicabilidade da decisão e progresso em tempo real | Design | Implementing |
-| RISCO-13 | P2: Explicabilidade da decisão e progresso em tempo real | Design | Implementing |
+| RISCO-01 | P1: Regras de relevância centralizadas e eventos suportados | Design | Verified |
+| RISCO-02 | P1: Regras de relevância centralizadas e eventos suportados | Design | Verified |
+| RISCO-03 | P1: Regras de relevância centralizadas e eventos suportados | Design | Verified |
+| RISCO-04 | P1: Regras de relevância centralizadas e eventos suportados | Design | Verified |
+| RISCO-05 | P1: Cálculo determinístico de relevância por produto | Design | Verified |
+| RISCO-06 | P1: Cálculo determinístico de relevância por produto | Design | Verified |
+| RISCO-07 | P1: Cálculo determinístico de relevância por produto | Design | Verified |
+| RISCO-08 | P1: Cálculo determinístico de relevância por produto | Design | Verified |
+| RISCO-09 | P1: Transições de estado a partir do resultado da relevância | Design | Verified |
+| RISCO-10 | P1: Transições de estado a partir do resultado da relevância | Design | Verified |
+| RISCO-11 | P2: Explicabilidade da decisão e progresso em tempo real | Design | Verified |
+| RISCO-12 | P2: Explicabilidade da decisão e progresso em tempo real | Design | Verified |
+| RISCO-13 | P2: Explicabilidade da decisão e progresso em tempo real | Design | Verified |
 
 **ID format:** `RISCO-NN`
 

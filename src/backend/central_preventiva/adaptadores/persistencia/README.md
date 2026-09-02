@@ -274,9 +274,17 @@ sem LLM; AD-11: uma mudança futura em `regras` nunca recalcula uma avaliação 
 | `id` | `UUID` | chave primária |
 | `execucao_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `execucao_preventiva(id)` |
 | `evento_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `eventos_meteorologicos(id)` |
-| `regra_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `regras(id)` |
-| `regra_versao` | `INTEGER` | `NOT NULL`, snapshot da versão da regra no momento da avaliação |
+| `regra_id` | `UUID` | nulo se não havia regra ativa para o tipo do evento (migração `0005`); chave estrangeira lógica para `regras(id)` quando presente |
+| `regra_versao` | `INTEGER` | nulo pelo mesmo motivo que `regra_id`; snapshot da versão da regra no momento da avaliação quando presente |
 | `relevante` | `BOOLEAN` | `NOT NULL` |
-| `criterios` | `VARCHAR` | `NOT NULL`, JSON serializado com operando/valor observado/resultado/justificativa por critério |
+| `criterios` | `VARCHAR` | `NOT NULL`, JSON serializado com operando/valor observado/resultado/justificativa por critério (vazio, `[]`, quando não havia regra ativa) |
 | `motivo` | `VARCHAR` | `NOT NULL` |
 | `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+
+## Tabelas da migração `0005_avaliacao_risco_sem_regra`
+
+Nenhuma tabela nova — a migração relaxa `avaliacoes_risco.regra_id`/`regra_versao` de `NOT NULL`
+para aceitar `NULL` (recreate-and-copy, AD-015: DuckDB não suporta `ALTER COLUMN DROP NOT NULL`),
+para que o terminal `sem_risco` sem regra ativa (RISCO-09) fique persistido e explicável, em vez
+de não gerar nenhuma linha. Ver a tabela `avaliacoes_risco` acima, já atualizada com o estado
+pós-`0005`.
