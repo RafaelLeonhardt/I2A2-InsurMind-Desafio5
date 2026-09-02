@@ -124,16 +124,22 @@ T6
 
 **Tools**: MCP: NONE — Skill: NONE
 
+**Nota de implementação (pré-requisito)**: `ServicoColetaMeteorologica.executar_coleta` (2.1/2.2) não aceita `execucao_id` e nunca devolve o `EventoMeteorologico` no sucesso — só transiciona uma execução própria criada de forma preguiçosa na falha (RESIL-06). Alterar sua assinatura quebraria 13+ chamadores/testes já verificados PASS em 2.1/2.2. Em vez disso, foi adicionado um método novo e aditivo, `coletar_para_execucao(execucao_id, versao_esperada, area) -> EventoMeteorologico | None`, que reaproveita os mesmos helpers internos (`ColetorComRetry`, `_fechar`, `_causa_de`) e opera sobre uma execução já existente — nunca cria a sua própria. `executar_coleta` não foi tocado; sua suíte de 19 testes continua passando.
+
+**Nota de implementação (terminal técnico)**: confirmado por `testes/test_estados_execucao.py::test_enum_cobre_exatamente_os_estados_canonicos_do_ad4` que o conjunto de `EstadoExecucao` é guardado por um teste que trava qualquer valor novo — a Tech Decision do Design ("nenhum novo estado, reusar o padrão de estado terminal com causa") é, portanto, testada e obrigatória, não uma sugestão a ser substituída (diferente de outras divergências design-vs-spec resolvidas nas histórias anteriores). `GerenciadorExecucoes._registrar_falha_processamento` reusa `falhou_coleta` como o único terminal técnico de toda a cadeia determinística (coleta, risco ou elegibilidade); a causa registrada no marco sempre nomeia a exceção real, então o nome do estado não é ambíguo na prática.
+
+**Nota de implementação (retomada de `coletando`)**: não existe coluna `area_id` em `execucao_preventiva`, então `retomar_pendentes()` não tem como reobter a área monitorada de uma execução presa em `coletando` no boot. Como a coleta já é conhecidamente síncrona ponta a ponta (limitação registrada desde 2.1/2.2, item 6 dos Blockers em `.specs/STATE.md`) e o Teste Independente da spec só cobre retomada a partir de `avaliando_elegibilidade`, uma execução em `coletando` no boot é tratada como falha técnica imediata (`falhou_coleta`, causa explicando o reinício) em vez de deixada presa (RUNNER-11).
+
 **Done when**:
 
-- [ ] Coleta válida com evento relevante e público elegível avança sozinha até `aguardando_geracao`, com marco `publico_elegivel_formado` persistido
-- [ ] Evento não relevante para em `sem_risco` sem chamar avaliação de elegibilidade
-- [ ] Evento relevante sem elegíveis para em `sem_elegiveis`
-- [ ] Nenhum dos dois terminais antecipados chama qualquer porta de IA
-- [ ] Falha interna não recuperável simulada (exceção não tratada de um dos serviços) resulta em terminal técnico explícito com causa e último marco durável, não em travamento
-- [ ] `retomar_pendentes` com uma execução persistida em `avaliando_elegibilidade` retoma sem recriar evento nem recalcular elegibilidade já persistida
-- [ ] Repetir `iniciar` com a mesma `Idempotency-Key` devolve o `execucao_id` já criado
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Coleta válida com evento relevante e público elegível avança sozinha até `aguardando_geracao`, com marco `publico_elegivel_formado` persistido
+- [x] Evento não relevante para em `sem_risco` sem chamar avaliação de elegibilidade
+- [x] Evento relevante sem elegíveis para em `sem_elegiveis`
+- [x] Nenhum dos dois terminais antecipados chama qualquer porta de IA
+- [x] Falha interna não recuperável simulada (exceção não tratada de um dos serviços) resulta em terminal técnico explícito com causa e último marco durável, não em travamento
+- [x] `retomar_pendentes` com uma execução persistida em `avaliando_elegibilidade` retoma sem recriar evento nem recalcular elegibilidade já persistida
+- [x] Repetir `iniciar` com a mesma `Idempotency-Key` devolve o `execucao_id` já criado
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick

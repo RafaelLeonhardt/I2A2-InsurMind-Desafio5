@@ -586,3 +586,64 @@ def test_recuperacao_real_da_mesma_leitura_nao_duplica_evento_via_unique(
     assert primeira.estado == EstadoSincronizacao.CONCLUIDO
     assert segunda.estado == EstadoSincronizacao.CONCLUIDO
     assert len(RepositorioEventosMeteorologicos(caminho).listar()) == 1
+
+
+def test_coletar_para_execucao_com_sucesso_devolve_evento_sem_transicionar(
+    tmp_path: Path,
+) -> None:
+    """2.6: sucesso devolve o `EventoMeteorologico`, não a `Sincronizacao`, e não
+    transiciona a execução informada — quem decide o próximo estado é o chamador."""
+
+    coletor = AdaptadorInmetFalso(resposta=RESPOSTA_VALIDA)
+    servico, _, eventos, _, execucoes, excecoes, _ = montar_servico(coletor)
+
+    evento = asyncio.run(servico.coletar_para_execucao(uuid4(), 1, AREA))
+
+    assert evento is not None
+    assert evento.tipo == TipoEventoMeteorologico.CHUVA_INTENSA
+    assert len(eventos.salvos) == 1
+    assert execucoes.transicoes == []
+    assert excecoes.registradas == []
+
+
+def test_coletar_para_execucao_com_retentativas_esgotadas_transiciona_para_falhou_coleta(
+    tmp_path: Path,
+) -> None:
+    coletor = AdaptadorInmetFalso(excecao=httpx.TimeoutException("timeout"))
+    servico, _, eventos, _, execucoes, excecoes, _ = montar_servico(coletor)
+    execucao_id = uuid4()
+
+    evento = asyncio.run(servico.coletar_para_execucao(execucao_id, 1, AREA))
+
+    assert evento is None
+    assert eventos.salvos == []
+    assert execucoes.transicoes == [(execucao_id, EstadoExecucao.FALHOU_COLETA)]
+    assert len(excecoes.registradas) == 1
+    assert excecoes.registradas[0][0] == execucao_id
+
+
+def test_coletar_para_execucao_com_resposta_invalida_transiciona_para_falhou_coleta(
+    tmp_path: Path,
+) -> None:
+    coletor = AdaptadorInmetFalso(resposta=RESPOSTA_INVALIDA)
+    servico, _, eventos, _, execucoes, excecoes, _ = montar_servico(coletor)
+    execucao_id = uuid4()
+
+    evento = asyncio.run(servico.coletar_para_execucao(execucao_id, 1, AREA))
+
+    assert evento is None
+    assert eventos.salvos == []
+    assert execucoes.transicoes == [(execucao_id, EstadoExecucao.FALHOU_COLETA)]
+    assert excecoes.registradas[0][1] == "campo_ausente"
+
+
+def test_coletar_para_execucao_nunca_cria_sua_propria_execucao(tmp_path: Path) -> None:
+    """Diferente de `executar_coleta`/`_registrar_falha_terminal` (RESIL-06), esta função
+    nunca chama `execucoes.criar` — sempre opera sobre a execução informada pelo chamador."""
+
+    coletor = AdaptadorInmetFalso(excecao=httpx.TimeoutException("timeout"))
+    servico, _, _, _, execucoes, _, _ = montar_servico(coletor)
+
+    asyncio.run(servico.coletar_para_execucao(uuid4(), 1, AREA))
+
+    assert execucoes.criadas == []

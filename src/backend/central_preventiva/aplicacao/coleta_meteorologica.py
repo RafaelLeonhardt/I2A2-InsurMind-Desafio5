@@ -27,6 +27,7 @@ from central_preventiva.aplicacao.portas_meteorologia import (
 )
 from central_preventiva.aplicacao.portas_persistencia import ConflitoIdempotencia, PortaIdempotencia
 from central_preventiva.dominio.estados_execucao import EstadoExecucao
+from central_preventiva.dominio.evento_meteorologico import EventoMeteorologico
 
 MAXIMO_TENTATIVAS_COLETA = 3
 """Número total de tentativas de uma coleta com retry, incluindo a primeira (RESIL-01)."""
@@ -346,6 +347,63 @@ class ServicoColetaMeteorologica:
         return self._fechar(
             sincronizacao, EstadoSincronizacao.FALHA, 0, str(resultado.motivo_rejeicao)
         )
+
+    async def coletar_para_execucao(
+        self, execucao_id: UUID, versao_esperada: int, area: AreaMonitorada
+    ) -> EventoMeteorologico | None:
+        """Coleta vinculada a uma execução já criada por `GerenciadorExecucoes` (2.6).
+
+        Diferente de `executar_coleta` (usada pelos endpoints manuais/agendador/nova
+        tentativa, que criam sua própria `ExecucaoPreventiva` lazy só na falha, RESIL-06),
+        esta função nunca cria uma execução — recebe uma já existente e a transiciona ela
+        mesma para `falhou_coleta` (com a `Exceção` registrada) quando a coleta não produz
+        evento, por retentativas esgotadas ou rejeição de normalização. No sucesso, não
+        transiciona a execução (isso é decisão do chamador, a partir do evento devolvido)
+        e devolve o `EventoMeteorologico` normalizado, não a `Sincronizacao` — é o que o
+        próximo passo da orquestração (avaliação de risco) precisa.
+        """
+
+        requisicao_id = uuid4()
+        sincronizacao = self._portas.sincronizacoes.criar(
+            requisicao_id, area.id, OrigemSincronizacao.AUTOMATICA, EstadoSincronizacao.COLETANDO
+        )
+        retry = ColetorComRetry(
+            self._portas.coletor,
+            self._portas.tentativas,
+            sincronizacao.id,
+            esperar=self._portas.esperar,
+        )
+
+        try:
+            bruta = await retry.coletar(area)
+        except RetentativasEsgotadas as falha:
+            self._fechar(
+                sincronizacao, EstadoSincronizacao.FALHA, 0, MOTIVO_RETENTATIVAS_ESGOTADAS
+            )
+            self._portas.execucoes.transicionar(
+                execucao_id, versao_esperada, EstadoExecucao.FALHOU_COLETA
+            )
+            self._portas.excecoes.registrar(
+                execucao_id, _causa_de(falha), falha.tentativas, IMPACTO_COLETA_INDISPONIVEL
+            )
+            return None
+
+        resultado = self._portas.normalizador.normalizar(bruta, area)
+        if resultado.evento is not None:
+            self._portas.eventos.salvar(resultado.evento)
+            self._fechar(sincronizacao, EstadoSincronizacao.CONCLUIDO, 1, None)
+            return resultado.evento
+
+        self._fechar(
+            sincronizacao, EstadoSincronizacao.FALHA, 0, str(resultado.motivo_rejeicao)
+        )
+        self._portas.execucoes.transicionar(
+            execucao_id, versao_esperada, EstadoExecucao.FALHOU_COLETA
+        )
+        self._portas.excecoes.registrar(
+            execucao_id, str(resultado.motivo_rejeicao), 1, IMPACTO_COLETA_INDISPONIVEL
+        )
+        return None
 
     async def solicitar_nova_tentativa(
         self, sincronizacao_origem_id: UUID, chave_idempotencia: str, hash_requisicao: str
