@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 9,
+  "next_id": 14,
   "lessons": [
     {
       "id": "L-001",
@@ -151,6 +151,96 @@
       ],
       "created": "2026-08-29T20:09:23Z",
       "last_seen": "2026-08-29T20:09:23Z"
+    },
+    {
+      "id": "L-009",
+      "key": "surviving_mutant::assert the production default constant itself never only a value the test injects in its place",
+      "text": "Assert the production default constant itself, never only a value the test injects in its place.",
+      "signal": "surviving_mutant",
+      "scope": "scheduling",
+      "status": "candidate",
+      "features": [
+        "2-1-coletar-e-normalizar-dados-do-inmet"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "portas_meteorologia.py:64 (mutant M2: INTERVALO_SEGUNDOS_COLETA 900->60 survived 235/235) (scheduling)"
+      ],
+      "created": "2026-09-02T01:54:07Z",
+      "last_seen": "2026-09-02T01:54:07Z"
+    },
+    {
+      "id": "L-010",
+      "key": "ac_gap::drive route tests through the application lifespan whenever the criterion depends on background work being active",
+      "text": "Drive route tests through the application lifespan whenever the criterion depends on background work being active.",
+      "signal": "ac_gap",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "2-1-coletar-e-normalizar-dados-do-inmet"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "INMET-04 - testes/test_meteorologia_api.py:71 (routes)"
+      ],
+      "created": "2026-09-02T01:54:07Z",
+      "last_seen": "2026-09-02T01:54:07Z"
+    },
+    {
+      "id": "L-011",
+      "key": "ac_gap::give every measurable clause of a criterion its own assertion including latency budgets or downgrade the clause in the spec explicitly",
+      "text": "Give every measurable clause of a criterion its own assertion, including latency budgets, or downgrade the clause in the spec explicitly.",
+      "signal": "ac_gap",
+      "scope": "observability",
+      "status": "candidate",
+      "features": [
+        "2-1-coletar-e-normalizar-dados-do-inmet"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "INMET-15 - no perf_counter/p95 assertion anywhere in the repository (observability)"
+      ],
+      "created": "2026-09-02T01:54:07Z",
+      "last_seen": "2026-09-02T01:54:07Z"
+    },
+    {
+      "id": "L-012",
+      "key": "spec_precision_gap::cover every state a criterion enumerates not only the happy path state",
+      "text": "Cover every state a criterion enumerates, not only the happy-path state.",
+      "signal": "spec_precision_gap",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "2-1-coletar-e-normalizar-dados-do-inmet"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "INMET-06 - SuperficieFonteMeteorologica.test.tsx:128 (frontend)"
+      ],
+      "created": "2026-09-02T01:54:08Z",
+      "last_seen": "2026-09-02T01:54:08Z"
+    },
+    {
+      "id": "L-013",
+      "key": "spec_deviation::fold port methods discovered during implementation back into the design document instead of leaving the deviation marker as their only record",
+      "text": "Fold port methods discovered during implementation back into the design document instead of leaving the deviation marker as their only record.",
+      "signal": "spec_deviation",
+      "scope": "ports",
+      "status": "candidate",
+      "features": [
+        "2-1-coletar-e-normalizar-dados-do-inmet"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "aplicacao/portas_meteorologia.py:86,95,112 (ports)"
+      ],
+      "created": "2026-09-02T01:54:08Z",
+      "last_seen": "2026-09-02T01:54:08Z"
     }
   ]
 }

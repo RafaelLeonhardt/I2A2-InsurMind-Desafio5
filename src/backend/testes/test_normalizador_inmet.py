@@ -1,6 +1,7 @@
 """Testes determinísticos de parsing do `NormalizadorInmet`, sem nenhuma chamada de rede."""
 
 import json
+from datetime import datetime
 from pathlib import Path
 from uuid import uuid4
 
@@ -44,6 +45,9 @@ def test_leitura_real_valida_normaliza_para_chuva_intensa_real_inmet() -> None:
     assert resultado.evento.proveniencia == ProvenienciaEvento.REAL_INMET
     assert resultado.evento.area == AREA_MONITORADA.codigo_ibge_area
     assert resultado.evento.intensidade == 55.4
+    assert resultado.evento.instante_observado == datetime(2026, 8, 30, 18, 0)
+    assert resultado.evento.periodo_inicio == datetime(2026, 8, 30, 17, 0)
+    assert resultado.evento.periodo_fim == datetime(2026, 8, 30, 18, 0)
 
 
 def test_cenario_sintetico_granizo_normaliza_para_tipo_granizo() -> None:

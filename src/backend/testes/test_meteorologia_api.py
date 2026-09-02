@@ -1,5 +1,8 @@
 """Testes do recurso REST/JSON de coleta e consulta meteorológica do INMET."""
 
+import time
+from datetime import datetime, timedelta
+from math import ceil
 from pathlib import Path
 from uuid import uuid4
 
@@ -142,6 +145,41 @@ def test_repetir_a_mesma_idempotency_key_devolve_a_resposta_ja_registrada_sem_no
     assert len(chamadas) == 1
 
 
+def test_post_manual_e_aceito_independentemente_do_agendamento_automatico_em_curso(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """INMET-04: com o `lifespan` real ativo (agendador automático rodando), o `POST`
+
+    manual ainda é aceito e produz uma tentativa correlacionada distinta da automática —
+    cobre também o edge case de duas coletas quase simultâneas persistidas separadamente.
+    """
+
+    caminho = preparar_banco(tmp_path)
+    area_id = inserir_area_monitorada(caminho, "A701", "9990001")
+    permitir_resposta_valida(monkeypatch)
+
+    with TestClient(criar_aplicacao(configuracao_para(caminho))) as cliente:
+        resposta_manual = cliente.post(
+            CAMINHO_COLETAS,
+            json={"area_id": area_id},
+            headers={"Idempotency-Key": str(uuid4())},
+        )
+        assert resposta_manual.status_code == 202
+
+        origens: set[str] = set()
+        resultados: list[dict[str, object]] = []
+        for _ in range(40):
+            resultados = cliente.get(CAMINHO_SINCRONIZACOES).json()["resultados_anteriores"]
+            origens = {str(item["origem"]) for item in resultados}
+            if {"automatica", "manual"} <= origens:
+                break
+            time.sleep(0.05)
+
+        assert {"automatica", "manual"} <= origens
+        ids_requisicao = {item["requisicao_id"] for item in resultados}
+        assert len(ids_requisicao) == len(resultados)
+
+
 def test_post_com_area_desconhecida_e_recusado(tmp_path: Path) -> None:
     caminho = preparar_banco(tmp_path)
 
@@ -219,7 +257,12 @@ def test_get_sincronizacoes_retorna_200_com_os_campos_esperados_apos_coleta(
     }
     assert corpo["ultima_tentativa"]["estado"] == "concluido"
     assert corpo["ultima_valida"]["estado"] == "concluido"
-    assert corpo["proxima_consulta"] is not None
+    iniciado_em = datetime.fromisoformat(corpo["ultima_tentativa"]["iniciado_em"])
+    proxima_consulta = datetime.fromisoformat(corpo["proxima_consulta"])
+    # 900s hardcoded (não importado de INTERVALO_SEGUNDOS_COLETA): referenciar a própria
+    # constante de produção faria este teste acompanhar qualquer mutação no intervalo,
+    # sem nunca discriminar uma regressão real (15 minutos, INMET-03/INMET-15).
+    assert proxima_consulta == iniciado_em + timedelta(seconds=900)
     assert len(corpo["resultados_anteriores"]) == 1
 
 
@@ -234,6 +277,34 @@ def test_get_sincronizacoes_sem_nenhuma_coleta_devolve_marcos_nulos(tmp_path: Pa
     assert corpo["ultima_valida"] is None
     assert corpo["proxima_consulta"] is None
     assert corpo["resultados_anteriores"] == []
+
+
+def test_consultas_de_eventos_e_sincronizacoes_respondem_em_ate_1s_no_percentil_95(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """INMET-15: a consulta usando só dados persistidos responde em até 1s no p95."""
+
+    caminho = preparar_banco(tmp_path)
+    area_id = inserir_area_monitorada(caminho, "A701", "9990001")
+    permitir_resposta_valida(monkeypatch)
+    cliente = cliente_para(caminho)
+    cliente.post(
+        CAMINHO_COLETAS, json={"area_id": area_id}, headers={"Idempotency-Key": str(uuid4())}
+    )
+
+    def p95_segundos(caminho_recurso: str, repeticoes: int = 20) -> float:
+        duracoes: list[float] = []
+        for _ in range(repeticoes):
+            inicio = time.perf_counter()
+            resposta = cliente.get(caminho_recurso)
+            duracoes.append(time.perf_counter() - inicio)
+            assert resposta.status_code == 200
+        duracoes.sort()
+        indice_p95 = max(0, ceil(0.95 * len(duracoes)) - 1)
+        return duracoes[indice_p95]
+
+    assert p95_segundos(CAMINHO_EVENTOS) < 1.0
+    assert p95_segundos(CAMINHO_SINCRONIZACOES) < 1.0
 
 
 def test_cors_libera_o_post_de_coletas_para_a_origem_configurada(tmp_path: Path) -> None:

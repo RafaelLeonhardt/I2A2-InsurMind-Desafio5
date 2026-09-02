@@ -468,6 +468,23 @@ T14
 
 ---
 
+## Fix Tasks (Verifier Round 1 — FAIL, `validation.md` de 2026-09-01)
+
+O primeiro `validation.md` reportou FAIL: 1 mutante sobrevivente (M2) + 4 lacunas de cobertura ancorada em AC. Corrigidas nesta rodada:
+
+- [x] **Fix 1** — `INTERVALO_SEGUNDOS_COLETA` (M2 sobrevivente): `test_agendador_meteorologico.py` ganhou `test_intervalo_padrao_de_producao_e_900_segundos` (hardcoded 900, não importa a constante); `test_meteorologia_api.py` passou a assertar `proxima_consulta == iniciado_em + timedelta(seconds=900)` (hardcoded). Confirmado matando a mutação `900 → 60` manualmente antes do commit.
+- [x] **Fix 2** — INMET-04 (manual aceito com o agendador em curso): novo teste `test_post_manual_e_aceito_independentemente_do_agendamento_automatico_em_curso` usa `TestClient` como context manager (lifespan/agendador real ativo), confirma `202` e duas linhas de sincronização com `origem` e `requisicao_id` distintos — cobre também o edge case de duas coletas quase simultâneas.
+- [x] **Fix 3** — INMET-15 (p95 ≤ 1s): novo teste `test_consultas_de_eventos_e_sincronizacoes_respondem_em_ate_1s_no_percentil_95` mede `GET /eventos` e `GET /sincronizacoes` com `perf_counter` sobre 20 repetições e asserta p95 < 1s.
+- [x] **Fix 4** — INMET-07 (campos temporais) + INMET-06 (estados não-`concluido`): `test_normalizador_inmet.py` passou a assertar `instante_observado`/`periodo_inicio`/`periodo_fim` por valor; a UI ganhou `ROTULOS_ESTADO_SINCRONIZACAO` (spec exige `Coletando`/`Normalizando`/`Concluído`/`Falha`, a UI imprimia o enum cru) e um novo teste cobre o estado `falha` com `motivoFalha`.
+- [ ] **Fix 5** (não bloqueante, dívida já documentada) — prova ao vivo do INMET real (T4) segue pendente por falta de egresso de rede na sessão de implementação; ver `adaptadores/meteorologia/README.md:17-34`.
+
+**Gate check (backend, full)**: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright` — verde.
+**Gate check (frontend, full)**: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend` — verde (mesmos avisos pré-existentes de `oxlint`, nenhum novo).
+
+**Commit**: `fix(meteorologia): fechar lacunas de cobertura da verificacao da historia 2.1`
+
+---
+
 ## Phase Execution Map
 
 Phases run in sequence, and tasks within a phase run in order:

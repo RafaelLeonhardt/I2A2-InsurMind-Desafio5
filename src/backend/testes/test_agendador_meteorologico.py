@@ -136,8 +136,17 @@ class RelogioControlavel:
 
 
 def montar_agendador(
-    relogio: RelogioControlavel, coletor: AdaptadorInmetFalso, intervalo_segundos: float = 900
+    relogio: RelogioControlavel,
+    coletor: AdaptadorInmetFalso,
+    intervalo_segundos: float | None = 900,
 ) -> AgendadorMeteorologico:
+    """Monta o agendador de teste.
+
+    `intervalo_segundos=None` propaga o padrão de produção de `AgendadorMeteorologico`
+    (não o hardcoded 900 deste helper) — usado para provar que o intervalo real de
+    produção é o que está em vigor, sem o teste referenciar a própria constante.
+    """
+
     portas = PortasColetaMeteorologica(
         idempotencia=IdempotenciaFalsaInerte(),  # type: ignore[arg-type]
         areas=AreasAtivasFalsas((AREA,)),
@@ -147,6 +156,8 @@ def montar_agendador(
         sincronizacoes=SincronizacoesFalsas(),  # type: ignore[arg-type]
     )
     servico = ServicoColetaMeteorologica(portas)
+    if intervalo_segundos is None:
+        return AgendadorMeteorologico(servico, portas.areas, relogio=relogio)
     return AgendadorMeteorologico(
         servico, portas.areas, relogio=relogio, intervalo_segundos=intervalo_segundos
     )
@@ -196,6 +207,34 @@ def test_dorme_exatamente_o_intervalo_configurado_entre_coletas() -> None:
 
         assert len(coletor.chamadas) == 2
         assert relogio.chamadas == [900, 900]
+
+        tarefa.cancel()
+        with suppress(asyncio.CancelledError):
+            await tarefa
+
+    asyncio.run(cenario())
+
+
+def test_intervalo_padrao_de_producao_e_900_segundos() -> None:
+    """Sem `intervalo_segundos` explícito, o agendador usa o padrão real de produção.
+
+    O valor esperado (900) é fixado aqui, não importado de `INTERVALO_SEGUNDOS_COLETA` —
+    do contrário, alterar a constante de produção mudaria a asserção junto com ela e o
+    teste nunca discriminaria uma regressão no intervalo real (15 minutos, INMET-03).
+    """
+
+    async def cenario() -> None:
+        relogio = RelogioControlavel()
+        coletor = AdaptadorInmetFalso(resposta=RESPOSTA_VALIDA)
+        agendador = montar_agendador(relogio, coletor, intervalo_segundos=None)
+
+        tarefa = asyncio.create_task(agendador.executar_em_segundo_plano())
+        for _ in range(50):
+            if relogio.chamadas:
+                break
+            await asyncio.sleep(0)
+
+        assert relogio.chamadas == [900]
 
         tarefa.cancel()
         with suppress(asyncio.CancelledError):

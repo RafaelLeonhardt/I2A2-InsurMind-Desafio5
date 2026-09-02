@@ -62,6 +62,36 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: CTX-18 (frontend)
 - last seen: 2026-08-29T20:09:23Z
 
+### L-009 - Assert the production default constant itself, never only a value the test injects in its place.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `scheduling` · harmful: 0
+- features: 2-1-coletar-e-normalizar-dados-do-inmet
+- evidence: portas_meteorologia.py:64 (mutant M2: INTERVALO_SEGUNDOS_COLETA 900->60 survived 235/235) (scheduling)
+- last seen: 2026-09-02T01:54:07Z
+
+### L-010 - Drive route tests through the application lifespan whenever the criterion depends on background work being active.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: 2-1-coletar-e-normalizar-dados-do-inmet
+- evidence: INMET-04 - testes/test_meteorologia_api.py:71 (routes)
+- last seen: 2026-09-02T01:54:07Z
+
+### L-011 - Give every measurable clause of a criterion its own assertion, including latency budgets, or downgrade the clause in the spec explicitly.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `observability` · harmful: 0
+- features: 2-1-coletar-e-normalizar-dados-do-inmet
+- evidence: INMET-15 - no perf_counter/p95 assertion anywhere in the repository (observability)
+- last seen: 2026-09-02T01:54:07Z
+
+### L-012 - Cover every state a criterion enumerates, not only the happy-path state.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 2-1-coletar-e-normalizar-dados-do-inmet
+- evidence: INMET-06 - SuperficieFonteMeteorologica.test.tsx:128 (frontend)
+- last seen: 2026-09-02T01:54:08Z
+
+### L-013 - Fold port methods discovered during implementation back into the design document instead of leaving the deviation marker as their only record.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `ports` · harmful: 0
+- features: 2-1-coletar-e-normalizar-dados-do-inmet
+- evidence: aplicacao/portas_meteorologia.py:86,95,112 (ports)
+- last seen: 2026-09-02T01:54:08Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

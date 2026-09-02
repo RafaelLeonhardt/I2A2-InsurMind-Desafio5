@@ -29,6 +29,25 @@ function evento(sobrescritas: Partial<EventoMeteorologico> = {}): EventoMeteorol
   }
 }
 
+function historicoComFalha(): HistoricoSincronizacoes {
+  const sincronizacao = {
+    id: 's2',
+    requisicaoId: 'r2',
+    origem: 'automatica' as const,
+    estado: 'falha',
+    registrosValidos: 0,
+    motivoFalha: 'campo_ausente',
+    iniciadoEm: '2026-08-30T13:00:00+00:00',
+    finalizadoEm: '2026-08-30T13:00:02+00:00',
+  }
+  return {
+    ultimaTentativa: sincronizacao,
+    ultimaValida: null,
+    proximaConsulta: '2026-08-30T13:15:00+00:00',
+    resultadosAnteriores: [sincronizacao],
+  }
+}
+
 function historicoVazio(): HistoricoSincronizacoes {
   return {
     ultimaTentativa: null,
@@ -125,10 +144,23 @@ describe('superfície de fonte meteorológica', () => {
     render(<SuperficieFonteMeteorologica />)
 
     await screen.findByText('Histórico de sincronização')
-    expect(screen.getByText(/Manual — concluido — 2026-08-30T12:00:00\+00:00/)).toBeInTheDocument()
+    expect(screen.getByText(/Manual — Concluído — 2026-08-30T12:00:00\+00:00/)).toBeInTheDocument()
     expect(screen.getByText('2026-08-30T12:00:05+00:00')).toBeInTheDocument()
     expect(screen.getByText('2026-08-30T12:15:00+00:00')).toBeInTheDocument()
-    expect(screen.getByText(/Manual — concluido — iniciado em 2026-08-30T12:00:00\+00:00/)).toBeInTheDocument()
+    expect(screen.getByText(/Manual — Concluído — iniciado em 2026-08-30T12:00:00\+00:00/)).toBeInTheDocument()
+  })
+
+  it('exibe o estado Falha com o motivo, quando a última tentativa não foi concluída', async () => {
+    getEventos.mockResolvedValue([])
+    getSincronizacoes.mockResolvedValue(historicoComFalha())
+
+    render(<SuperficieFonteMeteorologica />)
+
+    await screen.findByText('Histórico de sincronização')
+    expect(screen.getByText(/Automática — Falha — 2026-08-30T13:00:00\+00:00/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Automática — Falha — iniciado em 2026-08-30T13:00:00\+00:00 — motivo: campo_ausente/),
+    ).toBeInTheDocument()
   })
 
   it('mostra Indisponível com ocorrência, impacto e próxima ação quando a consulta falha', async () => {

@@ -24,6 +24,13 @@ const ROTULOS_ORIGEM_SINCRONIZACAO: Record<string, string> = {
   manual: 'Manual',
 }
 
+const ROTULOS_ESTADO_SINCRONIZACAO: Record<string, string> = {
+  coletando: 'Coletando',
+  normalizando: 'Normalizando',
+  concluido: 'Concluído',
+  falha: 'Falha',
+}
+
 /**
  * Superfície "Fonte meteorológica": eventos normalizados e histórico de sincronização.
  *
@@ -147,7 +154,7 @@ export function SuperficieFonteMeteorologica() {
               <dt>Última tentativa</dt>
               <dd>
                 {historico?.ultimaTentativa
-                  ? `${ROTULOS_ORIGEM_SINCRONIZACAO[historico.ultimaTentativa.origem] ?? historico.ultimaTentativa.origem} — ${historico.ultimaTentativa.estado} — ${historico.ultimaTentativa.iniciadoEm}`
+                  ? `${ROTULOS_ORIGEM_SINCRONIZACAO[historico.ultimaTentativa.origem] ?? historico.ultimaTentativa.origem} — ${ROTULOS_ESTADO_SINCRONIZACAO[historico.ultimaTentativa.estado] ?? historico.ultimaTentativa.estado} — ${historico.ultimaTentativa.iniciadoEm}`
                   : '—'}
               </dd>
               <dt>Última atualização válida</dt>
@@ -161,7 +168,8 @@ export function SuperficieFonteMeteorologica() {
                 {historico.resultadosAnteriores.map((sincronizacao) => (
                   <li key={sincronizacao.id}>
                     {ROTULOS_ORIGEM_SINCRONIZACAO[sincronizacao.origem] ?? sincronizacao.origem} —{' '}
-                    {sincronizacao.estado} — iniciado em {sincronizacao.iniciadoEm}
+                    {ROTULOS_ESTADO_SINCRONIZACAO[sincronizacao.estado] ?? sincronizacao.estado} —
+                    iniciado em {sincronizacao.iniciadoEm}
                     {sincronizacao.motivoFalha ? ` — motivo: ${sincronizacao.motivoFalha}` : ''}
                   </li>
                 ))}
