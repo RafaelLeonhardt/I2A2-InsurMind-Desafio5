@@ -125,7 +125,7 @@ As Histórias 2.1 e 2.2 entregam eventos meteorológicos normalizados e resilien
 | RISCO-06 | P1: Cálculo determinístico de relevância por produto | Design | Pending |
 | RISCO-07 | P1: Cálculo determinístico de relevância por produto | Design | Pending |
 | RISCO-08 | P1: Cálculo determinístico de relevância por produto | Design | Pending |
-| RISCO-09 | P1: Transições de estado a partir do resultado da relevância | Design | Pending |
+| RISCO-09 | P1: Transições de estado a partir do resultado da relevância | Design | Implementing |
 | RISCO-10 | P1: Transições de estado a partir do resultado da relevância | Design | Pending |
 | RISCO-11 | P2: Explicabilidade da decisão e progresso em tempo real | Design | Pending |
 | RISCO-12 | P2: Explicabilidade da decisão e progresso em tempo real | Design | Pending |

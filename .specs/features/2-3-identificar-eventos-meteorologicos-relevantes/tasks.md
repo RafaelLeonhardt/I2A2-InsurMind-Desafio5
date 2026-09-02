@@ -84,10 +84,10 @@ T6
 
 **Done when**:
 
-- [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] `README.md` documenta `avaliacoes_risco`
-- [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0004`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Migração aplica em transação própria, registrada em `schema_migracoes`
+- [x] `README.md` documenta `avaliacoes_risco`
+- [x] `testes/test_migracoes.py` cobre a aplicação da migração `0004`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick

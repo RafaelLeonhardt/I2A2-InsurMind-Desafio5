@@ -240,3 +240,23 @@ origem sintética da coleta.
 | `sincronizacao_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `sincronizacoes_meteorologicas(id)` |
 | `identificador_cenario` | `VARCHAR` | `NOT NULL`, id determinístico do cenário sintético do conjunto demonstrativo |
 | `ativado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+
+## Tabelas da migração `0004_avaliacao_risco`
+
+### `avaliacoes_risco`
+
+Snapshot imutável da avaliação de relevância meteorológica (AD-5: decisão 100% determinística,
+sem LLM; AD-11: uma mudança futura em `regras` nunca recalcula uma avaliação já feita — por isso
+`regra_versao` é gravada como valor observado no momento, não como referência viva à tabela).
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `execucao_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `execucao_preventiva(id)` |
+| `evento_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `eventos_meteorologicos(id)` |
+| `regra_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `regras(id)` |
+| `regra_versao` | `INTEGER` | `NOT NULL`, snapshot da versão da regra no momento da avaliação |
+| `relevante` | `BOOLEAN` | `NOT NULL` |
+| `criterios` | `VARCHAR` | `NOT NULL`, JSON serializado com operando/valor observado/resultado/justificativa por critério |
+| `motivo` | `VARCHAR` | `NOT NULL` |
+| `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |

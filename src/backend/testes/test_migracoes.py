@@ -30,6 +30,7 @@ TABELAS_ESPERADAS = {
     "tentativas_coleta_meteorologica",
     "excecoes_operacionais",
     "cenarios_sinteticos_ativados",
+    "avaliacoes_risco",
 }
 
 REGISTRO_MINIMO = (
@@ -77,13 +78,14 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2, 3)
-    assert resultado.versao_final == 3
+    assert resultado.versoes_aplicadas == (1, 2, 3, 4)
+    assert resultado.versao_final == 4
     assert tabelas(caminho) == TABELAS_ESPERADAS
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
         (3, "resiliencia meteorologica"),
+        (4, "avaliacao risco"),
     ]
 
 
@@ -94,11 +96,12 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 3
+    assert resultado.versao_final == 4
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
         (3, "resiliencia meteorologica"),
+        (4, "avaliacao risco"),
     ]
 
 
