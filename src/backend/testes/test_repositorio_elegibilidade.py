@@ -1,7 +1,7 @@
 """Testes dos repositórios de candidatos e resultados de elegibilidade (ELEG-04..07)."""
 
 from pathlib import Path
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
 from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigracoes
@@ -153,7 +153,13 @@ def test_salvar_persiste_um_resultado_por_combinacao(tmp_path: Path) -> None:
     execucao_id = uuid4()
 
     id_registro = RepositorioElegibilidades(caminho).salvar(
-        execucao_id, id_evento, id_regra, id_segurado, id_apolice, RESULTADO_INCLUIDO
+        execucao_id,
+        id_evento,
+        id_regra,
+        id_segurado,
+        id_apolice,
+        "Pessoa Teste",
+        RESULTADO_INCLUIDO,
     )
 
     assert id_registro is not None
@@ -180,10 +186,22 @@ def test_salvar_chamado_duas_vezes_para_a_mesma_combinacao_nao_duplica(
     repo = RepositorioElegibilidades(caminho)
 
     primeiro = repo.salvar(
-        execucao_id, id_evento, id_regra, id_segurado, id_apolice, RESULTADO_INCLUIDO
+        execucao_id,
+        id_evento,
+        id_regra,
+        id_segurado,
+        id_apolice,
+        "Pessoa Teste",
+        RESULTADO_INCLUIDO,
     )
     segundo = repo.salvar(
-        execucao_id, id_evento, id_regra, id_segurado, id_apolice, RESULTADO_INCLUIDO
+        execucao_id,
+        id_evento,
+        id_regra,
+        id_segurado,
+        id_apolice,
+        "Pessoa Teste",
+        RESULTADO_INCLUIDO,
     )
 
     assert primeiro is not None
@@ -215,11 +233,27 @@ def test_contar_por_execucao_conta_incluidos_e_excluidos(tmp_path: Path) -> None
 
     id_segurado_1 = inserir_segurado(caminho)
     id_apolice_1 = inserir_apolice(caminho, id_segurado_1)
-    repo.salvar(execucao_id, id_evento, id_regra, id_segurado_1, id_apolice_1, RESULTADO_INCLUIDO)
+    repo.salvar(
+        execucao_id,
+        id_evento,
+        id_regra,
+        id_segurado_1,
+        id_apolice_1,
+        "Pessoa 1",
+        RESULTADO_INCLUIDO,
+    )
 
     id_segurado_2 = inserir_segurado(caminho)
     id_apolice_2 = inserir_apolice(caminho, id_segurado_2, situacao="cancelada")
-    repo.salvar(execucao_id, id_evento, id_regra, id_segurado_2, id_apolice_2, resultado_excluido)
+    repo.salvar(
+        execucao_id,
+        id_evento,
+        id_regra,
+        id_segurado_2,
+        id_apolice_2,
+        "Pessoa 2",
+        resultado_excluido,
+    )
 
     contagem = repo.contar_por_execucao(execucao_id)
 
@@ -255,9 +289,134 @@ def test_linhas_semeadas_com_execucao_id_nulo_nao_aparecem_em_listar_por_execuca
         conexao.execute(
             "INSERT INTO elegibilidades_historicas "
             "(id, execucao_id, evento_id, regra_id, segurado_id, apolice_id, elegivel, "
-            "criterios, canal, justificativa) VALUES "
-            "(?, NULL, ?, ?, ?, ?, true, '[]', 'whatsapp', 'seed')",
+            "criterios, canal, nome_segurado, justificativa) VALUES "
+            "(?, NULL, ?, ?, ?, ?, true, '[]', 'whatsapp', 'Pessoa Teste', 'seed')",
             [str(uuid4()), id_evento, id_regra, id_segurado, id_apolice],
         )
 
     assert RepositorioElegibilidades(caminho).listar_por_execucao(uuid4()) == []
+
+
+def test_obter_por_id_de_linha_semeada_com_criterios_vazio_nao_lanca(tmp_path: Path) -> None:
+    """Round 1 do Verificador: o backfill original de `0006` gravava um objeto JSON
+    inválido em `criterios`, e `obter_por_id` lançava `TypeError` para qualquer linha
+    semeada — a rota HTTP devolvia `500` em vez de `404`. `0007` corrige o backfill para
+    `'[]'`; este teste prova que a leitura não lança mais para esse formato."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+    id_segurado = inserir_segurado(caminho)
+    id_apolice = inserir_apolice(caminho, id_segurado)
+    id_regra = inserir_regra(caminho)
+    id_evento = inserir_evento(caminho)
+    id_registro = str(uuid4())
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO elegibilidades_historicas "
+            "(id, execucao_id, evento_id, regra_id, segurado_id, apolice_id, elegivel, "
+            "criterios, canal, nome_segurado, justificativa) VALUES "
+            "(?, NULL, ?, ?, ?, ?, true, '[]', 'whatsapp', 'Pessoa Teste', 'seed')",
+            [id_registro, id_evento, id_regra, id_segurado, id_apolice],
+        )
+
+    registro = RepositorioElegibilidades(caminho).obter_por_id(UUID(id_registro))
+
+    assert registro is not None
+    assert registro.execucao_id is None
+    assert registro.criterios == ()
+    assert registro.codigo_ibge_area == ""
+
+
+def test_nome_segurado_e_area_persistidos_sobrevivem_a_mudanca_dos_dados_originais(
+    tmp_path: Path,
+) -> None:
+    """ELEG-04.3 / AD-11: alterar `segurados.nome` ou `apolices.codigo_ibge_area` depois
+    de uma avaliação concluída não pode reescrever a explicação histórica já persistida."""
+
+    caminho = preparar_banco(tmp_path)
+    id_segurado = inserir_segurado(caminho)
+    id_apolice = inserir_apolice(caminho, id_segurado)
+    id_regra = inserir_regra(caminho)
+    id_evento = inserir_evento(caminho)
+    execucao_id = uuid4()
+    id_registro = RepositorioElegibilidades(caminho).salvar(
+        execucao_id,
+        id_evento,
+        id_regra,
+        id_segurado,
+        id_apolice,
+        "Nome Original",
+        RESULTADO_INCLUIDO,
+    )
+    assert id_registro is not None
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "UPDATE segurados SET nome = 'Nome Alterado Depois' WHERE id = ?", [id_segurado]
+        )
+        conexao.execute(
+            "UPDATE apolices SET codigo_ibge_area = '9999999' WHERE id = ?", [id_apolice]
+        )
+
+    registro = RepositorioElegibilidades(caminho).obter_por_id(id_registro)
+
+    assert registro is not None
+    assert registro.nome_segurado == "Nome Original"
+    assert registro.codigo_ibge_area == AREA
+
+
+def test_duas_apolices_do_mesmo_segurado_geram_dois_resultados_distintos(
+    tmp_path: Path,
+) -> None:
+    """Edge case da spec: segurado com duas apólices na área, uma elegível e outra não —
+    cada combinação segurado+apólice gera um resultado distinto (UNIQUE inclui apolice_id)."""
+
+    caminho = preparar_banco(tmp_path)
+    id_segurado = inserir_segurado(caminho)
+    id_apolice_1 = inserir_apolice(caminho, id_segurado, situacao="ativa")
+    id_apolice_2 = inserir_apolice(caminho, id_segurado, situacao="cancelada")
+    id_regra = inserir_regra(caminho)
+    id_evento = inserir_evento(caminho)
+    execucao_id = uuid4()
+    repo = RepositorioElegibilidades(caminho)
+
+    repo.salvar(
+        execucao_id,
+        id_evento,
+        id_regra,
+        id_segurado,
+        id_apolice_1,
+        "Pessoa Teste",
+        RESULTADO_INCLUIDO,
+    )
+    repo.salvar(
+        execucao_id,
+        id_evento,
+        id_regra,
+        id_segurado,
+        id_apolice_2,
+        "Pessoa Teste",
+        RESULTADO_INCLUIDO,
+    )
+
+    registros = repo.listar_por_execucao(execucao_id)
+    assert len(registros) == 2
+    apolices_salvas = {str(r.apolice_id) for r in registros}
+    assert apolices_salvas == {id_apolice_1, id_apolice_2}
+
+
+def test_listar_candidatos_filtra_pela_area_da_apolice_nao_do_segurado(
+    tmp_path: Path,
+) -> None:
+    """ELEG-01: a área que importa é a da apólice avaliada, não a do cadastro do
+    segurado — um segurado pode morar numa área e ter uma apólice de risco em outra."""
+
+    caminho = preparar_banco(tmp_path)
+    id_segurado = inserir_segurado(caminho, area="9990099")
+    id_apolice = inserir_apolice(caminho, id_segurado, area=AREA)
+
+    candidatos = RepositorioCandidatosElegibilidade(caminho).listar_candidatos(AREA)
+
+    assert len(candidatos) == 1
+    assert str(candidatos[0].apolice_id) == id_apolice
+    assert candidatos[0].codigo_ibge_area == AREA

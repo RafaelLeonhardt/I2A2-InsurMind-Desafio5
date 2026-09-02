@@ -88,7 +88,7 @@ class RepositorioCandidatosFalso:
 class RepositorioElegibilidadesFalso:
     def __init__(self) -> None:
         self.chamadas: list[
-            tuple[UUID, UUID, UUID, UUID, UUID, ResultadoElegibilidade]
+            tuple[UUID, UUID, UUID, UUID, UUID, str, ResultadoElegibilidade]
         ] = []
         self._por_execucao: dict[UUID, list[ResultadoElegibilidade]] = {}
 
@@ -99,9 +99,12 @@ class RepositorioElegibilidadesFalso:
         regra_id: UUID,
         segurado_id: UUID,
         apolice_id: UUID,
+        nome_segurado: str,
         resultado: ResultadoElegibilidade,
     ) -> UUID | None:
-        self.chamadas.append((execucao_id, evento_id, regra_id, segurado_id, apolice_id, resultado))
+        self.chamadas.append(
+            (execucao_id, evento_id, regra_id, segurado_id, apolice_id, nome_segurado, resultado)
+        )
         self._por_execucao.setdefault(execucao_id, []).append(resultado)
         return uuid4()
 
@@ -156,14 +159,21 @@ def test_snapshot_salvo_carrega_execucao_evento_regra_e_ids_corretos() -> None:
 
     servico.avaliar_publico(execucao_id, EVENTO_CHUVA, REGRA_CHUVA)
 
-    execucao_salva, evento_salvo, regra_salva, segurado_salvo, apolice_salva, resultado = (
-        elegibilidades.chamadas[0]
-    )
+    (
+        execucao_salva,
+        evento_salvo,
+        regra_salva,
+        segurado_salvo,
+        apolice_salva,
+        nome_salvo,
+        resultado,
+    ) = elegibilidades.chamadas[0]
     assert execucao_salva == execucao_id
     assert evento_salvo == EVENTO_CHUVA.id
     assert regra_salva == REGRA_CHUVA.id
     assert segurado_salvo == candidato.segurado_id
     assert apolice_salva == candidato.apolice_id
+    assert nome_salvo == candidato.nome_segurado
     assert resultado.elegivel is True
 
 

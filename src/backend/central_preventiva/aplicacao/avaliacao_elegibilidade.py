@@ -41,6 +41,7 @@ class _RepositorioElegibilidades(Protocol):
         regra_id: UUID,
         segurado_id: UUID,
         apolice_id: UUID,
+        nome_segurado: str,
         resultado: ResultadoElegibilidade,
     ) -> UUID | None:
         """Persiste o resultado da combinação, ou `None` se já existir."""
@@ -91,6 +92,7 @@ class ServicoAvaliacaoElegibilidade:
                 regra.id,
                 candidato.segurado_id,
                 candidato.apolice_id,
+                candidato.nome_segurado,
                 resultado,
             )
         return self._portas.elegibilidades.contar_por_execucao(execucao_id)

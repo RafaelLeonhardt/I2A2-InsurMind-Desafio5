@@ -318,8 +318,18 @@ describe('superfície de evento e decisão — público elegível', () => {
     expect(botaoVerCriterios).toHaveFocus()
     await usuario.keyboard('{Enter}')
 
-    expect(await screen.findByText(/Explicação — Maria Sintética/)).toBeInTheDocument()
-    expect(screen.getByText('área afetada')).toBeInTheDocument()
+    const explicacao = await screen.findByRole('region', {
+      name: /Explicação — Maria Sintética/,
+    })
+    expect(within(explicacao).getByText(/regra v3/)).toBeInTheDocument()
+    expect(within(explicacao).getByText('área afetada')).toBeInTheDocument()
+    expect(within(explicacao).getByText('9990001')).toBeInTheDocument()
+    expect(within(explicacao).getByText('Atende')).toBeInTheDocument()
+    expect(
+      within(explicacao).getByText(
+        'Área da apólice corresponde à área do evento (9990001).',
+      ),
+    ).toBeInTheDocument()
     expect(
       screen.getByText('Segurado e apólice atendem integralmente aos critérios da regra ativa.'),
     ).toBeInTheDocument()

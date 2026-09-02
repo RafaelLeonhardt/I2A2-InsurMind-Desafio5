@@ -276,3 +276,21 @@ T5 → T6
 | T6: Superfície (extensão) | Componente React | unit | unit | ✅ OK |
 
 **Rules confirmed**: nenhum `Tests: none` nesta história; nenhuma task adia teste.
+
+---
+
+## Fix Tasks (Verifier Round 1 — FAIL, `validation.md` de 2026-09-02)
+
+O Verificador achou 1 **defeito de produção real** (blocker) e 7 lacunas de asserção/design (3 Major, 4 Minor/lacunas de teste). 3/10 mutantes morreram (dedução por `UNIQUE` e o `404` por execução divergente são reais, não decorativos); 7 sobreviveram. Corrigidas nesta rodada:
+
+- [x] **Fix 1 (Blocker)** — `desserializar_criterios` lançava `TypeError` para **qualquer** linha semeada: o backfill original da migração `0006` gravava `criterios = '{"origem": "seed_demonstrativo"}'` (um objeto JSON), mas o parser espera uma lista. `obter_por_id` propagava a exceção antes de qualquer checagem de negócio, e a rota HTTP devolvia `500` em vez de `404`. Nova migração `0007_elegibilidade_correcoes.sql` corrige o backfill para `'[]'` (mesma convenção de `avaliacoes_risco`, migração `0005`); `semeador.py` também corrigido para futuras seedagens. Teste de regressão no nível do repositório e um teste HTTP que semeia o conjunto real e chama o endpoint de detalhe, confirmando `404` limpo.
+- [x] **Fix 2/3 (Major)** — `nome_segurado`/`codigo_ibge_area` eram lidos ao vivo via `JOIN` em `segurados`/`apolices`, violando ELEG-04.3 (AD-11: uma mudança nos dados originais não pode reescrever a explicação histórica). `nome_segurado` virou coluna própria (mesma migração `0007`), gravada por `RepositorioElegibilidades.salvar` no momento da avaliação. `codigo_ibge_area` passou a ser derivado do próprio `criterios` já persistido (o critério "área afetada" é sempre o primeiro elemento) — sem coluna nova, sem releitura ao vivo. Novo teste altera `segurados.nome`/`apolices.codigo_ibge_area` depois de salvar e confirma que a releitura preserva os valores originais.
+- [x] **Fix 4 (Major)** — mutante que removia `apolice_id` do `UNIQUE` sobrevivia: nenhum teste persistia duas linhas do mesmo segurado+regra+evento+execução diferindo só por `apolice_id`. Novo teste cobre exatamente o edge case da spec (segurado com duas apólices na área, uma elegível e outra não) e confirma duas linhas distintas.
+- [x] **Fix 5 (Major)** — ELEG-09: nenhum teste de frontend conferia a versão da regra no cabeçalho da explicação nem as colunas "valor observado"/"resultado". Fortalecido o teste de abertura de critérios por teclado para checar `regra v3`, o valor observado e "Atende" dentro da seção de explicação.
+- [x] **Fix 6 (Major)** — ELEG-05: os testes de exclusão do `AvaliadorElegibilidade` conferiam só o motivo, nunca `len(criterios) == 5` — um critério "engolido" silenciosamente numa exclusão não seria detectado. Adicionada a asserção em todos os 6 testes de exclusão.
+- [x] **Fix 7 (Minor)** — ELEG-08: a fixture HTTP usava sempre `incluidos=excluidos=1`, então trocar os dois contadores não quebrava nenhum teste. Estendida para 2 incluídos / 1 excluído.
+- [x] **Fix 8 (Minor)** — ELEG-01: nenhum teste dava ao segurado e à apólice códigos de área diferentes, então filtrar por `segurados.codigo_ibge_area` em vez de `apolices.codigo_ibge_area` passaria despercebido. Novo teste cobre exatamente esse caso.
+
+**Gate check (backend, full)**: `uv run --directory src/backend pytest && ruff check . && pyright` — verde (378 testes). **Gate check (frontend, full)**: `npm test -- --run && npm run lint && npm run build` — verde (202 testes, mesmos avisos pré-existentes).
+
+**Commit**: `fix(elegibilidade): fechar lacunas do verificador da historia 2.5`

@@ -7,6 +7,7 @@ from fastapi.testclient import TestClient
 
 from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
 from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigracoes
+from central_preventiva.adaptadores.persistencia.semeador import SemeadorDadosSinteticos
 from central_preventiva.composicao.api import criar_aplicacao
 from central_preventiva.composicao.configuracao import Configuracao
 
@@ -79,6 +80,7 @@ def inserir_resultado_elegibilidade(
     apolice_id: str,
     elegivel: bool = True,
     canal: str = "whatsapp",
+    nome_segurado: str = "Pessoa Teste",
 ) -> str:
     id_registro = str(uuid4())
     criterios = (
@@ -89,7 +91,8 @@ def inserir_resultado_elegibilidade(
         conexao.execute(
             "INSERT INTO elegibilidades_historicas "
             "(id, execucao_id, evento_id, regra_id, segurado_id, apolice_id, elegivel, "
-            "criterios, canal, justificativa) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, "
+            "criterios, canal, nome_segurado, justificativa) VALUES (?, ?, ?, ?, ?, ?, ?, ?, "
+            "?, ?, "
             "'Segurado e apólice atendem integralmente aos critérios da regra ativa.')",
             [
                 id_registro,
@@ -101,6 +104,7 @@ def inserir_resultado_elegibilidade(
                 elegivel,
                 criterios,
                 canal,
+                nome_segurado,
             ],
         )
     return id_registro
@@ -143,7 +147,14 @@ def test_get_elegibilidade_retorna_quantidades_e_lista_completa(tmp_path: Path) 
     id_regra = inserir_regra(caminho)
     id_evento = inserir_evento(caminho)
     inserir_resultado_elegibilidade(
-        caminho, execucao_id, id_evento, id_regra, id_segurado, id_apolice, elegivel=True
+        caminho,
+        execucao_id,
+        id_evento,
+        id_regra,
+        id_segurado,
+        id_apolice,
+        elegivel=True,
+        nome_segurado="Maria Sintética",
     )
 
     id_segurado_2 = inserir_segurado(caminho, nome="João Sintético", canal="sms")
@@ -157,19 +168,34 @@ def test_get_elegibilidade_retorna_quantidades_e_lista_completa(tmp_path: Path) 
         id_apolice_2,
         elegivel=False,
         canal="sms",
+        nome_segurado="João Sintético",
+    )
+
+    id_segurado_3 = inserir_segurado(caminho, nome="Ana Sintética", canal="email")
+    id_apolice_3 = inserir_apolice(caminho, id_segurado_3)
+    inserir_resultado_elegibilidade(
+        caminho,
+        execucao_id,
+        id_evento,
+        id_regra,
+        id_segurado_3,
+        id_apolice_3,
+        elegivel=True,
+        canal="email",
+        nome_segurado="Ana Sintética",
     )
 
     resposta = cliente_para(caminho).get(f"/api/v1/execucoes/{execucao_id}/elegibilidade")
 
     assert resposta.status_code == 200
     corpo = resposta.json()
-    assert corpo["incluidos"] == 1
+    assert corpo["incluidos"] == 2
     assert corpo["excluidos"] == 1
-    assert len(corpo["registros"]) == 2
+    assert len(corpo["registros"]) == 3
     nomes = {registro["nome_segurado"] for registro in corpo["registros"]}
-    assert nomes == {"Maria Sintética", "João Sintético"}
+    assert nomes == {"Maria Sintética", "João Sintético", "Ana Sintética"}
     canais = {registro["canal"] for registro in corpo["registros"]}
-    assert canais == {"whatsapp", "sms"}
+    assert canais == {"whatsapp", "sms", "email"}
 
 
 def test_get_elegibilidade_com_id_malformado_retorna_422(tmp_path: Path) -> None:
@@ -215,6 +241,28 @@ def test_get_registro_elegibilidade_inexistente_retorna_404(tmp_path: Path) -> N
 
     resposta = cliente_para(caminho).get(
         f"/api/v1/execucoes/{execucao_id}/elegibilidade/{uuid4()}"
+    )
+
+    assert resposta.status_code == 404
+    assert resposta.json()["codigo"] == "resultado_elegibilidade_inexistente"
+
+
+def test_get_registro_elegibilidade_semeado_retorna_404_nao_500(tmp_path: Path) -> None:
+    """Round 1 do Verificador: o backfill original de `0006` gravava `criterios` como um
+    objeto JSON inválido nas linhas semeadas de demonstração; `obter_por_id` lançava
+    `TypeError` e a rota devolvia `500`. Este teste exercita uma linha semeada real
+    (não sintética de teste) através do endpoint HTTP e confirma `404` limpo."""
+
+    caminho = preparar_banco(tmp_path)
+    SemeadorDadosSinteticos(caminho).semear()
+    with abrir_conexao(caminho) as conexao:
+        id_semeado = conexao.execute(
+            "SELECT id FROM elegibilidades_historicas WHERE execucao_id IS NULL LIMIT 1"
+        ).fetchone()
+    assert id_semeado is not None
+
+    resposta = cliente_para(caminho).get(
+        f"/api/v1/execucoes/{uuid4()}/elegibilidade/{id_semeado[0]}"
     )
 
     assert resposta.status_code == 404

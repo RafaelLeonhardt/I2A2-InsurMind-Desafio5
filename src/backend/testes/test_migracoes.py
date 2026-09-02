@@ -78,8 +78,8 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6)
-    assert resultado.versao_final == 6
+    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7)
+    assert resultado.versao_final == 7
     assert tabelas(caminho) == TABELAS_ESPERADAS
     assert registros(caminho) == [
         (1, "schema inicial"),
@@ -88,6 +88,7 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
         (4, "avaliacao risco"),
         (5, "avaliacao risco sem regra"),
         (6, "elegibilidade"),
+        (7, "elegibilidade correcoes"),
     ]
 
 
@@ -98,7 +99,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 6
+    assert resultado.versao_final == 7
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
@@ -106,6 +107,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
         (4, "avaliacao risco"),
         (5, "avaliacao risco sem regra"),
         (6, "elegibilidade"),
+        (7, "elegibilidade correcoes"),
     ]
 
 
@@ -214,8 +216,10 @@ def test_migracao_elegibilidade_preserva_linha_semeada_com_backfill_correto(
     tmp_path: Path,
 ) -> None:
     """A migração `0006` recria `elegibilidades_historicas` (AD-015): a linha semeada
-    existente ganha `execucao_id NULL`, `criterios` com o marcador de seed e `canal`
-    vindo de `segurados.canal_preferido` via JOIN (ELEG-04, ELEG-07)."""
+    existente ganha `execucao_id NULL`, `criterios` vazio e `canal` vindo de
+    `segurados.canal_preferido` via JOIN (ELEG-04, ELEG-07). A migração `0007` corrige o
+    backfill de `criterios` (era um objeto JSON inválido para o parser de critérios,
+    achado do Verificador) e acrescenta `nome_segurado` como snapshot (AD-11)."""
 
     caminho = tmp_path / "central_preventiva.duckdb"
     ExecutorMigracoes(caminho, list(MIGRACOES[:5])).aplicar_pendentes()
@@ -240,14 +244,15 @@ def test_migracao_elegibilidade_preserva_linha_semeada_com_backfill_correto(
 
     with abrir_conexao(caminho) as conexao:
         linha = conexao.execute(
-            "SELECT execucao_id, criterios, canal, justificativa FROM elegibilidades_historicas "
-            "WHERE id = '11111111-1111-1111-1111-111111111111'"
+            "SELECT execucao_id, criterios, canal, nome_segurado, justificativa "
+            "FROM elegibilidades_historicas WHERE id = '11111111-1111-1111-1111-111111111111'"
         ).fetchone()
     assert linha is not None
     assert linha[0] is None
-    assert linha[1] == '{"origem": "seed_demonstrativo"}'
+    assert linha[1] == "[]"
     assert linha[2] == "sms"
-    assert linha[3] == "seed pré-migração"
+    assert linha[3] == "Teste"
+    assert linha[4] == "seed pré-migração"
 
 
 def test_migracao_elegibilidade_unique_permite_multiplas_linhas_semeadas_nulas(
@@ -261,6 +266,11 @@ def test_migracao_elegibilidade_unique_permite_multiplas_linhas_semeadas_nulas(
     ExecutorMigracoes(caminho).aplicar_pendentes()
 
     with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO segurados (id, nome, codigo_ibge_area, canal_preferido, "
+            "participa_de_alertas) VALUES "
+            "('99999999-9999-9999-9999-999999999999', 'Teste', '9990001', 'sms', true)"
+        )
         # Duas linhas com execucao_id NULL e todos os demais campos idênticos: não colidem.
         for id_linha in (
             "55555555-5555-5555-5555-555555555555",
@@ -269,13 +279,13 @@ def test_migracao_elegibilidade_unique_permite_multiplas_linhas_semeadas_nulas(
             conexao.execute(
                 "INSERT INTO elegibilidades_historicas "
                 "(id, evento_id, regra_id, segurado_id, apolice_id, elegivel, "
-                "criterios, canal, justificativa) VALUES "
+                "criterios, canal, nome_segurado, justificativa) VALUES "
                 f"('{id_linha}', "
                 "'22222222-2222-2222-2222-222222222222', "
                 "'33333333-3333-3333-3333-333333333333', "
                 "'99999999-9999-9999-9999-999999999999', "
                 "'44444444-4444-4444-4444-444444444444', true, "
-                "'[]', 'sms', 'linha nula de teste')"
+                "'[]', 'sms', 'Teste', 'linha nula de teste')"
             )
         total_nulas = conexao.execute(
             "SELECT count(*) FROM elegibilidades_historicas WHERE execucao_id IS NULL "
@@ -294,13 +304,13 @@ def test_migracao_elegibilidade_unique_permite_multiplas_linhas_semeadas_nulas(
             conexao.execute(
                 "INSERT INTO elegibilidades_historicas "
                 "(id, execucao_id, evento_id, regra_id, segurado_id, apolice_id, "
-                "elegivel, criterios, canal, justificativa) VALUES "
+                "elegivel, criterios, canal, nome_segurado, justificativa) VALUES "
                 f"('{id_linha}', '{execucao_id}', "
                 "'22222222-2222-2222-2222-222222222222', "
                 "'33333333-3333-3333-3333-333333333333', "
                 "'99999999-9999-9999-9999-999999999999', "
                 "'44444444-4444-4444-4444-444444444444', true, "
-                "'[]', 'sms', 'linha real de teste') "
+                "'[]', 'sms', 'Teste', 'linha real de teste') "
                 "ON CONFLICT DO NOTHING"
             )
         total_reais = conexao.execute(

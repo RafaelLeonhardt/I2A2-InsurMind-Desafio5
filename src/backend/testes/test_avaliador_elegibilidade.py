@@ -75,6 +75,7 @@ def test_area_diferente_da_area_do_evento_exclui_com_motivo_especifico() -> None
     assert resultado.motivo == MOTIVO_AREA_NAO_APLICAVEL
     criterio_area = next(c for c in resultado.criterios if c.operando == "área afetada")
     assert criterio_area.atende is False
+    assert len(resultado.criterios) == 5
 
 
 def test_tipo_de_apolice_incoerente_com_a_regra_exclui_com_motivo_especifico() -> None:
@@ -84,6 +85,7 @@ def test_tipo_de_apolice_incoerente_com_a_regra_exclui_com_motivo_especifico() -
 
     assert resultado.elegivel is False
     assert resultado.motivo == MOTIVO_APOLICE_INCOERENTE
+    assert len(resultado.criterios) == 5
 
 
 def test_apolice_cancelada_exclui_com_motivo_especifico() -> None:
@@ -94,6 +96,7 @@ def test_apolice_cancelada_exclui_com_motivo_especifico() -> None:
     assert resultado.elegivel is False
     assert resultado.motivo == MOTIVO_APOLICE_INATIVA
     assert "cancelada" in resultado.justificativa
+    assert len(resultado.criterios) == 5
 
 
 def test_apolice_suspensa_exclui_com_motivo_especifico() -> None:
@@ -103,6 +106,7 @@ def test_apolice_suspensa_exclui_com_motivo_especifico() -> None:
 
     assert resultado.elegivel is False
     assert resultado.motivo == MOTIVO_APOLICE_INATIVA
+    assert len(resultado.criterios) == 5
 
 
 def test_cobertura_ausente_exclui_com_motivo_especifico() -> None:
@@ -112,6 +116,7 @@ def test_cobertura_ausente_exclui_com_motivo_especifico() -> None:
 
     assert resultado.elegivel is False
     assert resultado.motivo == MOTIVO_COBERTURA_AUSENTE
+    assert len(resultado.criterios) == 5
 
 
 def test_sem_nenhuma_participacao_de_alertas_exclui_independente_do_canal() -> None:
@@ -127,6 +132,7 @@ def test_sem_nenhuma_participacao_de_alertas_exclui_independente_do_canal() -> N
     assert resultado.elegivel is False
     assert resultado.motivo == MOTIVO_NAO_PARTICIPA_DE_ALERTAS
     assert resultado.canal == "sms"
+    assert len(resultado.criterios) == 5
 
 
 def test_canal_preferencial_nao_altera_o_resultado_de_elegibilidade() -> None:

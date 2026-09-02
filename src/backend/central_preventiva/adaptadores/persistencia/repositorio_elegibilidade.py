@@ -28,9 +28,17 @@ class ContagemElegibilidade:
 @dataclass(frozen=True, slots=True)
 class RegistroElegibilidade:
     """Um resultado de elegibilidade persistido, já enriquecido para consulta/explicação
-    (ELEG-08, ELEG-09) — `nome_segurado`/`codigo_ibge_area`/`regra_versao` vêm de `JOIN`
-    em `segurados`/`apolices`/`regras` no momento da leitura, nunca persistidos aqui de
-    novo (evitaria duas fontes de verdade para o mesmo dado)."""
+    (ELEG-08, ELEG-09).
+
+    `nome_segurado` é snapshot imutável (coluna própria, migração `0007`) — lido ao vivo
+    de `segurados.nome` reescreveria a explicação histórica se o nome mudasse depois de
+    uma avaliação concluída (AD-11, ELEG-04.3). `codigo_ibge_area` é derivado do próprio
+    `criterios` já persistido (o critério "área afetada" sempre carrega o valor
+    observado no momento da avaliação) — não uma segunda cópia armazenada, mas também
+    não uma releitura ao vivo de `apolices`. `regra_versao` vem de `JOIN` em `regras`
+    porque cada versão é uma linha própria e imutável (só `estado` é atualizado, nunca
+    `versao`) — um `JOIN` nela nunca reescreve a explicação histórica.
+    """
 
     id: UUID
     execucao_id: UUID | None
@@ -102,13 +110,16 @@ class RepositorioElegibilidades:
         regra_id: UUID,
         segurado_id: UUID,
         apolice_id: UUID,
+        nome_segurado: str,
         resultado: ResultadoElegibilidade,
     ) -> UUID | None:
         """Persiste o resultado da combinação, ou `None` se já existir (reprocessamento).
 
         `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)` (migração
         `0006`) é a única garantia de "no máximo um resultado" — `ON CONFLICT DO NOTHING`
-        torna a repetição um no-op idempotente, nunca um erro.
+        torna a repetição um no-op idempotente, nunca um erro. `nome_segurado` é gravado
+        como snapshot (migração `0007`, AD-11): o nome usado na avaliação, não uma
+        referência viva a `segurados.nome`.
         """
 
         id_registro = uuid4()
@@ -116,8 +127,8 @@ class RepositorioElegibilidades:
             linha = conexao.execute(
                 "INSERT INTO elegibilidades_historicas "
                 "(id, execucao_id, evento_id, regra_id, segurado_id, apolice_id, "
-                "elegivel, criterios, canal, justificativa) "
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+                "elegivel, criterios, canal, nome_segurado, justificativa) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
                 "ON CONFLICT DO NOTHING RETURNING id",
                 [
                     id_registro,
@@ -129,6 +140,7 @@ class RepositorioElegibilidades:
                     resultado.elegivel,
                     serializar_criterios(resultado.criterios),
                     resultado.canal,
+                    nome_segurado,
                     resultado.justificativa,
                 ],
             ).fetchone()
@@ -174,18 +186,31 @@ class RepositorioElegibilidades:
 
 _SELECT_REGISTRO_ENRIQUECIDO = (
     "SELECT e.id, e.execucao_id, e.evento_id, e.regra_id, r.versao, e.segurado_id, "
-    "s.nome, e.apolice_id, a.codigo_ibge_area, e.elegivel, e.criterios, e.canal, "
+    "e.nome_segurado, e.apolice_id, e.elegivel, e.criterios, e.canal, "
     "e.justificativa, e.criado_em "
     "FROM elegibilidades_historicas AS e "
-    "JOIN segurados AS s ON s.id = e.segurado_id "
-    "JOIN apolices AS a ON a.id = e.apolice_id "
     "JOIN regras AS r ON r.id = e.regra_id"
 )
+
+
+def _codigo_ibge_area_de(criterios: tuple[Criterio, ...]) -> str:
+    """Deriva a área do próprio snapshot de critérios já persistido (`área afetada` é
+    sempre o primeiro critério avaliado, ver `avaliador_elegibilidade.avaliar`) — nunca
+    uma releitura ao vivo de `apolices.codigo_ibge_area` (AD-11).
+
+    Linhas semeadas de demonstração (`execucao_id IS NULL`) não têm critérios reais
+    (migração `0007`); nunca alcançam um cliente real (a listagem filtra por
+    `execucao_id`, e o detalhe exige que ele bata com o da rota), então o fallback vazio
+    aqui nunca é observável de fora.
+    """
+
+    return criterios[0].valor_observado if criterios else ""
 
 
 def _registro_de_linha(linha: tuple[object, ...]) -> RegistroElegibilidade:
     """Traduz uma linha de `_SELECT_REGISTRO_ENRIQUECIDO` para `RegistroElegibilidade`."""
 
+    criterios = desserializar_criterios(str(linha[9]))
     return RegistroElegibilidade(
         id=UUID(str(linha[0])),
         execucao_id=None if linha[1] is None else UUID(str(linha[1])),
@@ -195,10 +220,10 @@ def _registro_de_linha(linha: tuple[object, ...]) -> RegistroElegibilidade:
         segurado_id=UUID(str(linha[5])),
         nome_segurado=str(linha[6]),
         apolice_id=UUID(str(linha[7])),
-        codigo_ibge_area=str(linha[8]),
-        elegivel=bool(linha[9]),
-        criterios=desserializar_criterios(str(linha[10])),
-        canal=str(linha[11]),
-        justificativa=str(linha[12]),
-        criado_em=linha[13],  # type: ignore[arg-type]
+        codigo_ibge_area=_codigo_ibge_area_de(criterios),
+        elegivel=bool(linha[8]),
+        criterios=criterios,
+        canal=str(linha[10]),
+        justificativa=str(linha[11]),
+        criado_em=linha[12],  # type: ignore[arg-type]
     )

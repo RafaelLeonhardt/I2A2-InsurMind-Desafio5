@@ -140,8 +140,8 @@ Eventos meteorológicos observados ou sintéticos.
 ### `elegibilidades_historicas`
 
 Elegibilidades pré-calculadas da demonstração, com casos elegíveis e não elegíveis. Ver a
-tabela abaixo já atualizada com o estado pós-`0006` (colunas `execucao_id`, `criterios`,
-`canal`).
+tabela abaixo já atualizada com o estado pós-`0007` (colunas `execucao_id`, `criterios`,
+`canal`, `nome_segurado`).
 
 | Coluna | Tipo | Restrições |
 | --- | --- | --- |
@@ -152,14 +152,17 @@ tabela abaixo já atualizada com o estado pós-`0006` (colunas `execucao_id`, `c
 | `segurado_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `segurados(id)` |
 | `apolice_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `apolices(id)` |
 | `elegivel` | `BOOLEAN` | `NOT NULL` |
-| `criterios` | `VARCHAR` | `NOT NULL`, JSON serializado com critério a critério, mesmo formato de `avaliacoes_risco.criterios` (migração `0006`) |
+| `criterios` | `VARCHAR` | `NOT NULL`, JSON serializado com critério a critério, mesmo formato de `avaliacoes_risco.criterios` (migração `0006`); `[]` nas linhas semeadas de demonstração (corrigido em `0007` — o backfill original gravava um objeto JSON, incompatível com o parser de critérios) |
 | `canal` | `VARCHAR` | `NOT NULL`, canal preferencial do segurado congelado no momento da avaliação — nunca referência viva a `segurados.canal_preferido` (AD-11, migração `0006`) |
+| `nome_segurado` | `VARCHAR` | `NOT NULL`, nome do segurado congelado no momento da avaliação — nunca referência viva a `segurados.nome` (AD-11, migração `0007`) |
 | `justificativa` | `VARCHAR` | `NOT NULL` |
 | `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
 
 `UNIQUE(execucao_id, evento_id, regra_id, segurado_id, apolice_id)` (migração `0006`) garante no
 máximo um resultado por combinação (AD-10); linhas semeadas com `execucao_id NULL` nunca colidem
-entre si.
+entre si. A área da apólice não é uma coluna própria — o repositório a deriva do critério
+"área afetada", sempre o primeiro elemento de `criterios` (AD-11: evita tanto uma segunda
+cópia armazenada quanto uma releitura ao vivo de `apolices.codigo_ibge_area`).
 
 ### `execucao_preventiva`
 
@@ -306,4 +309,22 @@ tabela com linhas existentes), acrescentando `execucao_id`, `criterios`, `canal`
 de dedução (AD-10). As 4 linhas semeadas do Épico 1 recebem backfill determinístico:
 `execucao_id = NULL`, `criterios = '{"origem": "seed_demonstrativo"}'` e `canal` lido de
 `segurados.canal_preferido` via `JOIN` na própria migração. Ver a tabela `elegibilidades_historicas`
-acima, já atualizada com o estado pós-`0006`.
+acima, já atualizada com o estado pós-`0007`.
+
+## Tabelas da migração `0007_elegibilidade_correcoes`
+
+Nenhuma tabela nova — corrige um defeito do backfill de `0006` e acrescenta uma coluna.
+Recreate-and-copy (AD-015), na mesma tabela `elegibilidades_historicas`:
+
+- **Correção do backfill de `criterios`**: `0006` gravou `'{"origem": "seed_demonstrativo"}'`
+  (um objeto JSON) nas 4 linhas semeadas, mas o parser de critérios (`serializacao_criterios.py`)
+  espera uma lista — qualquer leitura dessas linhas por `RepositorioElegibilidades` lançava
+  `TypeError`, e o endpoint HTTP de detalhe devolvia `500` em vez de `404` (achado do
+  Verificador). Corrigido para `'[]'`, mesma convenção de `avaliacoes_risco` (migração `0005`,
+  2.3) para "nenhum critério real avaliado".
+- **`nome_segurado` (nova coluna, `NOT NULL`)**: antes o nome do segurado era lido ao vivo de
+  `segurados.nome` no momento da consulta (`JOIN`) — um nome alterado depois de uma avaliação
+  concluída reescreveria a explicação histórica, violando ELEG-04.3 (AD-11). Passa a ser gravado
+  como snapshot em `RepositorioElegibilidades.salvar`; as 4 linhas semeadas recebem backfill via
+  `JOIN` em `segurados.nome` na própria migração (última vez que essa tabela é lida ao vivo para
+  preencher esta coluna).
