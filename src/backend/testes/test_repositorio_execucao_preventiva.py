@@ -4,9 +4,11 @@ from pathlib import Path
 
 import pytest
 
+from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
 from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigracoes
 from central_preventiva.adaptadores.persistencia.repositorio_execucao_preventiva import (
     ConflitoVersao,
+    RepositorioExcecoesOperacionais,
     RepositorioExecucaoPreventiva,
     TransicaoInvalida,
 )
@@ -75,3 +77,27 @@ def test_transicionar_a_partir_de_estado_terminal_levanta_transicao_invalida(
     snapshot = repositorio.obter(execucao_id)
     assert snapshot.estado == EstadoExecucao.FALHOU_COLETA
     assert snapshot.versao == 1
+
+
+def test_registrar_excecao_operacional_persiste_causa_tentativas_e_impacto(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    execucao_id = RepositorioExecucaoPreventiva(caminho).criar(EstadoExecucao.FALHOU_COLETA)
+
+    RepositorioExcecoesOperacionais(caminho).registrar(
+        execucao_id,
+        causa="TimeoutException: timeout",
+        tentativas=3,
+        impacto="Coleta meteorológica indisponível.",
+    )
+
+    with abrir_conexao(caminho) as conexao:
+        linha = conexao.execute(
+            "SELECT execucao_id, causa, tentativas, impacto FROM excecoes_operacionais"
+        ).fetchone()
+    assert linha is not None
+    assert str(linha[0]) == str(execucao_id)
+    assert linha[1] == "TimeoutException: timeout"
+    assert linha[2] == 3
+    assert linha[3] == "Coleta meteorológica indisponível."

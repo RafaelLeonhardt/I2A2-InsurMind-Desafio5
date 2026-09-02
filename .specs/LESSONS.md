@@ -122,6 +122,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: RESIL-03 — spec.md:33 pede env var, README.md:89-92 entrega constantes (spec)
 - last seen: 2026-09-02T03:53:01Z
 
+### L-019 - Test a threshold or bucketing function at each exact boundary value, not only mid-range values, so a comparison operator cannot be relaxed undetected.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas
+- evidence: src/frontend/src/funcionalidades/fonte-meteorologica/SuperficieFonteMeteorologica.tsx:99 - mutante 'diffMinutos < 60' -> '<= 60' sobreviveu (34/34 passaram) (frontend)
+- last seen: 2026-09-02T04:09:44Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

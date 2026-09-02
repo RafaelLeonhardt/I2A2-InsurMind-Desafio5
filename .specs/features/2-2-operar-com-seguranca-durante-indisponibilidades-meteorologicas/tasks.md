@@ -338,3 +338,16 @@ Não corrigidos nesta rodada (aceitos como dívida menor, já registrados no `va
 **Gate check (frontend, full)**: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend` — verde (mesmos avisos pré-existentes de `oxlint`, nenhum novo tipo de aviso).
 
 **Commit**: `fix(meteorologia): fechar lacunas do verificador da historia 2.2`
+
+---
+
+## Fix Tasks (Verifier Round 2 — FAIL Minor, `validation.md` de 2026-09-02)
+
+Rodada 2 confirmou Fix 1–6 genuínos (14/18 ACs em PASS pleno, 0 gaps de comportamento) mas encontrou 2 lacunas residuais, ambas só de teste:
+
+- [x] **Fix 7** — limites exatos de `calcularIdade` (1 min / 60 min / 24h) não discriminados: 3 testes de fronteira adicionados a `SuperficieFonteMeteorologica.test.tsx`, confirmados matando `<` → `<=` em cada um dos três limiares (mutação manual + reversão).
+- [x] **Fix 8** — `excecoes_operacionais` nunca lida de volta do DuckDB real: `test_repositorio_execucao_preventiva.py` ganhou um teste que registra e relê causa/tentativas/impacto diretamente da tabela.
+
+**Gate check**: backend `uv run --directory src/backend pytest && ruff check . && pyright` — verde (267→268 testes). Frontend `npm test -- --run && npm run lint && npm run build` — verde (151 testes, mesmos avisos pré-existentes).
+
+**Commit**: `fix(meteorologia): fechar lacunas residuais da rodada 2 do verificador`

@@ -462,6 +462,18 @@ describe('calcularIdade', () => {
   it('mostra dias para um instante há um dia ou mais', () => {
     expect(calcularIdade('2026-08-28T18:30:00+00:00', agora)).toBe('2 d atrás')
   })
+
+  it('no limite exato de 1 minuto, mostra minutos, não "agora mesmo"', () => {
+    expect(calcularIdade('2026-08-30T18:29:00+00:00', agora)).toBe('1 min atrás')
+  })
+
+  it('no limite exato de 60 minutos, mostra 1 h atrás, não 60 min atrás', () => {
+    expect(calcularIdade('2026-08-30T17:30:00+00:00', agora)).toBe('1 h atrás')
+  })
+
+  it('no limite exato de 24 horas, mostra 1 d atrás, não 24 h atrás', () => {
+    expect(calcularIdade('2026-08-29T18:30:00+00:00', agora)).toBe('1 d atrás')
+  })
 })
 
 describe('superfície de fonte meteorológica — marcação de dados desatualizados e badge visual', () => {

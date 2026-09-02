@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 19,
+  "next_id": 20,
   "lessons": [
     {
       "id": "L-001",
@@ -331,6 +331,24 @@
       ],
       "created": "2026-09-02T03:53:01Z",
       "last_seen": "2026-09-02T03:53:01Z"
+    },
+    {
+      "id": "L-019",
+      "key": "surviving_mutant::test a threshold or bucketing function at each exact boundary value not only mid range values so a comparison operator cannot be relaxed undetected",
+      "text": "Test a threshold or bucketing function at each exact boundary value, not only mid-range values, so a comparison operator cannot be relaxed undetected.",
+      "signal": "surviving_mutant",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "src/frontend/src/funcionalidades/fonte-meteorologica/SuperficieFonteMeteorologica.tsx:99 - mutante 'diffMinutos < 60' -> '<= 60' sobreviveu (34/34 passaram) (frontend)"
+      ],
+      "created": "2026-09-02T04:09:44Z",
+      "last_seen": "2026-09-02T04:09:44Z"
     }
   ]
 }
