@@ -1,0 +1,56 @@
+.trilha-execucao {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.etapa-execucao {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.8rem;
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-radius: 0.25rem;
+  background: #f8fafc;
+}
+
+.etapa-execucao--concluida {
+  color: #15803d;
+  border-left-color: #15803d;
+  border-left-style: solid;
+}
+
+.etapa-execucao--corrente {
+  color: #1d4ed8;
+  border-left-color: #1d4ed8;
+  border-left-style: dashed;
+}
+
+.etapa-execucao--encerramento {
+  color: #0e7490;
+  border-left-color: #0e7490;
+  border-left-style: double;
+}
+
+.etapa-execucao--excecao {
+  color: #b91c1c;
+  border-left-color: #b91c1c;
+  border-left-style: dotted;
+  border-left-width: 6px;
+}
+
+.causa-etapa-execucao {
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  color: #7f1d1d;
+}
+
+.secao-evento-decisao-embutida {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+}

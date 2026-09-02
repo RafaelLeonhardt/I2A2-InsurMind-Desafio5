@@ -24,6 +24,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/execucoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Iniciar uma execução preventiva
+         * @description Inicia, de forma idempotente, a orquestração completa de coleta, avaliação de risco e avaliação de elegibilidade para a área informada, sem exigir nenhum clique manual intermediário (RUNNER-01). Exige o cabeçalho `Idempotency-Key` em toda requisição.
+         */
+        post: operations["iniciar_execucao_api_v1_execucoes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/execucoes/{execucao_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o acompanhamento de uma execução preventiva
+         * @description Devolve o estado atual, os marcos de transição já persistidos e, quando o estado é 'aguardando_geracao', a quantidade total e uma prévia do público elegível formado (RUNNER-05).
+         */
+        get: operations["consultar_execucao_api_v1_execucoes__execucao_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/execucoes/{execucao_id}/avaliacao-risco": {
         parameters: {
             query?: never;
@@ -431,6 +471,37 @@ export interface components {
          * @description Falha da consulta de elegibilidade, com ocorrência, impacto e próxima ação segura.
          */
         ProblemaElegibilidade: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
+         * ProblemaExecucao
+         * @description Falha da operação de execução, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaExecucao: {
             /**
              * Codigo
              * @description Código estável que identifica o tipo da falha.
@@ -992,6 +1063,50 @@ export interface components {
             eventos: components["schemas"]["RespostaEvento"][];
         };
         /**
+         * RespostaExecucao
+         * @description Estado, marcos e, quando aplicável, prévia do público elegível de uma execução.
+         */
+        RespostaExecucao: {
+            /**
+             * Estado
+             * @description Estado atual da execução.
+             */
+            estado: string;
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador da execução.
+             */
+            id: string;
+            /**
+             * Marcos
+             * @description Marcos de transição já persistidos, na ordem em que ocorreram.
+             */
+            marcos: components["schemas"]["RespostaMarco"][];
+            /**
+             * Publico Elegivel Previa
+             * @description Amostra de até 5 incluídos no público elegível; vazia fora de 'aguardando_geracao'.
+             */
+            publico_elegivel_previa: components["schemas"]["RespostaPreviaPublico"][];
+            /**
+             * Publico Elegivel Total
+             * @description Quantidade total de incluídos no público elegível; nulo fora de 'aguardando_geracao'.
+             */
+            publico_elegivel_total: number | null;
+        };
+        /**
+         * RespostaExecucaoAceita
+         * @description Ack público de uma execução criada ou já em andamento com a mesma chave.
+         */
+        RespostaExecucaoAceita: {
+            /**
+             * Execucao Id
+             * Format: uuid
+             * @description Identificador da execução criada ou já em andamento.
+             */
+            execucao_id: string;
+        };
+        /**
          * RespostaHistoricoSincronizacoes
          * @description Histórico de sincronização, com os marcos exigidos pela consulta de Marina.
          */
@@ -1010,6 +1125,44 @@ export interface components {
             ultima_tentativa: components["schemas"]["RespostaSincronizacao"] | null;
             /** @description Última tentativa concluída com sucesso, ou nula se nenhuma concluiu. */
             ultima_valida: components["schemas"]["RespostaSincronizacao"] | null;
+        };
+        /**
+         * RespostaMarco
+         * @description Um marco de transição já persistido da execução.
+         */
+        RespostaMarco: {
+            /**
+             * Causa
+             * @description Causa registrada, ou nula quando não houve falha.
+             */
+            causa: string | null;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC em que o marco foi registrado.
+             */
+            criado_em: string;
+            /**
+             * Marco
+             * @description Nome do marco de transição.
+             */
+            marco: string;
+        };
+        /**
+         * RespostaPreviaPublico
+         * @description Um item da amostra do público elegível formado.
+         */
+        RespostaPreviaPublico: {
+            /**
+             * Canal
+             * @description Canal preferencial do segurado, no momento da avaliação.
+             */
+            canal: string;
+            /**
+             * Nome Segurado
+             * @description Nome do segurado sintético incluído.
+             */
+            nome_segurado: string;
         };
         /**
          * RespostaRegra
@@ -1366,6 +1519,18 @@ export interface components {
             area_id: string;
         };
         /**
+         * SolicitacaoExecucao
+         * @description Corpo da solicitação de início de execução: a área monitorada a avaliar.
+         */
+        SolicitacaoExecucao: {
+            /**
+             * Area Id
+             * Format: uuid
+             * @description Identificador da área monitorada a avaliar.
+             */
+            area_id: string;
+        };
+        /**
          * SolicitacaoRegra
          * @description Configuração de regra proposta, no formato aceito por `testar`/`ativar`.
          */
@@ -1460,6 +1625,99 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaRestauracao"];
+                };
+            };
+        };
+    };
+    iniciar_execucao_api_v1_execucoes_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitacaoExecucao"];
+            };
+        };
+        responses: {
+            /** @description Execução aceita e em andamento. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaExecucaoAceita"];
+                };
+            };
+            /** @description Área monitorada desconhecida. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaExecucao"];
+                };
+            };
+            /** @description Conflito de idempotência. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaExecucao"];
+                };
+            };
+            /** @description Requisição sem o cabeçalho `Idempotency-Key`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaExecucao"];
+                };
+            };
+        };
+    };
+    consultar_execucao_api_v1_execucoes__execucao_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execucao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Execução encontrada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaExecucao"];
+                };
+            };
+            /** @description Execução inexistente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaExecucao"];
+                };
+            };
+            /** @description O identificador da execução não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaExecucao"];
                 };
             };
         };

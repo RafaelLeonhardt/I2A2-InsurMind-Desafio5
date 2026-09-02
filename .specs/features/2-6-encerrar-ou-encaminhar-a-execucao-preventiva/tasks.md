@@ -202,12 +202,14 @@ T6
 
 **Tools**: MCP: NONE — Skill: NONE
 
+**Nota de implementação**: `SuperficieEventoDecisao` (2.3/2.5) ganhou uma prop opcional `embutido` (padrão `false`, comportamento original preservado — as 15 asserções existentes continuam verdes sem alteração) para ser reusada aqui sem duplicar o landmark `<main>` da página: embutida, ela renderiza seu conteúdo sem o `<main>`/título próprios, evitando um `<main>` aninhado quando exibida dentro de `SuperficieExecucao` em `aguardando_geracao`.
+
 **Done when**:
 
-- [ ] Progresso reflete os marcos reais retornados pela API, sem recalcular no frontend
-- [ ] Mudança para estado terminal ou `aguardando_geracao` é anunciada de forma acessível (`aria-live` ou equivalente)
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Progresso reflete os marcos reais retornados pela API, sem recalcular no frontend
+- [x] Mudança para estado terminal ou `aguardando_geracao` é anunciada de forma acessível (`aria-live` ou equivalente)
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full

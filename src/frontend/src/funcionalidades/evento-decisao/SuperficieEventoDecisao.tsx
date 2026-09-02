@@ -79,6 +79,13 @@ function IconeResultadoElegibilidade({ elegivel }: { elegivel: boolean }) {
 
 type PropriedadesSuperficieEventoDecisao = {
   execucaoId: string
+  /**
+   * Quando `true`, renderiza sem o `<main>`/título de página próprios, para composição
+   * dentro de outra superfície (ex.: a prévia do público em `SuperficieExecucao`, RUNNER-05)
+   * sem duplicar o landmark `<main>` da página. Padrão `false` preserva o comportamento
+   * original de página standalone.
+   */
+  embutido?: boolean
 }
 
 /**
@@ -87,7 +94,10 @@ type PropriedadesSuperficieEventoDecisao = {
  * Sem avaliação ainda persistida (execução não chegou nessa etapa), mostra o progresso real
  * da máquina de estados — nunca antecipa ou recalcula um resultado (RISCO-13).
  */
-export function SuperficieEventoDecisao({ execucaoId }: PropriedadesSuperficieEventoDecisao) {
+export function SuperficieEventoDecisao({
+  execucaoId,
+  embutido = false,
+}: PropriedadesSuperficieEventoDecisao) {
   const [estado, definirEstado] = useState<EstadoCarregamento>('carregando')
   const [avaliacao, definirAvaliacao] = useState<AvaliacaoRisco | null>(null)
   const [falha, definirFalha] = useState<ErroAvaliacaoRisco | null>(null)
@@ -169,15 +179,8 @@ export function SuperficieEventoDecisao({ execucaoId }: PropriedadesSuperficieEv
 
   const categoria = avaliacao ? calcularCategoria(avaliacao) : null
 
-  return (
-    <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
-      <p className="rotulo-contexto">Evento e decisão</p>
-      <h1>Evento e decisão</h1>
-      <p className="introducao">
-        Detalhe da decisão de risco: operando, valor observado, resultado e justificativa de
-        cada critério aplicado pela regra ativa, sem nenhum recálculo nesta tela.
-      </p>
-
+  const conteudo = (
+    <>
       {estado === 'carregando' && <p role="status">Carregando decisão de risco…</p>}
 
       {estado === 'aguardando' && (
@@ -357,6 +360,22 @@ export function SuperficieEventoDecisao({ execucaoId }: PropriedadesSuperficieEv
           )}
         </section>
       )}
+    </>
+  )
+
+  if (embutido) {
+    return <div className="secao-evento-decisao-embutida">{conteudo}</div>
+  }
+
+  return (
+    <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <p className="rotulo-contexto">Evento e decisão</p>
+      <h1>Evento e decisão</h1>
+      <p className="introducao">
+        Detalhe da decisão de risco: operando, valor observado, resultado e justificativa de
+        cada critério aplicado pela regra ativa, sem nenhum recálculo nesta tela.
+      </p>
+      {conteudo}
     </main>
   )
 }
