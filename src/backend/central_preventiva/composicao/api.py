@@ -25,6 +25,9 @@ from central_preventiva.adaptadores.http.meteorologia import (
 from central_preventiva.adaptadores.http.prontidao import (
     criar_roteador as criar_roteador_prontidao,
 )
+from central_preventiva.adaptadores.http.regras import (
+    criar_roteador as criar_roteador_regras,
+)
 from central_preventiva.adaptadores.http.saude import roteador as roteador_saude
 from central_preventiva.aplicacao.coleta_meteorologica import ServicoColetaMeteorologica
 from central_preventiva.composicao.agendador_meteorologico import AgendadorMeteorologico
@@ -88,6 +91,10 @@ def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
     )
     aplicacao.include_router(
         criar_roteador_avaliacao_risco(configuracao_ativa),
+        prefix="/api/v1",
+    )
+    aplicacao.include_router(
+        criar_roteador_regras(configuracao_ativa),
         prefix="/api/v1",
     )
     return aplicacao

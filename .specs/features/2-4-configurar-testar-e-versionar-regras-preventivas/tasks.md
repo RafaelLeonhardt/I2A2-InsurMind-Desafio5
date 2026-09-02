@@ -147,10 +147,10 @@ T5
 
 **Done when**:
 
-- [ ] Ativação concorrente com `versao_esperada` desatualizada retorna `409`
-- [ ] Ativação com `Idempotency-Key` repetida segue o contrato de idempotência
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] Ativação concorrente com `versao_esperada` desatualizada retorna `409`
+- [x] Ativação com `Idempotency-Key` repetida segue o contrato de idempotência
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full

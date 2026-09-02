@@ -39,6 +39,10 @@ def test_openapi_em_portugues_nao_antecipa_recursos_futuros() -> None:
         "/api/v1/meteorologia/{sincronizacao_id}/nova-tentativa",
         "/api/v1/meteorologia/cenarios-sinteticos/{identificador}/ativar",
         "/api/v1/execucoes/{execucao_id}/avaliacao-risco",
+        "/api/v1/regras",
+        "/api/v1/regras/{regra_id}",
+        "/api/v1/regras/{regra_id}/testar",
+        "/api/v1/regras/{regra_id}/ativar",
     }
     assert documento["paths"]["/api/v1/saude"]["get"]["description"].startswith("Confirma")
     assert documento["paths"]["/api/v1/saude"]["get"]["responses"]["200"]["description"] == (

@@ -71,18 +71,33 @@ class RegraAtivada:
 
 
 class _Regra(Protocol):
-    """Forma mínima do resultado de `criar_nova_versao` de que este caso de uso depende."""
+    """Forma mínima do resultado de `criar_nova_versao` de que este caso de uso depende.
 
-    id: UUID
-    versao: int
-    estado: str
-    evento_tipo: object
-    limiar_meteorologico: float
-    area_aplicavel: str
-    apolice_tipo: str
-    cobertura_exigida: str
-    antecedencia_horas: int
-    canal: str
+    Campos expostos como `@property` (somente leitura) para que a checagem estrutural do
+    Protocol seja covariante — um atributo mutável exigiria o tipo exato em ambas as
+    direções, e `Regra` (adaptador) declara `evento_tipo` como o enum concreto, não `object`.
+    """
+
+    @property
+    def id(self) -> UUID: ...
+    @property
+    def versao(self) -> int: ...
+    @property
+    def estado(self) -> str: ...
+    @property
+    def evento_tipo(self) -> object: ...
+    @property
+    def limiar_meteorologico(self) -> float: ...
+    @property
+    def area_aplicavel(self) -> str: ...
+    @property
+    def apolice_tipo(self) -> str: ...
+    @property
+    def cobertura_exigida(self) -> str: ...
+    @property
+    def antecedencia_horas(self) -> int: ...
+    @property
+    def canal(self) -> str: ...
 
 
 class _RepositorioRegras(Protocol):
