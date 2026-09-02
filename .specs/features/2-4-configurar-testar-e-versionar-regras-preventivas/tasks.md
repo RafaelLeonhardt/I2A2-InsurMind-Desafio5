@@ -169,11 +169,11 @@ T5
 
 **Done when**:
 
-- [ ] Regra ativa identificada por texto+ícone+indicador, não só cor
-- [ ] Erro de validação aparece junto ao campo sem descartar os demais valores
-- [ ] Navegação, edição e confirmação totalmente por teclado, com foco visível
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Regra ativa identificada por texto+ícone+indicador, não só cor
+- [x] Erro de validação aparece junto ao campo sem descartar os demais valores
+- [x] Navegação, edição e confirmação totalmente por teclado, com foco visível
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados (gerado via `openapi-typescript` direto do `openapi.json` local, sem servidor ao vivo)
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full

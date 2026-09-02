@@ -184,6 +184,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/regras": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar todas as versões de regra
+         * @description Devolve todas as versões de regra registradas, ativas e substituídas.
+         */
+        get: operations["consultar_regras_api_v1_regras_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/regras/{regra_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar uma versão específica de regra
+         * @description Devolve uma versão específica de regra pelo seu identificador.
+         */
+        get: operations["consultar_regra_api_v1_regras__regra_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/regras/{regra_id}/ativar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ativar uma nova versão de regra
+         * @description Revalida e reexecuta o teste determinístico, e ativa a configuração como nova versão da regra informada, de forma idempotente. Exige o cabeçalho `Idempotency-Key` em toda requisição.
+         */
+        post: operations["ativar_regra_api_v1_regras__regra_id__ativar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/regras/{regra_id}/testar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Testar deterministicamente uma configuração de regra
+         * @description Aplica a configuração proposta a cada cenário sintético do tipo de evento, sem persistir nada. Configuração inválida é bloqueada com motivos por campo.
+         */
+        post: operations["testar_regra_api_v1_regras__regra_id__testar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/saude": {
         parameters: {
             query?: never;
@@ -228,6 +308,22 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * ErroCampo
+         * @description Um erro de validação localizado a um campo específico.
+         */
+        ErroCampo: {
+            /**
+             * Campo
+             * @description Nome do campo com erro.
+             */
+            campo: string;
+            /**
+             * Motivo
+             * @description Motivo do erro em português brasileiro.
+             */
+            motivo: string;
+        };
         /**
          * ProblemaAvaliacaoRisco
          * @description Falha da consulta de avaliação de risco, com ocorrência, impacto e próxima ação segura.
@@ -353,6 +449,42 @@ export interface components {
             proxima_acao: string;
         };
         /**
+         * ProblemaRegras
+         * @description Falha de uma operação de regras, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaRegras: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Erros
+             * @description Erros por campo, quando a falha vem de uma configuração inválida.
+             */
+            erros?: components["schemas"]["ErroCampo"][];
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
          * ProblemaRestauracao
          * @description Falha da restauração, com ocorrência, impacto e próxima ação segura.
          */
@@ -433,6 +565,33 @@ export interface components {
             relevante: boolean;
         };
         /**
+         * RespostaCasoTeste
+         * @description Um caso de teste determinístico: o cenário sintético usado e o resultado obtido.
+         */
+        RespostaCasoTeste: {
+            /**
+             * Criterios
+             * @description Critérios avaliados neste caso.
+             */
+            criterios: components["schemas"]["RespostaCriterioTeste"][];
+            /**
+             * Evento Id
+             * Format: uuid
+             * @description Identificador do evento sintético usado no teste.
+             */
+            evento_id: string;
+            /**
+             * Motivo
+             * @description Motivo tipado do resultado deste caso.
+             */
+            motivo: string;
+            /**
+             * Relevante
+             * @description Se o cenário foi considerado relevante pela regra.
+             */
+            relevante: boolean;
+        };
+        /**
          * RespostaColetaAceita
          * @description Ack público de uma solicitação de coleta manual aceita ou já registrada.
          */
@@ -476,6 +635,32 @@ export interface components {
          * @description Um critério avaliado: operando, valor observado, resultado e justificativa.
          */
         RespostaCriterio: {
+            /**
+             * Atende
+             * @description Se o valor observado atende ao critério.
+             */
+            atende: boolean;
+            /**
+             * Justificativa
+             * @description Explicação em português brasileiro do resultado.
+             */
+            justificativa: string;
+            /**
+             * Operando
+             * @description O que foi comparado (ex.: área aplicável, intensidade).
+             */
+            operando: string;
+            /**
+             * Valor Observado
+             * @description Valor observado no evento para este critério.
+             */
+            valor_observado: string;
+        };
+        /**
+         * RespostaCriterioTeste
+         * @description Um critério avaliado no teste determinístico: operando, valor, resultado e justificativa.
+         */
+        RespostaCriterioTeste: {
             /**
              * Atende
              * @description Se o valor observado atende ao critério.
@@ -626,6 +811,74 @@ export interface components {
             ultima_valida: components["schemas"]["RespostaSincronizacao"] | null;
         };
         /**
+         * RespostaRegra
+         * @description Uma versão de regra, para consulta e auditoria.
+         */
+        RespostaRegra: {
+            /**
+             * Antecedencia Horas
+             * @description Antecedência do alerta preventivo, em horas.
+             */
+            antecedencia_horas: number;
+            /**
+             * Apolice Tipo
+             * @description Tipo de apólice (`residencial` ou `automovel`).
+             */
+            apolice_tipo: string;
+            /**
+             * Area Aplicavel
+             * @description Código IBGE da área a que a regra se aplica.
+             */
+            area_aplicavel: string;
+            /**
+             * Canal
+             * @description Canal de comunicação (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
+             * Cobertura Exigida
+             * @description Cobertura que a apólice precisa ter.
+             */
+            cobertura_exigida: string;
+            /**
+             * Estado
+             * @description Estado da versão (`ativa` ou `substituida`).
+             */
+            estado: string;
+            /**
+             * Evento Tipo
+             * @description Tipo de evento (`chuva_intensa` ou `granizo`).
+             */
+            evento_tipo: string;
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador desta versão de regra.
+             */
+            id: string;
+            /**
+             * Limiar Meteorologico
+             * @description Limiar numérico usado pela regra.
+             */
+            limiar_meteorologico: number;
+            /**
+             * Versao
+             * @description Número sequencial desta versão da regra.
+             */
+            versao: number;
+        };
+        /**
+         * RespostaRegras
+         * @description Lista pública de versões de regra.
+         */
+        RespostaRegras: {
+            /**
+             * Regras
+             * @description Versões de regra, mais recentes primeiro.
+             */
+            regras: components["schemas"]["RespostaRegra"][];
+        };
+        /**
          * RespostaRestauracao
          * @description Resposta pública de uma restauração concluída.
          */
@@ -771,6 +1024,17 @@ export interface components {
             numero_tentativa: number;
         };
         /**
+         * RespostaTeste
+         * @description Resultado do teste determinístico, um caso por cenário sintético aplicável.
+         */
+        RespostaTeste: {
+            /**
+             * Casos
+             * @description Casos de teste, um por cenário sintético do tipo de evento da regra.
+             */
+            casos: components["schemas"]["RespostaCasoTeste"][];
+        };
+        /**
          * RespostaVerificacaoAceita
          * @description Ack de uma nova verificação aceita para processamento em segundo plano.
          */
@@ -805,6 +1069,52 @@ export interface components {
             area_id: string;
         };
         /**
+         * SolicitacaoAtivarRegra
+         * @description Configuração de regra proposta, mais a versão esperada para concorrência otimista.
+         */
+        SolicitacaoAtivarRegra: {
+            /**
+             * Antecedencia Horas
+             * @description Antecedência do alerta preventivo, em horas.
+             */
+            antecedencia_horas: number;
+            /**
+             * Apolice Tipo
+             * @description Tipo de apólice (`residencial` ou `automovel`).
+             */
+            apolice_tipo: string;
+            /**
+             * Area Aplicavel
+             * @description Código IBGE da área a que a regra se aplica.
+             */
+            area_aplicavel: string;
+            /**
+             * Canal
+             * @description Canal de comunicação (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
+             * Cobertura Exigida
+             * @description Cobertura que a apólice precisa ter.
+             */
+            cobertura_exigida: string;
+            /**
+             * Evento Tipo
+             * @description Tipo de evento (`chuva_intensa` ou `granizo`).
+             */
+            evento_tipo: string;
+            /**
+             * Limiar Meteorologico
+             * @description Limiar numérico usado pela regra.
+             */
+            limiar_meteorologico: number;
+            /**
+             * Versao Esperada
+             * @description Versão ativa esperada da regra anterior (concorrência otimista, AD-008).
+             */
+            versao_esperada: number;
+        };
+        /**
          * SolicitacaoColeta
          * @description Corpo da solicitação de coleta manual: a área monitorada a consultar.
          */
@@ -815,6 +1125,47 @@ export interface components {
              * @description Identificador da área monitorada a coletar.
              */
             area_id: string;
+        };
+        /**
+         * SolicitacaoRegra
+         * @description Configuração de regra proposta, no formato aceito por `testar`/`ativar`.
+         */
+        SolicitacaoRegra: {
+            /**
+             * Antecedencia Horas
+             * @description Antecedência do alerta preventivo, em horas.
+             */
+            antecedencia_horas: number;
+            /**
+             * Apolice Tipo
+             * @description Tipo de apólice (`residencial` ou `automovel`).
+             */
+            apolice_tipo: string;
+            /**
+             * Area Aplicavel
+             * @description Código IBGE da área a que a regra se aplica.
+             */
+            area_aplicavel: string;
+            /**
+             * Canal
+             * @description Canal de comunicação (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
+             * Cobertura Exigida
+             * @description Cobertura que a apólice precisa ter.
+             */
+            cobertura_exigida: string;
+            /**
+             * Evento Tipo
+             * @description Tipo de evento (`chuva_intensa` ou `granizo`).
+             */
+            evento_tipo: string;
+            /**
+             * Limiar Meteorologico
+             * @description Limiar numérico usado pela regra.
+             */
+            limiar_meteorologico: number;
         };
     };
     responses: never;
@@ -1180,6 +1531,156 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaProntidao"];
+                };
+            };
+        };
+    };
+    consultar_regras_api_v1_regras_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Versões de regra. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaRegras"];
+                };
+            };
+        };
+    };
+    consultar_regra_api_v1_regras__regra_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                regra_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Versão de regra encontrada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaRegra"];
+                };
+            };
+            /** @description Regra não encontrada. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRegras"];
+                };
+            };
+            /** @description O identificador da regra não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRegras"];
+                };
+            };
+        };
+    };
+    ativar_regra_api_v1_regras__regra_id__ativar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                regra_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitacaoAtivarRegra"];
+            };
+        };
+        responses: {
+            /** @description Nova versão ativada, ou resposta idempotente repetida. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaRegra"];
+                };
+            };
+            /** @description Regra anterior não encontrada. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRegras"];
+                };
+            };
+            /** @description Conflito de versão ou de idempotência. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRegras"];
+                };
+            };
+            /** @description Identificador inválido, configuração inválida, cabeçalho `Idempotency-Key` ausente ou nenhum cenário sintético aplicável. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRegras"];
+                };
+            };
+        };
+    };
+    testar_regra_api_v1_regras__regra_id__testar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                regra_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitacaoRegra"];
+            };
+        };
+        responses: {
+            /** @description Resultado do teste determinístico (pode ser vazio). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaTeste"];
+                };
+            };
+            /** @description Identificador inválido ou configuração de regra inválida. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRegras"];
                 };
             };
         };

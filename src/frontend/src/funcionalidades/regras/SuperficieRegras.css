@@ -1,0 +1,68 @@
+.tabela-regras,
+.tabela-caso-teste {
+  width: 100%;
+  border-collapse: collapse;
+  margin-block: 1rem;
+}
+
+.tabela-regras th,
+.tabela-regras td,
+.tabela-caso-teste th,
+.tabela-caso-teste td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+}
+
+.regra-estado-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.regra-estado-badge--ativa {
+  color: var(--green);
+}
+
+.regra-estado-badge--substituida {
+  color: var(--muted);
+}
+
+.campo-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-block-end: 0.85rem;
+  max-width: 26rem;
+}
+
+.campo-formulario label {
+  font-weight: 600;
+}
+
+.campo-formulario input,
+.campo-formulario select {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font: inherit;
+}
+
+.campo-formulario input:focus-visible,
+.campo-formulario select:focus-visible {
+  outline: 3px solid var(--amber);
+  outline-offset: 2px;
+}
+
+.campo-formulario [role='alert'] {
+  color: var(--red);
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.acoes-formulario-regra {
+  display: flex;
+  gap: 0.6rem;
+  margin-block-start: 1rem;
+}
