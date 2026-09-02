@@ -212,11 +212,13 @@ T7
 
 **Done when**:
 
-- [ ] Nova tentativa sem `Idempotency-Key` retorna erro `application/problem+json`
-- [ ] Nova tentativa com chave nova retorna `202`; repetição da chave devolve a resposta registrada
-- [ ] Ativação de cenário sintético segue o mesmo contrato de idempotência
-- [ ] `GET /api/v1/meteorologia/sincronizacoes` reflete tentativa atual e limite de 3
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] Nova tentativa sem `Idempotency-Key` retorna erro `application/problem+json`
+- [x] Nova tentativa com chave nova retorna `202`; repetição da chave devolve a resposta registrada
+- [x] Ativação de cenário sintético segue o mesmo contrato de idempotência
+- [x] `GET /api/v1/meteorologia/sincronizacoes` reflete tentativa atual e limite de 3
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+
+**Nota de implementação**: `RespostaSincronizacao` ganhou `tentativas`/`limite_tentativas`; `RepositorioSincronizacoes.buscar_por_id` (T5) alimenta o erro 404 de nova tentativa. Os testes de nova tentativa esgotam 3 tentativas reais via `httpx.AsyncClient.send` monkeypatched (sem clock injetável no `montar_portas_coleta` de produção) — custo aceito de ~3,3s por teste (3 testes, ~10s no total), preferível a introduzir uma configuração de teste na composição de produção sem AC que a peça. Contrato OpenAPI regenerado (`openapi_export`).
 
 **Tests**: integration
 **Gate**: full

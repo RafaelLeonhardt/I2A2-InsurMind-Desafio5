@@ -29,9 +29,12 @@ from central_preventiva.adaptadores.persistencia.repositorio_meteorologia import
     RepositorioTentativasColeta,
 )
 from central_preventiva.aplicacao.coleta_meteorologica import (
+    MAXIMO_TENTATIVAS_COLETA,
     AreaMonitoradaInexistente,
     PortasColetaMeteorologica,
     ServicoColetaMeteorologica,
+    SincronizacaoAceita,
+    SincronizacaoInexistente,
 )
 from central_preventiva.aplicacao.portas_meteorologia import INTERVALO_SEGUNDOS_COLETA
 from central_preventiva.aplicacao.portas_persistencia import ConflitoIdempotencia
@@ -41,6 +44,8 @@ TIPO_PROBLEMA = "application/problem+json"
 CAMINHO_COLETAS = "/meteorologia/coletas"
 CAMINHO_EVENTOS = "/meteorologia/eventos"
 CAMINHO_SINCRONIZACOES = "/meteorologia/sincronizacoes"
+CAMINHO_NOVA_TENTATIVA = "/meteorologia/{sincronizacao_id}/nova-tentativa"
+CAMINHO_ATIVAR_CENARIO_SINTETICO = "/meteorologia/cenarios-sinteticos/{identificador}/ativar"
 
 
 class SolicitacaoColeta(BaseModel):
@@ -49,6 +54,14 @@ class SolicitacaoColeta(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     area_id: UUID = Field(description="Identificador da área monitorada a coletar.")
+
+
+class SolicitacaoAtivarCenarioSintetico(BaseModel):
+    """Corpo da ativação de um cenário sintético: a área monitorada a usar."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    area_id: UUID = Field(description="Identificador da área monitorada onde ativar o cenário.")
 
 
 class RespostaColetaAceita(BaseModel):
@@ -91,6 +104,21 @@ class RespostaEventos(BaseModel):
     eventos: list[RespostaEvento] = Field(description="Eventos meteorológicos, do mais recente.")
 
 
+class RespostaTentativa(BaseModel):
+    """Tentativa individual de coleta dentro de uma sincronização com retry (RESIL-02)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    numero_tentativa: int = Field(description="Número sequencial da tentativa (1 a 3).")
+    codigo_resultado: str = Field(
+        description=(
+            "Resultado da tentativa (`sucesso`, `timeout`, `erro_transporte`, `status_erro`)."
+        )
+    )
+    iniciado_em: datetime = Field(description="Instante RFC 3339 em UTC de início da tentativa.")
+    finalizado_em: datetime = Field(description="Instante RFC 3339 em UTC de término da tentativa.")
+
+
 class RespostaSincronizacao(BaseModel):
     """Registro público de uma tentativa de sincronização meteorológica."""
 
@@ -105,6 +133,12 @@ class RespostaSincronizacao(BaseModel):
     iniciado_em: datetime = Field(description="Instante RFC 3339 em UTC de início da tentativa.")
     finalizado_em: datetime | None = Field(
         description="Instante RFC 3339 em UTC de término, ou nulo se em andamento."
+    )
+    tentativas: list[RespostaTentativa] = Field(
+        description="Tentativas individuais desta sincronização, em ordem crescente de número."
+    )
+    limite_tentativas: int = Field(
+        description="Número máximo de tentativas totais de uma coleta (RESIL-01)."
     )
 
 
@@ -177,7 +211,20 @@ def _resposta_evento(evento: object) -> RespostaEvento:
     )
 
 
-def _resposta_sincronizacao(sincronizacao: object) -> RespostaSincronizacao:
+def _resposta_tentativa(tentativa: object) -> RespostaTentativa:
+    """Traduz uma `TentativaColeta` interna para o contrato REST/JSON público."""
+
+    return RespostaTentativa(
+        numero_tentativa=tentativa.numero_tentativa,  # type: ignore[attr-defined]
+        codigo_resultado=str(tentativa.codigo_resultado),  # type: ignore[attr-defined]
+        iniciado_em=tentativa.iniciado_em,  # type: ignore[attr-defined]
+        finalizado_em=tentativa.finalizado_em,  # type: ignore[attr-defined]
+    )
+
+
+def _resposta_sincronizacao(
+    sincronizacao: object, tentativas_repo: object
+) -> RespostaSincronizacao:
     """Traduz uma `Sincronizacao` interna para o contrato REST/JSON público."""
 
     return RespostaSincronizacao(
@@ -189,6 +236,25 @@ def _resposta_sincronizacao(sincronizacao: object) -> RespostaSincronizacao:
         motivo_falha=sincronizacao.motivo_falha,  # type: ignore[attr-defined]
         iniciado_em=sincronizacao.iniciado_em,  # type: ignore[attr-defined]
         finalizado_em=sincronizacao.finalizado_em,  # type: ignore[attr-defined]
+        tentativas=[
+            _resposta_tentativa(tentativa)  # type: ignore[arg-type]
+            for tentativa in tentativas_repo.listar_tentativas(sincronizacao.id)  # type: ignore[attr-defined]
+        ],
+        limite_tentativas=MAXIMO_TENTATIVAS_COLETA,
+    )
+
+
+def _resposta_coleta_aceita(aceita: SincronizacaoAceita) -> RespostaColetaAceita:
+    """Traduz uma `SincronizacaoAceita` interna para o ack REST/JSON público."""
+
+    sincronizacao = aceita.sincronizacao
+    return RespostaColetaAceita(
+        id=sincronizacao.id,
+        requisicao_id=sincronizacao.requisicao_id,
+        estado=str(sincronizacao.estado),
+        registros_validos=sincronizacao.registros_validos,
+        motivo_falha=sincronizacao.motivo_falha,
+        aceito_em=aceita.aceito_em,
     )
 
 
@@ -217,6 +283,7 @@ def criar_roteador(configuracao: Configuracao) -> APIRouter:
     portas = montar_portas_coleta(configuracao)
     eventos_repo = portas.eventos
     sincronizacoes_repo = portas.sincronizacoes
+    tentativas_repo = portas.tentativas
     servico = ServicoColetaMeteorologica(portas)
 
     @roteador.post(
@@ -280,15 +347,142 @@ def criar_roteador(configuracao: Configuracao) -> APIRouter:
                 "Gere uma nova Idempotency-Key para solicitar outra coleta.",
             )
 
-        sincronizacao = aceita.sincronizacao
-        return RespostaColetaAceita(
-            id=sincronizacao.id,
-            requisicao_id=sincronizacao.requisicao_id,
-            estado=str(sincronizacao.estado),
-            registros_validos=sincronizacao.registros_validos,
-            motivo_falha=sincronizacao.motivo_falha,
-            aceito_em=aceita.aceito_em,
-        )
+        return _resposta_coleta_aceita(aceita)
+
+    @roteador.post(
+        CAMINHO_NOVA_TENTATIVA,
+        response_model=RespostaColetaAceita,
+        status_code=202,
+        summary="Solicitar uma nova tentativa após indisponibilidade",
+        description=(
+            "Solicita, de forma idempotente, uma nova coleta correlacionada à sincronização "
+            "de origem informada, sem reabrir nem mutar a sincronização/execução anteriores. "
+            "Exige o cabeçalho `Idempotency-Key` em toda requisição."
+        ),
+        responses={
+            202: {"description": "Nova tentativa aceita e concluída."},
+            404: {
+                "description": "Sincronização de origem ou área monitorada desconhecida.",
+                "model": ProblemaMeteorologia,
+            },
+            409: {"description": "Conflito de idempotência.", "model": ProblemaMeteorologia},
+            422: {
+                "description": "Requisição sem o cabeçalho `Idempotency-Key`.",
+                "model": ProblemaMeteorologia,
+            },
+        },
+    )
+    async def solicitar_nova_tentativa(  # pyright: ignore[reportUnusedFunction]
+        sincronizacao_id: UUID,
+        requisicao: Request,
+        idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
+    ) -> RespostaColetaAceita | JSONResponse:
+        """Traduz `solicitar_nova_tentativa` para o contrato REST/JSON público."""
+
+        if idempotency_key is None or not idempotency_key.strip():
+            return problema(
+                422,
+                "idempotency_key_ausente",
+                "A requisição de nova tentativa não informou o cabeçalho Idempotency-Key.",
+                "Nenhuma nova tentativa foi solicitada.",
+                "Repita a requisição incluindo um cabeçalho Idempotency-Key único.",
+            )
+
+        hash_requisicao = sha256(await requisicao.body()).hexdigest()
+
+        try:
+            aceita = await servico.solicitar_nova_tentativa(
+                sincronizacao_id, idempotency_key, hash_requisicao
+            )
+        except SincronizacaoInexistente:
+            return problema(
+                404,
+                "sincronizacao_desconhecida",
+                f"A sincronização '{sincronizacao_id}' não existe.",
+                "Nenhuma nova tentativa foi solicitada.",
+                "Consulte o histórico de sincronizações e repita com um identificador válido.",
+            )
+        except AreaMonitoradaInexistente:
+            return problema(
+                404,
+                "area_monitorada_desconhecida",
+                "A área monitorada da sincronização de origem não existe mais.",
+                "Nenhuma nova tentativa foi solicitada.",
+                "Consulte as áreas monitoradas configuradas antes de tentar de novo.",
+            )
+        except ConflitoIdempotencia:
+            return problema(
+                409,
+                "conflito_idempotencia",
+                "A chave de idempotência já foi usada com outro conteúdo de requisição.",
+                "Nenhuma nova tentativa foi solicitada.",
+                "Gere uma nova Idempotency-Key para solicitar outra tentativa.",
+            )
+
+        return _resposta_coleta_aceita(aceita)
+
+    @roteador.post(
+        CAMINHO_ATIVAR_CENARIO_SINTETICO,
+        response_model=RespostaColetaAceita,
+        status_code=202,
+        summary="Ativar um cenário sintético de contingência",
+        description=(
+            "Ativa, de forma idempotente, o cenário sintético de contingência informado "
+            "para a área monitorada indicada. O evento resultante tem `proveniencia = "
+            "sintetico`, nunca combinado com dados `real_inmet`. Exige o cabeçalho "
+            "`Idempotency-Key` em toda requisição."
+        ),
+        responses={
+            202: {"description": "Cenário sintético ativado."},
+            404: {"description": "Área monitorada desconhecida.", "model": ProblemaMeteorologia},
+            409: {"description": "Conflito de idempotência.", "model": ProblemaMeteorologia},
+            422: {
+                "description": "Requisição sem o cabeçalho `Idempotency-Key`.",
+                "model": ProblemaMeteorologia,
+            },
+        },
+    )
+    async def ativar_cenario_sintetico(  # pyright: ignore[reportUnusedFunction]
+        identificador: str,
+        corpo: SolicitacaoAtivarCenarioSintetico,
+        requisicao: Request,
+        idempotency_key: Annotated[str | None, Header(alias="Idempotency-Key")] = None,
+    ) -> RespostaColetaAceita | JSONResponse:
+        """Traduz `ativar_cenario_sintetico` para o contrato REST/JSON público."""
+
+        if idempotency_key is None or not idempotency_key.strip():
+            return problema(
+                422,
+                "idempotency_key_ausente",
+                "A requisição de ativação do cenário sintético não informou Idempotency-Key.",
+                "Nenhum cenário sintético foi ativado.",
+                "Repita a requisição incluindo um cabeçalho Idempotency-Key único.",
+            )
+
+        hash_requisicao = sha256(await requisicao.body()).hexdigest()
+
+        try:
+            aceita = await servico.ativar_cenario_sintetico(
+                corpo.area_id, identificador, idempotency_key, hash_requisicao
+            )
+        except AreaMonitoradaInexistente:
+            return problema(
+                404,
+                "area_monitorada_desconhecida",
+                f"A área monitorada '{corpo.area_id}' não existe.",
+                "Nenhum cenário sintético foi ativado.",
+                "Consulte as áreas monitoradas configuradas e repita com um area_id válido.",
+            )
+        except ConflitoIdempotencia:
+            return problema(
+                409,
+                "conflito_idempotencia",
+                "A chave de idempotência já foi usada com outro conteúdo de requisição.",
+                "Nenhum novo cenário sintético foi ativado.",
+                "Gere uma nova Idempotency-Key para ativar outro cenário.",
+            )
+
+        return _resposta_coleta_aceita(aceita)
 
     @roteador.get(
         CAMINHO_EVENTOS,
@@ -329,13 +523,19 @@ def criar_roteador(configuracao: Configuracao) -> APIRouter:
         )
         return RespostaHistoricoSincronizacoes(
             ultima_tentativa=(
-                _resposta_sincronizacao(ultima_tentativa) if ultima_tentativa is not None else None
+                _resposta_sincronizacao(ultima_tentativa, tentativas_repo)
+                if ultima_tentativa is not None
+                else None
             ),
             ultima_valida=(
-                _resposta_sincronizacao(ultima_valida) if ultima_valida is not None else None
+                _resposta_sincronizacao(ultima_valida, tentativas_repo)
+                if ultima_valida is not None
+                else None
             ),
             proxima_consulta=proxima_consulta,
-            resultados_anteriores=[_resposta_sincronizacao(s) for s in recentes],
+            resultados_anteriores=[
+                _resposta_sincronizacao(s, tentativas_repo) for s in recentes
+            ],
         )
 
     return roteador

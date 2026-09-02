@@ -20,6 +20,15 @@ CAMINHO_EVENTOS = "/api/v1/meteorologia/eventos"
 CAMINHO_SINCRONIZACOES = "/api/v1/meteorologia/sincronizacoes"
 TIPO_PROBLEMA = "application/problem+json"
 ORIGEM_CONFIGURADA = "http://127.0.0.1:5173"
+IDENTIFICADOR_CENARIO_GRANIZO = "granizo-demonstrativo"
+
+
+def caminho_nova_tentativa(sincronizacao_id: str) -> str:
+    return f"/api/v1/meteorologia/{sincronizacao_id}/nova-tentativa"
+
+
+def caminho_ativar_cenario_sintetico(identificador: str) -> str:
+    return f"/api/v1/meteorologia/cenarios-sinteticos/{identificador}/ativar"
 
 
 @pytest.fixture(autouse=True)
@@ -257,6 +266,10 @@ def test_get_sincronizacoes_retorna_200_com_os_campos_esperados_apos_coleta(
     }
     assert corpo["ultima_tentativa"]["estado"] == "concluido"
     assert corpo["ultima_valida"]["estado"] == "concluido"
+    assert corpo["ultima_tentativa"]["limite_tentativas"] == 3
+    assert len(corpo["ultima_tentativa"]["tentativas"]) == 1
+    assert corpo["ultima_tentativa"]["tentativas"][0]["numero_tentativa"] == 1
+    assert corpo["ultima_tentativa"]["tentativas"][0]["codigo_resultado"] == "sucesso"
     iniciado_em = datetime.fromisoformat(corpo["ultima_tentativa"]["iniciado_em"])
     proxima_consulta = datetime.fromisoformat(corpo["proxima_consulta"])
     # 900s hardcoded (não importado de INTERVALO_SEGUNDOS_COLETA): referenciar a própria
@@ -335,3 +348,152 @@ def test_cors_recusa_uma_origem_nao_configurada_para_coletas(tmp_path: Path) -> 
     )
 
     assert "access-control-allow-origin" not in resposta.headers
+
+
+def forcar_timeout_persistente(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Faz toda chamada HTTP real falhar por timeout, esgotando as 3 tentativas."""
+
+    async def _send_timeout(
+        self: httpx.AsyncClient, request: httpx.Request, **_: object
+    ) -> httpx.Response:
+        raise httpx.TimeoutException(f"timeout simulado: {request.url}")
+
+    monkeypatch.setattr(httpx.AsyncClient, "send", _send_timeout)
+
+
+def criar_sincronizacao_falha(caminho: Path, area_id: str, monkeypatch: pytest.MonkeyPatch) -> str:
+    """Esgota as 3 tentativas de uma coleta manual e devolve o id da sincronização falha."""
+
+    forcar_timeout_persistente(monkeypatch)
+    resposta = cliente_para(caminho).post(
+        CAMINHO_COLETAS, json={"area_id": area_id}, headers={"Idempotency-Key": str(uuid4())}
+    )
+    assert resposta.json()["estado"] == "falha"
+    return str(resposta.json()["id"])
+
+
+def test_nova_tentativa_sem_idempotency_key_e_recusada(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    area_id = inserir_area_monitorada(caminho, "A701", "9990001")
+    sincronizacao_id = criar_sincronizacao_falha(caminho, area_id, monkeypatch)
+
+    resposta = cliente_para(caminho).post(caminho_nova_tentativa(sincronizacao_id))
+
+    assert resposta.status_code == 422
+    assert resposta.headers["content-type"].startswith(TIPO_PROBLEMA)
+    assert resposta.json()["codigo"] == "idempotency_key_ausente"
+
+
+def test_nova_tentativa_com_idempotency_key_nova_retorna_202(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    area_id = inserir_area_monitorada(caminho, "A701", "9990001")
+    sincronizacao_id = criar_sincronizacao_falha(caminho, area_id, monkeypatch)
+
+    permitir_resposta_valida(monkeypatch)
+    resposta = cliente_para(caminho).post(
+        caminho_nova_tentativa(sincronizacao_id),
+        headers={"Idempotency-Key": str(uuid4())},
+    )
+
+    assert resposta.status_code == 202
+    corpo = resposta.json()
+    assert corpo["id"] != sincronizacao_id
+    assert corpo["estado"] == "concluido"
+
+
+def test_repetir_a_mesma_idempotency_key_da_nova_tentativa_nao_duplica(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    area_id = inserir_area_monitorada(caminho, "A701", "9990001")
+    sincronizacao_id = criar_sincronizacao_falha(caminho, area_id, monkeypatch)
+    permitir_resposta_valida(monkeypatch)
+    cliente = cliente_para(caminho)
+    chave = str(uuid4())
+
+    primeira = cliente.post(
+        caminho_nova_tentativa(sincronizacao_id), headers={"Idempotency-Key": chave}
+    )
+    segunda = cliente.post(
+        caminho_nova_tentativa(sincronizacao_id), headers={"Idempotency-Key": chave}
+    )
+
+    assert primeira.status_code == 202
+    assert segunda.status_code == 202
+    assert primeira.json() == segunda.json()
+
+
+def test_nova_tentativa_com_sincronizacao_inexistente_e_recusada(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+
+    resposta = cliente_para(caminho).post(
+        caminho_nova_tentativa(str(uuid4())),
+        headers={"Idempotency-Key": str(uuid4())},
+    )
+
+    assert resposta.status_code == 404
+    assert resposta.headers["content-type"].startswith(TIPO_PROBLEMA)
+    assert resposta.json()["codigo"] == "sincronizacao_desconhecida"
+
+
+def test_ativar_cenario_sintetico_sem_idempotency_key_e_recusado(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    area_id = inserir_area_monitorada(caminho, "A701", "9990001")
+
+    resposta = cliente_para(caminho).post(
+        caminho_ativar_cenario_sintetico(IDENTIFICADOR_CENARIO_GRANIZO),
+        json={"area_id": area_id},
+    )
+
+    assert resposta.status_code == 422
+    assert resposta.json()["codigo"] == "idempotency_key_ausente"
+
+
+def test_ativar_cenario_sintetico_com_idempotency_key_nova_cria_evento_sintetico(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    area_id = inserir_area_monitorada(caminho, "A701", "9990001")
+    cliente = cliente_para(caminho)
+
+    resposta = cliente.post(
+        caminho_ativar_cenario_sintetico(IDENTIFICADOR_CENARIO_GRANIZO),
+        json={"area_id": area_id},
+        headers={"Idempotency-Key": str(uuid4())},
+    )
+
+    assert resposta.status_code == 202
+    assert resposta.json()["estado"] == "concluido"
+    eventos = cliente.get(CAMINHO_EVENTOS).json()["eventos"]
+    assert len(eventos) == 1
+    assert eventos[0]["tipo"] == "granizo"
+    assert eventos[0]["proveniencia"] == "sintetico"
+
+
+def test_repetir_a_mesma_idempotency_key_do_cenario_sintetico_nao_duplica(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    area_id = inserir_area_monitorada(caminho, "A701", "9990001")
+    cliente = cliente_para(caminho)
+    chave = str(uuid4())
+
+    primeira = cliente.post(
+        caminho_ativar_cenario_sintetico(IDENTIFICADOR_CENARIO_GRANIZO),
+        json={"area_id": area_id},
+        headers={"Idempotency-Key": chave},
+    )
+    segunda = cliente.post(
+        caminho_ativar_cenario_sintetico(IDENTIFICADOR_CENARIO_GRANIZO),
+        json={"area_id": area_id},
+        headers={"Idempotency-Key": chave},
+    )
+
+    assert primeira.status_code == 202
+    assert segunda.status_code == 202
+    assert primeira.json() == segunda.json()
+    assert len(cliente.get(CAMINHO_EVENTOS).json()["eventos"]) == 1

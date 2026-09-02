@@ -539,6 +539,11 @@
             "title": "Iniciado Em",
             "type": "string"
           },
+          "limite_tentativas": {
+            "description": "Número máximo de tentativas totais de uma coleta (RESIL-01).",
+            "title": "Limite Tentativas",
+            "type": "integer"
+          },
           "motivo_falha": {
             "anyOf": [
               {
@@ -566,6 +571,14 @@
             "format": "uuid",
             "title": "Requisicao Id",
             "type": "string"
+          },
+          "tentativas": {
+            "description": "Tentativas individuais desta sincronização, em ordem crescente de número.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaTentativa"
+            },
+            "title": "Tentativas",
+            "type": "array"
           }
         },
         "required": [
@@ -576,9 +589,47 @@
           "registros_validos",
           "motivo_falha",
           "iniciado_em",
-          "finalizado_em"
+          "finalizado_em",
+          "tentativas",
+          "limite_tentativas"
         ],
         "title": "RespostaSincronizacao",
+        "type": "object"
+      },
+      "RespostaTentativa": {
+        "additionalProperties": false,
+        "description": "Tentativa individual de coleta dentro de uma sincronização com retry (RESIL-02).",
+        "properties": {
+          "codigo_resultado": {
+            "description": "Resultado da tentativa (`sucesso`, `timeout`, `erro_transporte`, `status_erro`).",
+            "title": "Codigo Resultado",
+            "type": "string"
+          },
+          "finalizado_em": {
+            "description": "Instante RFC 3339 em UTC de término da tentativa.",
+            "format": "date-time",
+            "title": "Finalizado Em",
+            "type": "string"
+          },
+          "iniciado_em": {
+            "description": "Instante RFC 3339 em UTC de início da tentativa.",
+            "format": "date-time",
+            "title": "Iniciado Em",
+            "type": "string"
+          },
+          "numero_tentativa": {
+            "description": "Número sequencial da tentativa (1 a 3).",
+            "title": "Numero Tentativa",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "numero_tentativa",
+          "codigo_resultado",
+          "iniciado_em",
+          "finalizado_em"
+        ],
+        "title": "RespostaTentativa",
         "type": "object"
       },
       "RespostaVerificacaoAceita": {
@@ -608,6 +659,23 @@
           "aceito_em"
         ],
         "title": "RespostaVerificacaoAceita",
+        "type": "object"
+      },
+      "SolicitacaoAtivarCenarioSintetico": {
+        "additionalProperties": false,
+        "description": "Corpo da ativação de um cenário sintético: a área monitorada a usar.",
+        "properties": {
+          "area_id": {
+            "description": "Identificador da área monitorada onde ativar o cenário.",
+            "format": "uuid",
+            "title": "Area Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "area_id"
+        ],
+        "title": "SolicitacaoAtivarCenarioSintetico",
         "type": "object"
       },
       "SolicitacaoColeta": {
@@ -704,6 +772,95 @@
         "summary": "Restaurar os dados sintéticos da demonstração",
         "tags": [
           "Dados sintéticos"
+        ]
+      }
+    },
+    "/api/v1/meteorologia/cenarios-sinteticos/{identificador}/ativar": {
+      "post": {
+        "description": "Ativa, de forma idempotente, o cenário sintético de contingência informado para a área monitorada indicada. O evento resultante tem `proveniencia = sintetico`, nunca combinado com dados `real_inmet`. Exige o cabeçalho `Idempotency-Key` em toda requisição.",
+        "operationId": "ativar_cenario_sintetico_api_v1_meteorologia_cenarios_sinteticos__identificador__ativar_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "identificador",
+            "required": true,
+            "schema": {
+              "title": "Identificador",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitacaoAtivarCenarioSintetico"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaColetaAceita"
+                }
+              }
+            },
+            "description": "Cenário sintético ativado."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaMeteorologia"
+                }
+              }
+            },
+            "description": "Área monitorada desconhecida."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaMeteorologia"
+                }
+              }
+            },
+            "description": "Conflito de idempotência."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaMeteorologia"
+                }
+              }
+            },
+            "description": "Requisição sem o cabeçalho `Idempotency-Key`."
+          }
+        },
+        "summary": "Ativar um cenário sintético de contingência",
+        "tags": [
+          "Meteorologia"
         ]
       }
     },
@@ -826,6 +983,86 @@
           }
         },
         "summary": "Consultar o histórico de sincronizações meteorológicas",
+        "tags": [
+          "Meteorologia"
+        ]
+      }
+    },
+    "/api/v1/meteorologia/{sincronizacao_id}/nova-tentativa": {
+      "post": {
+        "description": "Solicita, de forma idempotente, uma nova coleta correlacionada à sincronização de origem informada, sem reabrir nem mutar a sincronização/execução anteriores. Exige o cabeçalho `Idempotency-Key` em toda requisição.",
+        "operationId": "solicitar_nova_tentativa_api_v1_meteorologia__sincronizacao_id__nova_tentativa_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sincronizacao_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Sincronizacao Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaColetaAceita"
+                }
+              }
+            },
+            "description": "Nova tentativa aceita e concluída."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaMeteorologia"
+                }
+              }
+            },
+            "description": "Sincronização de origem ou área monitorada desconhecida."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaMeteorologia"
+                }
+              }
+            },
+            "description": "Conflito de idempotência."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaMeteorologia"
+                }
+              }
+            },
+            "description": "Requisição sem o cabeçalho `Idempotency-Key`."
+          }
+        },
+        "summary": "Solicitar uma nova tentativa após indisponibilidade",
         "tags": [
           "Meteorologia"
         ]
