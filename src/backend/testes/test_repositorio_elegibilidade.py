@@ -163,6 +163,9 @@ def test_salvar_persiste_um_resultado_por_combinacao(tmp_path: Path) -> None:
     assert registro.elegivel is True
     assert registro.canal == "whatsapp"
     assert registro.criterios == RESULTADO_INCLUIDO.criterios
+    assert registro.nome_segurado == "Pessoa Teste"
+    assert registro.codigo_ibge_area == AREA
+    assert registro.regra_versao == 1
 
 
 def test_salvar_chamado_duas_vezes_para_a_mesma_combinacao_nao_duplica(

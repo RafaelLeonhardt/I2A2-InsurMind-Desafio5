@@ -27,14 +27,20 @@ class ContagemElegibilidade:
 
 @dataclass(frozen=True, slots=True)
 class RegistroElegibilidade:
-    """Um resultado de elegibilidade persistido, pronto para consulta (ELEG-08, ELEG-09)."""
+    """Um resultado de elegibilidade persistido, já enriquecido para consulta/explicação
+    (ELEG-08, ELEG-09) — `nome_segurado`/`codigo_ibge_area`/`regra_versao` vêm de `JOIN`
+    em `segurados`/`apolices`/`regras` no momento da leitura, nunca persistidos aqui de
+    novo (evitaria duas fontes de verdade para o mesmo dado)."""
 
     id: UUID
     execucao_id: UUID | None
     evento_id: UUID
     regra_id: UUID
+    regra_versao: int
     segurado_id: UUID
+    nome_segurado: str
     apolice_id: UUID
+    codigo_ibge_area: str
     elegivel: bool
     criterios: tuple[Criterio, ...]
     canal: str
@@ -147,10 +153,8 @@ class RepositorioElegibilidades:
 
         with abrir_conexao(self._caminho) as conexao:
             linhas = conexao.execute(
-                "SELECT id, execucao_id, evento_id, regra_id, segurado_id, apolice_id, "
-                "elegivel, criterios, canal, justificativa, criado_em "
-                "FROM elegibilidades_historicas WHERE execucao_id = ? "
-                "ORDER BY criado_em DESC",
+                f"{_SELECT_REGISTRO_ENRIQUECIDO} WHERE e.execucao_id = ? "
+                "ORDER BY e.criado_em DESC",
                 [execucao_id],
             ).fetchall()
         return [_registro_de_linha(linha) for linha in linhas]
@@ -160,9 +164,7 @@ class RepositorioElegibilidades:
 
         with abrir_conexao(self._caminho) as conexao:
             linha = conexao.execute(
-                "SELECT id, execucao_id, evento_id, regra_id, segurado_id, apolice_id, "
-                "elegivel, criterios, canal, justificativa, criado_em "
-                "FROM elegibilidades_historicas WHERE id = ?",
+                f"{_SELECT_REGISTRO_ENRIQUECIDO} WHERE e.id = ?",
                 [id_registro],
             ).fetchone()
         if linha is None:
@@ -170,19 +172,33 @@ class RepositorioElegibilidades:
         return _registro_de_linha(linha)
 
 
+_SELECT_REGISTRO_ENRIQUECIDO = (
+    "SELECT e.id, e.execucao_id, e.evento_id, e.regra_id, r.versao, e.segurado_id, "
+    "s.nome, e.apolice_id, a.codigo_ibge_area, e.elegivel, e.criterios, e.canal, "
+    "e.justificativa, e.criado_em "
+    "FROM elegibilidades_historicas AS e "
+    "JOIN segurados AS s ON s.id = e.segurado_id "
+    "JOIN apolices AS a ON a.id = e.apolice_id "
+    "JOIN regras AS r ON r.id = e.regra_id"
+)
+
+
 def _registro_de_linha(linha: tuple[object, ...]) -> RegistroElegibilidade:
-    """Traduz uma linha de `elegibilidades_historicas` para `RegistroElegibilidade`."""
+    """Traduz uma linha de `_SELECT_REGISTRO_ENRIQUECIDO` para `RegistroElegibilidade`."""
 
     return RegistroElegibilidade(
         id=UUID(str(linha[0])),
         execucao_id=None if linha[1] is None else UUID(str(linha[1])),
         evento_id=UUID(str(linha[2])),
         regra_id=UUID(str(linha[3])),
-        segurado_id=UUID(str(linha[4])),
-        apolice_id=UUID(str(linha[5])),
-        elegivel=bool(linha[6]),
-        criterios=desserializar_criterios(str(linha[7])),
-        canal=str(linha[8]),
-        justificativa=str(linha[9]),
-        criado_em=linha[10],  # type: ignore[arg-type]
+        regra_versao=int(linha[4]),  # type: ignore[arg-type]
+        segurado_id=UUID(str(linha[5])),
+        nome_segurado=str(linha[6]),
+        apolice_id=UUID(str(linha[7])),
+        codigo_ibge_area=str(linha[8]),
+        elegivel=bool(linha[9]),
+        criterios=desserializar_criterios(str(linha[10])),
+        canal=str(linha[11]),
+        justificativa=str(linha[12]),
+        criado_em=linha[13],  # type: ignore[arg-type]
     )

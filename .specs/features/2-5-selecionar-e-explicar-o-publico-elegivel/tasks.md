@@ -174,12 +174,14 @@ T6
 
 **Tools**: MCP: NONE — Skill: NONE
 
+**Nota de implementação**: `RegistroElegibilidade` (T3) precisou de `nome_segurado`/`codigo_ibge_area`/`regra_versao` — dados de exibição que a tabela não guarda por si (evitar duas fontes de verdade). `listar_por_execucao`/`obter_por_id` passaram a fazer `JOIN` em `segurados`/`apolices`/`regras` no momento da leitura; nenhuma coluna nova na migração.
+
 **Done when**:
 
-- [ ] `200` com quantidades e lista completa
-- [ ] Conjunto vazio retorna `200` com lista vazia, não erro
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `200` com quantidades e lista completa
+- [x] Conjunto vazio retorna `200` com lista vazia, não erro
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full

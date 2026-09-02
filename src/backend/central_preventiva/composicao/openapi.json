@@ -103,6 +103,46 @@
         "title": "ProblemaContexto",
         "type": "object"
       },
+      "ProblemaElegibilidade": {
+        "additionalProperties": false,
+        "description": "Falha da consulta de elegibilidade, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaElegibilidade",
+        "type": "object"
+      },
       "ProblemaMeteorologia": {
         "additionalProperties": false,
         "description": "Falha de uma operação meteorológica, com ocorrência, impacto e próxima ação segura.",
@@ -478,6 +518,40 @@
         "title": "RespostaCriterio",
         "type": "object"
       },
+      "RespostaCriterioElegibilidade": {
+        "additionalProperties": false,
+        "description": "Um critério avaliado: operando, valor observado, resultado e justificativa.",
+        "properties": {
+          "atende": {
+            "description": "Se o valor observado atende ao critério.",
+            "title": "Atende",
+            "type": "boolean"
+          },
+          "justificativa": {
+            "description": "Explicação em português brasileiro do resultado.",
+            "title": "Justificativa",
+            "type": "string"
+          },
+          "operando": {
+            "description": "O que foi comparado (ex.: área afetada, cobertura).",
+            "title": "Operando",
+            "type": "string"
+          },
+          "valor_observado": {
+            "description": "Valor observado para este critério.",
+            "title": "Valor Observado",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operando",
+          "valor_observado",
+          "atende",
+          "justificativa"
+        ],
+        "title": "RespostaCriterioElegibilidade",
+        "type": "object"
+      },
       "RespostaCriterioTeste": {
         "additionalProperties": false,
         "description": "Um critério avaliado no teste determinístico: operando, valor, resultado e justificativa.",
@@ -590,6 +664,141 @@
           "dependencias"
         ],
         "title": "RespostaDependencias",
+        "type": "object"
+      },
+      "RespostaDetalheElegibilidade": {
+        "additionalProperties": false,
+        "description": "Explicação completa de um resultado de elegibilidade (ELEG-09).",
+        "properties": {
+          "apolice_id": {
+            "description": "Identificador da apólice avaliada.",
+            "format": "uuid",
+            "title": "Apolice Id",
+            "type": "string"
+          },
+          "canal": {
+            "description": "Canal preferencial do segurado, no momento da avaliação.",
+            "title": "Canal",
+            "type": "string"
+          },
+          "codigo_ibge_area": {
+            "description": "Código IBGE da área da apólice avaliada.",
+            "title": "Codigo Ibge Area",
+            "type": "string"
+          },
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC da avaliação.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "criterios": {
+            "description": "Critérios avaliados, na ordem aplicada.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaCriterioElegibilidade"
+            },
+            "title": "Criterios",
+            "type": "array"
+          },
+          "elegivel": {
+            "description": "Se a combinação foi incluída no público elegível.",
+            "title": "Elegivel",
+            "type": "boolean"
+          },
+          "evento_id": {
+            "description": "Identificador do evento meteorológico avaliado.",
+            "format": "uuid",
+            "title": "Evento Id",
+            "type": "string"
+          },
+          "execucao_id": {
+            "description": "Identificador da execução avaliada.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "id": {
+            "description": "Identificador do resultado de elegibilidade.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "justificativa": {
+            "description": "Explicação objetiva do resultado, em português.",
+            "title": "Justificativa",
+            "type": "string"
+          },
+          "nome_segurado": {
+            "description": "Nome do segurado sintético avaliado.",
+            "title": "Nome Segurado",
+            "type": "string"
+          },
+          "regra_id": {
+            "description": "Identificador da versão de regra usada na avaliação.",
+            "format": "uuid",
+            "title": "Regra Id",
+            "type": "string"
+          },
+          "regra_versao": {
+            "description": "Versão da regra usada na avaliação.",
+            "title": "Regra Versao",
+            "type": "integer"
+          },
+          "segurado_id": {
+            "description": "Identificador do segurado avaliado.",
+            "format": "uuid",
+            "title": "Segurado Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "execucao_id",
+          "evento_id",
+          "regra_id",
+          "regra_versao",
+          "segurado_id",
+          "nome_segurado",
+          "apolice_id",
+          "codigo_ibge_area",
+          "elegivel",
+          "criterios",
+          "canal",
+          "justificativa",
+          "criado_em"
+        ],
+        "title": "RespostaDetalheElegibilidade",
+        "type": "object"
+      },
+      "RespostaElegibilidade": {
+        "additionalProperties": false,
+        "description": "Quantidades e lista do público avaliado de uma execução (ELEG-08).",
+        "properties": {
+          "excluidos": {
+            "description": "Quantidade de resultados excluídos.",
+            "title": "Excluidos",
+            "type": "integer"
+          },
+          "incluidos": {
+            "description": "Quantidade de resultados incluídos.",
+            "title": "Incluidos",
+            "type": "integer"
+          },
+          "registros": {
+            "description": "Resultados de elegibilidade, mais recentes primeiro.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaResumoElegibilidade"
+            },
+            "title": "Registros",
+            "type": "array"
+          }
+        },
+        "required": [
+          "incluidos",
+          "excluidos",
+          "registros"
+        ],
+        "title": "RespostaElegibilidade",
         "type": "object"
       },
       "RespostaEvento": {
@@ -842,6 +1051,54 @@
           "restaurado_em"
         ],
         "title": "RespostaRestauracao",
+        "type": "object"
+      },
+      "RespostaResumoElegibilidade": {
+        "additionalProperties": false,
+        "description": "Um resultado de elegibilidade na listagem: segurado, apólice, localização, canal.",
+        "properties": {
+          "apolice_id": {
+            "description": "Identificador da apólice avaliada.",
+            "format": "uuid",
+            "title": "Apolice Id",
+            "type": "string"
+          },
+          "canal": {
+            "description": "Canal preferencial do segurado, no momento da avaliação.",
+            "title": "Canal",
+            "type": "string"
+          },
+          "codigo_ibge_area": {
+            "description": "Código IBGE da área da apólice avaliada.",
+            "title": "Codigo Ibge Area",
+            "type": "string"
+          },
+          "elegivel": {
+            "description": "Se a combinação foi incluída no público elegível.",
+            "title": "Elegivel",
+            "type": "boolean"
+          },
+          "id": {
+            "description": "Identificador do resultado de elegibilidade.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "nome_segurado": {
+            "description": "Nome do segurado sintético avaliado.",
+            "title": "Nome Segurado",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nome_segurado",
+          "apolice_id",
+          "codigo_ibge_area",
+          "canal",
+          "elegivel"
+        ],
+        "title": "RespostaResumoElegibilidade",
         "type": "object"
       },
       "RespostaSaude": {
@@ -1346,6 +1603,111 @@
         "summary": "Consultar o detalhe da decisão de risco de uma execução",
         "tags": [
           "Risco"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_id}/elegibilidade": {
+      "get": {
+        "description": "Devolve as quantidades de incluídos e excluídos e a lista do público avaliado, com segurado sintético, apólice, localização, canal e resultado. Uma execução sem nenhum resultado devolve quantidades zeradas e lista vazia.",
+        "operationId": "consultar_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaElegibilidade"
+                }
+              }
+            },
+            "description": "Público elegível encontrado (pode ser vazio)."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaElegibilidade"
+                }
+              }
+            },
+            "description": "O identificador da execução não é um UUID válido."
+          }
+        },
+        "summary": "Consultar o público elegível de uma execução",
+        "tags": [
+          "Elegibilidade"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_id}/elegibilidade/{registro_id}": {
+      "get": {
+        "description": "Devolve regra e versão, operando, valor observado, resultado e justificativa de cada critério da decisão de elegibilidade já tomada, sem recalcular nada.",
+        "operationId": "consultar_registro_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade__registro_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "registro_id",
+            "required": true,
+            "schema": {
+              "title": "Registro Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaDetalheElegibilidade"
+                }
+              }
+            },
+            "description": "Resultado de elegibilidade encontrado."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaElegibilidade"
+                }
+              }
+            },
+            "description": "Resultado inexistente ou de outra execução."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaElegibilidade"
+                }
+              }
+            },
+            "description": "Algum identificador informado não é um UUID válido."
+          }
+        },
+        "summary": "Consultar a explicação completa de um resultado de elegibilidade",
+        "tags": [
+          "Elegibilidade"
         ]
       }
     },
