@@ -5,7 +5,7 @@ import json
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, replace
 from datetime import UTC, datetime
-from typing import cast
+from typing import Protocol, cast
 from uuid import UUID, uuid4
 
 import httpx
@@ -18,6 +18,7 @@ from central_preventiva.aplicacao.portas_meteorologia import (
     EstadoSincronizacao,
     OrigemSincronizacao,
     RepositorioAreasMonitoradas,
+    RepositorioCenariosSinteticosAtivados,
     RepositorioEventosMeteorologicos,
     RepositorioSincronizacoes,
     RepositorioTentativasColeta,
@@ -25,6 +26,7 @@ from central_preventiva.aplicacao.portas_meteorologia import (
     Sincronizacao,
 )
 from central_preventiva.aplicacao.portas_persistencia import ConflitoIdempotencia, PortaIdempotencia
+from central_preventiva.dominio.estados_execucao import EstadoExecucao
 
 MAXIMO_TENTATIVAS_COLETA = 3
 """Número total de tentativas de uma coleta com retry, incluindo a primeira (RESIL-01)."""
@@ -118,11 +120,45 @@ class ColetorComRetry:
 OPERACAO_COLETA_MANUAL = "solicitar_coleta_manual"
 """Escopo desta operação no armazenamento genérico de chaves de idempotência (AD-002)."""
 
+OPERACAO_NOVA_TENTATIVA = "solicitar_nova_tentativa"
+"""Escopo da nova tentativa explícita após indisponibilidade (RESIL-10, AD-002)."""
+
+OPERACAO_CENARIO_SINTETICO = "ativar_cenario_sintetico"
+"""Escopo da ativação de um cenário sintético de contingência (RESIL-12, AD-002)."""
+
 STATUS_COLETA_ACEITA = 202
 """Status registrado para o ack de uma coleta manual aceita."""
 
-MOTIVO_ERRO_TRANSPORTE = "erro_transporte_ou_timeout"
-"""Motivo de falha registrado quando o `ColetorMeteorologico` propaga timeout/erro de rede."""
+MOTIVO_RETENTATIVAS_ESGOTADAS = "retentativas_esgotadas"
+"""Motivo de falha da sincronização quando `ColetorComRetry` esgota as 3 tentativas."""
+
+IMPACTO_COLETA_INDISPONIVEL = (
+    "Coleta meteorológica indisponível; o último snapshot válido permanece consultável, "
+    "mas nenhuma nova avaliação de risco é iniciada a partir dele."
+)
+"""Impacto operacional registrado em toda `Exceção` de coleta esgotada (RESIL-06/07)."""
+
+
+class _RepositorioExecucaoPreventiva(Protocol):
+    """Porta mínima de `execucao_preventiva` de que este caso de uso depende (AD-008)."""
+
+    def criar(self, estado_inicial: EstadoExecucao) -> UUID:
+        """Persiste uma nova execução preventiva no estado informado."""
+        ...
+
+    def transicionar(
+        self, execucao_id: UUID, versao_esperada: int, novo_estado: EstadoExecucao
+    ) -> None:
+        """Transiciona a execução sob checagem otimista de versão."""
+        ...
+
+
+class _RepositorioExcecoesOperacionais(Protocol):
+    """Porta mínima de registro de `Exceção` operacional de que este caso de uso depende."""
+
+    def registrar(self, execucao_id: UUID, causa: str, tentativas: int, impacto: str) -> None:
+        """Persiste a exceção operacional da execução que esgotou as tentativas."""
+        ...
 
 
 class AreaMonitoradaInexistente(RuntimeError):
@@ -133,6 +169,16 @@ class AreaMonitoradaInexistente(RuntimeError):
 
         super().__init__(f"A área monitorada '{area_id}' não existe.")
         self.area_id = area_id
+
+
+class SincronizacaoInexistente(RuntimeError):
+    """Indica que o `sincronizacao_id` informado não corresponde a nenhuma sincronização."""
+
+    def __init__(self, sincronizacao_id: UUID) -> None:
+        """Identifica a sincronização ausente e monta a mensagem em português."""
+
+        super().__init__(f"A sincronização '{sincronizacao_id}' não existe.")
+        self.sincronizacao_id = sincronizacao_id
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,6 +199,21 @@ class PortasColetaMeteorologica:
     normalizador: NormalizadorInmet
     eventos: RepositorioEventosMeteorologicos
     sincronizacoes: RepositorioSincronizacoes
+    tentativas: RepositorioTentativasColeta
+    execucoes: _RepositorioExecucaoPreventiva
+    excecoes: _RepositorioExcecoesOperacionais
+    cenario_sintetico: ColetorMeteorologico
+    cenarios_ativados: RepositorioCenariosSinteticosAtivados
+    esperar: Callable[[float], Awaitable[None]] = asyncio.sleep
+
+
+def _causa_de(falha: RetentativasEsgotadas) -> str:
+    """Descreve, em uma frase estável, a última causa observada de uma coleta esgotada."""
+
+    if falha.ultimo_erro is not None:
+        return f"{type(falha.ultimo_erro).__name__}: {falha.ultimo_erro}"
+    assert falha.ultima_resposta is not None
+    return f"status_http_{falha.ultima_resposta.status_code}"
 
 
 def _serializar_ack(sincronizacao: Sincronizacao, aceito_em: datetime) -> str:
@@ -248,21 +309,34 @@ class ServicoColetaMeteorologica:
     async def executar_coleta(
         self, area: AreaMonitorada, requisicao_id: UUID, origem: OrigemSincronizacao
     ) -> Sincronizacao:
-        """Executa uma tentativa de coleta completa: persiste, coleta, normaliza, fecha.
+        """Executa uma tentativa de coleta completa: persiste, coleta (com retry), fecha.
 
         Usada tanto pela coleta manual (após a reserva de idempotência) quanto pelo
-        agendador automático. Nenhum log expõe o corpo íntegro da resposta do INMET
-        nem credenciais (AD-10) — só o motivo de falha tipado é persistido.
+        agendador automático e pela nova tentativa explícita. `ColetorComRetry` aplica
+        até `MAXIMO_TENTATIVAS_COLETA` tentativas com backoff (RESIL-01..05); se todas
+        esgotarem, a execução preventiva correspondente encerra como `falhou_coleta` com
+        uma `Exceção` registrada (RESIL-06..08), sem travar em estado intermediário.
+        Nenhum log expõe o corpo íntegro da resposta do INMET nem credenciais (AD-10) —
+        só o motivo de falha tipado é persistido.
         """
 
         sincronizacao = self._portas.sincronizacoes.criar(
             requisicao_id, area.id, origem, EstadoSincronizacao.COLETANDO
         )
+        retry = ColetorComRetry(
+            self._portas.coletor,
+            self._portas.tentativas,
+            sincronizacao.id,
+            esperar=self._portas.esperar,
+        )
 
         try:
-            bruta = await self._portas.coletor.coletar(area)
-        except (httpx.TimeoutException, httpx.TransportError):
-            return self._fechar(sincronizacao, EstadoSincronizacao.FALHA, 0, MOTIVO_ERRO_TRANSPORTE)
+            bruta = await retry.coletar(area)
+        except RetentativasEsgotadas as falha:
+            self._registrar_falha_terminal(falha)
+            return self._fechar(
+                sincronizacao, EstadoSincronizacao.FALHA, 0, MOTIVO_RETENTATIVAS_ESGOTADAS
+            )
 
         resultado = self._portas.normalizador.normalizar(bruta, area)
         if resultado.evento is not None:
@@ -271,6 +345,114 @@ class ServicoColetaMeteorologica:
 
         return self._fechar(
             sincronizacao, EstadoSincronizacao.FALHA, 0, str(resultado.motivo_rejeicao)
+        )
+
+    async def solicitar_nova_tentativa(
+        self, sincronizacao_origem_id: UUID, chave_idempotencia: str, hash_requisicao: str
+    ) -> SincronizacaoAceita:
+        """Solicita uma nova tentativa explícita após indisponibilidade (RESIL-10, RESIL-11).
+
+        Cria uma coleta correlacionada nova (com sua própria `Sincronizacao` e, se as
+        tentativas esgotarem de novo, sua própria `ExecucaoPreventiva`), na mesma área da
+        sincronização de origem, sem jamais reabrir ou mutar a sincronização/execução
+        anteriores. Idempotente por `chave_idempotencia` (AD-002), como toda mutação.
+        """
+
+        registrada = self._portas.idempotencia.buscar(chave_idempotencia, OPERACAO_NOVA_TENTATIVA)
+        if registrada is not None:
+            if registrada.hash_requisicao != hash_requisicao:
+                raise ConflitoIdempotencia(
+                    chave=chave_idempotencia, operacao=OPERACAO_NOVA_TENTATIVA
+                )
+            return _desserializar_ack(registrada.corpo)
+
+        origem = self._portas.sincronizacoes.buscar_por_id(sincronizacao_origem_id)
+        if origem is None:
+            raise SincronizacaoInexistente(sincronizacao_origem_id)
+        area = self._portas.areas.buscar_por_id(origem.area_monitorada_id)
+        if area is None:
+            raise AreaMonitoradaInexistente(origem.area_monitorada_id)
+
+        requisicao_id = uuid4()
+        sincronizacao = await self.executar_coleta(area, requisicao_id, OrigemSincronizacao.MANUAL)
+        aceito_em = datetime.now(UTC)
+        self._portas.idempotencia.registrar(
+            chave_idempotencia,
+            OPERACAO_NOVA_TENTATIVA,
+            hash_requisicao,
+            STATUS_COLETA_ACEITA,
+            _serializar_ack(sincronizacao, aceito_em),
+        )
+        return SincronizacaoAceita(sincronizacao=sincronizacao, aceito_em=aceito_em)
+
+    async def ativar_cenario_sintetico(
+        self,
+        area_id: UUID,
+        identificador_cenario: str,
+        chave_idempotencia: str,
+        hash_requisicao: str,
+    ) -> SincronizacaoAceita:
+        """Ativa um cenário sintético de contingência (RESIL-12, RESIL-13).
+
+        Coleta separada, sem retry (o cenário sintético não falha por transporte): o
+        evento resultante tem `proveniencia = sintetico`, nunca combinado com
+        `real_inmet`. Idempotente por `chave_idempotencia` (AD-002), como toda mutação.
+        """
+
+        registrada = self._portas.idempotencia.buscar(
+            chave_idempotencia, OPERACAO_CENARIO_SINTETICO
+        )
+        if registrada is not None:
+            if registrada.hash_requisicao != hash_requisicao:
+                raise ConflitoIdempotencia(
+                    chave=chave_idempotencia, operacao=OPERACAO_CENARIO_SINTETICO
+                )
+            return _desserializar_ack(registrada.corpo)
+
+        area = self._portas.areas.buscar_por_id(area_id)
+        if area is None:
+            raise AreaMonitoradaInexistente(area_id)
+
+        requisicao_id = uuid4()
+        sincronizacao = self._portas.sincronizacoes.criar(
+            requisicao_id, area.id, OrigemSincronizacao.MANUAL, EstadoSincronizacao.COLETANDO
+        )
+
+        bruta = await self._portas.cenario_sintetico.coletar(area)
+        resultado = self._portas.normalizador.normalizar(bruta, area)
+        if resultado.evento is not None:
+            self._portas.eventos.salvar(resultado.evento)
+            self._portas.cenarios_ativados.registrar(sincronizacao.id, identificador_cenario)
+            sincronizacao = self._fechar(sincronizacao, EstadoSincronizacao.CONCLUIDO, 1, None)
+        else:
+            sincronizacao = self._fechar(
+                sincronizacao, EstadoSincronizacao.FALHA, 0, str(resultado.motivo_rejeicao)
+            )
+
+        aceito_em = datetime.now(UTC)
+        self._portas.idempotencia.registrar(
+            chave_idempotencia,
+            OPERACAO_CENARIO_SINTETICO,
+            hash_requisicao,
+            STATUS_COLETA_ACEITA,
+            _serializar_ack(sincronizacao, aceito_em),
+        )
+        return SincronizacaoAceita(sincronizacao=sincronizacao, aceito_em=aceito_em)
+
+    def _registrar_falha_terminal(self, falha: RetentativasEsgotadas) -> None:
+        """Cria e fecha, em `falhou_coleta`, a execução preventiva de uma coleta esgotada.
+
+        Cada coleta esgotada (manual, automática ou nova tentativa) tem sua própria
+        execução preventiva — a `execucao_preventiva`/`Exceção` desta história não
+        pressupõe uma execução já existente (2.6 orquestra o ciclo completo mais tarde).
+        """
+
+        execucao_id = self._portas.execucoes.criar(EstadoExecucao.COLETANDO)
+        self._portas.execucoes.transicionar(
+            execucao_id, versao_esperada=1, novo_estado=EstadoExecucao.FALHOU_COLETA
+        )
+        self._portas.excecoes.registrar(
+            execucao_id, _causa_de(falha), falha.tentativas, IMPACTO_COLETA_INDISPONIVEL
         )
 
     def _fechar(

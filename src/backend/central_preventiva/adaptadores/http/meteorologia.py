@@ -9,15 +9,24 @@ from fastapi import APIRouter, Header, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
+from central_preventiva.adaptadores.meteorologia.adaptador_cenario_sintetico import (
+    AdaptadorCenarioSintetico,
+)
 from central_preventiva.adaptadores.meteorologia.cliente_inmet import ClienteInmet
 from central_preventiva.adaptadores.meteorologia.normalizador_inmet import NormalizadorInmet
+from central_preventiva.adaptadores.persistencia.repositorio_execucao_preventiva import (
+    RepositorioExcecoesOperacionais,
+    RepositorioExecucaoPreventiva,
+)
 from central_preventiva.adaptadores.persistencia.repositorio_idempotencia import (
     RepositorioIdempotencia,
 )
 from central_preventiva.adaptadores.persistencia.repositorio_meteorologia import (
     RepositorioAreasMonitoradas,
+    RepositorioCenariosSinteticosAtivados,
     RepositorioEventosMeteorologicos,
     RepositorioSincronizacoes,
+    RepositorioTentativasColeta,
 )
 from central_preventiva.aplicacao.coleta_meteorologica import (
     AreaMonitoradaInexistente,
@@ -193,6 +202,11 @@ def montar_portas_coleta(configuracao: Configuracao) -> PortasColetaMeteorologic
         normalizador=NormalizadorInmet(),
         eventos=RepositorioEventosMeteorologicos(configuracao.caminho_banco),
         sincronizacoes=RepositorioSincronizacoes(configuracao.caminho_banco),
+        tentativas=RepositorioTentativasColeta(configuracao.caminho_banco),
+        execucoes=RepositorioExecucaoPreventiva(configuracao.caminho_banco),
+        excecoes=RepositorioExcecoesOperacionais(configuracao.caminho_banco),
+        cenario_sintetico=AdaptadorCenarioSintetico(),
+        cenarios_ativados=RepositorioCenariosSinteticosAtivados(configuracao.caminho_banco),
     )
 
 

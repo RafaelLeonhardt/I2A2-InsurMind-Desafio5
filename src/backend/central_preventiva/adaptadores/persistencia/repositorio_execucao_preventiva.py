@@ -104,3 +104,22 @@ class RepositorioExecucaoPreventiva:
             ).fetchone()
         if resultado is None:
             raise ConflitoVersao(execucao_id, versao_esperada)
+
+
+class RepositorioExcecoesOperacionais:
+    """Registra a `Exceção` operacional quando uma execução alcança `falhou_coleta`."""
+
+    def __init__(self, caminho: Path) -> None:
+        """Vincula o repositório ao arquivo operacional do DuckDB."""
+
+        self._caminho = caminho
+
+    def registrar(self, execucao_id: UUID, causa: str, tentativas: int, impacto: str) -> None:
+        """Persiste a exceção operacional (causa, tentativas, impacto) da execução."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            conexao.execute(
+                "INSERT INTO excecoes_operacionais "
+                "(id, execucao_id, causa, tentativas, impacto) VALUES (?, ?, ?, ?, ?)",
+                [uuid4(), execucao_id, causa, tentativas, impacto],
+            )

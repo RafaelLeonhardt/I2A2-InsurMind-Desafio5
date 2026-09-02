@@ -185,13 +185,15 @@ T7
 
 **Done when**:
 
-- [ ] 3 falhas consecutivas transicionam a execução a `falhou_coleta` com `Exceção` (causa, tentativas, impacto) registrada
-- [ ] Snapshot anterior continua consultável, sem disparar nova avaliação de risco
-- [ ] `solicitar_nova_tentativa` cria execução nova em `coletando`, correlacionada, sem reabrir a execução terminal anterior
-- [ ] Repetir `solicitar_nova_tentativa` com a mesma `Idempotency-Key` não duplica a nova coleta
-- [ ] `ativar_cenario_sintetico` cria coleta separada com `proveniencia = sintetico`, nunca combinada a `real_inmet`
-- [ ] Recuperação real após falha/sintético não duplica evento já persistido (via `UNIQUE` de T1)
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] 3 falhas consecutivas transicionam a execução a `falhou_coleta` com `Exceção` (causa, tentativas, impacto) registrada
+- [x] Snapshot anterior continua consultável, sem disparar nova avaliação de risco
+- [x] `solicitar_nova_tentativa` cria execução nova em `coletando`, correlacionada, sem reabrir a execução terminal anterior
+- [x] Repetir `solicitar_nova_tentativa` com a mesma `Idempotency-Key` não duplica a nova coleta
+- [x] `ativar_cenario_sintetico` cria coleta separada com `proveniencia = sintetico`, nunca combinada a `real_inmet`
+- [x] Recuperação real após falha/sintético não duplica evento já persistido (via `UNIQUE` de T1)
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+
+**Nota de implementação**: cada coleta esgotada (manual, automática ou nova tentativa) cria e fecha sua própria `ExecucaoPreventiva` — a 2.6 ainda não existe para orquestrar um ciclo já em andamento, então esta história não pressupõe uma execução criada antes da falha (achado A5 do parecer independente permanece registrado em `STATE.md` para quando 2.6 unificar o ciclo). `PortasColetaMeteorologica` ganhou `tentativas`/`execucoes`/`excecoes`/`cenario_sintetico`/`cenarios_ativados`/`esperar` — todos os 3 call sites existentes (produção em `montar_portas_coleta`, e os dois arquivos de teste de 2.1) foram atualizados. `RepositorioSincronizacoes.buscar_por_id` (novo `# SPEC_DEVIATION`) resolve a área da sincronização de origem para `solicitar_nova_tentativa`. O teste de deduplicação por `UNIQUE` (T1) usa repositórios DuckDB reais em vez dos dublês em memória do resto do arquivo, porque os dublês não enforçam a constraint.
 
 **Tests**: unit
 **Gate**: quick

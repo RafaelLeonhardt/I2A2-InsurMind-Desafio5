@@ -143,6 +143,15 @@ class RepositorioSincronizacoes(Protocol):
         """Lista o histórico de sincronizações, da mais recente para a mais antiga."""
         ...
 
+    def buscar_por_id(self, id: UUID) -> Sincronizacao | None:
+        """Resolve a sincronização a partir do seu identificador, ou `None` se ausente.
+
+        # SPEC_DEVIATION: método ausente do `design.md` original de T3 (2.1); adicionado
+        # em T5 (2.2) porque `solicitar_nova_tentativa` precisa resolver a área da
+        # sincronização de origem antes de disparar a nova tentativa correlacionada.
+        """
+        ...
+
 
 class CodigoResultadoTentativa(StrEnum):
     """Resultado de uma tentativa individual de coleta, alinhado ao `CHECK` de
@@ -182,4 +191,12 @@ class RepositorioTentativasColeta(Protocol):
 
     def listar_tentativas(self, sincronizacao_id: UUID) -> tuple[TentativaColeta, ...]:
         """Lista as tentativas de uma sincronização, em ordem crescente de número."""
+        ...
+
+
+class RepositorioCenariosSinteticosAtivados(Protocol):
+    """Registra quando/qual cenário sintético de contingência foi ativado (RESIL-13)."""
+
+    def registrar(self, sincronizacao_id: UUID, identificador_cenario: str) -> None:
+        """Persiste a ativação de um cenário sintético, correlacionada à sua sincronização."""
         ...

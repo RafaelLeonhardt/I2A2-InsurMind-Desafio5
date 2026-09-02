@@ -258,6 +258,30 @@ class RepositorioSincronizacoes:
             for linha in linhas
         )
 
+    def buscar_por_id(self, id: UUID) -> Sincronizacao | None:
+        """Resolve a sincronização a partir do seu identificador, ou `None` se ausente."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            linha = conexao.execute(
+                "SELECT id, requisicao_id, area_monitorada_id, origem, estado, "
+                "registros_validos, motivo_falha, iniciado_em, finalizado_em "
+                "FROM sincronizacoes_meteorologicas WHERE id = ?",
+                [id],
+            ).fetchone()
+        if linha is None:
+            return None
+        return Sincronizacao(
+            id=UUID(str(linha[0])),
+            requisicao_id=UUID(str(linha[1])),
+            area_monitorada_id=UUID(str(linha[2])),
+            origem=OrigemSincronizacao(str(linha[3])),
+            estado=EstadoSincronizacao(str(linha[4])),
+            registros_validos=int(linha[5]),
+            motivo_falha=None if linha[6] is None else str(linha[6]),
+            iniciado_em=linha[7],
+            finalizado_em=linha[8],
+        )
+
 
 class RepositorioTentativasColeta:
     """Persiste e consulta as tentativas individuais de uma coleta com retry (RESIL-02)."""
@@ -313,3 +337,22 @@ class RepositorioTentativasColeta:
             )
             for linha in linhas
         )
+
+
+class RepositorioCenariosSinteticosAtivados:
+    """Registra quando/qual cenário sintético de contingência foi ativado (RESIL-13)."""
+
+    def __init__(self, caminho: Path) -> None:
+        """Vincula o repositório ao arquivo operacional do DuckDB."""
+
+        self._caminho = caminho
+
+    def registrar(self, sincronizacao_id: UUID, identificador_cenario: str) -> None:
+        """Persiste a ativação de um cenário sintético, correlacionada à sua sincronização."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            conexao.execute(
+                "INSERT INTO cenarios_sinteticos_ativados "
+                "(id, sincronizacao_id, identificador_cenario) VALUES (?, ?, ?)",
+                [uuid4(), sincronizacao_id, identificador_cenario],
+            )

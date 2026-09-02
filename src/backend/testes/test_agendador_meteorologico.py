@@ -119,6 +119,47 @@ class IdempotenciaFalsaInerte:
         raise AssertionError("a coleta automática não deveria usar idempotência")
 
 
+class TentativasFalsasInertes:
+    """Porta de tentativas falsa, apenas absorvendo os registros do retry bem-sucedido."""
+
+    def registrar_tentativa(
+        self,
+        sincronizacao_id: UUID,
+        numero_tentativa: int,
+        codigo_resultado: object,
+        iniciado_em: object,
+        finalizado_em: object,
+    ) -> None:
+        pass
+
+    def listar_tentativas(self, sincronizacao_id: UUID) -> tuple[object, ...]:
+        return ()
+
+
+class ExecucoesFalsasInertes:
+    """Porta de execuções falsa, não usada pelo caminho de coleta automática bem-sucedida."""
+
+    def criar(self, estado_inicial: object) -> UUID:
+        raise AssertionError("a coleta automática bem-sucedida não deveria criar execução")
+
+    def transicionar(self, execucao_id: UUID, versao_esperada: int, novo_estado: object) -> None:
+        raise AssertionError("a coleta automática bem-sucedida não deveria transicionar execução")
+
+
+class ExcecoesFalsasInertes:
+    """Porta de exceções operacionais falsa, não usada pelo caminho de sucesso."""
+
+    def registrar(self, execucao_id: UUID, causa: str, tentativas: int, impacto: str) -> None:
+        raise AssertionError("a coleta automática bem-sucedida não deveria registrar exceção")
+
+
+class CenariosAtivadosFalsosInertes:
+    """Porta de cenários sintéticos ativados falsa, não usada pelo agendador automático."""
+
+    def registrar(self, sincronizacao_id: UUID, identificador_cenario: str) -> None:
+        raise AssertionError("o agendador automático não ativa cenários sintéticos")
+
+
 class RelogioControlavel:
     """Relógio dublê: registra os intervalos aguardados e só libera quando mandado."""
 
@@ -154,6 +195,11 @@ def montar_agendador(
         normalizador=NormalizadorInmet(),
         eventos=EventosFalsos(),  # type: ignore[arg-type]
         sincronizacoes=SincronizacoesFalsas(),  # type: ignore[arg-type]
+        tentativas=TentativasFalsasInertes(),  # type: ignore[arg-type]
+        execucoes=ExecucoesFalsasInertes(),
+        excecoes=ExcecoesFalsasInertes(),
+        cenario_sintetico=coletor,
+        cenarios_ativados=CenariosAtivadosFalsosInertes(),  # type: ignore[arg-type]
     )
     servico = ServicoColetaMeteorologica(portas)
     if intervalo_segundos is None:

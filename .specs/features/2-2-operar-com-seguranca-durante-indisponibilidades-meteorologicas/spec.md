@@ -128,14 +128,14 @@ A História 2.1 entrega a coleta feliz do INMET, mas nada garante hoje o que aco
 | RESIL-04 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Implementing |
 | RESIL-05 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Pending |
 | RESIL-06 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Implementing |
-| RESIL-07 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Pending |
+| RESIL-07 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Implementing |
 | RESIL-08 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Implementing |
 | RESIL-09 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Pending |
 | RESIL-10 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Implementing |
 | RESIL-11 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Implementing |
-| RESIL-12 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Pending |
+| RESIL-12 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Implementing |
 | RESIL-13 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Implementing |
-| RESIL-14 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Pending |
+| RESIL-14 | P1: Contingência sintética rotulada e recuperação sem duplicação | Design | Implementing |
 | RESIL-15 | P2: Estados visíveis da fonte e cobertura de valores-limite | Design | Pending |
 | RESIL-16 | P2: Estados visíveis da fonte e cobertura de valores-limite | Design | Pending |
 | RESIL-17 | P2: Estados visíveis da fonte e cobertura de valores-limite | Design | Pending |
