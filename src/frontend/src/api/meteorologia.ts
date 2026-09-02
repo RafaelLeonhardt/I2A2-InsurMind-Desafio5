@@ -1,6 +1,9 @@
 import { clienteApi } from './clienteHttp'
 import type { components } from './tipos-gerados'
 
+/** Único cenário sintético de contingência do MVP (espelha `IDENTIFICADOR_CENARIO_GRANIZO`). */
+export const IDENTIFICADOR_CENARIO_GRANIZO = 'granizo-demonstrativo'
+
 /** Evento meteorológico normalizado, conforme o contrato REST/JSON do backend. */
 export type EventoMeteorologico = {
   id: string
@@ -13,16 +16,27 @@ export type EventoMeteorologico = {
   instanteObservado: string
 }
 
+/** Tentativa individual de coleta dentro de uma sincronização com retry. */
+export type Tentativa = {
+  numeroTentativa: number
+  codigoResultado: string
+  iniciadoEm: string
+  finalizadoEm: string
+}
+
 /** Registro de uma tentativa de sincronização meteorológica. */
 export type Sincronizacao = {
   id: string
   requisicaoId: string
+  areaMonitoradaId: string
   origem: string
   estado: string
   registrosValidos: number
   motivoFalha: string | null
   iniciadoEm: string
   finalizadoEm: string | null
+  tentativas: Tentativa[]
+  limiteTentativas: number
 }
 
 /** Histórico de sincronização, com os marcos exigidos pela consulta de Marina. */
@@ -108,16 +122,28 @@ function erroDeResultado(erro: unknown, status: number): ErroMeteorologia {
   })
 }
 
+function paraTentativa(corpo: components['schemas']['RespostaTentativa']): Tentativa {
+  return {
+    numeroTentativa: corpo.numero_tentativa,
+    codigoResultado: corpo.codigo_resultado,
+    iniciadoEm: corpo.iniciado_em,
+    finalizadoEm: corpo.finalizado_em,
+  }
+}
+
 function paraSincronizacao(corpo: components['schemas']['RespostaSincronizacao']): Sincronizacao {
   return {
     id: corpo.id,
     requisicaoId: corpo.requisicao_id,
+    areaMonitoradaId: corpo.area_monitorada_id,
     origem: corpo.origem,
     estado: corpo.estado,
     registrosValidos: corpo.registros_validos,
     motivoFalha: corpo.motivo_falha,
     iniciadoEm: corpo.iniciado_em,
     finalizadoEm: corpo.finalizado_em,
+    tentativas: corpo.tentativas.map(paraTentativa),
+    limiteTentativas: corpo.limite_tentativas,
   }
 }
 
@@ -142,6 +168,27 @@ async function chamarColeta(areaId: string) {
   })
 }
 
+async function chamarNovaTentativa(sincronizacaoId: string) {
+  return clienteApi.POST('/api/v1/meteorologia/{sincronizacao_id}/nova-tentativa', {
+    params: {
+      header: { 'Idempotency-Key': crypto.randomUUID() },
+      path: { sincronizacao_id: sincronizacaoId },
+    },
+    fetch,
+  })
+}
+
+async function chamarAtivarCenarioSintetico(identificador: string, areaId: string) {
+  return clienteApi.POST('/api/v1/meteorologia/cenarios-sinteticos/{identificador}/ativar', {
+    params: {
+      header: { 'Idempotency-Key': crypto.randomUUID() },
+      path: { identificador },
+    },
+    body: { area_id: areaId },
+    fetch,
+  })
+}
+
 async function chamarEventos() {
   return clienteApi.GET('/api/v1/meteorologia/eventos', { fetch })
 }
@@ -155,6 +202,57 @@ export async function solicitarColeta(areaId: string): Promise<ColetaAceita> {
   let resultado: Awaited<ReturnType<typeof chamarColeta>>
   try {
     resultado = await chamarColeta(areaId)
+  } catch {
+    throw new ErroMeteorologia(FALHA_DE_REDE)
+  }
+
+  if (!resultado.response.ok || !resultado.data) {
+    throw erroDeResultado(resultado.error, resultado.response.status)
+  }
+
+  const corpo = resultado.data
+  return {
+    id: corpo.id,
+    requisicaoId: corpo.requisicao_id,
+    estado: corpo.estado,
+    registrosValidos: corpo.registros_validos,
+    motivoFalha: corpo.motivo_falha,
+    aceitoEm: corpo.aceito_em,
+  }
+}
+
+/** Solicita uma nova tentativa correlacionada à sincronização de origem, com `Idempotency-Key` nova. */
+export async function solicitarNovaTentativa(sincronizacaoId: string): Promise<ColetaAceita> {
+  let resultado: Awaited<ReturnType<typeof chamarNovaTentativa>>
+  try {
+    resultado = await chamarNovaTentativa(sincronizacaoId)
+  } catch {
+    throw new ErroMeteorologia(FALHA_DE_REDE)
+  }
+
+  if (!resultado.response.ok || !resultado.data) {
+    throw erroDeResultado(resultado.error, resultado.response.status)
+  }
+
+  const corpo = resultado.data
+  return {
+    id: corpo.id,
+    requisicaoId: corpo.requisicao_id,
+    estado: corpo.estado,
+    registrosValidos: corpo.registros_validos,
+    motivoFalha: corpo.motivo_falha,
+    aceitoEm: corpo.aceito_em,
+  }
+}
+
+/** Ativa o cenário sintético de contingência informado para a área dada, com `Idempotency-Key` nova. */
+export async function ativarCenarioSintetico(
+  identificador: string,
+  areaId: string,
+): Promise<ColetaAceita> {
+  let resultado: Awaited<ReturnType<typeof chamarAtivarCenarioSintetico>>
+  try {
+    resultado = await chamarAtivarCenarioSintetico(identificador, areaId)
   } catch {
     throw new ErroMeteorologia(FALHA_DE_REDE)
   }

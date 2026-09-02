@@ -509,6 +509,12 @@
         "additionalProperties": false,
         "description": "Registro público de uma tentativa de sincronização meteorológica.",
         "properties": {
+          "area_monitorada_id": {
+            "description": "Identificador da área monitorada desta sincronização.",
+            "format": "uuid",
+            "title": "Area Monitorada Id",
+            "type": "string"
+          },
           "estado": {
             "description": "Estado atual da sincronização.",
             "title": "Estado",
@@ -584,6 +590,7 @@
         "required": [
           "id",
           "requisicao_id",
+          "area_monitorada_id",
           "origem",
           "estado",
           "registros_validos",

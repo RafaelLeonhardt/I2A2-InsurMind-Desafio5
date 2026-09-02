@@ -1,12 +1,16 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   ErroMeteorologia,
+  IDENTIFICADOR_CENARIO_GRANIZO,
+  ativarCenarioSintetico,
   getEventos,
   getSincronizacoes,
   solicitarColeta,
+  solicitarNovaTentativa,
 } from './meteorologia'
 
 const AREA_ID = '11111111-1111-1111-1111-111111111111'
+const SINCRONIZACAO_ID = '22222222-2222-2222-2222-222222222222'
 
 function responder(status: number, corpo: unknown): Response {
   return new Response(JSON.stringify(corpo), {
@@ -108,6 +112,152 @@ describe('solicitarColeta', () => {
   })
 })
 
+describe('solicitarNovaTentativa', () => {
+  it('mapeia snake_case para camelCase quando o backend responde 202', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        responder(202, {
+          id: '33333333-3333-3333-3333-333333333333',
+          requisicao_id: '44444444-4444-4444-4444-444444444444',
+          estado: 'concluido',
+          registros_validos: 1,
+          motivo_falha: null,
+          aceito_em: '2026-08-30T12:00:00+00:00',
+        }),
+      ),
+    )
+
+    const aceita = await solicitarNovaTentativa(SINCRONIZACAO_ID)
+
+    expect(aceita).toEqual({
+      id: '33333333-3333-3333-3333-333333333333',
+      requisicaoId: '44444444-4444-4444-4444-444444444444',
+      estado: 'concluido',
+      registrosValidos: 1,
+      motivoFalha: null,
+      aceitoEm: '2026-08-30T12:00:00+00:00',
+    })
+  })
+
+  it('chama o caminho com o id da sincronização de origem e uma Idempotency-Key nova', async () => {
+    const chamadaFetch = vi.fn().mockResolvedValue(
+      responder(202, {
+        id: '3',
+        requisicao_id: '4',
+        estado: 'concluido',
+        registros_validos: 1,
+        motivo_falha: null,
+        aceito_em: '2026-08-30T12:00:00+00:00',
+      }),
+    )
+    vi.stubGlobal('fetch', chamadaFetch)
+
+    await solicitarNovaTentativa(SINCRONIZACAO_ID)
+
+    const requisicao = chamadaFetch.mock.calls[0][0] as Request
+    expect(requisicao.url).toContain(`/${SINCRONIZACAO_ID}/nova-tentativa`)
+    expect(requisicao.headers.get('Idempotency-Key')).toBeTruthy()
+  })
+
+  it('rejeita com ErroMeteorologia tipado quando o backend responde 404', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(responder(404, problema('sincronizacao_desconhecida'))),
+    )
+
+    const erro = await solicitarNovaTentativa(SINCRONIZACAO_ID).catch((causa: unknown) => causa)
+
+    expect(erro).toBeInstanceOf(ErroMeteorologia)
+    expect((erro as ErroMeteorologia).codigo).toBe('sincronizacao_desconhecida')
+  })
+
+  it('rejeita com ErroMeteorologia (falha de rede) quando fetch lança', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
+
+    const erro = await solicitarNovaTentativa(SINCRONIZACAO_ID).catch((causa: unknown) => causa)
+
+    expect(erro).toBeInstanceOf(ErroMeteorologia)
+    expect((erro as ErroMeteorologia).codigo).toBe('falha_de_rede')
+  })
+})
+
+describe('ativarCenarioSintetico', () => {
+  it('mapeia snake_case para camelCase quando o backend responde 202', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        responder(202, {
+          id: '55555555-5555-5555-5555-555555555555',
+          requisicao_id: '66666666-6666-6666-6666-666666666666',
+          estado: 'concluido',
+          registros_validos: 1,
+          motivo_falha: null,
+          aceito_em: '2026-08-30T12:00:00+00:00',
+        }),
+      ),
+    )
+
+    const aceita = await ativarCenarioSintetico(IDENTIFICADOR_CENARIO_GRANIZO, AREA_ID)
+
+    expect(aceita).toEqual({
+      id: '55555555-5555-5555-5555-555555555555',
+      requisicaoId: '66666666-6666-6666-6666-666666666666',
+      estado: 'concluido',
+      registrosValidos: 1,
+      motivoFalha: null,
+      aceitoEm: '2026-08-30T12:00:00+00:00',
+    })
+  })
+
+  it('chama o caminho com o identificador do cenário e uma Idempotency-Key nova', async () => {
+    const chamadaFetch = vi.fn().mockResolvedValue(
+      responder(202, {
+        id: '5',
+        requisicao_id: '6',
+        estado: 'concluido',
+        registros_validos: 1,
+        motivo_falha: null,
+        aceito_em: '2026-08-30T12:00:00+00:00',
+      }),
+    )
+    vi.stubGlobal('fetch', chamadaFetch)
+
+    await ativarCenarioSintetico(IDENTIFICADOR_CENARIO_GRANIZO, AREA_ID)
+
+    const requisicao = chamadaFetch.mock.calls[0][0] as Request
+    expect(requisicao.url).toContain(
+      `/cenarios-sinteticos/${IDENTIFICADOR_CENARIO_GRANIZO}/ativar`,
+    )
+    expect(requisicao.headers.get('Idempotency-Key')).toBeTruthy()
+  })
+
+  it('rejeita com ErroMeteorologia tipado quando o backend responde 404', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(responder(404, problema('area_monitorada_desconhecida'))),
+    )
+
+    const erro = await ativarCenarioSintetico(IDENTIFICADOR_CENARIO_GRANIZO, AREA_ID).catch(
+      (causa: unknown) => causa,
+    )
+
+    expect(erro).toBeInstanceOf(ErroMeteorologia)
+    expect((erro as ErroMeteorologia).codigo).toBe('area_monitorada_desconhecida')
+  })
+
+  it('rejeita com ErroMeteorologia (falha de rede) quando fetch lança', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
+
+    const erro = await ativarCenarioSintetico(IDENTIFICADOR_CENARIO_GRANIZO, AREA_ID).catch(
+      (causa: unknown) => causa,
+    )
+
+    expect(erro).toBeInstanceOf(ErroMeteorologia)
+    expect((erro as ErroMeteorologia).codigo).toBe('falha_de_rede')
+  })
+})
+
 describe('getEventos', () => {
   it('mapeia a lista de eventos de snake_case para camelCase quando o backend responde 200', async () => {
     vi.stubGlobal(
@@ -167,12 +317,22 @@ describe('getSincronizacoes', () => {
     const sincronizacaoBruta = {
       id: 's1',
       requisicao_id: 'r1',
+      area_monitorada_id: 'a1',
       origem: 'manual',
       estado: 'concluido',
       registros_validos: 1,
       motivo_falha: null,
       iniciado_em: '2026-08-30T12:00:00+00:00',
       finalizado_em: '2026-08-30T12:00:05+00:00',
+      tentativas: [
+        {
+          numero_tentativa: 1,
+          codigo_resultado: 'sucesso',
+          iniciado_em: '2026-08-30T12:00:00+00:00',
+          finalizado_em: '2026-08-30T12:00:01+00:00',
+        },
+      ],
+      limite_tentativas: 3,
     }
     vi.stubGlobal(
       'fetch',
@@ -192,34 +352,64 @@ describe('getSincronizacoes', () => {
       ultimaTentativa: {
         id: 's1',
         requisicaoId: 'r1',
+        areaMonitoradaId: 'a1',
         origem: 'manual',
         estado: 'concluido',
         registrosValidos: 1,
         motivoFalha: null,
         iniciadoEm: '2026-08-30T12:00:00+00:00',
         finalizadoEm: '2026-08-30T12:00:05+00:00',
+        tentativas: [
+          {
+            numeroTentativa: 1,
+            codigoResultado: 'sucesso',
+            iniciadoEm: '2026-08-30T12:00:00+00:00',
+            finalizadoEm: '2026-08-30T12:00:01+00:00',
+          },
+        ],
+        limiteTentativas: 3,
       },
       ultimaValida: {
         id: 's1',
         requisicaoId: 'r1',
+        areaMonitoradaId: 'a1',
         origem: 'manual',
         estado: 'concluido',
         registrosValidos: 1,
         motivoFalha: null,
         iniciadoEm: '2026-08-30T12:00:00+00:00',
         finalizadoEm: '2026-08-30T12:00:05+00:00',
+        tentativas: [
+          {
+            numeroTentativa: 1,
+            codigoResultado: 'sucesso',
+            iniciadoEm: '2026-08-30T12:00:00+00:00',
+            finalizadoEm: '2026-08-30T12:00:01+00:00',
+          },
+        ],
+        limiteTentativas: 3,
       },
       proximaConsulta: '2026-08-30T12:15:00+00:00',
       resultadosAnteriores: [
         {
           id: 's1',
           requisicaoId: 'r1',
+          areaMonitoradaId: 'a1',
           origem: 'manual',
           estado: 'concluido',
           registrosValidos: 1,
           motivoFalha: null,
           iniciadoEm: '2026-08-30T12:00:00+00:00',
           finalizadoEm: '2026-08-30T12:00:05+00:00',
+          tentativas: [
+            {
+              numeroTentativa: 1,
+              codigoResultado: 'sucesso',
+              iniciadoEm: '2026-08-30T12:00:00+00:00',
+              finalizadoEm: '2026-08-30T12:00:01+00:00',
+            },
+          ],
+          limiteTentativas: 3,
         },
       ],
     })

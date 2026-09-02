@@ -237,10 +237,12 @@ T7
 
 **Done when**:
 
-- [ ] Os seis estados são visualmente distinguíveis (texto + ícone + cor, não só cor)
-- [ ] Cada estado mostra somente ações seguras e aplicáveis a ele
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Os seis estados são visualmente distinguíveis (texto + ícone + cor, não só cor)
+- [x] Cada estado mostra somente ações seguras e aplicáveis a ele
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+
+**Nota de implementação**: `calcularEstadoFonte(historico, eventos)` (função pura, exportada e testada isoladamente) deriva os 6 estados só de dados já persistidos, sem estado especulativo: `em_tentativa`/`indisponivel` do `estado` da última sincronização, `sintetica` do `proveniencia` do evento mais recente, `recuperada` quando a última concluiu logo após uma falha, `degradada` quando precisou de mais de uma tentativa, `operacional` no default (inclui "nunca coletou"). Ações seguras por estado: `indisponivel` oferece nova tentativa E ativar cenário sintético; `sintetica` oferece só nova tentativa (reativar o mesmo cenário seria redundante); os demais não oferecem ação. `ativar_cenario_sintetico` exigia `area_id`, que a superfície não tinha como obter — `RespostaSincronizacao` ganhou `area_monitorada_id` (extensão retroativa mínima do contrato de T6, mesmo padrão de adicionar campo já usado para `tentativas`/`limite_tentativas`). Tipos gerados a partir do `openapi.json` local (sem precisar do backend no ar) via `openapi-typescript ../backend/.../openapi.json -o src/api/tipos-gerados.ts`, equivalente ao `gerar-tipos-api` contra um servidor ao vivo. Verificado manualmente: backend+frontend reais no ar, ciclo completo `ativar_cenario_sintetico` → `GET /sincronizacoes` → `GET /eventos` conferido campo a campo, módulo do componente compilado pelo Vite sem erro; banco de desenvolvimento restaurado ao final.
 
 **Tests**: unit
 **Gate**: full

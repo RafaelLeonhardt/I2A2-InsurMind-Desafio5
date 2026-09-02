@@ -4,26 +4,6 @@
  */
 
 export interface paths {
-    "/api/v1/saude": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar a saúde do processo
-         * @description Confirma somente que o processo local da API está disponível.
-         */
-        get: operations["obter_saude_api_v1_saude_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/dados-sinteticos/restauracoes": {
         parameters: {
             query?: never;
@@ -44,27 +24,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/prontidao/dependencias": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar a prontidão das dependências
-         * @description Devolve o estado mais recente de backend, banco de dados, INMET e OpenAI. Backend e banco de dados são recomputados a cada chamada; INMET e OpenAI, na primeira consulta, disparam a verificação em segundo plano e retornam 'verificando'.
-         */
-        get: operations["consultar_api_v1_prontidao_dependencias_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/prontidao/dependencias/{nome}/verificacoes": {
+    "/api/v1/meteorologia/cenarios-sinteticos/{identificador}/ativar": {
         parameters: {
             query?: never;
             header?: never;
@@ -74,30 +34,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Solicitar uma nova verificação de prontidão
-         * @description Solicita, de forma assíncrona e idempotente, uma nova verificação de INMET ou OpenAI. Exige o cabeçalho `Idempotency-Key` em toda requisição. Backend e banco de dados não aceitam este recurso: já são recomputados a cada `GET`.
+         * Ativar um cenário sintético de contingência
+         * @description Ativa, de forma idempotente, o cenário sintético de contingência informado para a área monitorada indicada. O evento resultante tem `proveniencia = sintetico`, nunca combinado com dados `real_inmet`. Exige o cabeçalho `Idempotency-Key` em toda requisição.
          */
-        post: operations["verificar_novamente_api_v1_prontidao_dependencias__nome__verificacoes_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/segurados/padrao": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar o segurado sintético padrão
-         * @description Devolve o segurado sintético padrão usado na visão de Segurado da demonstração.
-         */
-        get: operations["consultar_api_v1_segurados_padrao_get"];
-        put?: never;
-        post?: never;
+        post: operations["ativar_cenario_sintetico_api_v1_meteorologia_cenarios_sinteticos__identificador__ativar_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -164,6 +104,106 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/meteorologia/{sincronizacao_id}/nova-tentativa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Solicitar uma nova tentativa após indisponibilidade
+         * @description Solicita, de forma idempotente, uma nova coleta correlacionada à sincronização de origem informada, sem reabrir nem mutar a sincronização/execução anteriores. Exige o cabeçalho `Idempotency-Key` em toda requisição.
+         */
+        post: operations["solicitar_nova_tentativa_api_v1_meteorologia__sincronizacao_id__nova_tentativa_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prontidao/dependencias": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar a prontidão das dependências
+         * @description Devolve o estado mais recente de backend, banco de dados, INMET e OpenAI. Backend e banco de dados são recomputados a cada chamada; INMET e OpenAI, na primeira consulta, disparam a verificação em segundo plano e retornam 'verificando'.
+         */
+        get: operations["consultar_api_v1_prontidao_dependencias_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prontidao/dependencias/{nome}/verificacoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Solicitar uma nova verificação de prontidão
+         * @description Solicita, de forma assíncrona e idempotente, uma nova verificação de INMET ou OpenAI. Exige o cabeçalho `Idempotency-Key` em toda requisição. Backend e banco de dados não aceitam este recurso: já são recomputados a cada `GET`.
+         */
+        post: operations["verificar_novamente_api_v1_prontidao_dependencias__nome__verificacoes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/saude": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar a saúde do processo
+         * @description Confirma somente que o processo local da API está disponível.
+         */
+        get: operations["obter_saude_api_v1_saude_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/segurados/padrao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o segurado sintético padrão
+         * @description Devolve o segurado sintético padrão usado na visão de Segurado da demonstração.
+         */
+        get: operations["consultar_api_v1_segurados_padrao_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -184,15 +224,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Ocorrencia
-             * @description O que aconteceu, em português brasileiro.
-             */
-            ocorrencia: string;
-            /**
              * Impacto
              * @description Efeito prático da falha para quem consultou o recurso.
              */
             impacto: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -215,15 +255,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Ocorrencia
-             * @description O que aconteceu, em português brasileiro.
-             */
-            ocorrencia: string;
-            /**
              * Impacto
              * @description Efeito prático da falha para quem consultou o recurso.
              */
             impacto: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -246,15 +286,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Ocorrencia
-             * @description O que aconteceu, em português brasileiro.
-             */
-            ocorrencia: string;
-            /**
              * Impacto
              * @description Efeito prático da falha para quem consultou o recurso.
              */
             impacto: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -277,15 +317,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Ocorrencia
-             * @description O que aconteceu, em português brasileiro.
-             */
-            ocorrencia: string;
-            /**
              * Impacto
              * @description Efeito prático da falha para quem consultou o recurso.
              */
             impacto: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -298,38 +338,38 @@ export interface components {
          */
         RespostaColetaAceita: {
             /**
-             * Id
-             * Format: uuid
-             * @description Identificador da sincronização criada ou já registrada.
+             * Aceito Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC em que a solicitação foi aceita.
              */
-            id: string;
-            /**
-             * Requisicao Id
-             * Format: uuid
-             * @description Identificador de correlação da tentativa.
-             */
-            requisicao_id: string;
+            aceito_em: string;
             /**
              * Estado
              * @description Estado da sincronização no momento da resposta.
              */
             estado: string;
             /**
-             * Registros Validos
-             * @description Quantidade de eventos válidos produzidos.
+             * Id
+             * Format: uuid
+             * @description Identificador da sincronização criada ou já registrada.
              */
-            registros_validos: number;
+            id: string;
             /**
              * Motivo Falha
              * @description Motivo tipado da falha, ou nulo se não houve.
              */
             motivo_falha: string | null;
             /**
-             * Aceito Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC em que a solicitação foi aceita.
+             * Registros Validos
+             * @description Quantidade de eventos válidos produzidos.
              */
-            aceito_em: string;
+            registros_validos: number;
+            /**
+             * Requisicao Id
+             * Format: uuid
+             * @description Identificador de correlação da tentativa.
+             */
+            requisicao_id: string;
         };
         /**
          * RespostaDependencia
@@ -337,35 +377,35 @@ export interface components {
          */
         RespostaDependencia: {
             /**
-             * Nome
-             * @description Nome canônico da dependência verificada.
+             * Acao Disponivel
+             * @description Ação segura disponível dado o estado atual.
              */
-            nome: string;
-            /**
-             * Estado
-             * @description Estado atual de prontidão da dependência.
-             */
-            estado: string;
-            /**
-             * Verificado Em
-             * @description Instante RFC 3339 em UTC da última verificação, ou nulo se ainda não houve.
-             */
-            verificado_em: string | null;
+            acao_disponivel: string;
             /**
              * Causa
              * @description Causa da indisponibilidade ou degradação, ou nula quando disponível.
              */
             causa: string | null;
             /**
+             * Estado
+             * @description Estado atual de prontidão da dependência.
+             */
+            estado: string;
+            /**
              * Impacto
              * @description Efeito prático do estado atual para quem consulta.
              */
             impacto: string;
             /**
-             * Acao Disponivel
-             * @description Ação segura disponível dado o estado atual.
+             * Nome
+             * @description Nome canônico da dependência verificada.
              */
-            acao_disponivel: string;
+            nome: string;
+            /**
+             * Verificado Em
+             * @description Instante RFC 3339 em UTC da última verificação, ou nulo se ainda não houve.
+             */
+            verificado_em: string | null;
         };
         /**
          * RespostaDependencias
@@ -384,27 +424,27 @@ export interface components {
          */
         RespostaEvento: {
             /**
+             * Area
+             * @description Código IBGE da área onde o evento foi observado.
+             */
+            area: string;
+            /**
              * Id
              * Format: uuid
              * @description Identificador do evento meteorológico.
              */
             id: string;
             /**
-             * Tipo
-             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
-             */
-            tipo: string;
-            /**
-             * Area
-             * @description Código IBGE da área onde o evento foi observado.
-             */
-            area: string;
-            /**
-             * Periodo Inicio
+             * Instante Observado
              * Format: date-time
-             * @description Início RFC 3339 em UTC do período do evento.
+             * @description Instante RFC 3339 em UTC em que a medida foi observada.
              */
-            periodo_inicio: string;
+            instante_observado: string;
+            /**
+             * Intensidade
+             * @description Intensidade normalizada da medida observada.
+             */
+            intensidade: number;
             /**
              * Periodo Fim
              * Format: date-time
@@ -412,21 +452,21 @@ export interface components {
              */
             periodo_fim: string;
             /**
-             * Intensidade
-             * @description Intensidade normalizada da medida observada.
+             * Periodo Inicio
+             * Format: date-time
+             * @description Início RFC 3339 em UTC do período do evento.
              */
-            intensidade: number;
+            periodo_inicio: string;
             /**
              * Proveniencia
              * @description Origem do evento (`real_inmet` ou `sintetico`).
              */
             proveniencia: string;
             /**
-             * Instante Observado
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC em que a medida foi observada.
+             * Tipo
+             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
              */
-            instante_observado: string;
+            tipo: string;
         };
         /**
          * RespostaEventos
@@ -444,10 +484,6 @@ export interface components {
          * @description Histórico de sincronização, com os marcos exigidos pela consulta de Marina.
          */
         RespostaHistoricoSincronizacoes: {
-            /** @description Tentativa mais recente registrada, ou nula se nunca houve nenhuma. */
-            ultima_tentativa: components["schemas"]["RespostaSincronizacao"] | null;
-            /** @description Última tentativa concluída com sucesso, ou nula se nenhuma concluiu. */
-            ultima_valida: components["schemas"]["RespostaSincronizacao"] | null;
             /**
              * Proxima Consulta
              * @description Instante RFC 3339 em UTC estimado da próxima coleta automática.
@@ -458,6 +494,10 @@ export interface components {
              * @description Histórico completo, da tentativa mais recente para a mais antiga.
              */
             resultados_anteriores: components["schemas"]["RespostaSincronizacao"][];
+            /** @description Tentativa mais recente registrada, ou nula se nunca houve nenhuma. */
+            ultima_tentativa: components["schemas"]["RespostaSincronizacao"] | null;
+            /** @description Última tentativa concluída com sucesso, ou nula se nenhuma concluiu. */
+            ultima_valida: components["schemas"]["RespostaSincronizacao"] | null;
         };
         /**
          * RespostaRestauracao
@@ -465,17 +505,17 @@ export interface components {
          */
         RespostaRestauracao: {
             /**
-             * Status
-             * @description Resultado da restauração concluída.
-             * @constant
-             */
-            status: "restaurado";
-            /**
              * Restaurado Em
              * Format: date-time
              * @description Instante RFC 3339 em UTC em que a restauração foi concluída.
              */
             restaurado_em: string;
+            /**
+             * Status
+             * @description Resultado da restauração concluída.
+             * @constant
+             */
+            status: "restaurado";
         };
         /**
          * RespostaSaude
@@ -483,17 +523,17 @@ export interface components {
          */
         RespostaSaude: {
             /**
-             * Status
-             * @description Disponibilidade do processo backend.
-             * @constant
-             */
-            status: "disponivel";
-            /**
              * Ambiente
              * @description Ambiente de execução do processo.
              * @constant
              */
             ambiente: "educacional";
+            /**
+             * Status
+             * @description Disponibilidade do processo backend.
+             * @constant
+             */
+            status: "disponivel";
         };
         /**
          * RespostaSeguradoPadrao
@@ -517,37 +557,27 @@ export interface components {
          */
         RespostaSincronizacao: {
             /**
-             * Id
+             * Area Monitorada Id
              * Format: uuid
-             * @description Identificador da sincronização.
+             * @description Identificador da área monitorada desta sincronização.
              */
-            id: string;
-            /**
-             * Requisicao Id
-             * Format: uuid
-             * @description Identificador de correlação da tentativa.
-             */
-            requisicao_id: string;
-            /**
-             * Origem
-             * @description Origem da tentativa (`automatica` ou `manual`).
-             */
-            origem: string;
+            area_monitorada_id: string;
             /**
              * Estado
              * @description Estado atual da sincronização.
              */
             estado: string;
             /**
-             * Registros Validos
-             * @description Quantidade de eventos válidos produzidos.
+             * Finalizado Em
+             * @description Instante RFC 3339 em UTC de término, ou nulo se em andamento.
              */
-            registros_validos: number;
+            finalizado_em: string | null;
             /**
-             * Motivo Falha
-             * @description Motivo tipado da falha, ou nulo se não houve.
+             * Id
+             * Format: uuid
+             * @description Identificador da sincronização.
              */
-            motivo_falha: string | null;
+            id: string;
             /**
              * Iniciado Em
              * Format: date-time
@@ -555,10 +585,64 @@ export interface components {
              */
             iniciado_em: string;
             /**
-             * Finalizado Em
-             * @description Instante RFC 3339 em UTC de término, ou nulo se em andamento.
+             * Limite Tentativas
+             * @description Número máximo de tentativas totais de uma coleta (RESIL-01).
              */
-            finalizado_em: string | null;
+            limite_tentativas: number;
+            /**
+             * Motivo Falha
+             * @description Motivo tipado da falha, ou nulo se não houve.
+             */
+            motivo_falha: string | null;
+            /**
+             * Origem
+             * @description Origem da tentativa (`automatica` ou `manual`).
+             */
+            origem: string;
+            /**
+             * Registros Validos
+             * @description Quantidade de eventos válidos produzidos.
+             */
+            registros_validos: number;
+            /**
+             * Requisicao Id
+             * Format: uuid
+             * @description Identificador de correlação da tentativa.
+             */
+            requisicao_id: string;
+            /**
+             * Tentativas
+             * @description Tentativas individuais desta sincronização, em ordem crescente de número.
+             */
+            tentativas: components["schemas"]["RespostaTentativa"][];
+        };
+        /**
+         * RespostaTentativa
+         * @description Tentativa individual de coleta dentro de uma sincronização com retry (RESIL-02).
+         */
+        RespostaTentativa: {
+            /**
+             * Codigo Resultado
+             * @description Resultado da tentativa (`sucesso`, `timeout`, `erro_transporte`, `status_erro`).
+             */
+            codigo_resultado: string;
+            /**
+             * Finalizado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC de término da tentativa.
+             */
+            finalizado_em: string;
+            /**
+             * Iniciado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC de início da tentativa.
+             */
+            iniciado_em: string;
+            /**
+             * Numero Tentativa
+             * @description Número sequencial da tentativa (1 a 3).
+             */
+            numero_tentativa: number;
         };
         /**
          * RespostaVerificacaoAceita
@@ -566,21 +650,33 @@ export interface components {
          */
         RespostaVerificacaoAceita: {
             /**
-             * Nome
-             * @description Nome canônico da dependência cuja verificação foi aceita.
+             * Aceito Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC em que a nova verificação foi aceita.
              */
-            nome: string;
+            aceito_em: string;
             /**
              * Estado
              * @description Estado da dependência no momento em que a verificação foi aceita.
              */
             estado: string;
             /**
-             * Aceito Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC em que a nova verificação foi aceita.
+             * Nome
+             * @description Nome canônico da dependência cuja verificação foi aceita.
              */
-            aceito_em: string;
+            nome: string;
+        };
+        /**
+         * SolicitacaoAtivarCenarioSintetico
+         * @description Corpo da ativação de um cenário sintético: a área monitorada a usar.
+         */
+        SolicitacaoAtivarCenarioSintetico: {
+            /**
+             * Area Id
+             * Format: uuid
+             * @description Identificador da área monitorada onde ativar o cenário.
+             */
+            area_id: string;
         };
         /**
          * SolicitacaoColeta
@@ -603,26 +699,6 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    obter_saude_api_v1_saude_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Saúde do processo confirmada. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaSaude"];
-                };
-            };
-        };
-    };
     restaurar_api_v1_dados_sinteticos_restauracoes_post: {
         parameters: {
             query?: never;
@@ -672,102 +748,57 @@ export interface operations {
             };
         };
     };
-    consultar_api_v1_prontidao_dependencias_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Estado de prontidão das 4 dependências. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaDependencias"];
-                };
-            };
-        };
-    };
-    verificar_novamente_api_v1_prontidao_dependencias__nome__verificacoes_post: {
+    ativar_cenario_sintetico_api_v1_meteorologia_cenarios_sinteticos__identificador__ativar_post: {
         parameters: {
             query?: never;
             header?: {
                 "Idempotency-Key"?: string | null;
             };
             path: {
-                nome: string;
+                identificador: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitacaoAtivarCenarioSintetico"];
+            };
+        };
         responses: {
-            /** @description Nova verificação aceita e em andamento. */
+            /** @description Cenário sintético ativado. */
             202: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RespostaVerificacaoAceita"];
+                    "application/json": components["schemas"]["RespostaColetaAceita"];
                 };
             };
-            /** @description Dependência desconhecida. */
+            /** @description Área monitorada desconhecida. */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaProntidao"];
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
                 };
             };
-            /** @description Conflito de idempotência ou verificação já em andamento. */
+            /** @description Conflito de idempotência. */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaProntidao"];
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
                 };
             };
-            /** @description Cabeçalho ausente ou dependência local sem re-verificação. */
+            /** @description Requisição sem o cabeçalho `Idempotency-Key`. */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaProntidao"];
-                };
-            };
-        };
-    };
-    consultar_api_v1_segurados_padrao_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Segurado sintético padrão encontrado. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaSeguradoPadrao"];
-                };
-            };
-            /** @description Dados sintéticos ainda não restaurados. */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaContexto"];
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
                 };
             };
         };
@@ -861,6 +892,177 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RespostaHistoricoSincronizacoes"];
+                };
+            };
+        };
+    };
+    solicitar_nova_tentativa_api_v1_meteorologia__sincronizacao_id__nova_tentativa_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                sincronizacao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nova tentativa aceita e concluída. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaColetaAceita"];
+                };
+            };
+            /** @description Sincronização de origem ou área monitorada desconhecida. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+            /** @description Conflito de idempotência. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+            /** @description Requisição sem o cabeçalho `Idempotency-Key`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+        };
+    };
+    consultar_api_v1_prontidao_dependencias_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Estado de prontidão das 4 dependências. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaDependencias"];
+                };
+            };
+        };
+    };
+    verificar_novamente_api_v1_prontidao_dependencias__nome__verificacoes_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                nome: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nova verificação aceita e em andamento. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaVerificacaoAceita"];
+                };
+            };
+            /** @description Dependência desconhecida. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaProntidao"];
+                };
+            };
+            /** @description Conflito de idempotência ou verificação já em andamento. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaProntidao"];
+                };
+            };
+            /** @description Cabeçalho ausente ou dependência local sem re-verificação. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaProntidao"];
+                };
+            };
+        };
+    };
+    obter_saude_api_v1_saude_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Saúde do processo confirmada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaSaude"];
+                };
+            };
+        };
+    };
+    consultar_api_v1_segurados_padrao_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Segurado sintético padrão encontrado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaSeguradoPadrao"];
+                };
+            };
+            /** @description Dados sintéticos ainda não restaurados. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaContexto"];
                 };
             };
         };

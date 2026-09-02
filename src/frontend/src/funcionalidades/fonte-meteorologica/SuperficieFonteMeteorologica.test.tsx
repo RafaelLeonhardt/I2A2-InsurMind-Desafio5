@@ -1,18 +1,28 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import type { EventoMeteorologico, HistoricoSincronizacoes } from '../../api/meteorologia'
-import { SuperficieFonteMeteorologica } from './SuperficieFonteMeteorologica'
+import type {
+  EventoMeteorologico,
+  HistoricoSincronizacoes,
+  Sincronizacao,
+} from '../../api/meteorologia'
+import { calcularEstadoFonte, SuperficieFonteMeteorologica } from './SuperficieFonteMeteorologica'
 
-const { getEventos, getSincronizacoes } = vi.hoisted(() => ({
-  getEventos: vi.fn(),
-  getSincronizacoes: vi.fn(),
-}))
+const { getEventos, getSincronizacoes, solicitarNovaTentativa, ativarCenarioSintetico } = vi.hoisted(
+  () => ({
+    getEventos: vi.fn(),
+    getSincronizacoes: vi.fn(),
+    solicitarNovaTentativa: vi.fn(),
+    ativarCenarioSintetico: vi.fn(),
+  }),
+)
 
 vi.mock('../../api/meteorologia', async (importarOriginal) => ({
   ...(await importarOriginal<typeof import('../../api/meteorologia')>()),
   getEventos,
   getSincronizacoes,
+  solicitarNovaTentativa,
+  ativarCenarioSintetico,
 }))
 
 function evento(sobrescritas: Partial<EventoMeteorologico> = {}): EventoMeteorologico {
@@ -29,22 +39,51 @@ function evento(sobrescritas: Partial<EventoMeteorologico> = {}): EventoMeteorol
   }
 }
 
+function sincronizacao(sobrescritas: Partial<Sincronizacao> = {}): Sincronizacao {
+  return {
+    id: 's1',
+    requisicaoId: 'r1',
+    areaMonitoradaId: 'a1',
+    origem: 'manual',
+    estado: 'concluido',
+    registrosValidos: 1,
+    motivoFalha: null,
+    iniciadoEm: '2026-08-30T12:00:00+00:00',
+    finalizadoEm: '2026-08-30T12:00:05+00:00',
+    tentativas: [
+      {
+        numeroTentativa: 1,
+        codigoResultado: 'sucesso',
+        iniciadoEm: '2026-08-30T12:00:00+00:00',
+        finalizadoEm: '2026-08-30T12:00:01+00:00',
+      },
+    ],
+    limiteTentativas: 3,
+    ...sobrescritas,
+  }
+}
+
 function historicoComFalha(): HistoricoSincronizacoes {
-  const sincronizacao = {
+  const falha = sincronizacao({
     id: 's2',
     requisicaoId: 'r2',
-    origem: 'automatica' as const,
+    origem: 'automatica',
     estado: 'falha',
     registrosValidos: 0,
     motivoFalha: 'campo_ausente',
     iniciadoEm: '2026-08-30T13:00:00+00:00',
     finalizadoEm: '2026-08-30T13:00:02+00:00',
-  }
+    tentativas: [
+      { numeroTentativa: 1, codigoResultado: 'timeout', iniciadoEm: 't1', finalizadoEm: 't1f' },
+      { numeroTentativa: 2, codigoResultado: 'timeout', iniciadoEm: 't2', finalizadoEm: 't2f' },
+      { numeroTentativa: 3, codigoResultado: 'timeout', iniciadoEm: 't3', finalizadoEm: 't3f' },
+    ],
+  })
   return {
-    ultimaTentativa: sincronizacao,
+    ultimaTentativa: falha,
     ultimaValida: null,
     proximaConsulta: '2026-08-30T13:15:00+00:00',
-    resultadosAnteriores: [sincronizacao],
+    resultadosAnteriores: [falha],
   }
 }
 
@@ -58,27 +97,20 @@ function historicoVazio(): HistoricoSincronizacoes {
 }
 
 function historicoComSincronizacao(): HistoricoSincronizacoes {
-  const sincronizacao = {
-    id: 's1',
-    requisicaoId: 'r1',
-    origem: 'manual' as const,
-    estado: 'concluido',
-    registrosValidos: 1,
-    motivoFalha: null,
-    iniciadoEm: '2026-08-30T12:00:00+00:00',
-    finalizadoEm: '2026-08-30T12:00:05+00:00',
-  }
+  const ok = sincronizacao()
   return {
-    ultimaTentativa: sincronizacao,
-    ultimaValida: sincronizacao,
+    ultimaTentativa: ok,
+    ultimaValida: ok,
     proximaConsulta: '2026-08-30T12:15:00+00:00',
-    resultadosAnteriores: [sincronizacao],
+    resultadosAnteriores: [ok],
   }
 }
 
 beforeEach(() => {
   getEventos.mockReset()
   getSincronizacoes.mockReset()
+  solicitarNovaTentativa.mockReset()
+  ativarCenarioSintetico.mockReset()
 })
 
 describe('superfície de fonte meteorológica', () => {
@@ -182,5 +214,197 @@ describe('superfície de fonte meteorológica', () => {
 
     expect(await screen.findByText('Nenhum evento meteorológico normalizado até o momento.')).toBeInTheDocument()
     expect(screen.queryByRole('table')).not.toBeInTheDocument()
+  })
+
+  it('mostra o estado Operacional e nenhuma ação quando nunca houve coleta', async () => {
+    getEventos.mockResolvedValue([])
+    getSincronizacoes.mockResolvedValue(historicoVazio())
+
+    render(<SuperficieFonteMeteorologica />)
+
+    expect(await screen.findByText('Operacional')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Solicitar nova tentativa' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ativar cenário sintético' })).not.toBeInTheDocument()
+  })
+
+  it('mostra Indisponível com as duas ações seguras: nova tentativa e cenário sintético', async () => {
+    getEventos.mockResolvedValue([])
+    getSincronizacoes.mockResolvedValue(historicoComFalha())
+
+    render(<SuperficieFonteMeteorologica />)
+
+    expect(await screen.findByText('Indisponível')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Solicitar nova tentativa' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Ativar cenário sintético' })).toBeInTheDocument()
+  })
+
+  it('mostra Sintética com só a ação de nova tentativa, nunca a de ativar de novo', async () => {
+    getEventos.mockResolvedValue([evento({ proveniencia: 'sintetico', tipo: 'granizo' })])
+    getSincronizacoes.mockResolvedValue(historicoComSincronizacao())
+
+    render(<SuperficieFonteMeteorologica />)
+
+    expect(await screen.findByText('Sintética')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Solicitar nova tentativa' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Ativar cenário sintético' })).not.toBeInTheDocument()
+  })
+
+  it('mostra Degradada quando a última tentativa concluiu após mais de uma tentativa', async () => {
+    getEventos.mockResolvedValue([evento()])
+    const ok = sincronizacao({
+      tentativas: [
+        { numeroTentativa: 1, codigoResultado: 'timeout', iniciadoEm: 't1', finalizadoEm: 't1f' },
+        { numeroTentativa: 2, codigoResultado: 'sucesso', iniciadoEm: 't2', finalizadoEm: 't2f' },
+      ],
+    })
+    getSincronizacoes.mockResolvedValue({
+      ultimaTentativa: ok,
+      ultimaValida: ok,
+      proximaConsulta: null,
+      resultadosAnteriores: [ok],
+    })
+
+    render(<SuperficieFonteMeteorologica />)
+
+    expect(await screen.findByText('Degradada')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Solicitar nova tentativa' })).not.toBeInTheDocument()
+  })
+
+  it('mostra Recuperada quando a última tentativa concluiu logo após uma que falhou', async () => {
+    getEventos.mockResolvedValue([evento()])
+    const ok = sincronizacao({ id: 's-nova' })
+    const falhou = sincronizacao({ id: 's-antiga', estado: 'falha', motivoFalha: 'retentativas_esgotadas' })
+    getSincronizacoes.mockResolvedValue({
+      ultimaTentativa: ok,
+      ultimaValida: ok,
+      proximaConsulta: null,
+      resultadosAnteriores: [ok, falhou],
+    })
+
+    render(<SuperficieFonteMeteorologica />)
+
+    expect(await screen.findByText('Recuperada')).toBeInTheDocument()
+  })
+
+  it('mostra Em tentativa com a contagem atual, quando a sincronização ainda está coletando', async () => {
+    getEventos.mockResolvedValue([])
+    const emAndamento = sincronizacao({
+      estado: 'coletando',
+      finalizadoEm: null,
+      tentativas: [
+        { numeroTentativa: 1, codigoResultado: 'timeout', iniciadoEm: 't1', finalizadoEm: 't1f' },
+      ],
+    })
+    getSincronizacoes.mockResolvedValue({
+      ultimaTentativa: emAndamento,
+      ultimaValida: null,
+      proximaConsulta: null,
+      resultadosAnteriores: [emAndamento],
+    })
+
+    render(<SuperficieFonteMeteorologica />)
+
+    expect(await screen.findByText('Em tentativa')).toBeInTheDocument()
+    expect(screen.getByText('Tentativa 2 de 3')).toBeInTheDocument()
+  })
+
+  it('solicitar nova tentativa chama a API com o id da última tentativa e atualiza a consulta', async () => {
+    const usuario = userEvent.setup()
+    getEventos.mockResolvedValue([])
+    getSincronizacoes.mockResolvedValueOnce(historicoComFalha()).mockResolvedValue(historicoVazio())
+    solicitarNovaTentativa.mockResolvedValue({
+      id: 'nova',
+      requisicaoId: 'r',
+      estado: 'concluido',
+      registrosValidos: 1,
+      motivoFalha: null,
+      aceitoEm: 'agora',
+    })
+
+    render(<SuperficieFonteMeteorologica />)
+    await usuario.click(await screen.findByRole('button', { name: 'Solicitar nova tentativa' }))
+
+    await waitFor(() => expect(solicitarNovaTentativa).toHaveBeenCalledWith('s2'))
+    await waitFor(() => expect(getSincronizacoes).toHaveBeenCalledTimes(2))
+  })
+
+  it('ativar cenário sintético chama a API com o identificador e a área da última tentativa', async () => {
+    const usuario = userEvent.setup()
+    getEventos.mockResolvedValue([])
+    getSincronizacoes.mockResolvedValue(historicoComFalha())
+    ativarCenarioSintetico.mockResolvedValue({
+      id: 'nova',
+      requisicaoId: 'r',
+      estado: 'concluido',
+      registrosValidos: 1,
+      motivoFalha: null,
+      aceitoEm: 'agora',
+    })
+
+    render(<SuperficieFonteMeteorologica />)
+    await usuario.click(await screen.findByRole('button', { name: 'Ativar cenário sintético' }))
+
+    await waitFor(() =>
+      expect(ativarCenarioSintetico).toHaveBeenCalledWith('granizo-demonstrativo', 'a1'),
+    )
+  })
+})
+
+describe('calcularEstadoFonte', () => {
+  it('operacional quando nunca houve nenhuma coleta', () => {
+    expect(calcularEstadoFonte(historicoVazio(), [])).toBe('operacional')
+  })
+
+  it('em_tentativa quando a última sincronização ainda está coletando', () => {
+    const historico: HistoricoSincronizacoes = {
+      ultimaTentativa: sincronizacao({ estado: 'coletando', finalizadoEm: null }),
+      ultimaValida: null,
+      proximaConsulta: null,
+      resultadosAnteriores: [],
+    }
+    expect(calcularEstadoFonte(historico, [])).toBe('em_tentativa')
+  })
+
+  it('indisponivel quando a última sincronização esgotou as tentativas', () => {
+    expect(calcularEstadoFonte(historicoComFalha(), [])).toBe('indisponivel')
+  })
+
+  it('sintetica quando o evento mais recente é sintético', () => {
+    const historico = historicoComSincronizacao()
+    expect(
+      calcularEstadoFonte(historico, [evento({ proveniencia: 'sintetico', tipo: 'granizo' })]),
+    ).toBe('sintetica')
+  })
+
+  it('recuperada quando a última sincronização concluiu logo após uma que falhou', () => {
+    const ok = sincronizacao({ id: 's-nova' })
+    const falhou = sincronizacao({ id: 's-antiga', estado: 'falha' })
+    const historico: HistoricoSincronizacoes = {
+      ultimaTentativa: ok,
+      ultimaValida: ok,
+      proximaConsulta: null,
+      resultadosAnteriores: [ok, falhou],
+    }
+    expect(calcularEstadoFonte(historico, [evento()])).toBe('recuperada')
+  })
+
+  it('degradada quando a última sincronização concluiu após mais de uma tentativa', () => {
+    const ok = sincronizacao({
+      tentativas: [
+        { numeroTentativa: 1, codigoResultado: 'timeout', iniciadoEm: 't1', finalizadoEm: 't1f' },
+        { numeroTentativa: 2, codigoResultado: 'sucesso', iniciadoEm: 't2', finalizadoEm: 't2f' },
+      ],
+    })
+    const historico: HistoricoSincronizacoes = {
+      ultimaTentativa: ok,
+      ultimaValida: ok,
+      proximaConsulta: null,
+      resultadosAnteriores: [ok],
+    }
+    expect(calcularEstadoFonte(historico, [evento()])).toBe('degradada')
+  })
+
+  it('operacional quando a última sincronização concluiu de primeira, sem histórico de falha', () => {
+    expect(calcularEstadoFonte(historicoComSincronizacao(), [evento()])).toBe('operacional')
   })
 })

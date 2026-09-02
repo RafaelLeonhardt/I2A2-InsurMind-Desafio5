@@ -126,6 +126,9 @@ class RespostaSincronizacao(BaseModel):
 
     id: UUID = Field(description="Identificador da sincronização.")
     requisicao_id: UUID = Field(description="Identificador de correlação da tentativa.")
+    area_monitorada_id: UUID = Field(
+        description="Identificador da área monitorada desta sincronização."
+    )
     origem: str = Field(description="Origem da tentativa (`automatica` ou `manual`).")
     estado: str = Field(description="Estado atual da sincronização.")
     registros_validos: int = Field(description="Quantidade de eventos válidos produzidos.")
@@ -230,6 +233,7 @@ def _resposta_sincronizacao(
     return RespostaSincronizacao(
         id=sincronizacao.id,  # type: ignore[attr-defined]
         requisicao_id=sincronizacao.requisicao_id,  # type: ignore[attr-defined]
+        area_monitorada_id=sincronizacao.area_monitorada_id,  # type: ignore[attr-defined]
         origem=str(sincronizacao.origem),  # type: ignore[attr-defined]
         estado=str(sincronizacao.estado),  # type: ignore[attr-defined]
         registros_validos=sincronizacao.registros_validos,  # type: ignore[attr-defined]

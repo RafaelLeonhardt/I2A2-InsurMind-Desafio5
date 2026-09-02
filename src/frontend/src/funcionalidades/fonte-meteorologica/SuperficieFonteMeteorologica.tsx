@@ -1,13 +1,82 @@
+import {
+  ArrowClockwiseIcon,
+  CheckCircleIcon,
+  CircleNotchIcon,
+  FlaskIcon,
+  WarningIcon,
+  XCircleIcon,
+} from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import {
+  ativarCenarioSintetico,
   ErroMeteorologia,
   type EventoMeteorologico,
   getEventos,
   getSincronizacoes,
   type HistoricoSincronizacoes,
+  IDENTIFICADOR_CENARIO_GRANIZO,
+  solicitarNovaTentativa,
 } from '../../api/meteorologia'
+import './SuperficieFonteMeteorologica.css'
 
 type EstadoCarregamento = 'carregando' | 'disponivel' | 'indisponivel'
+
+/**
+ * Os seis estados visíveis da fonte meteorológica (RESIL-15), derivados só de dados já
+ * persistidos (`GET /eventos` + `GET /sincronizacoes`) — nunca inferidos de suposições:
+ *
+ * - `em_tentativa`: a última sincronização ainda está `coletando` (RESIL-05).
+ * - `indisponivel`: a última sincronização esgotou as tentativas (`falha`, RESIL-09).
+ * - `sintetica`: o evento mais recente tem proveniência `sintetico` (RESIL-13).
+ * - `recuperada`: a última sincronização concluiu com sucesso logo após uma que falhou
+ *   (RESIL-14) — um instante depois vira `operacional` de novo.
+ * - `degradada`: a última sincronização concluiu, mas precisou de mais de uma tentativa.
+ * - `operacional`: nenhuma das condições acima — inclui "nenhuma coleta ainda".
+ */
+export type EstadoFonte =
+  | 'operacional'
+  | 'em_tentativa'
+  | 'degradada'
+  | 'indisponivel'
+  | 'sintetica'
+  | 'recuperada'
+
+export function calcularEstadoFonte(
+  historico: HistoricoSincronizacoes,
+  eventos: EventoMeteorologico[],
+): EstadoFonte {
+  const ultima = historico.ultimaTentativa
+  if (ultima === null) return 'operacional'
+  if (ultima.estado === 'coletando') return 'em_tentativa'
+  if (ultima.estado === 'falha') return 'indisponivel'
+
+  if (eventos[0]?.proveniencia === 'sintetico') return 'sintetica'
+
+  const anterior = historico.resultadosAnteriores[1]
+  if (anterior?.estado === 'falha') return 'recuperada'
+
+  if (ultima.tentativas.length > 1) return 'degradada'
+
+  return 'operacional'
+}
+
+const ROTULOS_ESTADO_FONTE: Record<EstadoFonte, string> = {
+  operacional: 'Operacional',
+  em_tentativa: 'Em tentativa',
+  degradada: 'Degradada',
+  indisponivel: 'Indisponível',
+  sintetica: 'Sintética',
+  recuperada: 'Recuperada',
+}
+
+function IconeEstadoFonte({ estado }: { estado: EstadoFonte }) {
+  if (estado === 'operacional') return <CheckCircleIcon aria-hidden="true" size={18} weight="fill" />
+  if (estado === 'em_tentativa') return <CircleNotchIcon aria-hidden="true" size={18} />
+  if (estado === 'degradada') return <WarningIcon aria-hidden="true" size={18} weight="fill" />
+  if (estado === 'indisponivel') return <XCircleIcon aria-hidden="true" size={18} weight="fill" />
+  if (estado === 'sintetica') return <FlaskIcon aria-hidden="true" size={18} weight="fill" />
+  return <ArrowClockwiseIcon aria-hidden="true" size={18} weight="fill" />
+}
 
 const ROTULOS_TIPO: Record<string, string> = {
   chuva_intensa: 'Chuva intensa',
@@ -32,7 +101,8 @@ const ROTULOS_ESTADO_SINCRONIZACAO: Record<string, string> = {
 }
 
 /**
- * Superfície "Fonte meteorológica": eventos normalizados e histórico de sincronização.
+ * Superfície "Fonte meteorológica": eventos normalizados, histórico de sincronização e o
+ * estado atual da fonte, com ações seguras de contingência por estado (RESIL-15, RESIL-16).
  *
  * A seleção de um evento é feita por uma lista/tabela operável por teclado e leitor de
  * tela (botão nativo por linha), sem depender de um mapa (fora do MVP — spec.md).
@@ -43,6 +113,9 @@ export function SuperficieFonteMeteorologica() {
   const [historico, definirHistorico] = useState<HistoricoSincronizacoes | null>(null)
   const [falha, definirFalha] = useState<ErroMeteorologia | null>(null)
   const [idSelecionado, definirIdSelecionado] = useState<string | null>(null)
+  const [executandoAcao, definirExecutandoAcao] = useState(false)
+  const [falhaAcao, definirFalhaAcao] = useState<ErroMeteorologia | null>(null)
+  const [versaoConsulta, definirVersaoConsulta] = useState(0)
 
   useEffect(() => {
     let cancelado = false
@@ -65,7 +138,22 @@ export function SuperficieFonteMeteorologica() {
     return () => {
       cancelado = true
     }
-  }, [])
+  }, [versaoConsulta])
+
+  async function executarAcao(acao: () => Promise<unknown>) {
+    definirExecutandoAcao(true)
+    definirFalhaAcao(null)
+    try {
+      await acao()
+      definirVersaoConsulta((atual) => atual + 1)
+    } catch (causa) {
+      definirFalhaAcao(causa instanceof ErroMeteorologia ? causa : null)
+    } finally {
+      definirExecutandoAcao(false)
+    }
+  }
+
+  const estadoFonte = historico ? calcularEstadoFonte(historico, eventos) : null
 
   return (
     <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
@@ -96,8 +184,60 @@ export function SuperficieFonteMeteorologica() {
         </div>
       )}
 
-      {estado === 'disponivel' && (
+      {estado === 'disponivel' && historico && estadoFonte && (
         <>
+          <section aria-labelledby="titulo-estado-fonte">
+            <h2 id="titulo-estado-fonte">Estado da fonte</h2>
+            <p
+              className={`estado-fonte-badge estado-fonte-badge--${estadoFonte}`}
+              data-icone={estadoFonte}
+            >
+              <IconeEstadoFonte estado={estadoFonte} />
+              {ROTULOS_ESTADO_FONTE[estadoFonte]}
+            </p>
+            {estadoFonte === 'em_tentativa' && historico.ultimaTentativa && (
+              <p>
+                Tentativa {historico.ultimaTentativa.tentativas.length + 1} de{' '}
+                {historico.ultimaTentativa.limiteTentativas}
+              </p>
+            )}
+            <div className="acoes-fonte-meteorologica">
+              {(estadoFonte === 'indisponivel' || estadoFonte === 'sintetica') &&
+                historico.ultimaTentativa && (
+                  <button
+                    disabled={executandoAcao}
+                    onClick={() =>
+                      executarAcao(() => solicitarNovaTentativa(historico.ultimaTentativa!.id))
+                    }
+                    type="button"
+                  >
+                    {executandoAcao ? 'Solicitando…' : 'Solicitar nova tentativa'}
+                  </button>
+                )}
+              {estadoFonte === 'indisponivel' && historico.ultimaTentativa && (
+                <button
+                  disabled={executandoAcao}
+                  onClick={() =>
+                    executarAcao(() =>
+                      ativarCenarioSintetico(
+                        IDENTIFICADOR_CENARIO_GRANIZO,
+                        historico.ultimaTentativa!.areaMonitoradaId,
+                      ),
+                    )
+                  }
+                  type="button"
+                >
+                  {executandoAcao ? 'Ativando…' : 'Ativar cenário sintético'}
+                </button>
+              )}
+            </div>
+            {falhaAcao && (
+              <p role="alert">
+                {falhaAcao.ocorrencia} {falhaAcao.proximaAcao}
+              </p>
+            )}
+          </section>
+
           <section aria-labelledby="titulo-eventos-meteorologicos">
             <h2 id="titulo-eventos-meteorologicos">Eventos meteorológicos</h2>
             {eventos.length === 0 ? (
@@ -153,17 +293,17 @@ export function SuperficieFonteMeteorologica() {
             <dl>
               <dt>Última tentativa</dt>
               <dd>
-                {historico?.ultimaTentativa
+                {historico.ultimaTentativa
                   ? `${ROTULOS_ORIGEM_SINCRONIZACAO[historico.ultimaTentativa.origem] ?? historico.ultimaTentativa.origem} — ${ROTULOS_ESTADO_SINCRONIZACAO[historico.ultimaTentativa.estado] ?? historico.ultimaTentativa.estado} — ${historico.ultimaTentativa.iniciadoEm}`
                   : '—'}
               </dd>
               <dt>Última atualização válida</dt>
-              <dd>{historico?.ultimaValida?.finalizadoEm ?? '—'}</dd>
+              <dd>{historico.ultimaValida?.finalizadoEm ?? '—'}</dd>
               <dt>Próxima consulta</dt>
-              <dd>{historico?.proximaConsulta ?? '—'}</dd>
+              <dd>{historico.proximaConsulta ?? '—'}</dd>
             </dl>
             <h3>Resultados anteriores</h3>
-            {historico && historico.resultadosAnteriores.length > 0 ? (
+            {historico.resultadosAnteriores.length > 0 ? (
               <ul>
                 {historico.resultadosAnteriores.map((sincronizacao) => (
                   <li key={sincronizacao.id}>
