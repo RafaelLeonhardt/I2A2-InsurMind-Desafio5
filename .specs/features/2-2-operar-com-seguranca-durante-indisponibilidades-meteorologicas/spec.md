@@ -122,10 +122,10 @@ A História 2.1 entrega a coleta feliz do INMET, mas nada garante hoje o que aco
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| RESIL-01 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Pending |
-| RESIL-02 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Pending |
-| RESIL-03 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Pending |
-| RESIL-04 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Pending |
+| RESIL-01 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Implementing |
+| RESIL-02 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Implementing |
+| RESIL-03 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Implementing |
+| RESIL-04 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Implementing |
 | RESIL-05 | P1: Retentativa limitada e configuração de resiliência documentada | Design | Pending |
 | RESIL-06 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Implementing |
 | RESIL-07 | P1: Snapshot preservado sem novo alerta e terminal explícito de falha | Design | Pending |

@@ -1,14 +1,17 @@
 """Repositórios DuckDB da coleta meteorológica do INMET."""
 
+from datetime import datetime
 from pathlib import Path
 from uuid import UUID, uuid4
 
 from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
 from central_preventiva.aplicacao.portas_meteorologia import (
     AreaMonitorada,
+    CodigoResultadoTentativa,
     EstadoSincronizacao,
     OrigemSincronizacao,
     Sincronizacao,
+    TentativaColeta,
 )
 from central_preventiva.dominio.evento_meteorologico import (
     EventoMeteorologico,
@@ -251,6 +254,62 @@ class RepositorioSincronizacoes:
                 motivo_falha=None if linha[6] is None else str(linha[6]),
                 iniciado_em=linha[7],
                 finalizado_em=linha[8],
+            )
+            for linha in linhas
+        )
+
+
+class RepositorioTentativasColeta:
+    """Persiste e consulta as tentativas individuais de uma coleta com retry (RESIL-02)."""
+
+    def __init__(self, caminho: Path) -> None:
+        """Vincula o repositório ao arquivo operacional do DuckDB."""
+
+        self._caminho = caminho
+
+    def registrar_tentativa(
+        self,
+        sincronizacao_id: UUID,
+        numero_tentativa: int,
+        codigo_resultado: CodigoResultadoTentativa,
+        iniciado_em: datetime,
+        finalizado_em: datetime,
+    ) -> None:
+        """Persiste uma tentativa individual, assim que ela termina."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            conexao.execute(
+                "INSERT INTO tentativas_coleta_meteorologica "
+                "(id, sincronizacao_id, numero_tentativa, codigo_resultado, iniciado_em, "
+                "finalizado_em) VALUES (?, ?, ?, ?, ?, ?)",
+                [
+                    uuid4(),
+                    sincronizacao_id,
+                    numero_tentativa,
+                    codigo_resultado.value,
+                    iniciado_em,
+                    finalizado_em,
+                ],
+            )
+
+    def listar_tentativas(self, sincronizacao_id: UUID) -> tuple[TentativaColeta, ...]:
+        """Lista as tentativas de uma sincronização, em ordem crescente de número."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute(
+                "SELECT id, sincronizacao_id, numero_tentativa, codigo_resultado, "
+                "iniciado_em, finalizado_em FROM tentativas_coleta_meteorologica "
+                "WHERE sincronizacao_id = ? ORDER BY numero_tentativa ASC",
+                [sincronizacao_id],
+            ).fetchall()
+        return tuple(
+            TentativaColeta(
+                id=UUID(str(linha[0])),
+                sincronizacao_id=UUID(str(linha[1])),
+                numero_tentativa=int(linha[2]),
+                codigo_resultado=CodigoResultadoTentativa(str(linha[3])),
+                iniciado_em=linha[4],
+                finalizado_em=linha[5],
             )
             for linha in linhas
         )

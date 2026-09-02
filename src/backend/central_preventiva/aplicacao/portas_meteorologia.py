@@ -142,3 +142,44 @@ class RepositorioSincronizacoes(Protocol):
     def listar_recentes(self) -> tuple[Sincronizacao, ...]:
         """Lista o histórico de sincronizações, da mais recente para a mais antiga."""
         ...
+
+
+class CodigoResultadoTentativa(StrEnum):
+    """Resultado de uma tentativa individual de coleta, alinhado ao `CHECK` de
+    `tentativas_coleta_meteorologica.codigo_resultado`."""
+
+    SUCESSO = "sucesso"
+    TIMEOUT = "timeout"
+    ERRO_TRANSPORTE = "erro_transporte"
+    STATUS_ERRO = "status_erro"
+
+
+@dataclass(frozen=True, slots=True)
+class TentativaColeta:
+    """Registro de uma tentativa individual dentro de uma coleta com retry (RESIL-02)."""
+
+    id: UUID
+    sincronizacao_id: UUID
+    numero_tentativa: int
+    codigo_resultado: CodigoResultadoTentativa
+    iniciado_em: datetime
+    finalizado_em: datetime
+
+
+class RepositorioTentativasColeta(Protocol):
+    """Persiste e consulta as tentativas individuais de uma coleta com retry."""
+
+    def registrar_tentativa(
+        self,
+        sincronizacao_id: UUID,
+        numero_tentativa: int,
+        codigo_resultado: CodigoResultadoTentativa,
+        iniciado_em: datetime,
+        finalizado_em: datetime,
+    ) -> None:
+        """Persiste uma tentativa individual, assim que ela termina."""
+        ...
+
+    def listar_tentativas(self, sincronizacao_id: UUID) -> tuple[TentativaColeta, ...]:
+        """Lista as tentativas de uma sincronização, em ordem crescente de número."""
+        ...

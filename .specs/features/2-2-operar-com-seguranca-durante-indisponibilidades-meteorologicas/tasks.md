@@ -136,12 +136,14 @@ T7
 
 **Done when**:
 
-- [ ] Sucesso na 1ª tentativa não aguarda backoff nem tenta de novo
-- [ ] Falha na 1ª e 2ª tentativa, sucesso na 3ª: 3 tentativas registradas, backoff 1s depois 2s (dublê de tempo, sem espera real)
-- [ ] 3 falhas consecutivas: 3 tentativas registradas, resultado final de falha propagado ao chamador
-- [ ] Cada tentativa registrada tem número, início, término e código do resultado
-- [ ] Nenhum teste depende de tempo real ou rede
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Sucesso na 1ª tentativa não aguarda backoff nem tenta de novo
+- [x] Falha na 1ª e 2ª tentativa, sucesso na 3ª: 3 tentativas registradas, backoff 1s depois 2s (dublê de tempo, sem espera real)
+- [x] 3 falhas consecutivas: 3 tentativas registradas, resultado final de falha propagado ao chamador
+- [x] Cada tentativa registrada tem número, início, término e código do resultado
+- [x] Nenhum teste depende de tempo real ou rede
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+
+**Nota de implementação**: `RepositorioTentativasColeta`/`TentativaColeta`/`CodigoResultadoTentativa` (porta em `aplicacao/portas_meteorologia.py`, implementação em `adaptadores/persistencia/repositorio_meteorologia.py`) não tinham T-número próprio no plano — criados aqui por serem dependência direta de `ColetorComRetry`, conforme a Location já designada no `design.md`. `RetentativasEsgotadas` (exceção dedicada) é levantada de forma uniforme ao esgotar as 3 tentativas, seja por timeout/erro de transporte ou por status HTTP de erro — dá a T5 um único sinal para transicionar a execução a `falhou_coleta`, distinto do caminho de rejeição de conteúdo (1 tentativa bem-sucedida em HTTP mas malformada), que continua sendo tratado pelo normalizador de 2.1 sem tocar `execucao_preventiva`.
 
 **Tests**: unit
 **Gate**: quick

@@ -69,3 +69,24 @@ cenário sintético da História 2.2, não por este adaptador.
 Nenhuma amostra contém nome, endereço, identificador de segurado/apólice ou qualquer outro dado
 pessoal — apenas leituras meteorológicas de estação (públicas) e um cenário sintético de
 contingência.
+
+## Resiliência da coleta (`ColetorComRetry`, História 2.2)
+
+| Parâmetro | Valor padrão | Onde | Justificativa |
+| --- | --- | --- | --- |
+| Timeout por tentativa | 5s (`ClienteInmet.TIMEOUT_SEGUNDOS`) | `cliente_inmet.py` | Já fixado na História 2.1 — maior que o timeout de 3s da sonda de prontidão, pois a coleta real processa um payload maior que um simples ping de saúde |
+| Número total de tentativas | 3 (`ColetorComRetry.MAXIMO_TENTATIVAS_COLETA`, em `aplicacao/coleta_meteorologica.py`) | `aplicacao/coleta_meteorologica.py` | AD-8: teto fixo evita que uma indisponibilidade momentânea trave a demonstração, sem introduzir um circuit breaker adaptativo fora do escopo do MVP |
+| Backoff entre tentativas | 1s, depois 2s (`ColetorComRetry.BACKOFF_SEGUNDOS_COLETA`) | `aplicacao/coleta_meteorologica.py` | Backoff exponencial simples, suficiente para absorver uma falha de rede transitória sem alongar demais a demonstração (pior caso: 5s timeout × 3 + 1s + 2s ≈ 18s até `falhou_coleta`) |
+
+**Comportamento observável por tipo de falha:**
+
+- **Timeout** (`httpx.TimeoutException`, tentativa não respondeu em 5s) — tentativa registrada com `codigo_resultado = timeout`; retenta após o backoff.
+- **Erro de transporte** (`httpx.TransportError`, ex. conexão recusada) — tentativa registrada com `codigo_resultado = erro_transporte`; retenta após o backoff.
+- **Status HTTP de erro** (resposta recebida, `status_code != 200`) — tentativa registrada com `codigo_resultado = status_erro`; retenta após o backoff. Nunca é tratado como sucesso, mesmo que o corpo pareça válido.
+- **3 tentativas esgotadas** (qualquer combinação das falhas acima) — `ColetorComRetry` levanta `RetentativasEsgotadas`; o caso de uso transiciona a execução para `falhou_coleta` e registra uma `Exceção` operacional (causa, número de tentativas, impacto), sem travar em estado intermediário.
+- **Sucesso HTTP (`status_code == 200`) em qualquer tentativa** — `ColetorComRetry` devolve a resposta imediatamente, sem mais tentativas; o conteúdo, se malformado, é rejeitado pelo `NormalizadorInmet` (2.1) como um evento inválido — essa rejeição de conteúdo não é um caso de retry desta camada, nem transiciona a execução para `falhou_coleta`.
+
+Os três parâmetros acima são constantes nomeadas no código (não variáveis de ambiente), seguindo o
+mesmo precedente de `INTERVALO_SEGUNDOS_COLETA` (2.1): valores exatos, documentados e
+constructor-injetáveis para teste, sem a complexidade adicional de configuração externa que nenhuma
+história pediu explicitamente.
