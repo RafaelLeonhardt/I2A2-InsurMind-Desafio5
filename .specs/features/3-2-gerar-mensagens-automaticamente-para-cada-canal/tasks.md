@@ -198,14 +198,21 @@ que o cobra depois. Gate: 591 testes.
 
 **Done when**:
 
-- [ ] Sucesso na 1ª chamada de transporte com saída válida retorna resultado "válido"
-- [ ] Falha de transporte esgotando `RetryComBackoff` retorna resultado "falhou_integracao_ia" sem levantar exceção não tratada
-- [ ] Saída estruturalmente inválida ou acima do limite retorna resultado "inválido" com motivo
-- [ ] Nenhum teste chama a OpenAI real
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Sucesso na 1ª chamada de transporte com saída válida retorna resultado "válido"
+- [x] Falha de transporte esgotando `RetryComBackoff` retorna resultado "falhou_integracao_ia" sem levantar exceção não tratada
+- [x] Saída estruturalmente inválida ou acima do limite retorna resultado "inválido" com motivo
+- [x] Nenhum teste chama a OpenAI real
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Completo — `StateGraph` de um nó (`START → gerar → END`) compilado em
+`aplicacao/grafos/geracao_mensagem.py`. O nó devolve `ResultadoGeracao` com um de três
+desfechos (`valida`, `invalida`, `falhou_integracao_ia`), mais duração, modelo e tokens; nunca
+escreve no banco nem transiciona estado. `erros_reconhecidos=(Exception,)` no `RetryComBackoff`
+porque a pilha do LangChain/OpenAI levanta uma família ampla de erros de transporte. Gate: 598
+testes (7 novos, todos com redator falso).
 
 ---
 
