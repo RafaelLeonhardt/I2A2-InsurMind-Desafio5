@@ -258,17 +258,31 @@ rota de consulta (T8) usa. Gate: 480 testes, ruff e pyright limpos.
 
 **Done when**:
 
-- [ ] Disponibilidade confirmada transiciona a execução para `processando_mensagens`
-- [ ] Indisponibilidade esgotada transiciona para `falhou_preparacao_ia` com exceção sanitizada
-- [ ] Item com contexto inválido gera exceção só desse item, sem afetar os demais nem chamar a OpenAI
-- [ ] `solicitar_nova_tentativa` com snapshot corrompido/versão não suportada rejeita sem criar execução
-- [ ] `solicitar_nova_tentativa` válida cria execução nova com `execucao_origem_id`, chave idempotente própria; origem permanece terminal
-- [ ] `solicitar_nova_tentativa` copia todas as linhas de elegibilidade da origem (incluídas e excluídas) para a nova execução — novos `id`s, novo `execucao_id`, conteúdo idêntico — na mesma transação da criação (AD-012); a nova execução não referencia nenhuma linha da origem
-- [ ] Teste cobre retentativa de origem que já possui `contextos_agente`: o preflight da nova execução monta contextos para as elegibilidades copiadas sem violar a `UNIQUE(elegibilidade_id)` (AD-012)
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Disponibilidade confirmada transiciona a execução para `processando_mensagens`
+- [x] Indisponibilidade esgotada transiciona para `falhou_preparacao_ia` com exceção sanitizada
+- [x] Item com contexto inválido gera exceção só desse item, sem afetar os demais nem chamar a OpenAI
+- [x] `solicitar_nova_tentativa` com snapshot corrompido/versão não suportada rejeita sem criar execução
+- [x] `solicitar_nova_tentativa` válida cria execução nova com `execucao_origem_id`, chave idempotente própria; origem permanece terminal
+- [x] `solicitar_nova_tentativa` copia todas as linhas de elegibilidade da origem (incluídas e excluídas) para a nova execução — novos `id`s, novo `execucao_id`, conteúdo idêntico — na mesma transação da criação (AD-012); a nova execução não referencia nenhuma linha da origem
+- [x] Teste cobre retentativa de origem que já possui `contextos_agente`: o preflight da nova execução monta contextos para as elegibilidades copiadas sem violar a `UNIQUE(elegibilidade_id)` (AD-012)
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
-**Tests**: unit
+**Tests**: unit (mais um cenário integrado contra DuckDB real para o AD-012)
 **Gate**: quick
+
+**Status**: ✅ Completo. **SPEC_DEVIATION (assinatura de `preparar`)**: recebe também
+`chave_idempotencia` e `hash_requisicao` — o AD-002 exige `Idempotency-Key` em todo `POST`
+mutável e o T8 exige que repetir a chave devolva a resposta registrada sem novo preflight, o
+que precisa ser decidido onde o efeito acontece (mesmo padrão de `ServicoColetaMeteorologica`).
+
+Para tornar a cópia atômica com a criação (AD-012), `RepositorioExecucaoPreventiva` ganhou
+`criar_correlacionada(estado, origem, apos_criar)`, que roda o callback dentro da própria
+transação, e `listar_correlacionadas` (navegação origem↔retentativas, PREFL-10);
+`SnapshotExecucao` ganhou `execucao_origem_id`. `RepositorioElegibilidades.copiar_para_execucao`
+aceita a conexão do chamador, como o design previa ("dentro da transação aberta pelo chamador").
+Um teste prova a atomicidade: se a cópia falha, nenhuma execução correlacionada permanece.
+
+Gate: 511 testes, ruff e pyright limpos.
 
 ---
 

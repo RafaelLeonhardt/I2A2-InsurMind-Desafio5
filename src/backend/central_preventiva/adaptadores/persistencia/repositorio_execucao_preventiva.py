@@ -1,8 +1,10 @@
 """Repositório DuckDB de `execucao_preventiva`, com concorrência otimista (AD-008)."""
 
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 from uuid import UUID, uuid4
 
 from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
@@ -38,11 +40,16 @@ class TransicaoInvalida(RuntimeError):
 
 @dataclass(frozen=True, slots=True)
 class SnapshotExecucao:
-    """Estado e versão de uma execução preventiva, para leitura e checagem otimista."""
+    """Estado e versão de uma execução preventiva, para leitura e checagem otimista.
+
+    `execucao_origem_id` só é preenchido em execução correlacionada, criada por uma nova
+    tentativa a partir de um terminal (AD-009, migração `0009`).
+    """
 
     id: UUID
     estado: EstadoExecucao
     versao: int
+    execucao_origem_id: UUID | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -83,31 +90,68 @@ class RepositorioExecucaoPreventiva:
 
         with abrir_conexao(self._caminho) as conexao:
             linha = conexao.execute(
-                "SELECT id, estado, versao FROM execucao_preventiva WHERE id = ?",
+                f"{_SELECT_SNAPSHOT} WHERE id = ?",
                 [execucao_id],
             ).fetchone()
         assert linha is not None, f"execução {execucao_id} não encontrada"
-        return SnapshotExecucao(
-            id=UUID(str(linha[0])),
-            estado=EstadoExecucao(str(linha[1])),
-            versao=int(linha[2]),
-        )
+        return _snapshot_de_linha(linha)
 
     def buscar(self, execucao_id: UUID) -> SnapshotExecucao | None:
         """Lê o estado e a versão da execução informada, ou `None` se não existir."""
 
         with abrir_conexao(self._caminho) as conexao:
             linha = conexao.execute(
-                "SELECT id, estado, versao FROM execucao_preventiva WHERE id = ?",
+                f"{_SELECT_SNAPSHOT} WHERE id = ?",
                 [execucao_id],
             ).fetchone()
         if linha is None:
             return None
-        return SnapshotExecucao(
-            id=UUID(str(linha[0])),
-            estado=EstadoExecucao(str(linha[1])),
-            versao=int(linha[2]),
-        )
+        return _snapshot_de_linha(linha)
+
+    def criar_correlacionada(
+        self,
+        estado_inicial: EstadoExecucao,
+        execucao_origem_id: UUID,
+        apos_criar: Callable[[Any, UUID], None] | None = None,
+    ) -> UUID:
+        """Cria a execução correlacionada a uma origem terminal, na versão 1 (AD-009).
+
+        `apos_criar` roda dentro da mesma transação, depois do `INSERT` e antes do `COMMIT`,
+        recebendo a conexão aberta e o id da execução recém-criada. É o que torna atômica a
+        cópia das elegibilidades da origem exigida pelo AD-012: ou a execução nova existe
+        com o público copiado, ou nada é gravado.
+        """
+
+        execucao_id = uuid4()
+        with abrir_conexao(self._caminho) as conexao:
+            conexao.execute("BEGIN TRANSACTION")
+            try:
+                conexao.execute(
+                    "INSERT INTO execucao_preventiva "
+                    "(id, estado, versao, execucao_origem_id) VALUES (?, ?, 1, ?)",
+                    [execucao_id, estado_inicial.value, execucao_origem_id],
+                )
+                if apos_criar is not None:
+                    apos_criar(conexao, execucao_id)
+                conexao.execute("COMMIT")
+            except BaseException:
+                conexao.execute("ROLLBACK")
+                raise
+        return execucao_id
+
+    def listar_correlacionadas(self, execucao_origem_id: UUID) -> list[SnapshotExecucao]:
+        """Lista as execuções criadas como nova tentativa da origem informada (PREFL-10).
+
+        Cada execução mantém seu próprio histórico: a lista apenas correlaciona os ids, sem
+        mesclar marcos, exceções ou resultados de uma na outra.
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute(
+                f"{_SELECT_SNAPSHOT} WHERE execucao_origem_id = ? ORDER BY criado_em",
+                [execucao_origem_id],
+            ).fetchall()
+        return [_snapshot_de_linha(linha) for linha in linhas]
 
     def transicionar(
         self, execucao_id: UUID, versao_esperada: int, novo_estado: EstadoExecucao
@@ -181,6 +225,20 @@ class RepositorioExecucaoPreventiva:
             )
             for marco, causa, criado_em in linhas
         ]
+
+
+_SELECT_SNAPSHOT = "SELECT id, estado, versao, execucao_origem_id FROM execucao_preventiva"
+
+
+def _snapshot_de_linha(linha: tuple[object, ...]) -> SnapshotExecucao:
+    """Traduz uma linha de `_SELECT_SNAPSHOT` para `SnapshotExecucao`."""
+
+    return SnapshotExecucao(
+        id=UUID(str(linha[0])),
+        estado=EstadoExecucao(str(linha[1])),
+        versao=int(linha[2]),  # type: ignore[arg-type]
+        execucao_origem_id=None if linha[3] is None else UUID(str(linha[3])),
+    )
 
 
 class RepositorioExcecoesOperacionais:

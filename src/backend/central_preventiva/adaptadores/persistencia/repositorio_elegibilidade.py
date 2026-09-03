@@ -5,6 +5,8 @@ from datetime import datetime
 from pathlib import Path
 from uuid import UUID, uuid4
 
+import duckdb
+
 from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
 from central_preventiva.adaptadores.persistencia.serializacao_criterios import (
     desserializar_criterios,
@@ -148,6 +150,51 @@ class RepositorioElegibilidades:
         if linha is None:
             return None
         return UUID(str(linha[0]))
+
+    def copiar_para_execucao(
+        self,
+        execucao_origem_id: UUID,
+        nova_execucao_id: UUID,
+        conexao: duckdb.DuckDBPyConnection | None = None,
+    ) -> int:
+        """Copia para a nova execução todas as elegibilidades da origem (AD-012).
+
+        Copia incluídas e excluídas, com `id` novo e o `execucao_id` da nova execução, e
+        conteúdo de snapshot idêntico ao da origem. A nova execução nunca referencia as
+        linhas da origem: as `UNIQUE` de `contextos_agente.elegibilidade_id` (3.1) e de
+        `mensagens (elegibilidade_id, canal)` (3.2) tornariam a retentativa inviável sobre
+        elas. A `UNIQUE (execucao_id, evento_id, regra_id, segurado_id, apolice_id)` de 2.5
+        legitima as cópias, porque o `execucao_id` difere.
+
+        Quando `conexao` é informada, a cópia roda na transação já aberta pelo chamador —
+        é assim que `criar_correlacionada` a torna atômica com a criação da execução.
+        Devolve o número de linhas copiadas.
+        """
+
+        if conexao is not None:
+            return self._copiar(conexao, execucao_origem_id, nova_execucao_id)
+        with abrir_conexao(self._caminho) as propria:
+            return self._copiar(propria, execucao_origem_id, nova_execucao_id)
+
+    def _copiar(
+        self,
+        conexao: duckdb.DuckDBPyConnection,
+        execucao_origem_id: UUID,
+        nova_execucao_id: UUID,
+    ) -> int:
+        """Executa a cópia das elegibilidades na conexão informada."""
+
+        linhas = conexao.execute(
+            "INSERT INTO elegibilidades_historicas "
+            "(id, execucao_id, evento_id, regra_id, segurado_id, apolice_id, elegivel, "
+            "criterios, canal, nome_segurado, justificativa) "
+            "SELECT uuid(), ?, evento_id, regra_id, segurado_id, apolice_id, elegivel, "
+            "criterios, canal, nome_segurado, justificativa "
+            "FROM elegibilidades_historicas WHERE execucao_id = ? "
+            "RETURNING id",
+            [nova_execucao_id, execucao_origem_id],
+        ).fetchall()
+        return len(linhas)
 
     def contar_por_execucao(self, execucao_id: UUID) -> ContagemElegibilidade:
         """Conta incluídos/excluídos já persistidos para a execução informada."""

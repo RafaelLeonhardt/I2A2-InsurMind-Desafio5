@@ -123,21 +123,21 @@ O Épico 2 entrega execuções paradas em `aguardando_geracao` com um público e
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| PREFL-01 | P1: Preflight de disponibilidade antes de qualquer geração | T3 | Implementing |
-| PREFL-02 | P1: Preflight de disponibilidade antes de qualquer geração | Design | Pending |
-| PREFL-03 | P1: Preflight de disponibilidade antes de qualquer geração | T4 | Implementing |
-| PREFL-04 | P1: Preflight de disponibilidade antes de qualquer geração | T4 | Implementing |
+| PREFL-01 | P1: Preflight de disponibilidade antes de qualquer geração | T3, T7 | Implementing |
+| PREFL-02 | P1: Preflight de disponibilidade antes de qualquer geração | T7 | Implementing |
+| PREFL-03 | P1: Preflight de disponibilidade antes de qualquer geração | T4, T7 | Implementing |
+| PREFL-04 | P1: Preflight de disponibilidade antes de qualquer geração | T4, T7 | Implementing |
 | PREFL-05 | P1: Preflight de disponibilidade antes de qualquer geração | T1, T4 | Implementing |
 | PREFL-06 | P1: Inicialização segura e nova tentativa correlacionada | T4 | Implementing |
-| PREFL-07 | P1: Inicialização segura e nova tentativa correlacionada | T2 | Implementing |
-| PREFL-08 | P1: Inicialização segura e nova tentativa correlacionada | Design | Pending |
-| PREFL-09 | P1: Inicialização segura e nova tentativa correlacionada | Design | Pending |
+| PREFL-07 | P1: Inicialização segura e nova tentativa correlacionada | T2, T7 | Implementing |
+| PREFL-08 | P1: Inicialização segura e nova tentativa correlacionada | T7 | Implementing |
+| PREFL-09 | P1: Inicialização segura e nova tentativa correlacionada | T7 | Implementing |
 | PREFL-10 | P1: Inicialização segura e nova tentativa correlacionada | Design | Pending |
 | PREFL-11 | P1: Contexto mínimo do agente redator | T5 | Implementing |
 | PREFL-12 | P1: Contexto mínimo do agente redator | T2, T5 | Implementing |
 | PREFL-13 | P1: Contexto mínimo do agente redator | T6 | Implementing |
 | PREFL-14 | P1: Contexto mínimo do agente redator | T6 | Implementing |
-| PREFL-15 | P1: Contexto mínimo do agente redator | T5 | Implementing |
+| PREFL-15 | P1: Contexto mínimo do agente redator | T5, T7 | Implementing |
 | PREFL-16 | P2: Explicação de indisponibilidade sem substituto artificial | Design | Pending |
 | PREFL-17 | P2: Explicação de indisponibilidade sem substituto artificial | Design | Pending |
 
