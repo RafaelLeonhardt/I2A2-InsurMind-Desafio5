@@ -125,13 +125,13 @@ O Épico 2 entrega execuções paradas em `aguardando_geracao` com um público e
 | --- | --- | --- | --- |
 | PREFL-01 | P1: Preflight de disponibilidade antes de qualquer geração | T3, T7 | ✅ Verified |
 | PREFL-02 | P1: Preflight de disponibilidade antes de qualquer geração | T7, T8 | ✅ Verified |
-| PREFL-03 | P1: Preflight de disponibilidade antes de qualquer geração | T4, T7 | ⚠️ Verified with gap (Fix 1) |
-| PREFL-04 | P1: Preflight de disponibilidade antes de qualquer geração | T4, T7 | ⚠️ Verified with gap (Fix 1) |
+| PREFL-03 | P1: Preflight de disponibilidade antes de qualquer geração | T4, T7 | ✅ Verified |
+| PREFL-04 | P1: Preflight de disponibilidade antes de qualquer geração | T4, T7 | ✅ Verified |
 | PREFL-05 | P1: Preflight de disponibilidade antes de qualquer geração | T1, T4 | ⚠️ Spec-precision gap |
 | PREFL-06 | P1: Inicialização segura e nova tentativa correlacionada | T4 | ✅ Verified |
 | PREFL-07 | P1: Inicialização segura e nova tentativa correlacionada | T2, T7 | ✅ Verified |
 | PREFL-08 | P1: Inicialização segura e nova tentativa correlacionada | T7 | ✅ Verified |
-| PREFL-09 | P1: Inicialização segura e nova tentativa correlacionada | T7, T8 | ❌ Needs Fix (Fix 1, Fix 2) |
+| PREFL-09 | P1: Inicialização segura e nova tentativa correlacionada | T7, T8 | ✅ Verified |
 | PREFL-10 | P1: Inicialização segura e nova tentativa correlacionada | T8, T9 | ✅ Verified |
 | PREFL-11 | P1: Contexto mínimo do agente redator | T5 | ✅ Verified |
 | PREFL-12 | P1: Contexto mínimo do agente redator | T2, T5 | ✅ Verified |
@@ -147,10 +147,19 @@ O Épico 2 entrega execuções paradas em `aguardando_geracao` com um público e
 
 **Coverage:** 17 total, 17 mapped to tasks, 0 unmapped ✅
 
-**Verificação (rodada 1, 2026-09-03, `7666b0a..0f7890d`):** ❌ FAIL — ver
-`validation.md`. 14 ACs verificados, 2 com lacuna e 1 com lacuna de precisão da spec;
-**Edge Case 1 não tratado** (a mesma `Idempotency-Key` em execuções diferentes devolve o
-registro de outra execução); 1 mutante sobrevivente (fidelidade do snapshot copiado, AD-012).
+**Verificação (rodada 1, 2026-09-03, `7666b0a..0f7890d`):** ❌ FAIL. 14 ACs verificados,
+2 com lacuna e 1 com lacuna de precisão da spec; **Edge Case 1 não tratado** (a mesma
+`Idempotency-Key` em execuções diferentes devolvia o registro de outra execução);
+1 mutante sobrevivente (fidelidade do snapshot copiado, AD-012).
+
+**Verificação (rodada 2, 2026-09-03, `7666b0a..f2d9308`):** ✅ **PASS** — ver
+`validation.md`. Os dois gaps da rodada 1 foram fechados por `f2d9308` e confirmados por
+mutação: reverter a correção do hash escopado mata exatamente os 2 testes novos, e o
+mutante da fidelidade da cópia (AD-012) agora morre. 16/17 ACs asseridos contra o desfecho
+da spec; **os 3 Edge Cases tratados**; sensor 4/4 mortos; gate 526 backend + 229 frontend,
+0 falhas. Resta 1 lacuna de precisão da spec (PREFL-05, cláusula "demais parâmetros
+suportados" — defeito da spec, não da implementação) e a pendência pré-existente de
+roteamento das superfícies no `App.tsx`, comum às histórias 2.3–2.6.
 
 ---
 
