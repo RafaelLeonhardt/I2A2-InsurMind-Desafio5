@@ -87,12 +87,14 @@ T9
 
 **Done when**:
 
-- [ ] `uv sync --project src/backend --locked` (ou regeneração do lock) resolve sem conflito
-- [ ] Versões documentadas no `pyproject.toml`, coerentes com a versão mínima de Python do projeto (3.14.4)
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `uv sync --project src/backend --locked` (ou regeneração do lock) resolve sem conflito
+- [x] Versões documentadas no `pyproject.toml`, coerentes com a versão mínima de Python do projeto (3.14.4)
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: none
 **Gate**: build
+
+**Status**: ✅ Completo — `langchain 1.3.18`, `langchain-openai 1.6.0`, `langgraph 1.2.11` (versões estáveis mais recentes verificadas no PyPI em 2026-09-03; convergem em `langchain-core >=1.6.0,<2`). Gate: 414 testes, ruff e pyright limpos.
 
 ---
 
