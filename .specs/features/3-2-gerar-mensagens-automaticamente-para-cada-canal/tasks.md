@@ -338,13 +338,22 @@ atualizado com a rota nova. Gate full: 630 testes, ruff e pyright limpos.
 
 **Done when**:
 
-- [ ] Progresso reconstruído inteiramente da API a cada montagem do componente
-- [ ] Nenhuma chamada de geração disparada pelo frontend (só leitura)
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Progresso reconstruído inteiramente da API a cada montagem do componente
+- [x] Nenhuma chamada de geração disparada pelo frontend (só leitura)
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full
+
+**Status**: ✅ Completo — `SuperficieGeracaoMensagens` lê `GET .../mensagens` a cada montagem e
+classifica cada item em quatro categorias distintas por texto, ícone e cor/traço (L-024):
+gerada, gerando, aguardando nova tentativa (com o motivo persistido) e falha de integração. O
+único botão é "Atualizar progresso", que refaz a mesma consulta de leitura — a superfície não
+tem caminho para disparar geração, e `src/api/mensagens.ts` só expõe `getMensagens`. Tipos
+regenerados pelo comando documentado, com o backend real no ar (`verificar-tipos-api`
+confirmou a sincronia). Gate full: 237 testes de frontend, lint e build limpos; backend segue
+em 630.
 
 **Commit**: `feat(geracao): adicionar agente redator e geracao automatica de mensagens por canal`
 

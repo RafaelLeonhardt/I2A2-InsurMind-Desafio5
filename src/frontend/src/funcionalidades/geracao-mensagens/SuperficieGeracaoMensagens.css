@@ -1,0 +1,62 @@
+.geracao-mensagens__resumo {
+  margin: 0.8rem 0 0.4rem;
+  font-weight: 600;
+}
+
+.geracao-mensagens__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0.5rem 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.geracao-mensagens__item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.8rem;
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-radius: 0.25rem;
+  background: #f8fafc;
+}
+
+.geracao-mensagens__canal {
+  font-weight: 600;
+  text-transform: none;
+}
+
+.geracao-mensagens__item--gerada {
+  color: #15803d;
+  border-left-color: #15803d;
+  border-left-style: solid;
+}
+
+.geracao-mensagens__item--gerando {
+  color: #1d4ed8;
+  border-left-color: #1d4ed8;
+  border-left-style: dashed;
+}
+
+.geracao-mensagens__item--nova-tentativa {
+  color: #a16207;
+  border-left-color: #a16207;
+  border-left-style: double;
+}
+
+.geracao-mensagens__item--excecao {
+  color: #b91c1c;
+  border-left-color: #b91c1c;
+  border-left-style: dotted;
+  border-left-width: 6px;
+}
+
+.geracao-mensagens__motivo {
+  flex-basis: 100%;
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+  color: #7f1d1d;
+}
