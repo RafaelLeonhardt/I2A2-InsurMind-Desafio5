@@ -228,13 +228,21 @@ testes (7 novos, todos com redator falso).
 
 **Done when**:
 
-- [ ] `criar` duas vezes para a mesma elegibilidade+canal viola `UNIQUE` (tratado como erro específico, não exceção genérica)
-- [ ] `salvar_versao` persiste conteúdo, validade, motivo, duração, modelo, prompt, tokens
-- [ ] `transicionar` a partir de um estado terminal de mensagem levanta erro, mesma semântica de `RepositorioExecucaoPreventiva`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `criar` duas vezes para a mesma elegibilidade+canal viola `UNIQUE` (tratado como erro específico, não exceção genérica)
+- [x] `salvar_versao` persiste conteúdo, validade, motivo, duração, modelo, prompt, tokens
+- [x] `transicionar` a partir de um estado terminal de mensagem levanta erro, mesma semântica de `RepositorioExecucaoPreventiva`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
+
+**Status**: ✅ Completo — `criar`/`salvar_versao`/`transicionar`, mais `obter`,
+`listar_por_execucao` e `obter_versao_atual` (leituras que a reidratação da T8 consome). A
+`duckdb.ConstraintException` da `UNIQUE (elegibilidade_id, canal)` vira `MensagemJaExiste`, um
+erro específico que o caso de uso trata como no-op idempotente — nunca uma checagem
+"consulta e depois insere" em Python (AD-010). `transicionar` repete literalmente o padrão de
+`RepositorioExecucaoPreventiva`: `ConflitoVersaoMensagem` e `TransicaoMensagemInvalida`, sem
+mutar a linha em nenhum dos dois casos. Gate: 609 testes (11 novos, banco real).
 
 ---
 
