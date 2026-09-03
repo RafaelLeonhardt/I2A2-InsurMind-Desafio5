@@ -44,6 +44,7 @@ from central_preventiva.aplicacao.preflight_ia import (
     PortasPreflightIA,
     ServicoPreflightIA,
 )
+from central_preventiva.dominio.avaliacao_critica import AvaliacaoCritica
 from central_preventiva.dominio.avaliador_elegibilidade import (
     OPERANDO_AREA_AFETADA,
     OPERANDO_COBERTURA_EXIGIDA,
@@ -224,6 +225,33 @@ class RedatorFalso:
         return self._respostas[min(len(self.canais_chamados) - 1, len(self._respostas) - 1)]
 
 
+class CriticoFalso:
+    """Dublê do agente crítico: uma avaliação por chamada, ou erro de transporte."""
+
+    def __init__(
+        self,
+        avaliacoes: list[AvaliacaoCritica | None] | None = None,
+        erro: Exception | None = None,
+    ) -> None:
+        self._avaliacoes: list[AvaliacaoCritica | None] = (
+            avaliacoes if avaliacoes is not None else [AvaliacaoCritica(True, ())]
+        )
+        self._erro = erro
+        self.chamadas = 0
+
+    @property
+    def modelo(self) -> str:
+        return "gpt-4o-mini"
+
+    async def avaliar(
+        self, conteudo: SaidaCanal, canal: Canal, contexto: ContextoAgente
+    ) -> AvaliacaoCritica | None:
+        self.chamadas += 1
+        if self._erro is not None:
+            raise self._erro
+        return self._avaliacoes[min(self.chamadas - 1, len(self._avaliacoes) - 1)]
+
+
 async def sem_espera(_: float) -> None:
     """Substitui o backoff real para que o teste não durma de fato."""
 
@@ -237,10 +265,12 @@ class Cenario:
         tmp_path: Path,
         redator: RedatorFalso | None = None,
         contextos: dict[UUID, ContextoAgente] | None = None,
+        critico: CriticoFalso | None = None,
     ) -> None:
         caminho = tmp_path / "central_preventiva.duckdb"
         ExecutorMigracoes(caminho).aplicar_pendentes()
         self.redator = redator if redator is not None else RedatorFalso()
+        self.critico = critico if critico is not None else CriticoFalso()
         self.mensagens = RepositorioMensagens(caminho)
         self.elegibilidades = ElegibilidadesFalsas(registros)
         self.contextos = ContextosFalsos(
@@ -259,6 +289,7 @@ class Cenario:
                     DependenciasGrafo(
                         redator=self.redator,
                         validador=ValidadorSaidaCanal(LIMITES),
+                        critico=self.critico,
                         esperar=sem_espera,
                     )
                 ),

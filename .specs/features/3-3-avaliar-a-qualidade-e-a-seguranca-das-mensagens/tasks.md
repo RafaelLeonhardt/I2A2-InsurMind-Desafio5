@@ -131,13 +131,13 @@ persiste métrica de uso — não há o que carregar junto. `SPEC_DEVIATION` reg
 
 **Done when**:
 
-- [ ] Saída aprovada resulta em resultado "aprovada" com motivos vazios
-- [ ] Saída reprovada resulta em resultado "reprovada" com motivos estruturados por categoria
-- [ ] Saída inválida/não interpretável resulta em "falha da tentativa", nunca "aprovada"
-- [ ] Falha de transporte esgotada resulta em "falhou_integracao_ia", mesmo tratamento de 3.2
-- [ ] Reprovação determinística de 3.2 (mensagem já inválida) nunca chega a este nó — testado que o grafo não invoca `criticar` para uma saída inválida do redator
-- [ ] Nenhum teste chama a OpenAI real
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Saída aprovada resulta em resultado "aprovada" com motivos vazios
+- [x] Saída reprovada resulta em resultado "reprovada" com motivos estruturados por categoria
+- [x] Saída inválida/não interpretável resulta em "falha da tentativa", nunca "aprovada"
+- [x] Falha de transporte esgotada resulta em "falhou_integracao_ia", mesmo tratamento de 3.2
+- [x] Reprovação determinística de 3.2 (mensagem já inválida) nunca chega a este nó — provado por construção (aresta condicional depois de `gerar` só encaminha `DesfechoGeracao.VALIDA`) e testado nos dois desfechos que não são válidos
+- [x] Nenhum teste chama a OpenAI real
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick

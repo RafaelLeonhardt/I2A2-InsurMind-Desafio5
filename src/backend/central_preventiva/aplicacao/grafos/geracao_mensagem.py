@@ -1,13 +1,18 @@
-"""Grafo LangGraph de geração de uma mensagem: o nó `gerar` (GERAR-05, GERAR-09).
+"""Grafo LangGraph de uma mensagem: os nós `gerar` (3.2) e `criticar` (3.3).
 
 Um grafo por mensagem, não um grafo por lote: o AD-4 declara que cada mensagem tem seu
 próprio estado de geração, crítica, revisão e simulação, então cada execução de grafo é
-isolada e pequena. Esta história implementa só o nó `gerar`; `criticar` e revisão chegam em
-3.3+ estendendo este mesmo grafo.
+isolada e pequena. A revisão humana (3.5) chega depois, estendendo este mesmo grafo.
 
-O nó encadeia três decisões, nesta ordem: chamar o redator sob a política única de tentativas
-(`RetryComBackoff`), classificar a saída pelo validador determinístico e devolver o desfecho.
-Ele nunca transiciona estado nem escreve no banco — quem persiste é `ServicoGeracaoMensagens`.
+O nó `gerar` encadeia três decisões, nesta ordem: chamar o redator sob a política única de
+tentativas (`RetryComBackoff`), classificar a saída pelo validador determinístico e devolver o
+desfecho. O nó `criticar` só é alcançado quando esse desfecho é `valida`: a aresta condicional
+depois de `gerar` é o que garante, por construção, que uma mensagem já reprovada
+deterministicamente por 3.2 nunca chegue ao crítico e que o modelo não tenha como sobrepor a
+validação objetiva (CRIT-04).
+
+Nenhum dos dois nós transiciona estado nem escreve no banco — quem persiste é
+`ServicoGeracaoMensagens`.
 """
 
 import asyncio
@@ -29,6 +34,7 @@ from central_preventiva.aplicacao._retry import (
     Tentativa,
     TentativasEsgotadas,
 )
+from central_preventiva.dominio.avaliacao_critica import AvaliacaoCritica, MotivoCritica
 from central_preventiva.dominio.montador_contexto_agente import ContextoAgente
 from central_preventiva.dominio.validador_saida_canal import (
     Canal,
@@ -40,8 +46,15 @@ MENSAGEM_GERACAO_ESGOTADA = (
     f"Esgotadas {MAXIMO_TENTATIVAS} tentativas de chamada de geração à OpenAI."
 )
 
+MENSAGEM_CRITICA_ESGOTADA = (
+    f"Esgotadas {MAXIMO_TENTATIVAS} tentativas de chamada de crítica à OpenAI."
+)
+
 CAUSA_TRANSPORTE_SEM_DETALHE = "A chamada de geração à OpenAI não foi concluída."
 """Causa registrada quando o esgotamento não carrega nenhum erro reconhecido."""
+
+CAUSA_SAIDA_CRITICA_INVALIDA = "saida_critica_invalida"
+"""Causa registrada quando o crítico responde algo não interpretável com segurança."""
 
 
 class DesfechoGeracao(StrEnum):
@@ -65,6 +78,31 @@ class ResultadoGeracao:
     tokens_saida: int | None
 
 
+class DesfechoCritica(StrEnum):
+    """Os quatro desfechos possíveis do nó `criticar`, antes de qualquer persistência."""
+
+    APROVADA = "aprovada"
+    REPROVADA = "reprovada"
+    SAIDA_INVALIDA = "saida_invalida"
+    FALHOU_INTEGRACAO_IA = "falhou_integracao_ia"
+
+
+@dataclass(frozen=True, slots=True)
+class ResultadoCritica:
+    """Desfecho de uma execução do nó `criticar`, com o que a avaliação precisa registrar.
+
+    `SAIDA_INVALIDA` é falha da tentativa, não aprovação e não reprovação estruturada
+    (CRIT-07): nada é persistido em `avaliacoes_criticas` e a mensagem segue disponível para
+    a próxima tentativa (3.4).
+    """
+
+    desfecho: DesfechoCritica
+    motivos: tuple[MotivoCritica, ...]
+    causa: str | None
+    duracao_ms: float
+    modelo: str
+
+
 class EstadoGrafoMensagem(TypedDict):
     """Cópia de trabalho tipada do grafo de uma mensagem (AD-4)."""
 
@@ -72,12 +110,19 @@ class EstadoGrafoMensagem(TypedDict):
     canal: Canal
     tentativa: int
     resultado: NotRequired[ResultadoGeracao]
+    resultado_critica: NotRequired[ResultadoCritica]
 
 
 class AtualizacaoGrafoMensagem(TypedDict):
     """Atualização parcial que o nó `gerar` devolve ao grafo."""
 
     resultado: ResultadoGeracao
+
+
+class AtualizacaoCriticaMensagem(TypedDict):
+    """Atualização parcial que o nó `criticar` devolve ao grafo."""
+
+    resultado_critica: ResultadoCritica
 
 
 class _Redator(Protocol):
@@ -89,12 +134,24 @@ class _Redator(Protocol):
     async def gerar(self, contexto: ContextoAgente, canal: Canal) -> RespostaRedator: ...
 
 
+class _Critico(Protocol):
+    """Porta mínima do agente crítico de que o nó `criticar` depende."""
+
+    @property
+    def modelo(self) -> str: ...
+
+    async def avaliar(
+        self, conteudo: SaidaCanal, canal: Canal, contexto: ContextoAgente
+    ) -> AvaliacaoCritica | None: ...
+
+
 @dataclass(frozen=True, slots=True)
 class DependenciasGrafo:
-    """Dependências injetadas na construção do grafo de geração."""
+    """Dependências injetadas na construção do grafo de uma mensagem."""
 
     redator: _Redator
     validador: ValidadorSaidaCanal
+    critico: _Critico
     esperar: Callable[[float], Awaitable[None]] = asyncio.sleep
 
 
@@ -114,11 +171,12 @@ type GrafoMensagemCompilado = CompiledStateGraph[
 
 
 def construir_grafo(dependencias: DependenciasGrafo) -> GrafoMensagemCompilado:
-    """Compila o grafo de uma mensagem: `START → gerar → END`.
+    """Compila o grafo de uma mensagem: `START → gerar → criticar? → END`.
 
     O nó `gerar` nunca levanta exceção de transporte: o esgotamento das tentativas vira o
     desfecho `falhou_integracao_ia`, e a saída recebida vira `valida` ou `invalida` conforme
-    o veredito determinístico do validador.
+    o veredito determinístico do validador. Só um desfecho `valida` segue para `criticar`:
+    uma saída já reprovada por 3.2 encerra o grafo sem nenhuma chamada ao crítico (CRIT-04).
     """
 
     async def gerar(state: EstadoGrafoMensagem) -> AtualizacaoGrafoMensagem:
@@ -167,8 +225,75 @@ def construir_grafo(dependencias: DependenciasGrafo) -> GrafoMensagemCompilado:
             )
         }
 
+    async def criticar(state: EstadoGrafoMensagem) -> AtualizacaoCriticaMensagem:
+        """Chama o crítico com retry e classifica a avaliação que voltou.
+
+        Só é alcançado a partir de uma saída válida, então `resultado.saida` está presente:
+        o crítico avalia exatamente o texto que a validação determinística já aprovou.
+        """
+
+        canal = state["canal"]
+        gerado = state.get("resultado")
+        assert gerado is not None, "o nó criticar só é alcançado depois do nó gerar"
+        conteudo = gerado.saida
+        assert conteudo is not None, "o nó criticar só é alcançado a partir de saída válida"
+        inicio = perf_counter()
+
+        def ignorar(_: Tentativa[AvaliacaoCritica | None]) -> None:
+            """As tentativas de transporte não têm tabela própria nesta história."""
+
+        retry: RetryComBackoff[AvaliacaoCritica | None] = RetryComBackoff(
+            operacao=lambda: dependencias.critico.avaliar(conteudo, canal, state["contexto"]),
+            aceitar=lambda _: True,
+            registrar=ignorar,
+            mensagem_esgotamento=MENSAGEM_CRITICA_ESGOTADA,
+            erros_reconhecidos=(Exception,),
+            esperar=dependencias.esperar,
+        )
+
+        def resultado(
+            desfecho: DesfechoCritica,
+            motivos: tuple[MotivoCritica, ...] = (),
+            causa: str | None = None,
+        ) -> AtualizacaoCriticaMensagem:
+            """Fecha o desfecho da crítica com a duração medida e o modelo usado."""
+
+            return {
+                "resultado_critica": ResultadoCritica(
+                    desfecho=desfecho,
+                    motivos=motivos,
+                    causa=causa,
+                    duracao_ms=(perf_counter() - inicio) * 1000,
+                    modelo=dependencias.critico.modelo,
+                )
+            }
+
+        try:
+            avaliacao = await retry.executar()
+        except TentativasEsgotadas as falha:
+            return resultado(DesfechoCritica.FALHOU_INTEGRACAO_IA, causa=_causa_de(falha))
+
+        if avaliacao is None:
+            return resultado(
+                DesfechoCritica.SAIDA_INVALIDA, causa=CAUSA_SAIDA_CRITICA_INVALIDA
+            )
+        if avaliacao.aprovada:
+            return resultado(DesfechoCritica.APROVADA, motivos=avaliacao.motivos)
+        return resultado(DesfechoCritica.REPROVADA, motivos=avaliacao.motivos)
+
+    def rota_apos_gerar(state: EstadoGrafoMensagem) -> str:
+        """Encaminha ao crítico só a saída que a validação determinística aprovou."""
+
+        gerado = state.get("resultado")
+        assert gerado is not None, "a rota só é avaliada depois do nó gerar"
+        return "criticar" if gerado.desfecho is DesfechoGeracao.VALIDA else END
+
     grafo = StateGraph(EstadoGrafoMensagem)
     grafo.add_node("gerar", gerar)  # pyright: ignore[reportUnknownMemberType]
+    grafo.add_node("criticar", criticar)  # pyright: ignore[reportUnknownMemberType]
     grafo.add_edge(START, "gerar")
-    grafo.add_edge("gerar", END)
+    grafo.add_conditional_edges(  # pyright: ignore[reportUnknownMemberType]
+        "gerar", rota_apos_gerar, {"criticar": "criticar", END: END}
+    )
+    grafo.add_edge("criticar", END)
     return grafo.compile()  # pyright: ignore[reportUnknownMemberType]

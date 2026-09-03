@@ -9,6 +9,7 @@ from fastapi import APIRouter, Header, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
+from central_preventiva.adaptadores.ia.agente_critico import AgenteCritico
 from central_preventiva.adaptadores.ia.agente_redator import AgenteRedator
 from central_preventiva.adaptadores.ia.verificador_disponibilidade_openai import (
     VerificadorDisponibilidadeOpenAI,
@@ -214,13 +215,21 @@ def montar_servico_geracao(configuracao: Configuracao) -> ServicoGeracaoMensagen
         timeout_segundos=configuracao.timeout_openai_segundos,
         chave=chave.get_secret_value() if chave is not None else None,
     )
+    critico = AgenteCritico(
+        modelo=configuracao.modelo_openai,
+        temperatura=configuracao.temperatura_openai,
+        timeout_segundos=configuracao.timeout_openai_segundos,
+        chave=chave.get_secret_value() if chave is not None else None,
+    )
     return ServicoGeracaoMensagens(
         PortasGeracaoMensagens(
             elegibilidades=RepositorioElegibilidades(caminho),
             contextos=RepositorioContextosAgente(caminho),
             mensagens=RepositorioMensagens(caminho),
             excecoes=RepositorioExcecoesOperacionais(caminho),
-            grafo=construir_grafo(DependenciasGrafo(redator=redator, validador=validador)),
+            grafo=construir_grafo(
+                DependenciasGrafo(redator=redator, validador=validador, critico=critico)
+            ),
             versao_prompt=configuracao.versao_prompt,
         )
     )
