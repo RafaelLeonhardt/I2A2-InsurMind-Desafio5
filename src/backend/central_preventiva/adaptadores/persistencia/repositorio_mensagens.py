@@ -243,6 +243,21 @@ class RepositorioMensagens:
             ).fetchall()
         return [_mensagem_de_linha(linha) for linha in linhas]
 
+    def obter_versao(self, mensagem_id: UUID, versao_id: UUID) -> VersaoMensagem | None:
+        """Lê uma versão da mensagem, ou `None` se ela não existir ou for de outra mensagem.
+
+        A consulta é escopada pelas duas chaves: uma versão que existe mas pertence a outra
+        mensagem é indistinguível de uma versão inexistente (AD-011).
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            linha = conexao.execute(
+                f"{_SELECT_VERSAO} WHERE id = ? AND mensagem_id = ?", [versao_id, mensagem_id]
+            ).fetchone()
+        if linha is None:
+            return None
+        return _versao_de_linha(linha)
+
     def obter_versao_atual(self, mensagem_id: UUID) -> VersaoMensagem | None:
         """Lê a versão mais recente da mensagem, ou `None` se nenhuma foi persistida."""
 

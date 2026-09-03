@@ -185,10 +185,17 @@ desta história define, e o teste renomeado acompanha o que ele agora prova.
 
 **Done when**:
 
-- [ ] `200` com todos os campos do AC quando a avaliação existe
-- [ ] `404`/`application/problem+json` quando a versão ainda não foi avaliada
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `200` com todos os campos do AC quando a avaliação existe
+- [x] `404`/`application/problem+json` quando a versão ainda não foi avaliada
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+
+**CRIT-09 no contrato, não só na exibição**: a resposta marca a origem de cada decisão
+(`origem = 'agente_ia'` no nível de cima; `validacao_deterministica.origem =
+'regras_deterministicas'`), então a separação IA/regras é um campo que a interface consome, não
+uma convenção que ela poderia colapsar. `RepositorioMensagens` ganhou o método aditivo
+`obter_versao(mensagem_id, versao_id)`, necessário para escopar a versão à mensagem (AD-011) e
+para trazer o veredito determinístico ao lado da avaliação; `transicionar` não foi tocado.
 
 **Tests**: integration
 **Gate**: full

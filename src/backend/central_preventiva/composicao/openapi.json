@@ -23,6 +23,46 @@
         "title": "ErroCampo",
         "type": "object"
       },
+      "ProblemaAvaliacaoCritica": {
+        "additionalProperties": false,
+        "description": "Falha da consulta do detalhe, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaAvaliacaoCritica",
+        "type": "object"
+      },
       "ProblemaAvaliacaoRisco": {
         "additionalProperties": false,
         "description": "Falha da consulta de avaliação de risco, com ocorrência, impacto e próxima ação segura.",
@@ -429,6 +469,96 @@
           "proxima_acao"
         ],
         "title": "ProblemaRestauracao",
+        "type": "object"
+      },
+      "RespostaAvaliacaoCritica": {
+        "additionalProperties": false,
+        "description": "Detalhe de uma avaliação: versão, critérios, decisão, motivos e proveniência.",
+        "properties": {
+          "agente": {
+            "description": "Agente que produziu a avaliação.",
+            "title": "Agente",
+            "type": "string"
+          },
+          "aprovada": {
+            "description": "Decisão do crítico sobre o conteúdo; não substitui a validação de regra.",
+            "title": "Aprovada",
+            "type": "boolean"
+          },
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC do registro da avaliação.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "criterios": {
+            "description": "Os sete critérios contra os quais a mensagem foi avaliada.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Criterios",
+            "type": "array"
+          },
+          "duracao_ms": {
+            "description": "Duração da chamada de avaliação, em milissegundos.",
+            "title": "Duracao Ms",
+            "type": "number"
+          },
+          "mensagem_id": {
+            "description": "Mensagem a que a versão avaliada pertence.",
+            "format": "uuid",
+            "title": "Mensagem Id",
+            "type": "string"
+          },
+          "modelo": {
+            "description": "Modelo da OpenAI usado na avaliação.",
+            "title": "Modelo",
+            "type": "string"
+          },
+          "motivos": {
+            "description": "Motivos específicos da decisão; vazio quando o crítico aprovou.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaMotivoCritica"
+            },
+            "title": "Motivos",
+            "type": "array"
+          },
+          "numero_tentativa": {
+            "description": "Número da tentativa de geração avaliada.",
+            "title": "Numero Tentativa",
+            "type": "integer"
+          },
+          "origem": {
+            "description": "Sempre 'agente_ia': esta decisão é do agente crítico, não de uma regra.",
+            "title": "Origem",
+            "type": "string"
+          },
+          "validacao_deterministica": {
+            "$ref": "#/components/schemas/RespostaValidacaoDeterministica",
+            "description": "Veredito estrutural de 3.2 sobre a mesma versão, mantido separado."
+          },
+          "versao_mensagem_id": {
+            "description": "Versão de mensagem avaliada.",
+            "format": "uuid",
+            "title": "Versao Mensagem Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mensagem_id",
+          "versao_mensagem_id",
+          "numero_tentativa",
+          "origem",
+          "criterios",
+          "aprovada",
+          "motivos",
+          "agente",
+          "modelo",
+          "duracao_ms",
+          "criado_em",
+          "validacao_deterministica"
+        ],
+        "title": "RespostaAvaliacaoCritica",
         "type": "object"
       },
       "RespostaAvaliacaoRisco": {
@@ -1276,6 +1406,28 @@
         "title": "RespostaMensagens",
         "type": "object"
       },
+      "RespostaMotivoCritica": {
+        "additionalProperties": false,
+        "description": "Um motivo da decisão do crítico: a categoria avaliada e a justificativa.",
+        "properties": {
+          "categoria": {
+            "description": "Critério avaliado, entre os sete critérios fechados.",
+            "title": "Categoria",
+            "type": "string"
+          },
+          "justificativa": {
+            "description": "Por que este critério sustenta a decisão.",
+            "title": "Justificativa",
+            "type": "string"
+          }
+        },
+        "required": [
+          "categoria",
+          "justificativa"
+        ],
+        "title": "RespostaMotivoCritica",
+        "type": "object"
+      },
       "RespostaNovaTentativaIA": {
         "additionalProperties": false,
         "description": "Ack da execução correlacionada criada a partir de uma falha de preparação.",
@@ -1787,6 +1939,41 @@
           "casos"
         ],
         "title": "RespostaTeste",
+        "type": "object"
+      },
+      "RespostaValidacaoDeterministica": {
+        "additionalProperties": false,
+        "description": "Veredito estrutural de 3.2 sobre a mesma versão, decidido fora do modelo.",
+        "properties": {
+          "motivo_invalidez": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Código estável do motivo da recusa estrutural, ou nulo quando válida.",
+            "title": "Motivo Invalidez"
+          },
+          "origem": {
+            "description": "Sempre 'regras_deterministicas': decidido por regra, nunca pelo modelo.",
+            "title": "Origem",
+            "type": "string"
+          },
+          "valida": {
+            "description": "Se campos obrigatórios e limite de canal foram atendidos (3.2).",
+            "title": "Valida",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "origem",
+          "valida",
+          "motivo_invalidez"
+        ],
+        "title": "RespostaValidacaoDeterministica",
         "type": "object"
       },
       "RespostaVerificacaoAceita": {
@@ -2697,6 +2884,68 @@
         "summary": "Solicitar nova tentativa de preparação agêntica",
         "tags": [
           "Preparação da IA"
+        ]
+      }
+    },
+    "/api/v1/mensagens/{mensagem_id}/versoes/{versao_id}/avaliacao-critica": {
+      "get": {
+        "description": "Devolve a versão avaliada, os sete critérios considerados, a decisão do agente crítico, os motivos categorizados, o agente, o modelo e a duração da avaliação. A decisão do agente ('agente_ia') vem separada da validação determinística de campos e limite de canal ('regras_deterministicas'), que é decidida por regra e nunca pelo modelo. É uma consulta de leitura: nada é reavaliado e nenhuma chamada à OpenAI é feita.",
+        "operationId": "consultar_avaliacao_api_v1_mensagens__mensagem_id__versoes__versao_id__avaliacao_critica_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mensagem_id",
+            "required": true,
+            "schema": {
+              "title": "Mensagem Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "versao_id",
+            "required": true,
+            "schema": {
+              "title": "Versao Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaAvaliacaoCritica"
+                }
+              }
+            },
+            "description": "Avaliação encontrada."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaAvaliacaoCritica"
+                }
+              }
+            },
+            "description": "Mensagem inexistente, versão inexistente ou versão ainda não avaliada."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaAvaliacaoCritica"
+                }
+              }
+            },
+            "description": "Identificador de mensagem ou de versão inválido."
+          }
+        },
+        "summary": "Consultar o detalhe da avaliação crítica de uma versão de mensagem",
+        "tags": [
+          "Avaliação crítica"
         ]
       }
     },

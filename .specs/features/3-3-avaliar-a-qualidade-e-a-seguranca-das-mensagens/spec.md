@@ -105,8 +105,8 @@ A História 3.2 entrega mensagens estruturalmente válidas em `criticando`, mas 
 | CRIT-05 | P1: Transições de estado a partir da decisão do crítico | Tasks | Implementing (T4) |
 | CRIT-06 | P1: Transições de estado a partir da decisão do crítico | Tasks | Implementing (T1, T4) |
 | CRIT-07 | P1: Transições de estado a partir da decisão do crítico | Tasks | Implementing (T3) |
-| CRIT-08 | P2: Detalhe da avaliação acessível a Marina | Design | Pending |
-| CRIT-09 | P2: Detalhe da avaliação acessível a Marina | Design | Pending |
+| CRIT-08 | P2: Detalhe da avaliação acessível a Marina | Tasks | Implementing (T5) |
+| CRIT-09 | P2: Detalhe da avaliação acessível a Marina | Tasks | Implementing (T5) |
 
 **ID format:** `CRIT-NN`
 
