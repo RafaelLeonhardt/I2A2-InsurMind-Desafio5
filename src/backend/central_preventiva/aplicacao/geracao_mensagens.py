@@ -1,10 +1,10 @@
-"""Caso de uso da geração automática de mensagens do lote (GERAR-04..06, 10..12).
+"""Caso de uso da geração e da crítica automáticas do lote (GERAR-04..06, 10..12; CRIT-05..07).
 
-Para cada item incluído do público elegível, cria a mensagem, roda o grafo de geração e
-persiste o desfecho. Nenhuma ação humana por mensagem: `gerar_lote` recebe a execução inteira
-e percorre o público (GERAR-04).
+Para cada item incluído do público elegível, cria a mensagem, roda o grafo (geração e, quando
+a saída é válida, crítica) e persiste o desfecho. Nenhuma ação humana por mensagem:
+`gerar_lote` recebe a execução inteira e percorre o público (GERAR-04).
 
-Três desfechos por item, todos persistidos:
+Três desfechos de geração por item, todos persistidos:
 
 - válida: versão registrada com `valida = true`, mensagem avança `gerando` → `criticando`;
 - inválida: versão registrada com `valida = false` e o motivo, mensagem **permanece** em
@@ -12,9 +12,20 @@ Três desfechos por item, todos persistidos:
 - transporte esgotado: mensagem vai a `falhou_integracao_ia` com `Exceção` operacional
   registrada, e o restante do lote continua (AD-8).
 
+Uma versão válida segue para a crítica, com quatro desfechos:
+
+- aprovada: avaliação persistida com `aprovada = true`, mensagem avança para
+  `aguardando_revisao` (CRIT-05);
+- reprovada: avaliação persistida com os motivos categorizados, mensagem **permanece** em
+  `criticando`, disponível para a próxima tentativa da História 3.4 (CRIT-06);
+- saída do crítico não interpretável: falha da tentativa — nenhuma avaliação persistida,
+  nenhuma transição, nunca aprovação (CRIT-07);
+- transporte esgotado: mesmo tratamento do redator, `falhou_integracao_ia` com `Exceção`
+  operacional registrada, sem terminal novo.
+
 Reinvocar `gerar_lote` para uma execução já processada é no-op: a `UNIQUE
 (elegibilidade_id, canal)` recusa a segunda criação, o item é pulado antes de qualquer
-chamada à OpenAI e nenhuma mensagem é duplicada (GERAR-11, GERAR-12, AD-010).
+chamada à OpenAI e nenhuma mensagem é duplicada nem reavaliada (GERAR-11, GERAR-12, AD-010).
 """
 
 from dataclasses import dataclass
@@ -31,10 +42,13 @@ from central_preventiva.adaptadores.persistencia.repositorio_mensagens import (
     MensagemJaExiste,
 )
 from central_preventiva.aplicacao.grafos.geracao_mensagem import (
+    DesfechoCritica,
     DesfechoGeracao,
     EstadoGrafoMensagem,
+    ResultadoCritica,
     ResultadoGeracao,
 )
+from central_preventiva.dominio.avaliacao_critica import MotivoCritica
 from central_preventiva.dominio.estados_mensagem import EstadoMensagem
 from central_preventiva.dominio.montador_contexto_agente import ContextoAgente
 from central_preventiva.dominio.validador_saida_canal import Canal, SaidaCanal
@@ -44,6 +58,9 @@ TENTATIVA_INICIAL = 1
 
 VERSAO_INICIAL_MENSAGEM = 1
 """Versão de concorrência otimista de uma mensagem recém-criada (AD-008)."""
+
+VERSAO_APOS_CRITICANDO = 2
+"""Versão da mensagem depois da transição `gerando` → `criticando` (AD-008)."""
 
 IMPACTO_ITEM_SEM_MENSAGEM = (
     "Este item do público elegível não recebe mensagem nesta execução; os demais seguem "
@@ -68,6 +85,12 @@ def _causa_integracao(elegibilidade_id: UUID, motivo: str | None) -> str:
     """Descreve a falha de integração de um item, com a causa já sanitizada pelo grafo."""
 
     return f"falha_integracao_ia:{elegibilidade_id}:{motivo}"
+
+
+def _causa_integracao_critica(elegibilidade_id: UUID, motivo: str | None) -> str:
+    """Descreve a falha de transporte da crítica, distinta da falha da geração."""
+
+    return f"falha_integracao_ia_critica:{elegibilidade_id}:{motivo}"
 
 
 class _RepositorioElegibilidades(Protocol):
@@ -108,6 +131,19 @@ class _RepositorioMensagens(Protocol):
     ) -> None: ...
 
 
+class _RepositorioAvaliacoesCriticas(Protocol):
+    """Porta mínima de `avaliacoes_criticas` de que este caso de uso depende."""
+
+    def salvar(
+        self,
+        versao_mensagem_id: UUID,
+        aprovada: bool,
+        motivos: tuple[MotivoCritica, ...],
+        modelo: str,
+        duracao_ms: float,
+    ) -> UUID: ...
+
+
 class _RepositorioExcecoesOperacionais(Protocol):
     """Porta mínima de registro de `Exceção` operacional sanitizada."""
 
@@ -127,6 +163,7 @@ class PortasGeracaoMensagens:
     elegibilidades: _RepositorioElegibilidades
     contextos: _RepositorioContextosAgente
     mensagens: _RepositorioMensagens
+    avaliacoes: _RepositorioAvaliacoesCriticas
     excecoes: _RepositorioExcecoesOperacionais
     grafo: _GrafoGeracao
     versao_prompt: str
@@ -170,7 +207,7 @@ class ServicoGeracaoMensagens:
         except MensagemJaExiste:
             return
 
-        resultado = await self._executar_grafo(contexto.contexto, canal)
+        resultado, critica = await self._executar_grafo(contexto.contexto, canal)
 
         if resultado.desfecho is DesfechoGeracao.FALHOU_INTEGRACAO_IA:
             self._registrar_excecao(
@@ -181,7 +218,7 @@ class ServicoGeracaoMensagens:
             )
             return
 
-        self._portas.mensagens.salvar_versao(
+        versao_id = self._portas.mensagens.salvar_versao(
             mensagem_id=mensagem_id,
             numero_tentativa=TENTATIVA_INICIAL,
             conteudo=resultado.saida if resultado.saida is not None else SaidaCanal(corpo=""),
@@ -194,13 +231,64 @@ class ServicoGeracaoMensagens:
             motivo_invalidez=resultado.motivo,
         )
 
-        if resultado.desfecho is DesfechoGeracao.VALIDA:
+        if resultado.desfecho is not DesfechoGeracao.VALIDA:
+            return
+
+        self._portas.mensagens.transicionar(
+            mensagem_id, VERSAO_INICIAL_MENSAGEM, EstadoMensagem.CRITICANDO
+        )
+        if critica is not None:
+            self._concluir_critica(execucao_id, registro.id, mensagem_id, versao_id, critica)
+
+    def _concluir_critica(
+        self,
+        execucao_id: UUID,
+        elegibilidade_id: UUID,
+        mensagem_id: UUID,
+        versao_id: UUID,
+        critica: ResultadoCritica,
+    ) -> None:
+        """Persiste a avaliação e transiciona a mensagem conforme a decisão do crítico.
+
+        Uma saída do crítico não interpretável não persiste avaliação nem transiciona nada
+        (CRIT-07): a mensagem fica em `criticando`, disponível para a próxima tentativa da
+        História 3.4. Uma reprovação persiste os motivos e também não transiciona: só a
+        aprovação avança para `aguardando_revisao` (CRIT-05, CRIT-06).
+        """
+
+        if critica.desfecho is DesfechoCritica.FALHOU_INTEGRACAO_IA:
+            self._registrar_excecao(
+                execucao_id, _causa_integracao_critica(elegibilidade_id, critica.causa)
+            )
             self._portas.mensagens.transicionar(
-                mensagem_id, VERSAO_INICIAL_MENSAGEM, EstadoMensagem.CRITICANDO
+                mensagem_id, VERSAO_APOS_CRITICANDO, EstadoMensagem.FALHOU_INTEGRACAO_IA
+            )
+            return
+
+        if critica.desfecho is DesfechoCritica.SAIDA_INVALIDA:
+            return
+
+        self._portas.avaliacoes.salvar(
+            versao_mensagem_id=versao_id,
+            aprovada=critica.desfecho is DesfechoCritica.APROVADA,
+            motivos=critica.motivos,
+            modelo=critica.modelo,
+            duracao_ms=critica.duracao_ms,
+        )
+
+        if critica.desfecho is DesfechoCritica.APROVADA:
+            self._portas.mensagens.transicionar(
+                mensagem_id, VERSAO_APOS_CRITICANDO, EstadoMensagem.AGUARDANDO_REVISAO
             )
 
-    async def _executar_grafo(self, contexto: ContextoAgente, canal: Canal) -> ResultadoGeracao:
-        """Roda o grafo de uma mensagem e devolve o resultado tipado do nó `gerar`."""
+    async def _executar_grafo(
+        self, contexto: ContextoAgente, canal: Canal
+    ) -> tuple[ResultadoGeracao, ResultadoCritica | None]:
+        """Roda o grafo de uma mensagem e devolve os resultados tipados dos seus nós.
+
+        O resultado da crítica é `None` quando o grafo encerrou em `gerar` — saída inválida
+        ou falha de transporte da geração nunca alcançam o nó `criticar` (CRIT-04).
+        """
 
         estado: EstadoGrafoMensagem = {
             "contexto": contexto,
@@ -210,7 +298,9 @@ class ServicoGeracaoMensagens:
         final: Any = await self._portas.grafo.ainvoke(estado)
         resultado = final["resultado"]
         assert isinstance(resultado, ResultadoGeracao)
-        return resultado
+        critica = final.get("resultado_critica")
+        assert critica is None or isinstance(critica, ResultadoCritica)
+        return resultado, critica
 
     def _canal_de(self, execucao_id: UUID, registro: RegistroElegibilidade) -> Canal | None:
         """Resolve o canal do snapshot, isolando um canal não suportado como exceção."""

@@ -14,6 +14,9 @@ from central_preventiva.adaptadores.ia.agente_redator import AgenteRedator
 from central_preventiva.adaptadores.ia.verificador_disponibilidade_openai import (
     VerificadorDisponibilidadeOpenAI,
 )
+from central_preventiva.adaptadores.persistencia.repositorio_avaliacoes_criticas import (
+    RepositorioAvaliacoesCriticas,
+)
 from central_preventiva.adaptadores.persistencia.repositorio_contextos_agente import (
     RepositorioContextosAgente,
 )
@@ -226,6 +229,7 @@ def montar_servico_geracao(configuracao: Configuracao) -> ServicoGeracaoMensagen
             elegibilidades=RepositorioElegibilidades(caminho),
             contextos=RepositorioContextosAgente(caminho),
             mensagens=RepositorioMensagens(caminho),
+            avaliacoes=RepositorioAvaliacoesCriticas(caminho),
             excecoes=RepositorioExcecoesOperacionais(caminho),
             grafo=construir_grafo(
                 DependenciasGrafo(redator=redator, validador=validador, critico=critico)

@@ -156,10 +156,17 @@ persiste métrica de uso — não há o que carregar junto. `SPEC_DEVIATION` reg
 
 **Done when**:
 
-- [ ] Avaliação aprovada persiste `aprovada=true` e transiciona a mensagem para `aguardando_revisao`
-- [ ] Avaliação reprovada persiste `aprovada=false` com motivos, mensagem permanece disponível (sem transicionar para `aguardando_revisao`)
-- [ ] `obter_por_versao` recupera a avaliação persistida sem recalcular
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Avaliação aprovada persiste `aprovada=true` e transiciona a mensagem para `aguardando_revisao`
+- [x] Avaliação reprovada persiste `aprovada=false` com motivos, mensagem permanece disponível (sem transicionar para `aguardando_revisao`)
+- [x] `obter_por_versao` recupera a avaliação persistida sem recalcular
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+
+**Testes de 3.2 atualizados por decorrência do CRIT-05**: cinco asserções de
+`test_geracao_mensagens.py` (3.2) esperavam `criticando` como estado final de uma geração
+bem-sucedida. Com o crítico aprovando, o estado final passa a ser `aguardando_revisao` — a
+mudança é exigida pelo CRIT-05, não uma acomodação da implementação. Nenhuma asserção foi
+enfraquecida nem removida: os valores esperados foram atualizados para o desfecho que a spec
+desta história define, e o teste renomeado acompanha o que ele agora prova.
 
 **Tests**: integration
 **Gate**: quick

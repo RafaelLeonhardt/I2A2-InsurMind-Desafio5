@@ -17,6 +17,9 @@ from central_preventiva.adaptadores.ia.verificador_disponibilidade_openai import
     ResultadoDisponibilidade,
 )
 from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigracoes
+from central_preventiva.adaptadores.persistencia.repositorio_avaliacoes_criticas import (
+    RepositorioAvaliacoesCriticas,
+)
 from central_preventiva.adaptadores.persistencia.repositorio_contextos_agente import (
     RegistroContextoAgente,
 )
@@ -44,7 +47,11 @@ from central_preventiva.aplicacao.preflight_ia import (
     PortasPreflightIA,
     ServicoPreflightIA,
 )
-from central_preventiva.dominio.avaliacao_critica import AvaliacaoCritica
+from central_preventiva.dominio.avaliacao_critica import (
+    AvaliacaoCritica,
+    CategoriaCritica,
+    MotivoCritica,
+)
 from central_preventiva.dominio.avaliador_elegibilidade import (
     OPERANDO_AREA_AFETADA,
     OPERANDO_COBERTURA_EXIGIDA,
@@ -272,6 +279,7 @@ class Cenario:
         self.redator = redator if redator is not None else RedatorFalso()
         self.critico = critico if critico is not None else CriticoFalso()
         self.mensagens = RepositorioMensagens(caminho)
+        self.avaliacoes = RepositorioAvaliacoesCriticas(caminho)
         self.elegibilidades = ElegibilidadesFalsas(registros)
         self.contextos = ContextosFalsos(
             contextos
@@ -284,6 +292,7 @@ class Cenario:
                 elegibilidades=self.elegibilidades,
                 contextos=self.contextos,
                 mensagens=self.mensagens,
+                avaliacoes=self.avaliacoes,
                 excecoes=self.excecoes,
                 grafo=construir_grafo(
                     DependenciasGrafo(
@@ -320,7 +329,7 @@ def test_duas_elegibilidades_incluidas_geram_duas_mensagens_sem_acao_manual(
         (primeiro.id, Canal.SMS),
         (segundo.id, Canal.EMAIL),
     }
-    assert {item.estado for item in mensagens} == {EstadoMensagem.CRITICANDO}
+    assert {item.estado for item in mensagens} == {EstadoMensagem.AGUARDANDO_REVISAO}
     assert cenario.redator.canais_chamados == [Canal.SMS, Canal.EMAIL]
 
 
@@ -378,8 +387,10 @@ def test_item_sem_contexto_minimo_e_pulado_sem_chamar_a_openai(tmp_path: Path) -
     ]
 
 
-def test_saida_valida_persiste_a_versao_e_avanca_para_criticando(tmp_path: Path) -> None:
-    """GERAR-10: versão inicial, duração, modelo, prompt e métricas persistidos; `criticando`."""
+def test_saida_valida_persiste_a_versao_e_avanca_ate_aguardando_revisao(tmp_path: Path) -> None:
+    """GERAR-10 + CRIT-05: versão inicial, duração, modelo, prompt e métricas persistidos;
+    com o crítico aprovando, a mensagem atravessa `criticando` e para em
+    `aguardando_revisao` (3.3 estende o estado final que 3.2 deixava em `criticando`)."""
 
     incluido = registro(canal="sms")
     cenario = Cenario(
@@ -391,7 +402,7 @@ def test_saida_valida_persiste_a_versao_e_avanca_para_criticando(tmp_path: Path)
     cenario.gerar_lote()
 
     mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
-    assert mensagem.estado is EstadoMensagem.CRITICANDO
+    assert mensagem.estado is EstadoMensagem.AGUARDANDO_REVISAO
     versao = cenario.mensagens.obter_versao_atual(mensagem.id)
     assert versao is not None
     assert versao.numero_tentativa == 1
@@ -475,7 +486,7 @@ def test_falha_de_transporte_isola_o_item_e_o_lote_continua(tmp_path: Path) -> N
         for item in cenario.mensagens.listar_por_execucao(EXECUCAO_ID)
     }
     assert por_item[com_falha.id].estado is EstadoMensagem.FALHOU_INTEGRACAO_IA
-    assert por_item[seguinte.id].estado is EstadoMensagem.CRITICANDO
+    assert por_item[seguinte.id].estado is EstadoMensagem.AGUARDANDO_REVISAO
     assert cenario.mensagens.obter_versao_atual(por_item[com_falha.id].id) is None
     causas = [causa for _, causa, _, _ in cenario.excecoes.registradas]
     assert causas == [f"falha_integracao_ia:{com_falha.id}:TimeoutError: conexão expirou"]
@@ -514,7 +525,7 @@ def test_reinvocar_o_lote_nao_duplica_mensagem_nem_regera(tmp_path: Path) -> Non
     assert {item.id for item in mensagens} == ids_iniciais
     assert len(mensagens) == 2
     assert cenario.redator.canais_chamados == [Canal.SMS, Canal.EMAIL]
-    assert {item.estado for item in mensagens} == {EstadoMensagem.CRITICANDO}
+    assert {item.estado for item in mensagens} == {EstadoMensagem.AGUARDANDO_REVISAO}
 
 
 def test_canal_nao_suportado_e_isolado_como_excecao_do_item(tmp_path: Path) -> None:
@@ -638,7 +649,7 @@ def test_preflight_bem_sucedido_aciona_a_geracao_do_lote_automaticamente(
         (primeiro.id, Canal.SMS),
         (segundo.id, Canal.EMAIL),
     }
-    assert {item.estado for item in mensagens} == {EstadoMensagem.CRITICANDO}
+    assert {item.estado for item in mensagens} == {EstadoMensagem.AGUARDANDO_REVISAO}
 
 
 def test_preflight_bloqueado_nao_aciona_nenhuma_geracao(tmp_path: Path) -> None:
@@ -674,3 +685,171 @@ def test_preflight_bloqueado_nao_aciona_nenhuma_geracao(tmp_path: Path) -> None:
     assert resultado.estado == EstadoExecucao.FALHOU_PREPARACAO_IA
     assert cenario.mensagens.listar_por_execucao(EXECUCAO_ID) == []
     assert cenario.redator.canais_chamados == []
+
+
+def _versao_id(cenario: Cenario) -> UUID:
+    """Identificador da versão atual da única mensagem do cenário."""
+
+    mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
+    versao = cenario.mensagens.obter_versao_atual(mensagem.id)
+    assert versao is not None
+    return versao.id
+
+
+def test_aprovacao_do_critico_persiste_a_avaliacao_e_avanca_para_aguardando_revisao(
+    tmp_path: Path,
+) -> None:
+    """CRIT-05: aprovada pelo crítico e pelos validadores, a mensagem avança para
+    `aguardando_revisao`, com a avaliação agêntica persistida à parte da versão."""
+
+    incluido = registro(canal="sms")
+    cenario = Cenario([incluido], tmp_path, critico=CriticoFalso([AvaliacaoCritica(True, ())]))
+
+    cenario.gerar_lote()
+
+    mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
+    assert mensagem.estado is EstadoMensagem.AGUARDANDO_REVISAO
+    avaliacao = cenario.avaliacoes.obter_por_versao(_versao_id(cenario))
+    assert avaliacao is not None
+    assert avaliacao.avaliacao == AvaliacaoCritica(aprovada=True, motivos=())
+    assert avaliacao.agente == "critico"
+    assert avaliacao.modelo == "gpt-4o-mini"
+    assert avaliacao.duracao_ms > 0
+    assert cenario.excecoes.registradas == []
+
+
+def test_reprovacao_do_critico_persiste_motivos_e_mensagem_permanece_em_criticando(
+    tmp_path: Path,
+) -> None:
+    """CRIT-06: os motivos ficam estruturados e associados à versão avaliada, e o item
+    permanece disponível para a próxima tentativa automática (3.4) — não avança."""
+
+    incluido = registro(canal="sms")
+    motivos = (
+        MotivoCritica(CategoriaCritica.TOM, "O texto usa tom alarmista, não preventivo."),
+    )
+    cenario = Cenario(
+        [incluido], tmp_path, critico=CriticoFalso([AvaliacaoCritica(False, motivos)])
+    )
+
+    cenario.gerar_lote()
+
+    mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
+    assert mensagem.estado is EstadoMensagem.CRITICANDO
+    avaliacao = cenario.avaliacoes.obter_por_versao(_versao_id(cenario))
+    assert avaliacao is not None
+    assert avaliacao.avaliacao == AvaliacaoCritica(aprovada=False, motivos=motivos)
+    assert avaliacao.avaliacao.motivos[0].categoria is CategoriaCritica.TOM
+    assert (
+        avaliacao.avaliacao.motivos[0].justificativa
+        == "O texto usa tom alarmista, não preventivo."
+    )
+
+
+def test_saida_invalida_do_critico_nao_persiste_avaliacao_nem_avanca(tmp_path: Path) -> None:
+    """CRIT-07: saída não interpretável é falha da tentativa — nenhuma avaliação
+    persistida, nenhuma aprovação, e a mensagem não alcança `aguardando_revisao`."""
+
+    incluido = registro(canal="sms")
+    cenario = Cenario([incluido], tmp_path, critico=CriticoFalso([None]))
+
+    cenario.gerar_lote()
+
+    mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
+    assert mensagem.estado is EstadoMensagem.CRITICANDO
+    assert mensagem.estado is not EstadoMensagem.AGUARDANDO_REVISAO
+    assert cenario.avaliacoes.obter_por_versao(_versao_id(cenario)) is None
+
+
+def test_falha_de_transporte_do_critico_leva_a_falhou_integracao_ia_sem_terminal_novo(
+    tmp_path: Path,
+) -> None:
+    """Edge case da spec: transporte do crítico segue o padrão de `falhou_integracao_ia`
+    já estabelecido em 3.2 para o redator, com exceção operacional registrada."""
+
+    incluido = registro(canal="sms")
+    cenario = Cenario(
+        [incluido], tmp_path, critico=CriticoFalso(erro=TimeoutError("conexão expirou"))
+    )
+
+    cenario.gerar_lote()
+
+    mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
+    assert mensagem.estado is EstadoMensagem.FALHOU_INTEGRACAO_IA
+    assert cenario.avaliacoes.obter_por_versao(_versao_id(cenario)) is None
+    assert cenario.excecoes.registradas == [
+        (
+            EXECUCAO_ID,
+            f"falha_integracao_ia_critica:{incluido.id}:TimeoutError: conexão expirou",
+            1,
+            IMPACTO_ITEM_SEM_MENSAGEM,
+        )
+    ]
+
+
+def test_mensagem_reprovada_deterministicamente_nunca_recebe_avaliacao_critica(
+    tmp_path: Path,
+) -> None:
+    """CRIT-04: a reprovação determinística de 3.2 prevalece — a mensagem não sai de
+    `gerando`, o crítico não é chamado e nenhuma avaliação é persistida, mesmo com um
+    crítico configurado para aprovar tudo."""
+
+    incluido = registro(canal="sms")
+    cenario = Cenario(
+        [incluido],
+        tmp_path,
+        RedatorFalso([RespostaRedator(SaidaCanal(corpo="a" * 161), 90, 200)]),
+        critico=CriticoFalso([AvaliacaoCritica(True, ())]),
+    )
+
+    cenario.gerar_lote()
+
+    mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
+    assert mensagem.estado is EstadoMensagem.GERANDO
+    assert cenario.critico.chamadas == 0
+    assert cenario.avaliacoes.obter_por_versao(_versao_id(cenario)) is None
+
+
+def test_reinvocar_o_lote_nao_reavalia_a_versao_ja_avaliada(tmp_path: Path) -> None:
+    """Terceiro Edge Case da 3.3: o replay reaproveita a avaliação persistida, sem nenhuma
+    nova chamada ao crítico e sem uma segunda avaliação da mesma versão."""
+
+    incluido = registro(canal="sms")
+    cenario = Cenario([incluido], tmp_path, critico=CriticoFalso([AvaliacaoCritica(True, ())]))
+    cenario.gerar_lote()
+    versao_id = _versao_id(cenario)
+    primeira = cenario.avaliacoes.obter_por_versao(versao_id)
+
+    cenario.gerar_lote()
+
+    assert cenario.critico.chamadas == 1
+    assert cenario.avaliacoes.obter_por_versao(versao_id) == primeira
+    assert len(cenario.mensagens.listar_por_execucao(EXECUCAO_ID)) == 1
+
+
+def test_reprovacao_de_um_item_nao_impede_a_aprovacao_do_seguinte(tmp_path: Path) -> None:
+    """CRIT-05, CRIT-06: cada item segue a própria decisão do crítico dentro do lote."""
+
+    reprovado = registro(canal="sms")
+    aprovado = registro(canal="email")
+    cenario = Cenario(
+        [reprovado, aprovado],
+        tmp_path,
+        critico=CriticoFalso(
+            [
+                AvaliacaoCritica(
+                    False, (MotivoCritica(CategoriaCritica.CLAREZA, "Instrução ambígua."),)
+                ),
+                AvaliacaoCritica(True, ()),
+            ]
+        ),
+    )
+
+    cenario.gerar_lote()
+
+    por_item = {
+        item.elegibilidade_id: item
+        for item in cenario.mensagens.listar_por_execucao(EXECUCAO_ID)
+    }
+    assert por_item[reprovado.id].estado is EstadoMensagem.CRITICANDO
+    assert por_item[aprovado.id].estado is EstadoMensagem.AGUARDANDO_REVISAO
