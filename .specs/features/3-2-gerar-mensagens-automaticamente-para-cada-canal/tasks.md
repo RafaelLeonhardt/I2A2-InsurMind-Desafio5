@@ -308,13 +308,21 @@ Gate: 622 testes (13 novos, repositório de mensagens e grafo reais, só o redat
 
 **Done when**:
 
-- [ ] `200` com a lista de mensagens e seus estados/versão atual
-- [ ] Chamado antes e depois da geração completa reflete só dados persistidos, nunca estado inventado
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `200` com a lista de mensagens e seus estados/versão atual
+- [x] Chamado antes e depois da geração completa reflete só dados persistidos, nunca estado inventado
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full
+
+**Status**: ✅ Completo — `GET /api/v1/execucoes/{execucao_id}/mensagens` devolve, por
+mensagem, origem (elegibilidade), canal, estado, tentativa, versão de concorrência e os
+metadados da versão atual (veredito, motivo, modelo, prompt, duração, tokens). Mensagem sem
+versão devolve `versao_atual: null`, nunca um estado inventado. O **texto gerado não entra na
+resposta**: exibir conteúdo para decisão humana é a superfície de revisão da História 3.5,
+fora do escopo desta. `openapi.json` regenerado e o inventário de rotas de `test_saude.py`
+atualizado com a rota nova. Gate full: 630 testes, ruff e pyright limpos.
 
 ---
 

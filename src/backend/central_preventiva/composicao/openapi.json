@@ -183,6 +183,46 @@
         "title": "ProblemaExecucao",
         "type": "object"
       },
+      "ProblemaMensagens": {
+        "additionalProperties": false,
+        "description": "Falha da consulta de mensagens, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaMensagens",
+        "type": "object"
+      },
       "ProblemaMeteorologia": {
         "additionalProperties": false,
         "description": "Falha de uma operação meteorológica, com ocorrência, impacto e próxima ação segura.",
@@ -1150,6 +1190,92 @@
         "title": "RespostaMarco",
         "type": "object"
       },
+      "RespostaMensagem": {
+        "additionalProperties": false,
+        "description": "Uma mensagem da execução: origem, canal, estado de conteúdo e versão atual.",
+        "properties": {
+          "canal": {
+            "description": "Canal da mensagem (`whatsapp`, `email` ou `sms`).",
+            "title": "Canal",
+            "type": "string"
+          },
+          "elegibilidade_id": {
+            "description": "Item do público elegível que originou esta mensagem.",
+            "format": "uuid",
+            "title": "Elegibilidade Id",
+            "type": "string"
+          },
+          "estado": {
+            "description": "Estado de conteúdo da mensagem, conforme o AD-4.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "id": {
+            "description": "Identificador da mensagem.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "tentativa_atual": {
+            "description": "Tentativa de geração em curso ou concluída.",
+            "title": "Tentativa Atual",
+            "type": "integer"
+          },
+          "versao": {
+            "description": "Versão de concorrência otimista da mensagem.",
+            "title": "Versao",
+            "type": "integer"
+          },
+          "versao_atual": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaVersaoMensagem"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Versão mais recente registrada, ou nula se nenhuma foi persistida ainda."
+          }
+        },
+        "required": [
+          "id",
+          "elegibilidade_id",
+          "canal",
+          "estado",
+          "tentativa_atual",
+          "versao",
+          "versao_atual"
+        ],
+        "title": "RespostaMensagem",
+        "type": "object"
+      },
+      "RespostaMensagens": {
+        "additionalProperties": false,
+        "description": "Mensagens já persistidas de uma execução, na ordem em que foram criadas.",
+        "properties": {
+          "execucao_id": {
+            "description": "Identificador da execução consultada.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "registros": {
+            "description": "Mensagens da execução; lista vazia quando nenhuma foi criada ainda.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaMensagem"
+            },
+            "title": "Registros",
+            "type": "array"
+          }
+        },
+        "required": [
+          "execucao_id",
+          "registros"
+        ],
+        "title": "RespostaMensagens",
+        "type": "object"
+      },
       "RespostaNovaTentativaIA": {
         "additionalProperties": false,
         "description": "Ack da execução correlacionada criada a partir de uma falha de preparação.",
@@ -1690,6 +1816,92 @@
           "aceito_em"
         ],
         "title": "RespostaVerificacaoAceita",
+        "type": "object"
+      },
+      "RespostaVersaoMensagem": {
+        "additionalProperties": false,
+        "description": "Metadados da versão atual de uma mensagem: veredito, motivo e proveniência.",
+        "properties": {
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC do registro da versão.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "duracao_ms": {
+            "description": "Duração da chamada de geração, em milissegundos.",
+            "title": "Duracao Ms",
+            "type": "number"
+          },
+          "modelo": {
+            "description": "Modelo da OpenAI usado nesta tentativa de geração.",
+            "title": "Modelo",
+            "type": "string"
+          },
+          "motivo_invalidez": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Código estável do motivo da recusa, ou nulo quando a saída é válida.",
+            "title": "Motivo Invalidez"
+          },
+          "numero_tentativa": {
+            "description": "Número da tentativa de geração registrada.",
+            "title": "Numero Tentativa",
+            "type": "integer"
+          },
+          "tokens_entrada": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Tokens de entrada consumidos, ou nulo quando a chamada não os reportou.",
+            "title": "Tokens Entrada"
+          },
+          "tokens_saida": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Tokens de saída consumidos, ou nulo quando a chamada não os reportou.",
+            "title": "Tokens Saida"
+          },
+          "valida": {
+            "description": "Se a validação determinística aprovou a saída desta tentativa.",
+            "title": "Valida",
+            "type": "boolean"
+          },
+          "versao_prompt": {
+            "description": "Versão do prompt usada nesta tentativa.",
+            "title": "Versao Prompt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "numero_tentativa",
+          "valida",
+          "motivo_invalidez",
+          "modelo",
+          "versao_prompt",
+          "duracao_ms",
+          "tokens_entrada",
+          "tokens_saida",
+          "criado_em"
+        ],
+        "title": "RespostaVersaoMensagem",
         "type": "object"
       },
       "SolicitacaoAtivarCenarioSintetico": {
@@ -2274,6 +2486,59 @@
         "summary": "Consultar a explicação completa de um resultado de elegibilidade",
         "tags": [
           "Elegibilidade"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_id}/mensagens": {
+      "get": {
+        "description": "Devolve, para cada mensagem já criada na execução, o item do público elegível de origem, o canal, o estado de conteúdo, a tentativa e os metadados da versão atual. É uma consulta de leitura: reidratar a página reconstrói o progresso somente do que está persistido, sem reenviar nenhuma geração e sem duplicar mensagem. Uma execução sem mensagens devolve lista vazia.",
+        "operationId": "consultar_mensagens_api_v1_execucoes__execucao_id__mensagens_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaMensagens"
+                }
+              }
+            },
+            "description": "Mensagens encontradas (pode ser lista vazia)."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaMensagens"
+                }
+              }
+            },
+            "description": "Execução inexistente."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaMensagens"
+                }
+              }
+            },
+            "description": "O identificador da execução não é um UUID válido."
+          }
+        },
+        "summary": "Consultar as mensagens geradas de uma execução",
+        "tags": [
+          "Mensagens"
         ]
       }
     },
