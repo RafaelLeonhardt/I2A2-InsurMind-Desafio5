@@ -123,29 +123,34 @@ O Épico 2 entrega execuções paradas em `aguardando_geracao` com um público e
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| PREFL-01 | P1: Preflight de disponibilidade antes de qualquer geração | T3, T7 | Implementing |
-| PREFL-02 | P1: Preflight de disponibilidade antes de qualquer geração | T7, T8 | Implementing |
-| PREFL-03 | P1: Preflight de disponibilidade antes de qualquer geração | T4, T7 | Implementing |
-| PREFL-04 | P1: Preflight de disponibilidade antes de qualquer geração | T4, T7 | Implementing |
-| PREFL-05 | P1: Preflight de disponibilidade antes de qualquer geração | T1, T4 | Implementing |
-| PREFL-06 | P1: Inicialização segura e nova tentativa correlacionada | T4 | Implementing |
-| PREFL-07 | P1: Inicialização segura e nova tentativa correlacionada | T2, T7 | Implementing |
-| PREFL-08 | P1: Inicialização segura e nova tentativa correlacionada | T7 | Implementing |
-| PREFL-09 | P1: Inicialização segura e nova tentativa correlacionada | T7, T8 | Implementing |
-| PREFL-10 | P1: Inicialização segura e nova tentativa correlacionada | T8, T9 | Implementing |
-| PREFL-11 | P1: Contexto mínimo do agente redator | T5 | Implementing |
-| PREFL-12 | P1: Contexto mínimo do agente redator | T2, T5 | Implementing |
-| PREFL-13 | P1: Contexto mínimo do agente redator | T6 | Implementing |
-| PREFL-14 | P1: Contexto mínimo do agente redator | T6, T8 | Implementing |
-| PREFL-15 | P1: Contexto mínimo do agente redator | T5, T7 | Implementing |
-| PREFL-16 | P2: Explicação de indisponibilidade sem substituto artificial | T4, T9 | Implementing |
-| PREFL-17 | P2: Explicação de indisponibilidade sem substituto artificial | T9 | Implementing |
+| PREFL-01 | P1: Preflight de disponibilidade antes de qualquer geração | T3, T7 | ✅ Verified |
+| PREFL-02 | P1: Preflight de disponibilidade antes de qualquer geração | T7, T8 | ✅ Verified |
+| PREFL-03 | P1: Preflight de disponibilidade antes de qualquer geração | T4, T7 | ⚠️ Verified with gap (Fix 1) |
+| PREFL-04 | P1: Preflight de disponibilidade antes de qualquer geração | T4, T7 | ⚠️ Verified with gap (Fix 1) |
+| PREFL-05 | P1: Preflight de disponibilidade antes de qualquer geração | T1, T4 | ⚠️ Spec-precision gap |
+| PREFL-06 | P1: Inicialização segura e nova tentativa correlacionada | T4 | ✅ Verified |
+| PREFL-07 | P1: Inicialização segura e nova tentativa correlacionada | T2, T7 | ✅ Verified |
+| PREFL-08 | P1: Inicialização segura e nova tentativa correlacionada | T7 | ✅ Verified |
+| PREFL-09 | P1: Inicialização segura e nova tentativa correlacionada | T7, T8 | ❌ Needs Fix (Fix 1, Fix 2) |
+| PREFL-10 | P1: Inicialização segura e nova tentativa correlacionada | T8, T9 | ✅ Verified |
+| PREFL-11 | P1: Contexto mínimo do agente redator | T5 | ✅ Verified |
+| PREFL-12 | P1: Contexto mínimo do agente redator | T2, T5 | ✅ Verified |
+| PREFL-13 | P1: Contexto mínimo do agente redator | T6 | ✅ Verified |
+| PREFL-14 | P1: Contexto mínimo do agente redator | T6, T8 | ✅ Verified |
+| PREFL-15 | P1: Contexto mínimo do agente redator | T5, T7 | ✅ Verified |
+| PREFL-16 | P2: Explicação de indisponibilidade sem substituto artificial | T4, T9 | ✅ Verified |
+| PREFL-17 | P2: Explicação de indisponibilidade sem substituto artificial | T9 | ✅ Verified |
 
 **ID format:** `PREFL-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
 **Coverage:** 17 total, 17 mapped to tasks, 0 unmapped ✅
+
+**Verificação (rodada 1, 2026-09-03, `7666b0a..0f7890d`):** ❌ FAIL — ver
+`validation.md`. 14 ACs verificados, 2 com lacuna e 1 com lacuna de precisão da spec;
+**Edge Case 1 não tratado** (a mesma `Idempotency-Key` em execuções diferentes devolve o
+registro de outra execução); 1 mutante sobrevivente (fidelidade do snapshot copiado, AD-012).
 
 ---
 

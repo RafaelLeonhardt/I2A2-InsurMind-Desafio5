@@ -168,6 +168,30 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation.md#Finding-2 (spec P2 AC5: falha interna deve expor codigo causa impacto e ultimo marco, mas nenhum campo impacto e' anexado ao marco falhou_coleta) (execucao,estados-terminais)
 - last seen: 2026-09-02T18:21:42Z
 
+### L-027 - Scope an Idempotency-Key by the resource it acts on: when the mutable POST carries its target only in the path and has an empty body, include that identifier in the request hash or the operation name.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `http-routes` · harmful: 0
+- features: 3-1-preparar-a-producao-agentica-com-dados-minimos
+- evidence: spec.md Edge Case 1; src/backend/central_preventiva/adaptadores/http/preflight_ia.py:242 (http-routes)
+- last seen: 2026-09-03T12:23:10Z
+
+### L-028 - When a snapshot is copied between rows, assert column-by-column content identity, not just the number of copied rows.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `repo-layer` · harmful: 0
+- features: 3-1-preparar-a-producao-agentica-com-dados-minimos
+- evidence: validation.md mutation M5; src/backend/central_preventiva/adaptadores/persistencia/repositorio_elegibilidade.py:189 (repo-layer)
+- last seen: 2026-09-03T12:23:10Z
+
+### L-029 - Do not accept an acceptance criterion that lists a catch-all clause such as other supported parameters; enumerate every configurable value the story must expose.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec-authoring` · harmful: 0
+- features: 3-1-preparar-a-producao-agentica-com-dados-minimos
+- evidence: PREFL-05 (spec-authoring)
+- last seen: 2026-09-03T12:23:10Z
+
+### L-030 - When a task leaves an acceptance criterion with no component that a user can actually reach, add the missing surface in the story rather than deferring it, and record it as a declared deviation.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `tasks-authoring` · harmful: 0
+- features: 3-1-preparar-a-producao-agentica-com-dados-minimos
+- evidence: src/backend/central_preventiva/adaptadores/ia/verificador_disponibilidade_openai.py:7; montador_contexto_agente.py:11; repositorio_contextos_agente.py:7; aplicacao/preflight_ia.py:8 (tasks-authoring)
+- last seen: 2026-09-03T12:23:10Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
