@@ -168,13 +168,21 @@ Os limites entram por `LimitesCanal` porque o domínio não pode importar `compo
 
 **Done when**:
 
-- [ ] Testado com um dublê do `ChatOpenAI` (sem rede real) para cada um dos 3 canais
-- [ ] Schema de saída por canal é um Pydantic model distinto (WhatsApp/SMS: `corpo`; e-mail: `assunto`+`corpo`)
-- [ ] Exceção de transporte não é capturada aqui — propagada ao chamador (o wrapper de retry decide)
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Testado com um dublê do `ChatOpenAI` (sem rede real) para cada um dos 3 canais
+- [x] Schema de saída por canal é um Pydantic model distinto (WhatsApp/SMS: `corpo`; e-mail: `assunto`+`corpo`)
+- [x] Exceção de transporte não é capturada aqui — propagada ao chamador (o wrapper de retry decide)
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Completo — `AgenteRedator` chama
+`with_structured_output(schema_do_canal, include_raw=True)` e devolve `RespostaRedator`
+(saída + tokens). SPEC_DEVIATION registrada no módulo: o design escreve `-> SaidaCanal`, mas
+GERAR-10 exige persistir métricas de uso e GERAR-09 exige que saída ausente/malformada seja
+marcada inválida em vez de levantar exceção — daí o tipo próprio, com `saida` anulável. O
+limite do canal entra no prompt (o "antes" de GERAR-02) vindo do mesmo `ValidadorSaidaCanal`
+que o cobra depois. Gate: 591 testes.
 
 ---
 
