@@ -112,11 +112,17 @@ renumeração já registrada desde a 2.4). Gate: 528 testes.
 
 **Done when**:
 
-- [ ] Os 9 valores batem exatamente com o diagrama do AD-4 (`ARCHITECTURE-SPINE.md`)
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Os 9 valores batem exatamente com o diagrama do AD-4 (`ARCHITECTURE-SPINE.md`)
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: none
 **Gate**: quick
+
+**Status**: ✅ Completo — `EstadoMensagem` com os 9 valores do segundo diagrama do AD-4 e os 5
+terminais (`rejeitada`, `excluida`, `simulada_entregue`, `falhou_conteudo`,
+`falhou_integracao_ia`). A matriz pede `none`, mas o piso do repositório para esta camada é
+`testes/test_estados_execucao.py`; `testes/test_estados_mensagem.py` o espelha (3 casos) para
+dar evidência `file:line` ao critério "os 9 valores batem". Gate: 541 testes.
 
 ---
 

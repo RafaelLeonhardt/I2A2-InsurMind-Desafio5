@@ -126,7 +126,7 @@ A História 3.1 deixa a execução em `processando_mensagens` com o contexto mí
 | GERAR-06 | P1: Geração automática por combinação segurado+canal | Design | Implementing |
 | GERAR-07 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | Pending |
 | GERAR-08 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | Pending |
-| GERAR-09 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | Pending |
+| GERAR-09 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | Implementing |
 | GERAR-10 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | Pending |
 | GERAR-11 | P2: Reidratação sem duplicar geração | Design | Pending |
 | GERAR-12 | P2: Reidratação sem duplicar geração | Design | Pending |
