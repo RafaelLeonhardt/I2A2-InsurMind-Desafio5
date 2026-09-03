@@ -110,13 +110,17 @@ T9
 
 **Done when**:
 
-- [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] `README.md` documenta a coluna e a tabela novas
-- [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0007`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Migração aplica em transação própria, registrada em `schema_migracoes`
+- [x] `README.md` documenta a coluna e a tabela novas
+- [x] `testes/test_migracoes.py` cobre a aplicação da migração `0009`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
+
+**Status**: ✅ Completo — a migração entrou como `0009_preflight_ia.sql`, não `0007`: as versões
+`0007` e `0008` já foram usadas pelas Histórias 2.5 e 2.6 depois do planejamento desta história
+(mesma renumeração já registrada em 2.4/2.5/2.6). Gate: 417 testes.
 
 ---
 

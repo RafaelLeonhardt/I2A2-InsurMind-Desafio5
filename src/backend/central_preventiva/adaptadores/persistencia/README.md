@@ -346,3 +346,40 @@ que aconteceu sem recalcular nada.
 | `marco` | `VARCHAR` | `NOT NULL` |
 | `causa` | `VARCHAR` | nulo quando não aplicável (marco de sucesso, não de falha) |
 | `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+
+## Tabelas da migração `0009_preflight_ia`
+
+A migração acrescenta uma coluna a `execucao_preventiva` e cria `contextos_agente`.
+
+### Coluna nova em `execucao_preventiva`
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `execucao_origem_id` | `UUID` | nulo; presente só em execuções correlacionadas, onde aponta para a execução terminal que originou a nova tentativa (chave estrangeira lógica para `execucao_preventiva(id)`) |
+
+A coluna entra por `ALTER TABLE ADD COLUMN`, não por recreate-and-copy: é nula, não declara
+nenhuma restrição e não precisa de backfill (`NULL` já é o valor correto de toda execução
+pré-existente, que não é correlacionada). O recreate-and-copy do AD-015 governa restrições novas
+e colunas com backfill, e nenhum dos dois casos ocorre aqui.
+
+### `contextos_agente`
+
+Contexto mínimo montado para cada item do público elegível antes da geração de mensagens, e a
+proveniência desse contexto: quais categorias de dados foram usadas e quais foram deliberadamente
+deixadas de fora (PREFL-11..14). O conteúdo é o JSON dos cinco campos permitidos (evento,
+localização aproximada, coberturas relevantes, canal, orientações de segurança) — nunca documento,
+dado financeiro, dado de pagamento ou credencial.
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `execucao_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `execucao_preventiva(id)` |
+| `elegibilidade_id` | `UUID` | `NOT NULL`, `UNIQUE`, chave estrangeira lógica para `elegibilidades_historicas(id)` |
+| `conteudo` | `VARCHAR` | `NOT NULL`, JSON serializado do contexto mínimo |
+| `categorias_usadas` | `VARCHAR[]` | `NOT NULL` |
+| `categorias_nao_usadas` | `VARCHAR[]` | `NOT NULL` |
+| `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+
+A `UNIQUE (elegibilidade_id)` garante um contexto por item elegível. É essa restrição que torna
+obrigatória a cópia das elegibilidades da origem em uma nova tentativa (AD-012): sem cópia, a
+segunda execução colidiria com o contexto já gravado pela primeira.

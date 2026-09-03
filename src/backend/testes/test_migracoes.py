@@ -2,6 +2,7 @@
 
 from pathlib import Path
 
+import duckdb
 import pytest
 
 from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
@@ -32,6 +33,7 @@ TABELAS_ESPERADAS = {
     "cenarios_sinteticos_ativados",
     "avaliacoes_risco",
     "marcos_execucao",
+    "contextos_agente",
 }
 
 REGISTRO_MINIMO = (
@@ -79,8 +81,8 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8)
-    assert resultado.versao_final == 8
+    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9)
+    assert resultado.versao_final == 9
     assert tabelas(caminho) == TABELAS_ESPERADAS
     assert registros(caminho) == [
         (1, "schema inicial"),
@@ -91,6 +93,7 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
         (6, "elegibilidade"),
         (7, "elegibilidade correcoes"),
         (8, "marcos execucao"),
+        (9, "preflight ia"),
     ]
 
 
@@ -101,7 +104,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 8
+    assert resultado.versao_final == 9
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
@@ -111,6 +114,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
         (6, "elegibilidade"),
         (7, "elegibilidade correcoes"),
         (8, "marcos execucao"),
+        (9, "preflight ia"),
     ]
 
 
@@ -463,3 +467,97 @@ def test_migracoes_versionadas_tem_versoes_unicas_e_ordenadas() -> None:
 
     assert versoes == sorted(set(versoes))
     assert versoes[0] == 1
+
+
+def test_migracao_preflight_ia_acrescenta_execucao_origem_id_nula_as_execucoes_existentes(
+    tmp_path: Path,
+) -> None:
+    """A migração `0009` acrescenta `execucao_origem_id` a `execucao_preventiva` (PREFL-07):
+    coluna nula, sem backfill — toda execução pré-existente permanece intacta com `NULL`, e
+    uma execução correlacionada nova aponta para a execução terminal que a originou (AD-009)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho, list(MIGRACOES[:8])).aplicar_pendentes()
+    origem_id = "11111111-1111-1111-1111-111111111111"
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO execucao_preventiva (id, estado, versao) VALUES (?, ?, 1)",
+            [origem_id, "falhou_preparacao_ia"],
+        )
+
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        anterior = conexao.execute(
+            "SELECT estado, execucao_origem_id FROM execucao_preventiva WHERE id = ?",
+            [origem_id],
+        ).fetchone()
+        assert anterior == ("falhou_preparacao_ia", None)
+
+        nova_id = "22222222-2222-2222-2222-222222222222"
+        conexao.execute(
+            "INSERT INTO execucao_preventiva (id, estado, versao, execucao_origem_id) "
+            "VALUES (?, ?, 1, ?)",
+            [nova_id, "aguardando_geracao", origem_id],
+        )
+        correlacionada = conexao.execute(
+            "SELECT estado, execucao_origem_id FROM execucao_preventiva WHERE id = ?",
+            [nova_id],
+        ).fetchone()
+
+    assert correlacionada is not None
+    assert correlacionada[0] == "aguardando_geracao"
+    assert str(correlacionada[1]) == origem_id
+
+
+def test_migracao_preflight_ia_cria_contextos_agente_com_um_contexto_por_elegibilidade(
+    tmp_path: Path,
+) -> None:
+    """A migração `0009` cria `contextos_agente` com as duas listas de categorias de
+    proveniência (PREFL-13) e `UNIQUE (elegibilidade_id)`: um contexto por item elegível —
+    a restrição que obriga a nova tentativa a copiar as elegibilidades da origem (AD-012)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+    elegibilidade_id = "33333333-3333-3333-3333-333333333333"
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO contextos_agente "
+            "(id, execucao_id, elegibilidade_id, conteudo, categorias_usadas, "
+            "categorias_nao_usadas) VALUES "
+            "('44444444-4444-4444-4444-444444444444', "
+            "'55555555-5555-5555-5555-555555555555', ?, '{\"canal\": \"sms\"}', "
+            "['evento', 'canal'], ['documentos', 'dados_financeiros'])",
+            [elegibilidade_id],
+        )
+        linha = conexao.execute(
+            "SELECT conteudo, categorias_usadas, categorias_nao_usadas "
+            "FROM contextos_agente WHERE elegibilidade_id = ?",
+            [elegibilidade_id],
+        ).fetchone()
+        assert linha is not None
+        assert linha[0] == '{"canal": "sms"}'
+        assert list(linha[1]) == ["evento", "canal"]
+        assert list(linha[2]) == ["documentos", "dados_financeiros"]
+
+        with pytest.raises(duckdb.ConstraintException):
+            conexao.execute(
+                "INSERT INTO contextos_agente "
+                "(id, execucao_id, elegibilidade_id, conteudo, categorias_usadas, "
+                "categorias_nao_usadas) VALUES "
+                "('66666666-6666-6666-6666-666666666666', "
+                "'77777777-7777-7777-7777-777777777777', ?, '{}', [], [])",
+                [elegibilidade_id],
+            )
+
+
+def test_documentacao_versionada_descreve_a_coluna_de_execucao_correlacionada() -> None:
+    """A coluna nova de `0009` é documentada junto das tabelas (T2), não só no `.sql`."""
+
+    documento = Path("central_preventiva/adaptadores/persistencia/README.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "execucao_origem_id" in documento
+    assert "categorias_nao_usadas" in documento
