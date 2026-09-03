@@ -192,3 +192,99 @@ def test_erro_de_leitura_do_env_e_sanitizado(
 
     assert detalhe_interno not in str(captura.value)
     obter_configuracao.cache_clear()
+
+
+def test_parametros_da_producao_agentica_tem_padroes_documentados_e_validos() -> None:
+    """PREFL-05: modelo, temperatura, versão de prompt e limite operacional são
+    configuráveis, com padrão válido quando o `.env` não os define."""
+
+    configuracao = Configuracao(
+        host_api="127.0.0.1",
+        origem_frontend="http://127.0.0.1:5173",
+        _env_file=None,
+    )
+
+    assert configuracao.modelo_openai == "gpt-4o-mini"
+    assert configuracao.temperatura_openai == 0.2
+    assert configuracao.versao_prompt == "v1"
+    assert configuracao.timeout_openai_segundos == 15.0
+
+
+def test_parametros_da_producao_agentica_aceitam_valores_configurados() -> None:
+    configuracao = Configuracao(
+        host_api="127.0.0.1",
+        origem_frontend="http://127.0.0.1:5173",
+        modelo_openai="gpt-4.1-mini",
+        temperatura_openai=0.7,
+        versao_prompt="v3",
+        timeout_openai_segundos=30.0,
+        _env_file=None,
+    )
+
+    assert configuracao.modelo_openai == "gpt-4.1-mini"
+    assert configuracao.temperatura_openai == 0.7
+    assert configuracao.versao_prompt == "v3"
+    assert configuracao.timeout_openai_segundos == 30.0
+
+
+@pytest.mark.parametrize(
+    ("campo", "valor"),
+    [
+        ("modelo_openai", ""),
+        ("modelo_openai", "   "),
+        ("modelo_openai", "modelo com espaco"),
+        ("modelo_openai", "-comeca-com-hifen"),
+        ("temperatura_openai", -0.1),
+        ("temperatura_openai", 2.1),
+        ("versao_prompt", ""),
+        ("versao_prompt", "1"),
+        ("versao_prompt", "versao-1"),
+        ("timeout_openai_segundos", 0.0),
+        ("timeout_openai_segundos", -5.0),
+    ],
+)
+def test_recusa_configuracao_estrutural_malformada_da_producao_agentica(
+    campo: str, valor: object
+) -> None:
+    """PREFL-06: configuração estrutural malformada impede o backend de subir."""
+
+    with pytest.raises(ValidationError):
+        Configuracao(
+            host_api="127.0.0.1",
+            origem_frontend="http://127.0.0.1:5173",
+            _env_file=None,
+            **{campo: valor},
+        )
+
+
+def test_erro_de_configuracao_agentica_nao_revela_o_valor_recebido(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """PREFL-06: o erro que bloqueia a inicialização é sanitizado."""
+
+    valor_sensivel = "modelo interno que nao pode aparecer"
+    monkeypatch.setenv("CENTRAL_PREVENTIVA_HOST_API", "127.0.0.1")
+    monkeypatch.setenv("CENTRAL_PREVENTIVA_ORIGEM_FRONTEND", "http://127.0.0.1:5173")
+    monkeypatch.setenv("CENTRAL_PREVENTIVA_MODELO_OPENAI", valor_sensivel)
+    obter_configuracao.cache_clear()
+
+    with pytest.raises(ConfiguracaoInvalida) as captura:
+        obter_configuracao()
+
+    assert valor_sensivel not in str(captura.value)
+    obter_configuracao.cache_clear()
+
+
+def test_documentacao_do_env_descreve_os_parametros_da_producao_agentica() -> None:
+    """PREFL-05: os parâmetros novos são documentados junto dos demais no `.env.example`."""
+
+    documento = (RAIZ_PROJETO / ".env.example").read_text(encoding="utf-8")
+
+    for chave in (
+        "CENTRAL_PREVENTIVA_MODELO_OPENAI",
+        "CENTRAL_PREVENTIVA_TEMPERATURA_OPENAI",
+        "CENTRAL_PREVENTIVA_VERSAO_PROMPT",
+        "CENTRAL_PREVENTIVA_TIMEOUT_OPENAI_SEGUNDOS",
+        "OPENAI_API_KEY",
+    ):
+        assert chave in documento

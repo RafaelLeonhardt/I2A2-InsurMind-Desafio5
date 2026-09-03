@@ -161,14 +161,29 @@ preservando `ultima_resposta`. Os 4 testes de 2.2 seguem sem uma linha alterada.
 
 **Done when**:
 
-- [ ] Chave ausente classifica como indisponível sem chamada de rede
-- [ ] Resposta 401/429/5xx/timeout classifica como indisponível com causa sanitizada
-- [ ] Resposta válida classifica como disponível
-- [ ] Nenhum teste ou asserção contém a chave em texto claro
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Chave ausente classifica como indisponível sem chamada de rede
+- [x] Resposta 401/429/5xx/timeout classifica como indisponível com causa sanitizada
+- [x] Resposta válida classifica como disponível
+- [x] Nenhum teste ou asserção contém a chave em texto claro
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
-**Gate**: quick
+**Gate**: quick (executado como full — a task também estende `Configuracao`)
+
+**Status**: ✅ Completo. Duas decisões registradas:
+
+1. **SPEC_DEVIATION (chamada de disponibilidade)**: o design cita `langchain_openai.ChatOpenAI`
+   e admite "ou chamada HTTP equivalente de baixo custo" no mesmo item. Foi escolhida a chamada
+   HTTP `GET /v1/models`: PREFL-03 proíbe iniciar qualquer chamada de geração antes do terminal
+   (uma invocação de `ChatOpenAI` seria exatamente isso), e é o catálogo devolvido por
+   `/v1/models` que permite tratar "modelo configurado não existe mais" como falha de preparação
+   (Edge Case da spec). Marcador no topo de `verificador_disponibilidade_openai.py`.
+2. **Extensão de `Configuracao`**: `modelo_openai`, `temperatura_openai`, `versao_prompt` e
+   `timeout_openai_segundos` (limite operacional, AD-8) entraram aqui, com validação estrita de
+   inicialização e documentação no `.env.example`. Nenhuma task os reivindicava, e T4 é a
+   primeira a consumir `modelo_openai`. Cobre PREFL-05 e PREFL-06.
+
+Gate: 462 testes, ruff e pyright limpos.
 
 ---
 

@@ -1,5 +1,6 @@
 """Configuração local, estrita e sanitizada da API."""
 
+import re
 from functools import lru_cache
 from pathlib import Path
 
@@ -9,6 +10,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 RAIZ_PROJETO = Path(__file__).resolve().parents[4]
 CAMINHO_BANCO_PADRAO = RAIZ_PROJETO / "var" / "central_preventiva.duckdb"
 SUFIXO_BANCO = ".duckdb"
+
+PADRAO_MODELO_OPENAI = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
+"""Forma estrutural de um identificador de modelo: uma palavra, sem espaço nem vazio."""
+
+PADRAO_VERSAO_PROMPT = re.compile(r"v\d+")
+"""Forma estrutural da versão de prompt registrada em cada geração: `v1`, `v2`, ..."""
+
+TEMPERATURA_MINIMA = 0.0
+TEMPERATURA_MAXIMA = 2.0
+"""Faixa de temperatura aceita pela API de chat da OpenAI."""
 
 
 class ConfiguracaoInvalida(RuntimeError):
@@ -39,6 +50,22 @@ class Configuracao(BaseSettings):
         default="",
         validation_alias="CENTRAL_PREVENTIVA_URL_BASE_INMET",
     )
+    modelo_openai: str = Field(
+        default="gpt-4o-mini",
+        validation_alias="CENTRAL_PREVENTIVA_MODELO_OPENAI",
+    )
+    temperatura_openai: float = Field(
+        default=0.2,
+        validation_alias="CENTRAL_PREVENTIVA_TEMPERATURA_OPENAI",
+    )
+    versao_prompt: str = Field(
+        default="v1",
+        validation_alias="CENTRAL_PREVENTIVA_VERSAO_PROMPT",
+    )
+    timeout_openai_segundos: float = Field(
+        default=15.0,
+        validation_alias="CENTRAL_PREVENTIVA_TIMEOUT_OPENAI_SEGUNDOS",
+    )
 
     @field_validator("host_api")
     @classmethod
@@ -66,6 +93,47 @@ class Configuracao(BaseSettings):
         if not valor.name.strip() or valor.suffix != SUFIXO_BANCO:
             raise ValueError("caminho do banco operacional inválido")
         return valor if valor.is_absolute() else RAIZ_PROJETO / valor
+
+    @field_validator("modelo_openai")
+    @classmethod
+    def validar_modelo_openai(cls, valor: str) -> str:
+        """Exige um identificador de modelo em uma só palavra, não vazio (PREFL-06).
+
+        Um modelo malformado é configuração estrutural inválida e bloqueia a
+        inicialização do backend; um modelo bem formado que não existe no catálogo da
+        OpenAI é caso de preflight em tempo de execução, não falha de inicialização.
+        """
+
+        if not PADRAO_MODELO_OPENAI.fullmatch(valor):
+            raise ValueError("identificador de modelo da OpenAI inválido")
+        return valor
+
+    @field_validator("temperatura_openai")
+    @classmethod
+    def validar_temperatura_openai(cls, valor: float) -> float:
+        """Exige temperatura dentro da faixa aceita pela OpenAI (PREFL-05, PREFL-06)."""
+
+        if not TEMPERATURA_MINIMA <= valor <= TEMPERATURA_MAXIMA:
+            raise ValueError("temperatura fora da faixa suportada")
+        return valor
+
+    @field_validator("versao_prompt")
+    @classmethod
+    def validar_versao_prompt(cls, valor: str) -> str:
+        """Exige a versão de prompt no formato `vN` (PREFL-05, PREFL-06)."""
+
+        if not PADRAO_VERSAO_PROMPT.fullmatch(valor):
+            raise ValueError("versão de prompt inválida")
+        return valor
+
+    @field_validator("timeout_openai_segundos")
+    @classmethod
+    def validar_timeout_openai(cls, valor: float) -> float:
+        """Exige um limite operacional positivo para a chamada à OpenAI (AD-8)."""
+
+        if valor <= 0:
+            raise ValueError("limite de tempo da OpenAI inválido")
+        return valor
 
 
 @lru_cache
