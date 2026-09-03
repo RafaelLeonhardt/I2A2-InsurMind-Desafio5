@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 31,
+  "next_id": 35,
   "lessons": [
     {
       "id": "L-001",
@@ -549,6 +549,78 @@
       ],
       "created": "2026-09-03T12:23:10Z",
       "last_seen": "2026-09-03T12:23:10Z"
+    },
+    {
+      "id": "L-031",
+      "key": "spec_precision_gap::when a criterion says a rule applies before and after an operation state what the before check validates or it cannot be asserted precisely",
+      "text": "When a criterion says a rule applies before and after an operation, state what the before check validates, or it cannot be asserted precisely.",
+      "signal": "spec_precision_gap",
+      "scope": "spec",
+      "status": "candidate",
+      "features": [
+        "3-2-gerar-mensagens-automaticamente-para-cada-canal"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "GERAR-02 (validation.md, Spec-Anchored ACs) (spec)"
+      ],
+      "created": "2026-09-03T17:33:20Z",
+      "last_seen": "2026-09-03T17:33:20Z"
+    },
+    {
+      "id": "L-032",
+      "key": "spec_deviation::verify that the integration point named in design md actually exists in the current code before implementing against it",
+      "text": "Verify that the integration point named in design.md actually exists in the current code before implementing against it.",
+      "signal": "spec_deviation",
+      "scope": "design",
+      "status": "candidate",
+      "features": [
+        "3-2-gerar-mensagens-automaticamente-para-cada-canal"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "SPEC_DEVIATION em src/backend/central_preventiva/aplicacao/preflight_ia.py:275 (design)"
+      ],
+      "created": "2026-09-03T17:33:20Z",
+      "last_seen": "2026-09-03T17:33:20Z"
+    },
+    {
+      "id": "L-033",
+      "key": "spec_deviation::a return type declared in design md must carry every field the acceptance criteria require to be persisted",
+      "text": "A return type declared in design.md must carry every field the acceptance criteria require to be persisted.",
+      "signal": "spec_deviation",
+      "scope": "design",
+      "status": "candidate",
+      "features": [
+        "3-2-gerar-mensagens-automaticamente-para-cada-canal"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/ia/agente_redator.py:8 (design)"
+      ],
+      "created": "2026-09-03T17:33:20Z",
+      "last_seen": "2026-09-03T17:33:20Z"
+    },
+    {
+      "id": "L-034",
+      "key": "spec_deviation::do not fix a migration number in design md assign the next number at implementation time from the migrations directory",
+      "text": "Do not fix a migration number in design.md; assign the next number at implementation time from the migrations directory.",
+      "signal": "spec_deviation",
+      "scope": "persistence",
+      "status": "candidate",
+      "features": [
+        "3-2-gerar-mensagens-automaticamente-para-cada-canal"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence)"
+      ],
+      "created": "2026-09-03T17:33:20Z",
+      "last_seen": "2026-09-03T17:33:20Z"
     }
   ]
 }

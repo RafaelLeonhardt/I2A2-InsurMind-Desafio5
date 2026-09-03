@@ -192,6 +192,30 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: src/backend/central_preventiva/adaptadores/ia/verificador_disponibilidade_openai.py:7; montador_contexto_agente.py:11; repositorio_contextos_agente.py:7; aplicacao/preflight_ia.py:8 (tasks-authoring)
 - last seen: 2026-09-03T12:23:10Z
 
+### L-031 - When a criterion says a rule applies before and after an operation, state what the before check validates, or it cannot be asserted precisely.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
+- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal
+- evidence: GERAR-02 (validation.md, Spec-Anchored ACs) (spec)
+- last seen: 2026-09-03T17:33:20Z
+
+### L-032 - Verify that the integration point named in design.md actually exists in the current code before implementing against it.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `design` · harmful: 0
+- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal
+- evidence: SPEC_DEVIATION em src/backend/central_preventiva/aplicacao/preflight_ia.py:275 (design)
+- last seen: 2026-09-03T17:33:20Z
+
+### L-033 - A return type declared in design.md must carry every field the acceptance criteria require to be persisted.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `design` · harmful: 0
+- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal
+- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/ia/agente_redator.py:8 (design)
+- last seen: 2026-09-03T17:33:20Z
+
+### L-034 - Do not fix a migration number in design.md; assign the next number at implementation time from the migrations directory.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `persistence` · harmful: 0
+- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal
+- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence)
+- last seen: 2026-09-03T17:33:20Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

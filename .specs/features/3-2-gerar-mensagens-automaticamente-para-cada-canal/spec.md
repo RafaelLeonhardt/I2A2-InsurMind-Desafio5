@@ -118,24 +118,24 @@ A História 3.1 deixa a execução em `processando_mensagens` com o contexto mí
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| GERAR-01 | P1: Limites de canal configuráveis e validados nas fronteiras | Design | Implementing |
-| GERAR-02 | P1: Limites de canal configuráveis e validados nas fronteiras | Design | Implementing |
-| GERAR-03 | P1: Limites de canal configuráveis e validados nas fronteiras | Design | Implementing |
-| GERAR-04 | P1: Geração automática por combinação segurado+canal | Design | Implementing |
-| GERAR-05 | P1: Geração automática por combinação segurado+canal | Design | Implementing |
-| GERAR-06 | P1: Geração automática por combinação segurado+canal | Design | Implementing |
-| GERAR-07 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | Implementing |
-| GERAR-08 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | Implementing |
-| GERAR-09 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | Implementing |
-| GERAR-10 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | Implementing |
-| GERAR-11 | P2: Reidratação sem duplicar geração | Design | Implementing |
-| GERAR-12 | P2: Reidratação sem duplicar geração | Design | Implementing |
+| GERAR-01 | P1: Limites de canal configuráveis e validados nas fronteiras | Design | ✅ Verified |
+| GERAR-02 | P1: Limites de canal configuráveis e validados nas fronteiras | Design | ✅ Verified |
+| GERAR-03 | P1: Limites de canal configuráveis e validados nas fronteiras | Design | ✅ Verified |
+| GERAR-04 | P1: Geração automática por combinação segurado+canal | Design | ✅ Verified |
+| GERAR-05 | P1: Geração automática por combinação segurado+canal | Design | ✅ Verified |
+| GERAR-06 | P1: Geração automática por combinação segurado+canal | Design | ✅ Verified |
+| GERAR-07 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | ✅ Verified |
+| GERAR-08 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | ✅ Verified |
+| GERAR-09 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | ✅ Verified |
+| GERAR-10 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | ✅ Verified |
+| GERAR-11 | P2: Reidratação sem duplicar geração | Design | ✅ Verified |
+| GERAR-12 | P2: Reidratação sem duplicar geração | Design | ✅ Verified |
 
 **ID format:** `GERAR-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 12 total, 0 mapped to tasks, 12 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 12 total, 12 mapped to tasks, 0 unmapped ✅ — todos verificados com evidência `file:line` em `validation.md` (`9d64242..c46ef26`).
 
 ---
 
