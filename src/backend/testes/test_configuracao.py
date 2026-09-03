@@ -241,6 +241,10 @@ def test_parametros_da_producao_agentica_aceitam_valores_configurados() -> None:
         ("versao_prompt", "versao-1"),
         ("timeout_openai_segundos", 0.0),
         ("timeout_openai_segundos", -5.0),
+        ("limite_caracteres_whatsapp", 0),
+        ("limite_caracteres_sms", -1),
+        ("limite_caracteres_assunto_email", 0),
+        ("limite_caracteres_corpo_email", -10),
     ],
 )
 def test_recusa_configuracao_estrutural_malformada_da_producao_agentica(
@@ -288,3 +292,17 @@ def test_documentacao_do_env_descreve_os_parametros_da_producao_agentica() -> No
         "OPENAI_API_KEY",
     ):
         assert chave in documento
+
+
+def test_documentacao_do_env_descreve_os_limites_de_canal() -> None:
+    """GERAR-01: os limites por canal são configuráveis e documentados com seus defaults."""
+
+    documento = (RAIZ_PROJETO / ".env.example").read_text(encoding="utf-8")
+
+    for linha in (
+        "CENTRAL_PREVENTIVA_LIMITE_CARACTERES_WHATSAPP=1024",
+        "CENTRAL_PREVENTIVA_LIMITE_CARACTERES_SMS=160",
+        "CENTRAL_PREVENTIVA_LIMITE_CARACTERES_ASSUNTO_EMAIL=78",
+        "CENTRAL_PREVENTIVA_LIMITE_CARACTERES_CORPO_EMAIL=2000",
+    ):
+        assert linha in documento

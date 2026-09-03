@@ -138,13 +138,21 @@ dar evidência `file:line` ao critério "os 9 valores batem". Gate: 541 testes.
 
 **Done when**:
 
-- [ ] WhatsApp/SMS: corpo ausente ou vazio → inválido; corpo no limite exato → válido; corpo 1 caractere acima → inválido
-- [ ] E-mail: mesmas fronteiras aplicadas separadamente a assunto e corpo
-- [ ] Novos campos de limite adicionados a `Configuracao` com defaults documentados no `.env.example`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] WhatsApp/SMS: corpo ausente ou vazio → inválido; corpo no limite exato → válido; corpo 1 caractere acima → inválido
+- [x] E-mail: mesmas fronteiras aplicadas separadamente a assunto e corpo
+- [x] Novos campos de limite adicionados a `Configuracao` com defaults documentados no `.env.example`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Completo — `Canal`, `LimitesCanal`, `SaidaCanal`, `ResultadoValidacaoSaida` e
+`ValidadorSaidaCanal` em `dominio/validador_saida_canal.py`; 4 limites novos em `Configuracao`
+(1024/160/78/2000) com validação estrita na inicialização e documentação no `.env.example`.
+Os limites entram por `LimitesCanal` porque o domínio não pode importar `composicao`
+(`test_camadas.py`); a conversão a partir da `Configuracao` mora na composição.
+`limite_corpo`/`limite_assunto` expõem antes da geração o mesmo número cobrado depois
+(GERAR-02). Gate: 581 testes.
 
 ---
 

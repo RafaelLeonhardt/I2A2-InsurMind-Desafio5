@@ -66,6 +66,22 @@ class Configuracao(BaseSettings):
         default=15.0,
         validation_alias="CENTRAL_PREVENTIVA_TIMEOUT_OPENAI_SEGUNDOS",
     )
+    limite_caracteres_whatsapp: int = Field(
+        default=1024,
+        validation_alias="CENTRAL_PREVENTIVA_LIMITE_CARACTERES_WHATSAPP",
+    )
+    limite_caracteres_sms: int = Field(
+        default=160,
+        validation_alias="CENTRAL_PREVENTIVA_LIMITE_CARACTERES_SMS",
+    )
+    limite_caracteres_assunto_email: int = Field(
+        default=78,
+        validation_alias="CENTRAL_PREVENTIVA_LIMITE_CARACTERES_ASSUNTO_EMAIL",
+    )
+    limite_caracteres_corpo_email: int = Field(
+        default=2000,
+        validation_alias="CENTRAL_PREVENTIVA_LIMITE_CARACTERES_CORPO_EMAIL",
+    )
 
     @field_validator("host_api")
     @classmethod
@@ -133,6 +149,24 @@ class Configuracao(BaseSettings):
 
         if valor <= 0:
             raise ValueError("limite de tempo da OpenAI inválido")
+        return valor
+
+    @field_validator(
+        "limite_caracteres_whatsapp",
+        "limite_caracteres_sms",
+        "limite_caracteres_assunto_email",
+        "limite_caracteres_corpo_email",
+    )
+    @classmethod
+    def validar_limite_de_caracteres(cls, valor: int) -> int:
+        """Exige um limite de canal positivo (GERAR-01).
+
+        Um limite zero ou negativo tornaria toda mensagem daquele canal inválida por
+        construção; é configuração estrutural inválida, não caso de execução.
+        """
+
+        if valor <= 0:
+            raise ValueError("limite de caracteres do canal inválido")
         return valor
 
 
