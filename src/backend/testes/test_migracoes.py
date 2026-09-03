@@ -34,6 +34,8 @@ TABELAS_ESPERADAS = {
     "avaliacoes_risco",
     "marcos_execucao",
     "contextos_agente",
+    "mensagens",
+    "versoes_mensagem",
 }
 
 REGISTRO_MINIMO = (
@@ -81,8 +83,8 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9)
-    assert resultado.versao_final == 9
+    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+    assert resultado.versao_final == 10
     assert tabelas(caminho) == TABELAS_ESPERADAS
     assert registros(caminho) == [
         (1, "schema inicial"),
@@ -94,6 +96,7 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
         (7, "elegibilidade correcoes"),
         (8, "marcos execucao"),
         (9, "preflight ia"),
+        (10, "mensagens"),
     ]
 
 
@@ -104,7 +107,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 9
+    assert resultado.versao_final == 10
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
@@ -115,6 +118,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
         (7, "elegibilidade correcoes"),
         (8, "marcos execucao"),
         (9, "preflight ia"),
+        (10, "mensagens"),
     ]
 
 
@@ -561,3 +565,142 @@ def test_documentacao_versionada_descreve_a_coluna_de_execucao_correlacionada() 
 
     assert "execucao_origem_id" in documento
     assert "categorias_nao_usadas" in documento
+
+
+def _inserir_mensagem(
+    conexao: duckdb.DuckDBPyConnection,
+    id_mensagem: str,
+    elegibilidade_id: str,
+    canal: str,
+    *,
+    ignorar_conflito: bool = False,
+) -> None:
+    """Insere uma mensagem em `gerando`, opcionalmente como insert-or-noop (AD-010)."""
+
+    conexao.execute(
+        "INSERT INTO mensagens "
+        "(id, execucao_id, elegibilidade_id, canal, estado) VALUES (?, ?, ?, ?, 'gerando')"
+        + (" ON CONFLICT DO NOTHING" if ignorar_conflito else ""),
+        [id_mensagem, "55555555-5555-5555-5555-555555555555", elegibilidade_id, canal],
+    )
+
+
+def test_migracao_mensagens_impede_segunda_mensagem_para_mesma_elegibilidade_e_canal(
+    tmp_path: Path,
+) -> None:
+    """A migração `0010` cria `mensagens` com `UNIQUE (elegibilidade_id, canal)` (GERAR-06):
+    a mesma combinação não admite uma segunda mensagem, mas o mesmo item em outro canal e
+    outro item no mesmo canal continuam permitidos."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+    elegibilidade = "11111111-1111-1111-1111-111111111111"
+    outra_elegibilidade = "22222222-2222-2222-2222-222222222222"
+
+    with abrir_conexao(caminho) as conexao:
+        _inserir_mensagem(conexao, "aaaaaaaa-0000-0000-0000-000000000001", elegibilidade, "sms")
+
+        with pytest.raises(duckdb.ConstraintException):
+            _inserir_mensagem(
+                conexao, "aaaaaaaa-0000-0000-0000-000000000002", elegibilidade, "sms"
+            )
+
+        _inserir_mensagem(
+            conexao, "aaaaaaaa-0000-0000-0000-000000000003", elegibilidade, "whatsapp"
+        )
+        _inserir_mensagem(
+            conexao, "aaaaaaaa-0000-0000-0000-000000000004", outra_elegibilidade, "sms"
+        )
+        total = conexao.execute("SELECT count(*) FROM mensagens").fetchone()
+
+    assert total == (3,)
+
+
+def test_migracao_mensagens_torna_reinvocacao_do_lote_um_no_op(tmp_path: Path) -> None:
+    """`INSERT ... ON CONFLICT DO NOTHING` sobre `UNIQUE (elegibilidade_id, canal)` é o que
+    torna reinvocar `gerar_lote` para uma execução já processada um no-op, sem duplicar
+    mensagem (GERAR-11, GERAR-12, AD-010)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+    elegibilidade = "33333333-3333-3333-3333-333333333333"
+
+    with abrir_conexao(caminho) as conexao:
+        _inserir_mensagem(
+            conexao, "bbbbbbbb-0000-0000-0000-000000000001", elegibilidade, "email"
+        )
+        _inserir_mensagem(
+            conexao,
+            "bbbbbbbb-0000-0000-0000-000000000002",
+            elegibilidade,
+            "email",
+            ignorar_conflito=True,
+        )
+        linhas = conexao.execute("SELECT id FROM mensagens WHERE elegibilidade_id = ?", [
+            elegibilidade
+        ]).fetchall()
+
+    assert [str(id_) for (id_,) in linhas] == ["bbbbbbbb-0000-0000-0000-000000000001"]
+
+
+def test_migracao_mensagens_cria_versoes_com_motivo_de_invalidez_e_tokens_opcionais(
+    tmp_path: Path,
+) -> None:
+    """A migração `0010` cria `versoes_mensagem` com o veredito determinístico da versão:
+    `motivo_invalidez` preenchido quando `valida = false` e nulo quando a versão é válida;
+    `tokens_entrada`/`tokens_saida` são opcionais (GERAR-09, GERAR-10)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+    mensagem_id = "cccccccc-0000-0000-0000-000000000001"
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO versoes_mensagem "
+            "(id, mensagem_id, numero_tentativa, conteudo, valida, motivo_invalidez, "
+            "duracao_ms, modelo, versao_prompt, tokens_entrada, tokens_saida) VALUES "
+            "('dddddddd-0000-0000-0000-000000000001', ?, 1, '{\"corpo\": \"...\"}', false, "
+            "'corpo acima do limite de 160 caracteres do canal sms', 12.5, 'gpt-4o-mini', "
+            "'v1', NULL, NULL)",
+            [mensagem_id],
+        )
+        conexao.execute(
+            "INSERT INTO versoes_mensagem "
+            "(id, mensagem_id, numero_tentativa, conteudo, valida, motivo_invalidez, "
+            "duracao_ms, modelo, versao_prompt, tokens_entrada, tokens_saida) VALUES "
+            "('dddddddd-0000-0000-0000-000000000002', ?, 1, '{\"corpo\": \"ok\"}', true, "
+            "NULL, 34.0, 'gpt-4o-mini', 'v1', 120, 45)",
+            [mensagem_id],
+        )
+        linhas = conexao.execute(
+            "SELECT valida, motivo_invalidez, duracao_ms, modelo, versao_prompt, "
+            "tokens_entrada, tokens_saida FROM versoes_mensagem WHERE mensagem_id = ? "
+            "ORDER BY id",
+            [mensagem_id],
+        ).fetchall()
+
+    assert linhas == [
+        (
+            False,
+            "corpo acima do limite de 160 caracteres do canal sms",
+            12.5,
+            "gpt-4o-mini",
+            "v1",
+            None,
+            None,
+        ),
+        (True, None, 34.0, "gpt-4o-mini", "v1", 120, 45),
+    ]
+
+
+def test_documentacao_versionada_descreve_as_tabelas_de_mensagem() -> None:
+    """As tabelas de `0010` e a restrição que garante a unicidade por item+canal são
+    documentadas no `README.md` versionado, não só no `.sql` (T1)."""
+
+    documento = Path("central_preventiva/adaptadores/persistencia/README.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "UNIQUE (elegibilidade_id, canal)" in documento
+    assert "motivo_invalidez" in documento
+    assert "tentativa_atual" in documento

@@ -383,3 +383,56 @@ dado financeiro, dado de pagamento ou credencial.
 A `UNIQUE (elegibilidade_id)` garante um contexto por item elegível. É essa restrição que torna
 obrigatória a cópia das elegibilidades da origem em uma nova tentativa (AD-012): sem cópia, a
 segunda execução colidiria com o contexto já gravado pela primeira.
+
+## Tabelas da migração `0010_mensagens`
+
+A migração cria as duas tabelas da produção de mensagens preventivas (História 3.2). O `design.md`
+da história numera o arquivo como `0008_mensagens.sql`; `0008` e `0009` já haviam sido consumidos
+pelas Histórias 2.6 e 3.1, então a migração entrou como `0010` — mesma renumeração já registrada
+desde a 2.4.
+
+### `mensagens`
+
+Uma mensagem por combinação de item elegível e canal, com o estado de conteúdo do segundo diagrama
+do AD-4 (`gerando`, `criticando`, `aguardando_revisao`, `aprovada`, `rejeitada`, `excluida`,
+`simulada_entregue`, `falhou_conteudo`, `falhou_integracao_ia`).
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `execucao_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `execucao_preventiva(id)` |
+| `elegibilidade_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `elegibilidades_historicas(id)` |
+| `canal` | `VARCHAR` | `NOT NULL`, `CHECK` em `whatsapp`, `email`, `sms` |
+| `estado` | `VARCHAR` | `NOT NULL`, valores de `dominio.estados_mensagem.EstadoMensagem` |
+| `tentativa_atual` | `INTEGER` | `NOT NULL`, padrão `1`, `CHECK` entre 1 e 3 |
+| `versao` | `INTEGER` | `NOT NULL`, padrão `1` — concorrência otimista (AD-008) |
+| `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+| `atualizado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+
+Restrição `UNIQUE (elegibilidade_id, canal)`: é a dedução de conteúdo do AD-010. Com ela, reinvocar
+a geração de uma execução já processada é um no-op idempotente (`INSERT ... ON CONFLICT DO
+NOTHING`), nunca uma segunda mensagem para o mesmo item e canal (GERAR-06, GERAR-11, GERAR-12).
+
+### `versoes_mensagem`
+
+Uma linha por tentativa de geração de uma mensagem, com o conteúdo estruturado devolvido pelo
+agente redator, o veredito determinístico do `ValidadorSaidaCanal` e as métricas da chamada.
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `mensagem_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `mensagens(id)` |
+| `numero_tentativa` | `INTEGER` | `NOT NULL` |
+| `conteudo` | `VARCHAR` | `NOT NULL`, JSON serializado (`{corpo}` ou `{assunto, corpo}`) |
+| `valida` | `BOOLEAN` | `NOT NULL` |
+| `motivo_invalidez` | `VARCHAR` | nulo quando `valida = true` |
+| `duracao_ms` | `DOUBLE` | `NOT NULL` |
+| `modelo` | `VARCHAR` | `NOT NULL` |
+| `versao_prompt` | `VARCHAR` | `NOT NULL` |
+| `tokens_entrada` | `INTEGER` | nulo se a chamada não devolveu métricas de uso |
+| `tokens_saida` | `INTEGER` | nulo se a chamada não devolveu métricas de uso |
+| `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+
+Uma versão inválida é registrada com `valida = false` e o `motivo_invalidez` persistido; a mensagem
+permanece em `gerando` e nunca avança para `criticando` (GERAR-09). A política de nova tentativa de
+conteúdo é da História 3.4, não desta.

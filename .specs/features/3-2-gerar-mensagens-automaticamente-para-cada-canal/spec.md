@@ -123,7 +123,7 @@ A História 3.1 deixa a execução em `processando_mensagens` com o contexto mí
 | GERAR-03 | P1: Limites de canal configuráveis e validados nas fronteiras | Design | Pending |
 | GERAR-04 | P1: Geração automática por combinação segurado+canal | Design | Pending |
 | GERAR-05 | P1: Geração automática por combinação segurado+canal | Design | Pending |
-| GERAR-06 | P1: Geração automática por combinação segurado+canal | Design | Pending |
+| GERAR-06 | P1: Geração automática por combinação segurado+canal | Design | Implementing |
 | GERAR-07 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | Pending |
 | GERAR-08 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | Pending |
 | GERAR-09 | P1: Saída estruturada por tipo de canal, validada deterministicamente | Design | Pending |

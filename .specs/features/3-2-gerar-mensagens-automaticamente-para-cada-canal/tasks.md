@@ -86,13 +86,17 @@ T8 → T9
 
 **Done when**:
 
-- [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] `README.md` documenta as duas tabelas e a `UNIQUE`
-- [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0008`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Migração aplica em transação própria, registrada em `schema_migracoes`
+- [x] `README.md` documenta as duas tabelas e a `UNIQUE`
+- [x] `testes/test_migracoes.py` cobre a aplicação da migração `0008`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
+
+**Status**: ✅ Completo — a migração entrou como `0010_mensagens.sql`, não `0008`: `0008` e `0009`
+já foram consumidos pelas Histórias 2.6 e 3.1 depois do planejamento desta história (mesma
+renumeração já registrada desde a 2.4). Gate: 528 testes.
 
 ---
 
