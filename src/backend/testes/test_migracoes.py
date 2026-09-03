@@ -36,6 +36,7 @@ TABELAS_ESPERADAS = {
     "contextos_agente",
     "mensagens",
     "versoes_mensagem",
+    "avaliacoes_criticas",
 }
 
 REGISTRO_MINIMO = (
@@ -83,8 +84,8 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
-    assert resultado.versao_final == 10
+    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+    assert resultado.versao_final == 11
     assert tabelas(caminho) == TABELAS_ESPERADAS
     assert registros(caminho) == [
         (1, "schema inicial"),
@@ -97,6 +98,7 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
         (8, "marcos execucao"),
         (9, "preflight ia"),
         (10, "mensagens"),
+        (11, "avaliacoes criticas"),
     ]
 
 
@@ -107,7 +109,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 10
+    assert resultado.versao_final == 11
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
@@ -119,6 +121,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
         (8, "marcos execucao"),
         (9, "preflight ia"),
         (10, "mensagens"),
+        (11, "avaliacoes criticas"),
     ]
 
 
@@ -691,6 +694,102 @@ def test_migracao_mensagens_cria_versoes_com_motivo_de_invalidez_e_tokens_opcion
         ),
         (True, None, 34.0, "gpt-4o-mini", "v1", 120, 45),
     ]
+
+
+def test_migracao_avaliacoes_criticas_admite_uma_unica_avaliacao_por_versao(
+    tmp_path: Path,
+) -> None:
+    """A migração `0011` cria `avaliacoes_criticas` com `UNIQUE (versao_mensagem_id)`
+    (CRIT-06): a mesma versão de mensagem não admite uma segunda avaliação, mas outra
+    versão continua podendo ser avaliada."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+    versao = "11111111-1111-1111-1111-111111111111"
+    outra_versao = "22222222-2222-2222-2222-222222222222"
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO avaliacoes_criticas "
+            "(id, versao_mensagem_id, aprovada, motivos, modelo, duracao_ms) VALUES "
+            "('aaaaaaaa-0000-0000-0000-000000000001', ?, true, '[]', 'gpt-4o-mini', 12.5)",
+            [versao],
+        )
+
+        with pytest.raises(duckdb.ConstraintException):
+            conexao.execute(
+                "INSERT INTO avaliacoes_criticas "
+                "(id, versao_mensagem_id, aprovada, motivos, modelo, duracao_ms) VALUES "
+                "('aaaaaaaa-0000-0000-0000-000000000002', ?, false, '[]', 'gpt-4o-mini', 9.0)",
+                [versao],
+            )
+
+        conexao.execute(
+            "INSERT INTO avaliacoes_criticas "
+            "(id, versao_mensagem_id, aprovada, motivos, modelo, duracao_ms) VALUES "
+            "('aaaaaaaa-0000-0000-0000-000000000003', ?, false, '[]', 'gpt-4o-mini', 9.0)",
+            [outra_versao],
+        )
+        total = conexao.execute("SELECT count(*) FROM avaliacoes_criticas").fetchone()
+
+    assert total == (2,)
+
+
+def test_migracao_avaliacoes_criticas_torna_reavaliacao_da_versao_um_no_op(
+    tmp_path: Path,
+) -> None:
+    """Terceiro Edge Case da 3.3: `INSERT ... ON CONFLICT DO NOTHING` sobre
+    `UNIQUE (versao_mensagem_id)` é o que faz um replay reaproveitar a avaliação já
+    persistida, em vez de gravar uma segunda (AD-010)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+    versao = "33333333-3333-3333-3333-333333333333"
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO avaliacoes_criticas "
+            "(id, versao_mensagem_id, aprovada, motivos, modelo, duracao_ms) VALUES "
+            "('bbbbbbbb-0000-0000-0000-000000000001', ?, false, "
+            "'[{\"categoria\": \"tom\", \"justificativa\": \"Tom alarmista.\"}]', "
+            "'gpt-4o-mini', 20.0)",
+            [versao],
+        )
+        conexao.execute(
+            "INSERT INTO avaliacoes_criticas "
+            "(id, versao_mensagem_id, aprovada, motivos, modelo, duracao_ms) VALUES "
+            "('bbbbbbbb-0000-0000-0000-000000000002', ?, true, '[]', 'gpt-4o-mini', 5.0) "
+            "ON CONFLICT DO NOTHING",
+            [versao],
+        )
+        linhas = conexao.execute(
+            "SELECT id, aprovada, motivos, agente FROM avaliacoes_criticas "
+            "WHERE versao_mensagem_id = ?",
+            [versao],
+        ).fetchall()
+
+    assert [(str(id_), aprovada, motivos, agente) for id_, aprovada, motivos, agente in linhas] == [
+        (
+            "bbbbbbbb-0000-0000-0000-000000000001",
+            False,
+            '[{"categoria": "tom", "justificativa": "Tom alarmista."}]',
+            "critico",
+        )
+    ]
+
+
+def test_documentacao_versionada_descreve_a_tabela_de_avaliacao_critica() -> None:
+    """A tabela de `0011` e a restrição que garante uma avaliação por versão são
+    documentadas no `README.md` versionado, não só no `.sql` (T1)."""
+
+    documento = Path("central_preventiva/adaptadores/persistencia/README.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "avaliacoes_criticas" in documento
+    assert "UNIQUE (versao_mensagem_id)" in documento
+    assert "promessa_indevida" in documento
+    assert "distincao_oficial" in documento
 
 
 def test_documentacao_versionada_descreve_as_tabelas_de_mensagem() -> None:

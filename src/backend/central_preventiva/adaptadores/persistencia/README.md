@@ -436,3 +436,42 @@ agente redator, o veredito determinístico do `ValidadorSaidaCanal` e as métric
 Uma versão inválida é registrada com `valida = false` e o `motivo_invalidez` persistido; a mensagem
 permanece em `gerando` e nunca avança para `criticando` (GERAR-09). A política de nova tentativa de
 conteúdo é da História 3.4, não desta.
+
+## Tabelas da migração `0011_avaliacoes_criticas`
+
+A migração cria a tabela da avaliação crítica de conteúdo (História 3.3). O `design.md` da história
+numera o arquivo como `0009_avaliacoes_criticas.sql`; `0009` e `0010` já haviam sido consumidos
+pelas Histórias 3.1 e 3.2, então a migração entrou como `0011` — mesma renumeração já registrada
+desde a 2.4.
+
+### `avaliacoes_criticas`
+
+Uma linha por versão de mensagem avaliada pelo agente crítico, com a decisão, os motivos
+estruturados por categoria fechada e a proveniência da chamada.
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `versao_mensagem_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `versoes_mensagem(id)` |
+| `aprovada` | `BOOLEAN` | `NOT NULL` — decisão textual do crítico, nunca a validação determinística |
+| `motivos` | `VARCHAR` | `NOT NULL`, JSON serializado (lista de `{categoria, justificativa}`) |
+| `agente` | `VARCHAR` | `NOT NULL`, padrão `'critico'` |
+| `modelo` | `VARCHAR` | `NOT NULL` |
+| `duracao_ms` | `DOUBLE` | `NOT NULL` |
+| `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+
+Restrição `UNIQUE (versao_mensagem_id)`: é a dedução de conteúdo do AD-010 aplicada à avaliação —
+uma versão de mensagem é avaliada uma única vez. Com ela, um replay idempotente da geração do lote
+reaproveita a avaliação persistida (`INSERT ... ON CONFLICT DO NOTHING` seguido de leitura) em vez
+de chamar a OpenAI de novo (terceiro Edge Case da 3.3).
+
+Os valores de `motivos[].categoria` vêm do enum fechado `dominio.avaliacao_critica.CategoriaCritica`
+(`tom`, `utilidade`, `clareza`, `seguranca`, `promessa_indevida`, `distincao_oficial`,
+`adequacao_canal`) — os sete critérios do CRIT-03. Uma aprovação persiste `aprovada = true` com
+`motivos = '[]'`.
+
+A avaliação do crítico é textual e nunca sobrepõe a validação determinística de 3.2
+(`versoes_mensagem.valida` / `motivo_invalidez`): uma saída estruturalmente inválida nunca sai de
+`gerando` e, portanto, nunca chega a ter avaliação crítica (CRIT-04). Uma saída do crítico inválida
+ou não interpretável não gera linha nenhuma nesta tabela: é falha da tentativa, nunca aprovação
+(CRIT-07).

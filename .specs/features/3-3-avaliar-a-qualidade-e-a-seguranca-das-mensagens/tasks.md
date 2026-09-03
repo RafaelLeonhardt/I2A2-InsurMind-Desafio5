@@ -77,10 +77,12 @@ T5 → T6
 
 **Done when**:
 
-- [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] `README.md` documenta a tabela nova e a `UNIQUE`
-- [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0009`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Migração aplica em transação própria, registrada em `schema_migracoes`
+- [x] `README.md` documenta a tabela nova e a `UNIQUE`
+- [x] `testes/test_migracoes.py` cobre a aplicação da migração (renumerada para `0011`: `0009` e
+      `0010` já haviam sido consumidas por 3.1 e 3.2 — `SPEC_DEVIATION` registrada no `.sql` e no
+      `README.md`)
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
