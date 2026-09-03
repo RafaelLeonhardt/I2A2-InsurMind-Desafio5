@@ -110,6 +110,18 @@ class RespostaExecucao(BaseModel):
             "vazia fora de 'aguardando_geracao'."
         )
     )
+    execucao_origem_id: UUID | None = Field(
+        description=(
+            "Execução terminal que originou esta nova tentativa; nula quando esta execução "
+            "não é correlacionada a nenhuma outra."
+        )
+    )
+    retentativas: list[UUID] = Field(
+        description=(
+            "Execuções criadas como nova tentativa a partir desta; vazia quando não houve "
+            "nenhuma. Cada execução mantém seu próprio histórico, sem mesclar marcos."
+        )
+    )
 
 
 class ProblemaExecucao(BaseModel):
@@ -243,7 +255,9 @@ def criar_roteador(configuracao: Configuracao) -> APIRouter:
         description=(
             "Devolve o estado atual, os marcos de transição já persistidos e, quando o "
             "estado é 'aguardando_geracao', a quantidade total e uma prévia do público "
-            "elegível formado (RUNNER-05)."
+            "elegível formado (RUNNER-05). Traz também a navegação entre execuções "
+            "correlacionadas: a origem desta execução e as novas tentativas criadas a "
+            "partir dela, sem mesclar históricos."
         ),
         responses={
             200: {"description": "Execução encontrada."},
@@ -300,6 +314,11 @@ def criar_roteador(configuracao: Configuracao) -> APIRouter:
             ],
             publico_elegivel_total=total,
             publico_elegivel_previa=previa,
+            execucao_origem_id=snapshot.execucao_origem_id,
+            retentativas=[
+                correlacionada.id
+                for correlacionada in execucoes_repo.listar_correlacionadas(execucao_uuid)
+            ],
         )
 
     return roteador

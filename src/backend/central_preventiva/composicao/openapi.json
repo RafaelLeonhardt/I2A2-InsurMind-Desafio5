@@ -223,6 +223,46 @@
         "title": "ProblemaMeteorologia",
         "type": "object"
       },
+      "ProblemaPreflight": {
+        "additionalProperties": false,
+        "description": "Falha da preparação agêntica, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem solicitou a operação.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaPreflight",
+        "type": "object"
+      },
       "ProblemaProntidao": {
         "additionalProperties": false,
         "description": "Falha da operação de prontidão, com ocorrência, impacto e próxima ação segura.",
@@ -931,6 +971,19 @@
             "title": "Estado",
             "type": "string"
           },
+          "execucao_origem_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Execução terminal que originou esta nova tentativa; nula quando esta execução não é correlacionada a nenhuma outra.",
+            "title": "Execucao Origem Id"
+          },
           "id": {
             "description": "Identificador da execução.",
             "format": "uuid",
@@ -964,6 +1017,15 @@
             ],
             "description": "Quantidade total de incluídos no público elegível; nulo fora de 'aguardando_geracao'.",
             "title": "Publico Elegivel Total"
+          },
+          "retentativas": {
+            "description": "Execuções criadas como nova tentativa a partir desta; vazia quando não houve nenhuma. Cada execução mantém seu próprio histórico, sem mesclar marcos.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Retentativas",
+            "type": "array"
           }
         },
         "required": [
@@ -971,7 +1033,9 @@
           "estado",
           "marcos",
           "publico_elegivel_total",
-          "publico_elegivel_previa"
+          "publico_elegivel_previa",
+          "execucao_origem_id",
+          "retentativas"
         ],
         "title": "RespostaExecucao",
         "type": "object"
@@ -1086,6 +1150,82 @@
         "title": "RespostaMarco",
         "type": "object"
       },
+      "RespostaNovaTentativaIA": {
+        "additionalProperties": false,
+        "description": "Ack da execução correlacionada criada a partir de uma falha de preparação.",
+        "properties": {
+          "execucao_id": {
+            "description": "Identificador da execução correlacionada criada.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "execucao_origem_id": {
+            "description": "Identificador da execução terminal que originou a nova tentativa.",
+            "format": "uuid",
+            "title": "Execucao Origem Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "execucao_id",
+          "execucao_origem_id"
+        ],
+        "title": "RespostaNovaTentativaIA",
+        "type": "object"
+      },
+      "RespostaPreflight": {
+        "additionalProperties": false,
+        "description": "Desfecho do preflight de uma execução: estado alcançado e o que foi preparado.",
+        "properties": {
+          "causa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Causa sanitizada do bloqueio, ou nula quando o preflight foi bem-sucedido.",
+            "title": "Causa"
+          },
+          "contextos_montados": {
+            "description": "Quantidade de itens do público elegível com contexto mínimo montado.",
+            "title": "Contextos Montados",
+            "type": "integer"
+          },
+          "estado": {
+            "description": "Estado alcançado pela execução após o preflight.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "execucao_id": {
+            "description": "Identificador da execução preparada.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "itens_em_excecao": {
+            "description": "Itens cujo contexto não pôde ser montado; os demais seguem normalmente.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Itens Em Excecao",
+            "type": "array"
+          }
+        },
+        "required": [
+          "execucao_id",
+          "estado",
+          "contextos_montados",
+          "itens_em_excecao",
+          "causa"
+        ],
+        "title": "RespostaPreflight",
+        "type": "object"
+      },
       "RespostaPreviaPublico": {
         "additionalProperties": false,
         "description": "Um item da amostra do público elegível formado.",
@@ -1106,6 +1246,60 @@
           "canal"
         ],
         "title": "RespostaPreviaPublico",
+        "type": "object"
+      },
+      "RespostaProvenienciaContexto": {
+        "additionalProperties": false,
+        "description": "Proveniência do contexto minimizado de um item: o que foi e o que não foi usado.",
+        "properties": {
+          "categorias_nao_usadas": {
+            "description": "Categorias deliberadamente deixadas de fora do contexto.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Categorias Nao Usadas",
+            "type": "array"
+          },
+          "categorias_usadas": {
+            "description": "Categorias de dado que chegaram ao contexto do agente redator.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Categorias Usadas",
+            "type": "array"
+          },
+          "elegibilidade_id": {
+            "description": "Item do público elegível preparado.",
+            "format": "uuid",
+            "title": "Elegibilidade Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "elegibilidade_id",
+          "categorias_usadas",
+          "categorias_nao_usadas"
+        ],
+        "title": "RespostaProvenienciaContexto",
+        "type": "object"
+      },
+      "RespostaProveniencias": {
+        "additionalProperties": false,
+        "description": "Proveniência dos contextos já montados de uma execução (PREFL-14).",
+        "properties": {
+          "registros": {
+            "description": "Proveniência de cada item preparado, na ordem em que foi montado.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaProvenienciaContexto"
+            },
+            "title": "Registros",
+            "type": "array"
+          }
+        },
+        "required": [
+          "registros"
+        ],
+        "title": "RespostaProveniencias",
         "type": "object"
       },
       "RespostaRegra": {
@@ -1821,7 +2015,7 @@
     },
     "/api/v1/execucoes/{execucao_id}": {
       "get": {
-        "description": "Devolve o estado atual, os marcos de transição já persistidos e, quando o estado é 'aguardando_geracao', a quantidade total e uma prévia do público elegível formado (RUNNER-05).",
+        "description": "Devolve o estado atual, os marcos de transição já persistidos e, quando o estado é 'aguardando_geracao', a quantidade total e uma prévia do público elegível formado (RUNNER-05). Traz também a navegação entre execuções correlacionadas: a origem desta execução e as novas tentativas criadas a partir dela, sem mesclar históricos.",
         "operationId": "consultar_execucao_api_v1_execucoes__execucao_id__get",
         "parameters": [
           {
@@ -1922,6 +2116,59 @@
         "summary": "Consultar o detalhe da decisão de risco de uma execução",
         "tags": [
           "Risco"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_id}/contextos": {
+      "get": {
+        "description": "Devolve, para cada item do público elegível já preparado, quais categorias de dado foram usadas no contexto do agente redator e quais foram deliberadamente deixadas de fora. São nomes de categoria, nunca conteúdo: a consulta nunca expõe documento, dado financeiro, dado de pagamento ou credencial.",
+        "operationId": "consultar_proveniencia_api_v1_execucoes__execucao_id__contextos_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaProveniencias"
+                }
+              }
+            },
+            "description": "Proveniência encontrada (pode ser vazia)."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaPreflight"
+                }
+              }
+            },
+            "description": "Execução inexistente."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaPreflight"
+                }
+              }
+            },
+            "description": "O identificador da execução não é um UUID válido."
+          }
+        },
+        "summary": "Consultar a proveniência dos contextos preparados",
+        "tags": [
+          "Preparação da IA"
         ]
       }
     },
@@ -2027,6 +2274,164 @@
         "summary": "Consultar a explicação completa de um resultado de elegibilidade",
         "tags": [
           "Elegibilidade"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_id}/preflight": {
+      "post": {
+        "description": "Verifica a configuração e a disponibilidade real da OpenAI antes de gerar qualquer mensagem e, confirmada a disponibilidade, monta o contexto mínimo de cada item do público elegível e transiciona a execução para 'processando_mensagens'. Indisponibilidade que esgota as tentativas leva a 'falhou_preparacao_ia' com causa sanitizada, sem nenhuma chamada de geração e sem nenhum conteúdo substituto. Exige o cabeçalho `Idempotency-Key`.",
+        "operationId": "preparar_execucao_api_v1_execucoes__execucao_id__preflight_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaPreflight"
+                }
+              }
+            },
+            "description": "Preflight concluído; o corpo informa o estado alcançado."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaPreflight"
+                }
+              }
+            },
+            "description": "Execução inexistente."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaPreflight"
+                }
+              }
+            },
+            "description": "Execução fora de 'aguardando_geracao' ou conflito de chave."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaPreflight"
+                }
+              }
+            },
+            "description": "Requisição sem `Idempotency-Key` ou identificador inválido."
+          }
+        },
+        "summary": "Preparar a etapa agêntica de uma execução preventiva",
+        "tags": [
+          "Preparação da IA"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_origem_id}/nova-tentativa-ia": {
+      "post": {
+        "description": "Valida a integridade dos snapshots versionados da execução de origem e, passando, cria uma execução correlacionada nova em 'aguardando_geracao', com `execucao_origem_id` próprio e uma cópia integral do público elegível da origem. A execução de origem permanece terminal e nunca é reaberta. Exige o cabeçalho `Idempotency-Key`.",
+        "operationId": "solicitar_nova_tentativa_ia_api_v1_execucoes__execucao_origem_id__nova_tentativa_ia_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_origem_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Origem Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaNovaTentativaIA"
+                }
+              }
+            },
+            "description": "Execução correlacionada criada."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaPreflight"
+                }
+              }
+            },
+            "description": "Execução de origem inexistente."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaPreflight"
+                }
+              }
+            },
+            "description": "Origem fora de 'falhou_preparacao_ia' ou conflito de chave."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaPreflight"
+                }
+              }
+            },
+            "description": "Requisição sem `Idempotency-Key`, identificador inválido ou snapshot da origem incompleto."
+          }
+        },
+        "summary": "Solicitar nova tentativa de preparação agêntica",
+        "tags": [
+          "Preparação da IA"
         ]
       }
     },

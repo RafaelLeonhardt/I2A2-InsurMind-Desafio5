@@ -29,6 +29,9 @@ from central_preventiva.adaptadores.http.meteorologia import (
 from central_preventiva.adaptadores.http.meteorologia import (
     montar_portas_coleta,
 )
+from central_preventiva.adaptadores.http.preflight_ia import (
+    criar_roteador as criar_roteador_preflight_ia,
+)
 from central_preventiva.adaptadores.http.prontidao import (
     criar_roteador as criar_roteador_prontidao,
 )
@@ -120,6 +123,10 @@ def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
     )
     aplicacao.include_router(
         criar_roteador_execucao_preventiva(configuracao_ativa),
+        prefix="/api/v1",
+    )
+    aplicacao.include_router(
+        criar_roteador_preflight_ia(configuracao_ativa),
         prefix="/api/v1",
     )
     return aplicacao

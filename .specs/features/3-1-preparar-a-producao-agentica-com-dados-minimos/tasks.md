@@ -298,14 +298,25 @@ Gate: 511 testes, ruff e pyright limpos.
 
 **Done when**:
 
-- [ ] Preflight sem `Idempotency-Key` retorna erro `application/problem+json`
-- [ ] Repetir a chave devolve a resposta registrada, sem novo preflight
-- [ ] `GET` de uma execução correlacionada expõe `execucao_origem_id`
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] Preflight sem `Idempotency-Key` retorna erro `application/problem+json`
+- [x] Repetir a chave devolve a resposta registrada, sem novo preflight
+- [x] `GET` de uma execução correlacionada expõe `execucao_origem_id`
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full
+
+**Status**: ✅ Completo — três rotas: `POST /execucoes/{id}/preflight`,
+`POST /execucoes/{origem_id}/nova-tentativa-ia` e `GET /execucoes/{id}/contextos`.
+`GET /execucoes/{id}` ganhou `execucao_origem_id` e `retentativas` (navegação nos dois
+sentidos, sem mesclar marcos).
+
+**SPEC_DEVIATION (rota a mais)**: `GET /execucoes/{id}/contextos` não está no T8. PREFL-14
+("Marina consulta a proveniência antes ou depois da geração") não tinha nenhuma task que a
+expusesse fora do repositório, e um método de repositório não é algo que Marina consulta. A
+rota devolve só nomes de categoria, nunca conteúdo — o teste prova que canal e área não
+aparecem na resposta. Gate: 524 testes, ruff e pyright limpos.
 
 ---
 
