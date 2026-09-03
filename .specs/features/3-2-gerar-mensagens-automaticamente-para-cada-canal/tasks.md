@@ -258,14 +258,41 @@ mutar a linha em nenhum dos dois casos. Gate: 609 testes (11 novos, banco real).
 
 **Done when**:
 
-- [ ] Duas elegibilidades incluídas com canais diferentes geram duas mensagens, sem ação manual
-- [ ] Cada mensagem gerada permanece associada a execução, elegibilidade, evento (via elegibilidade), regra (via elegibilidade), segurado, apólice, canal
-- [ ] Item sem contexto mínimo (3.1) é pulado com exceção isolada, sem chamar a OpenAI
-- [ ] Reidratar (chamar `gerar_lote` de novo para uma execução já processada) não duplica nenhuma mensagem
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Duas elegibilidades incluídas com canais diferentes geram duas mensagens, sem ação manual
+- [x] Cada mensagem gerada permanece associada a execução, elegibilidade, evento (via elegibilidade), regra (via elegibilidade), segurado, apólice, canal
+- [x] Item sem contexto mínimo (3.1) é pulado com exceção isolada, sem chamar a OpenAI
+- [x] Reidratar (chamar `gerar_lote` de novo para uma execução já processada) não duplica nenhuma mensagem
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Completo — `gerar_lote(execucao_id)` percorre o público incluído, cria a
+mensagem, roda o grafo e persiste o desfecho; falha de um item nunca interrompe o lote.
+
+**Onde o acionamento automático foi ligado (investigação exigida pelo AC GERAR-04.1).** O
+`design.md` diz que `gerar_lote` roda "dentro da task assíncrona já iniciada por
+`GerenciadorExecucoes` (2.6) ao entrar em `processando_mensagens`". Isso não é executável
+contra o código real: `GerenciadorExecucoes` para em `aguardando_geracao` (é o checkpoint em
+que a 2.6 termina, e `retomar_pendentes` pula esse estado de propósito) e nunca entra em
+`processando_mensagens`. O único caminho de código que faz essa transição é
+`ServicoPreflightIA._preparar_agora` (3.1), acionado pelo `POST /execucoes/{id}/preflight`,
+que a `SuperficiePreparacaoIA` dispara por um clique único de Marina — não automaticamente no
+carregamento da página.
+
+Decisão: `PortasPreflightIA` ganhou a porta opcional `acionar_geracao`, chamada logo após a
+transição bem-sucedida para `processando_mensagens` e o marco. Na composição HTTP, ela agenda
+`gerar_lote` como task desacoplada (mesmo padrão do `GerenciadorExecucoes`), então o `202` do
+preflight não espera pelo lote. O desfecho que o AC pede fica preservado: Marina não dispara
+nada **por mensagem** — o mesmo comando único que já existia deixa o lote inteiro gerado. A
+divergência está marcada como `SPEC_DEVIATION` no próprio campo, em `aplicacao/preflight_ia.py`.
+
+Efeito colateral corrigido no caminho: `AgenteRedator` passou a construir o `ChatOpenAI` só na
+primeira geração. Construí-lo na composição levantava `OpenAIError` sem `OPENAI_API_KEY`, o que
+impedia o backend de subir com a chave vazia — contra o AD-9, que trata ausência de chave como
+estado de preflight, não como falha de inicialização (69 testes de API pegaram isso).
+
+Gate: 622 testes (13 novos, repositório de mensagens e grafo reais, só o redator falso).
 
 ---
 

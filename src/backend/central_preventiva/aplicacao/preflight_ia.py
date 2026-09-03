@@ -272,6 +272,18 @@ class PortasPreflightIA:
     eventos: _RepositorioEventos
     idempotencia: PortaIdempotencia
     esperar: Callable[[float], Awaitable[None]] = asyncio.sleep
+    acionar_geracao: Callable[[UUID], Awaitable[None]] | None = None
+    """Gatilho automático da geração do lote, disparado ao entrar em `processando_mensagens`.
+
+    SPEC_DEVIATION: o `design.md` da História 3.2 escreve que `gerar_lote` roda "dentro da
+    task assíncrona já iniciada por `GerenciadorExecucoes` (2.6) ao entrar em
+    `processando_mensagens`". Na implementação real, `GerenciadorExecucoes` para em
+    `aguardando_geracao` (é o checkpoint em que a 2.6 termina, e `retomar_pendentes` o pula
+    explicitamente) e nunca entra em `processando_mensagens`: o único caminho de código que
+    faz essa transição é `_preparar_agora`, aqui. Ligar o gatilho neste ponto preserva
+    exatamente o desfecho que o AC GERAR-04.1 exige — geração automática de toda combinação
+    elegível, sem ação manual de Marina por mensagem — sem inventar um segundo comando HTTP.
+    """
 
 
 def _serializar_preflight(resultado: ResultadoPreflight) -> str:
@@ -336,7 +348,8 @@ class ServicoPreflightIA:
         """Verifica a disponibilidade da OpenAI e monta o contexto mínimo do público.
 
         Só uma execução em `aguardando_geracao` é preparável (PREFL-01). Disponibilidade
-        confirmada transiciona para `processando_mensagens` (PREFL-02); indisponibilidade
+        confirmada transiciona para `processando_mensagens` (PREFL-02) e, com ela, aciona
+        automaticamente a geração do lote (GERAR-04.1); indisponibilidade
         que esgota as tentativas transiciona para `falhou_preparacao_ia` com exceção
         sanitizada, sem nenhuma chamada de geração (PREFL-03, PREFL-04). Repetir a mesma
         chave idempotente devolve a resposta registrada, sem refazer o preflight (AD-002).
@@ -449,6 +462,8 @@ class ServicoPreflightIA:
             execucao_id, versao_esperada, EstadoExecucao.PROCESSANDO_MENSAGENS
         )
         self._portas.execucoes.registrar_marco(execucao_id, MARCO_PREPARACAO_CONCLUIDA)
+        if self._portas.acionar_geracao is not None:
+            await self._portas.acionar_geracao(execucao_id)
         return ResultadoPreflight(
             execucao_id=execucao_id,
             estado=EstadoExecucao.PROCESSANDO_MENSAGENS,

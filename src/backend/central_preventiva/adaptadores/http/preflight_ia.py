@@ -1,5 +1,6 @@
 """Recurso REST/JSON da preparação agêntica: preflight, nova tentativa e proveniência."""
 
+import asyncio
 from hashlib import sha256
 from typing import Annotated
 from uuid import UUID, uuid4
@@ -8,6 +9,7 @@ from fastapi import APIRouter, Header, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
+from central_preventiva.adaptadores.ia.agente_redator import AgenteRedator
 from central_preventiva.adaptadores.ia.verificador_disponibilidade_openai import (
     VerificadorDisponibilidadeOpenAI,
 )
@@ -24,8 +26,19 @@ from central_preventiva.adaptadores.persistencia.repositorio_execucao_preventiva
 from central_preventiva.adaptadores.persistencia.repositorio_idempotencia import (
     RepositorioIdempotencia,
 )
+from central_preventiva.adaptadores.persistencia.repositorio_mensagens import (
+    RepositorioMensagens,
+)
 from central_preventiva.adaptadores.persistencia.repositorio_meteorologia import (
     RepositorioEventosMeteorologicos,
+)
+from central_preventiva.aplicacao.geracao_mensagens import (
+    PortasGeracaoMensagens,
+    ServicoGeracaoMensagens,
+)
+from central_preventiva.aplicacao.grafos.geracao_mensagem import (
+    DependenciasGrafo,
+    construir_grafo,
 )
 from central_preventiva.aplicacao.portas_persistencia import ConflitoIdempotencia
 from central_preventiva.aplicacao.preflight_ia import (
@@ -37,6 +50,13 @@ from central_preventiva.aplicacao.preflight_ia import (
 )
 from central_preventiva.composicao.configuracao import Configuracao
 from central_preventiva.dominio.montador_contexto_agente import MontadorContextoAgente
+from central_preventiva.dominio.validador_saida_canal import (
+    LimitesCanal,
+    ValidadorSaidaCanal,
+)
+
+_tarefas_de_geracao: set[asyncio.Task[None]] = set()
+"""Referências fortes às tasks de geração em andamento, para não serem coletadas."""
 
 TIPO_PROBLEMA = "application/problem+json"
 CAMINHO_PREFLIGHT = "/execucoes/{execucao_id}/preflight"
@@ -174,11 +194,57 @@ def _problema_conflito_idempotencia() -> JSONResponse:
     )
 
 
-def montar_portas_preflight(configuracao: Configuracao) -> PortasPreflightIA:
-    """Compõe as portas reais da preparação agêntica a partir da configuração local."""
+def montar_servico_geracao(configuracao: Configuracao) -> ServicoGeracaoMensagens:
+    """Compõe a geração automática do lote a partir da configuração local (GERAR-04)."""
 
     caminho = configuracao.caminho_banco
     chave = configuracao.chave_openai
+    validador = ValidadorSaidaCanal(
+        LimitesCanal(
+            whatsapp=configuracao.limite_caracteres_whatsapp,
+            sms=configuracao.limite_caracteres_sms,
+            assunto_email=configuracao.limite_caracteres_assunto_email,
+            corpo_email=configuracao.limite_caracteres_corpo_email,
+        )
+    )
+    redator = AgenteRedator(
+        validador=validador,
+        modelo=configuracao.modelo_openai,
+        temperatura=configuracao.temperatura_openai,
+        timeout_segundos=configuracao.timeout_openai_segundos,
+        chave=chave.get_secret_value() if chave is not None else None,
+    )
+    return ServicoGeracaoMensagens(
+        PortasGeracaoMensagens(
+            elegibilidades=RepositorioElegibilidades(caminho),
+            contextos=RepositorioContextosAgente(caminho),
+            mensagens=RepositorioMensagens(caminho),
+            excecoes=RepositorioExcecoesOperacionais(caminho),
+            grafo=construir_grafo(DependenciasGrafo(redator=redator, validador=validador)),
+            versao_prompt=configuracao.versao_prompt,
+        )
+    )
+
+
+def montar_portas_preflight(configuracao: Configuracao) -> PortasPreflightIA:
+    """Compõe as portas reais da preparação agêntica a partir da configuração local.
+
+    `acionar_geracao` liga a geração do lote (3.2) ao único ponto do código que entra em
+    `processando_mensagens`, e a dispara como task desacoplada (mesmo padrão de
+    `GerenciadorExecucoes`) para que a resposta `202` não espere pelo lote inteiro.
+    """
+
+    caminho = configuracao.caminho_banco
+    chave = configuracao.chave_openai
+    geracao = montar_servico_geracao(configuracao)
+
+    async def acionar_geracao(execucao_id: UUID) -> None:
+        """Agenda a geração do lote sem bloquear o ack do preflight."""
+
+        tarefa = asyncio.create_task(geracao.gerar_lote(execucao_id))
+        _tarefas_de_geracao.add(tarefa)
+        tarefa.add_done_callback(_tarefas_de_geracao.discard)
+
     return PortasPreflightIA(
         verificador=VerificadorDisponibilidadeOpenAI(
             chave.get_secret_value() if chave is not None else None,
@@ -192,6 +258,7 @@ def montar_portas_preflight(configuracao: Configuracao) -> PortasPreflightIA:
         contextos=RepositorioContextosAgente(caminho),
         eventos=RepositorioEventosMeteorologicos(caminho),
         idempotencia=RepositorioIdempotencia(caminho),
+        acionar_geracao=acionar_geracao,
     )
 
 

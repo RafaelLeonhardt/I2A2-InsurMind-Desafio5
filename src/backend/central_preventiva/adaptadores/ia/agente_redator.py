@@ -167,25 +167,37 @@ class AgenteRedator:
 
         self._validador = validador
         self._nome_modelo = modelo
-        self._modelo_de_chat = (
-            modelo_de_chat
-            if modelo_de_chat is not None
-            else cast(
-                _ModeloDeChat,
-                ChatOpenAI(
-                    model=modelo,
-                    temperature=temperatura,
-                    timeout=timeout_segundos,
-                    api_key=chave,  # pyright: ignore[reportArgumentType]
-                ),
-            )
-        )
+        self._temperatura = temperatura
+        self._timeout_segundos = timeout_segundos
+        self._chave = chave
+        self._modelo_de_chat = modelo_de_chat
 
     @property
     def modelo(self) -> str:
         """Identificador do modelo usado na geração, registrado em cada versão."""
 
         return self._nome_modelo
+
+    def _obter_modelo_de_chat(self) -> _ModeloDeChat:
+        """Constrói o `ChatOpenAI` na primeira geração, nunca na composição do app.
+
+        Construir o cliente sem credencial levanta erro do SDK da OpenAI. A ausência de
+        chave é estado de preflight (AD-9), não falha de inicialização do backend: adiar a
+        construção até a primeira geração mantém o backend subindo com `OPENAI_API_KEY`
+        vazia, exatamente como o `.env.example` documenta.
+        """
+
+        if self._modelo_de_chat is None:
+            self._modelo_de_chat = cast(
+                _ModeloDeChat,
+                ChatOpenAI(
+                    model=self._nome_modelo,
+                    temperature=self._temperatura,
+                    timeout=self._timeout_segundos,
+                    api_key=self._chave,  # pyright: ignore[reportArgumentType]
+                ),
+            )
+        return self._modelo_de_chat
 
     async def gerar(self, contexto: ContextoAgente, canal: Canal) -> RespostaRedator:
         """Pede ao modelo o conteúdo estruturado do canal e devolve o que voltou.
@@ -194,7 +206,7 @@ class AgenteRedator:
         validador determinístico é quem a marca inválida (GERAR-09).
         """
 
-        estruturado = self._modelo_de_chat.with_structured_output(
+        estruturado = self._obter_modelo_de_chat().with_structured_output(
             ESQUEMAS_POR_CANAL[canal], include_raw=True
         )
         resposta = await estruturado.ainvoke(
