@@ -199,13 +199,22 @@ Gate: 462 testes, ruff e pyright limpos.
 
 **Done when**:
 
-- [ ] Contexto montado contém exatamente os 5 campos permitidos, nenhum a mais
-- [ ] Nenhum documento, dado financeiro, pagamento ou credencial aparece no objeto produzido
-- [ ] Campo obrigatório ausente/inconsistente retorna erro tipado identificando o item, sem lançar exceção não tratada
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Contexto montado contém exatamente os 5 campos permitidos, nenhum a mais
+- [x] Nenhum documento, dado financeiro, pagamento ou credencial aparece no objeto produzido
+- [x] Campo obrigatório ausente/inconsistente retorna erro tipado identificando o item, sem lançar exceção não tratada
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Completo. **SPEC_DEVIATION (assinatura)**: `montar` recebe `elegibilidade_id`
+como primeiro parâmetro, além do par `(elegibilidade, evento)` do design — o próprio T5 exige
+um erro tipado "identificando o item", e `ResultadoElegibilidade` (2.5) não carrega identidade.
+Marcador no topo de `montador_contexto_agente.py`.
+
+`avaliador_elegibilidade.py` ganhou `OPERANDO_COBERTURA_EXIGIDA`, seguindo o mesmo padrão já
+adotado em `OPERANDO_AREA_AFETADA` (2.5): o montador busca o critério pelo nome estável, nunca
+por posição nem por literal duplicado. Gate: 475 testes, ruff e pyright limpos.
 
 ---
 

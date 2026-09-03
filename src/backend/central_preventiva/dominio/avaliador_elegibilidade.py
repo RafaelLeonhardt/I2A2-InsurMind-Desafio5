@@ -18,6 +18,10 @@ OPERANDO_AREA_AFETADA = "área afetada"
 `codigo_ibge_area` do próprio snapshot de critérios já persistido, por nome, nunca por
 posição (a ordem dos critérios é um detalhe de `avaliar`, não um contrato)."""
 
+OPERANDO_COBERTURA_EXIGIDA = "cobertura exigida"
+"""Nome estável do critério de cobertura — usado por `montador_contexto_agente` para derivar
+as coberturas relevantes do mesmo snapshot já persistido, pela mesma regra de busca por nome."""
+
 
 @dataclass(frozen=True, slots=True)
 class CandidatoElegibilidade:
@@ -104,7 +108,7 @@ def _criterio_cobertura(candidato: CandidatoElegibilidade, regra: RegraSnapshot)
         else f"Apólice não possui a cobertura exigida pela regra ({regra.cobertura_exigida})."
     )
     return Criterio(
-        operando="cobertura exigida",
+        operando=OPERANDO_COBERTURA_EXIGIDA,
         valor_observado=", ".join(candidato.coberturas) if candidato.coberturas else "nenhuma",
         atende=atende,
         justificativa=justificativa,
@@ -133,7 +137,7 @@ def _motivo_da_primeira_falha(criterios: tuple[Criterio, ...]) -> str:
         OPERANDO_AREA_AFETADA: MOTIVO_AREA_NAO_APLICAVEL,
         "tipo da apólice": MOTIVO_APOLICE_INCOERENTE,
         "situação da apólice": MOTIVO_APOLICE_INATIVA,
-        "cobertura exigida": MOTIVO_COBERTURA_AUSENTE,
+        OPERANDO_COBERTURA_EXIGIDA: MOTIVO_COBERTURA_AUSENTE,
         "participação em alertas": MOTIVO_NAO_PARTICIPA_DE_ALERTAS,
     }
     primeira_falha = next(criterio for criterio in criterios if not criterio.atende)
