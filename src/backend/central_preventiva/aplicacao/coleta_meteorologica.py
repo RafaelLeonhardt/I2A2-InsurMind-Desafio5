@@ -11,6 +11,13 @@ from uuid import UUID, uuid4
 import httpx
 
 from central_preventiva.adaptadores.meteorologia.normalizador_inmet import NormalizadorInmet
+from central_preventiva.aplicacao._retry import (
+    BACKOFF_SEGUNDOS,
+    MAXIMO_TENTATIVAS,
+    RetryComBackoff,
+    Tentativa,
+    TentativasEsgotadas,
+)
 from central_preventiva.aplicacao.portas_meteorologia import (
     AreaMonitorada,
     CodigoResultadoTentativa,
@@ -29,14 +36,23 @@ from central_preventiva.aplicacao.portas_persistencia import ConflitoIdempotenci
 from central_preventiva.dominio.estados_execucao import EstadoExecucao
 from central_preventiva.dominio.evento_meteorologico import EventoMeteorologico
 
-MAXIMO_TENTATIVAS_COLETA = 3
-"""Número total de tentativas de uma coleta com retry, incluindo a primeira (RESIL-01)."""
+MAXIMO_TENTATIVAS_COLETA = MAXIMO_TENTATIVAS
+"""Número total de tentativas de uma coleta com retry, incluindo a primeira (RESIL-01).
 
-BACKOFF_SEGUNDOS_COLETA: tuple[float, ...] = (1.0, 2.0, 4.0)
+Nome local da política única de `aplicacao/_retry.py`, compartilhada com o preflight de
+IA (3.1) — não uma segunda configuração.
+"""
+
+BACKOFF_SEGUNDOS_COLETA: tuple[float, ...] = BACKOFF_SEGUNDOS
 """Espera exponencial com jitter nulo entre tentativas: 1s após a 1ª falha, 2s após a 2ª."""
 
+MENSAGEM_COLETA_ESGOTADA = (
+    f"Esgotadas {MAXIMO_TENTATIVAS_COLETA} tentativas de coleta meteorológica."
+)
+"""Mensagem da falha terminal de coleta, preservada da implementação original de 2.2."""
 
-class RetentativasEsgotadas(Exception):
+
+class RetentativasEsgotadas(TentativasEsgotadas):
     """Indica que as `MAXIMO_TENTATIVAS_COLETA` tentativas de uma coleta se esgotaram.
 
     Carrega a última causa observada — a exceção de transporte/timeout da última tentativa,
@@ -51,20 +67,32 @@ class RetentativasEsgotadas(Exception):
     ) -> None:
         """Registra quantas tentativas ocorreram e a última causa de falha observada."""
 
-        super().__init__(f"Esgotadas {tentativas} tentativas de coleta meteorológica.")
-        self.tentativas = tentativas
-        self.ultimo_erro = ultimo_erro
+        super().__init__(MENSAGEM_COLETA_ESGOTADA, tentativas, ultimo_erro, ultima_resposta)
         self.ultima_resposta = ultima_resposta
+
+
+def _codigo_da_tentativa(tentativa: Tentativa[RespostaColetaInmet]) -> CodigoResultadoTentativa:
+    """Classifica o desfecho de uma tentativa de coleta no código persistido (RESIL-03)."""
+
+    if isinstance(tentativa.erro, httpx.TimeoutException):
+        return CodigoResultadoTentativa.TIMEOUT
+    if tentativa.erro is not None:
+        return CodigoResultadoTentativa.ERRO_TRANSPORTE
+    assert tentativa.valor is not None
+    if tentativa.valor.status_code == 200:
+        return CodigoResultadoTentativa.SUCESSO
+    return CodigoResultadoTentativa.STATUS_ERRO
 
 
 class ColetorComRetry:
     """Envolve um `ColetorMeteorologico` de tentativa única com retry limitado (RESIL-01..05).
 
-    Repete até `MAXIMO_TENTATIVAS_COLETA` vezes, aguardando `BACKOFF_SEGUNDOS_COLETA` entre
-    falhas, registrando cada tentativa individual antes de decidir a próxima ação. Levanta
-    `RetentativasEsgotadas` quando todas as tentativas falham; nunca retenta depois de uma
-    resposta HTTP 200 (o conteúdo, se inválido, é rejeitado pelo normalizador — não é um
-    caso de retry desta camada).
+    Aplica a política única de `RetryComBackoff` (`aplicacao/_retry.py`): até
+    `MAXIMO_TENTATIVAS_COLETA` tentativas, `BACKOFF_SEGUNDOS_COLETA` entre falhas, cada
+    tentativa registrada antes de decidir a próxima ação. Levanta `RetentativasEsgotadas`
+    quando todas as tentativas falham; nunca retenta depois de uma resposta HTTP 200 (o
+    conteúdo, se inválido, é rejeitado pelo normalizador — não é um caso de retry desta
+    camada).
     """
 
     def __init__(
@@ -84,38 +112,32 @@ class ColetorComRetry:
     async def coletar(self, area: AreaMonitorada) -> RespostaColetaInmet:
         """Tenta coletar até `MAXIMO_TENTATIVAS_COLETA` vezes, com backoff entre falhas."""
 
-        ultimo_erro: BaseException | None = None
-        ultima_resposta: RespostaColetaInmet | None = None
+        retry = RetryComBackoff(
+            operacao=lambda: self._delegado.coletar(area),
+            aceitar=lambda resposta: resposta.status_code == 200,
+            registrar=self._registrar,
+            mensagem_esgotamento=MENSAGEM_COLETA_ESGOTADA,
+            erros_reconhecidos=(httpx.TimeoutException, httpx.TransportError),
+            esperar=self._esperar,
+        )
+        try:
+            return await retry.executar()
+        except TentativasEsgotadas as falha:
+            raise RetentativasEsgotadas(
+                falha.tentativas,
+                falha.ultimo_erro,
+                cast(RespostaColetaInmet | None, falha.ultimo_valor),
+            ) from None
 
-        for numero in range(1, MAXIMO_TENTATIVAS_COLETA + 1):
-            inicio = datetime.now(UTC)
-            try:
-                resposta = await self._delegado.coletar(area)
-            except httpx.TimeoutException as erro:
-                self._registrar(numero, CodigoResultadoTentativa.TIMEOUT, inicio)
-                ultimo_erro, ultima_resposta = erro, None
-            except httpx.TransportError as erro:
-                self._registrar(numero, CodigoResultadoTentativa.ERRO_TRANSPORTE, inicio)
-                ultimo_erro, ultima_resposta = erro, None
-            else:
-                if resposta.status_code == 200:
-                    self._registrar(numero, CodigoResultadoTentativa.SUCESSO, inicio)
-                    return resposta
-                self._registrar(numero, CodigoResultadoTentativa.STATUS_ERRO, inicio)
-                ultimo_erro, ultima_resposta = None, resposta
-
-            if numero < MAXIMO_TENTATIVAS_COLETA:
-                await self._esperar(BACKOFF_SEGUNDOS_COLETA[numero - 1])
-
-        raise RetentativasEsgotadas(MAXIMO_TENTATIVAS_COLETA, ultimo_erro, ultima_resposta)
-
-    def _registrar(
-        self, numero: int, codigo: CodigoResultadoTentativa, iniciado_em: datetime
-    ) -> None:
+    def _registrar(self, tentativa: Tentativa[RespostaColetaInmet]) -> None:
         """Persiste a tentativa recém-concluída, imediatamente após seu término."""
 
         self._tentativas.registrar_tentativa(
-            self._sincronizacao_id, numero, codigo, iniciado_em, datetime.now(UTC)
+            self._sincronizacao_id,
+            tentativa.numero,
+            _codigo_da_tentativa(tentativa),
+            tentativa.iniciado_em,
+            tentativa.finalizado_em,
         )
 
 OPERACAO_COLETA_MANUAL = "solicitar_coleta_manual"

@@ -136,12 +136,16 @@ T9
 
 **Done when**:
 
-- [ ] `testes/test_coletor_com_retry.py` (2.2) continua passando sem alteração de asserção — comportamento observável preservado
-- [ ] Novo teste dedicado ao wrapper genérico cobre sucesso na 1ª/2ª/3ª tentativa e esgotamento
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `testes/test_coletor_com_retry.py` (2.2) continua passando sem alteração de asserção — comportamento observável preservado
+- [x] Novo teste dedicado ao wrapper genérico cobre sucesso na 1ª/2ª/3ª tentativa e esgotamento
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Completo — `RetryComBackoff[T]` em `aplicacao/_retry.py`; `ColetorComRetry` (2.2)
+passa a delegar a ele, e `RetentativasEsgotadas` vira subclasse de `TentativasEsgotadas`
+preservando `ultima_resposta`. Os 4 testes de 2.2 seguem sem uma linha alterada. Gate: 425 testes.
 
 ---
 

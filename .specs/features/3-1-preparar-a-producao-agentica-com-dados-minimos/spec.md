@@ -123,7 +123,7 @@ O Épico 2 entrega execuções paradas em `aguardando_geracao` com um público e
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| PREFL-01 | P1: Preflight de disponibilidade antes de qualquer geração | Design | Pending |
+| PREFL-01 | P1: Preflight de disponibilidade antes de qualquer geração | T3 | Implementing |
 | PREFL-02 | P1: Preflight de disponibilidade antes de qualquer geração | Design | Pending |
 | PREFL-03 | P1: Preflight de disponibilidade antes de qualquer geração | Design | Pending |
 | PREFL-04 | P1: Preflight de disponibilidade antes de qualquer geração | Design | Pending |
