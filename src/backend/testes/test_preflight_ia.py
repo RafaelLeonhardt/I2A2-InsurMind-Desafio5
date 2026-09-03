@@ -785,10 +785,25 @@ def test_retentativa_de_origem_com_contextos_monta_os_da_copia_sem_violar_a_uniq
         servico.solicitar_nova_tentativa(origem_id, "chave-nova-tentativa", HASH)
     )
 
+    originais = {linha.id: linha for linha in elegibilidades.listar_por_execucao(origem_id)}
     copiadas = elegibilidades.listar_por_execucao(nova_id)
     assert len(copiadas) == 2
     assert {linha.elegivel for linha in copiadas} == {True, False}
     assert incluida not in {linha.id for linha in copiadas}
+
+    # AD-012: conteúdo de snapshot idêntico ao da origem, não um placeholder qualquer —
+    # casadas por `elegivel` porque cada execução tem exatamente uma incluída/excluída.
+    original_por_elegivel = {linha.elegivel: linha for linha in originais.values()}
+    for copia in copiadas:
+        original = original_por_elegivel[copia.elegivel]
+        assert copia.nome_segurado == original.nome_segurado
+        assert copia.justificativa == original.justificativa
+        assert copia.canal == original.canal
+        assert copia.criterios == original.criterios
+        assert copia.evento_id == original.evento_id
+        assert copia.regra_id == original.regra_id
+        assert copia.segurado_id == original.segurado_id
+        assert copia.apolice_id == original.apolice_id
     assert execucoes.buscar(nova_id) is not None
     assert execucoes.buscar(nova_id).execucao_origem_id == origem_id  # type: ignore[union-attr]
 

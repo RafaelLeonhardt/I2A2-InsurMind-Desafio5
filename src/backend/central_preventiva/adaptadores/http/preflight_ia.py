@@ -124,6 +124,20 @@ def problema(
     return JSONResponse(status_code=status, media_type=TIPO_PROBLEMA, content=corpo.model_dump())
 
 
+def _hash_requisicao_escopado(identificador_alvo: str, corpo: bytes) -> str:
+    """Hash de conteúdo da requisição, escopado pelo identificador do recurso alvo.
+
+    Os dois corpos POST desta rota são vazios (o alvo vem só do caminho), então hashear
+    apenas `corpo` produziria o mesmo valor para qualquer execução — a mesma
+    `Idempotency-Key` reaproveitada para uma execução diferente devolveria, sem detectar
+    nada, a resposta registrada da primeira execução em vez de rejeitar como conflito
+    (AD-002). Incluir o identificador do alvo no hash faz o par (chave, alvo diferente)
+    divergir do hash já registrado, disparando `ConflitoIdempotencia` (409).
+    """
+
+    return sha256(identificador_alvo.encode() + b":" + corpo).hexdigest()
+
+
 def _problema_execucao_inexistente(execucao_id: str) -> JSONResponse:
     """Resposta idêntica para execução inexistente, em qualquer motivo (AD-011)."""
 
@@ -239,7 +253,7 @@ def criar_roteador(configuracao: Configuracao) -> APIRouter:
         if snapshot is None:
             return _problema_execucao_inexistente(execucao_id)
 
-        hash_requisicao = sha256(await requisicao.body()).hexdigest()
+        hash_requisicao = _hash_requisicao_escopado(execucao_id, await requisicao.body())
         try:
             resultado = await servico.preparar(
                 execucao_uuid, snapshot.versao, idempotency_key, hash_requisicao
@@ -314,7 +328,7 @@ def criar_roteador(configuracao: Configuracao) -> APIRouter:
         if execucoes_repo.buscar(origem_uuid) is None:
             return _problema_execucao_inexistente(execucao_origem_id)
 
-        hash_requisicao = sha256(await requisicao.body()).hexdigest()
+        hash_requisicao = _hash_requisicao_escopado(execucao_origem_id, await requisicao.body())
         try:
             nova_execucao_id = await servico.solicitar_nova_tentativa(
                 origem_uuid, idempotency_key, hash_requisicao

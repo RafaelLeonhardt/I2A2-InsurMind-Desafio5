@@ -253,6 +253,36 @@ def test_repetir_a_chave_devolve_a_resposta_registrada_sem_novo_preflight(
     assert segunda.json() == primeira.json()
 
 
+def test_reusar_a_chave_em_outra_execucao_devolve_conflito_sem_reaproveitar_a_resposta(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """AD-002: a mesma Idempotency-Key para uma execução diferente é conflito, não reuso.
+
+    O corpo do POST é sempre vazio (o alvo vem do caminho), então o hash de idempotência
+    precisa incluir o identificador da execução — sem isso, reaproveitar a chave em uma
+    execução diferente devolveria silenciosamente a resposta da primeira em vez de rejeitar.
+    """
+
+    cliente, caminho, execucao_a = montar_cenario(tmp_path)
+    programar_openai(monkeypatch, openai_disponivel())
+    primeira = cliente.post(
+        f"/api/v1/execucoes/{execucao_a}/preflight", headers={"Idempotency-Key": "chave-1"}
+    )
+    assert primeira.status_code == 202
+
+    execucao_b = RepositorioExecucaoPreventiva(caminho).criar(EstadoExecucao.AGUARDANDO_GERACAO)
+
+    resposta = cliente.post(
+        f"/api/v1/execucoes/{execucao_b}/preflight", headers={"Idempotency-Key": "chave-1"}
+    )
+
+    assert resposta.status_code == 409
+    assert resposta.json()["codigo"] == "conflito_idempotencia"
+    assert (
+        cliente.get(f"/api/v1/execucoes/{execucao_b}").json()["estado"] == "aguardando_geracao"
+    )
+
+
 def test_preflight_de_execucao_inexistente_devolve_404(tmp_path: Path) -> None:
     cliente, _, _ = montar_cenario(tmp_path)
 
@@ -366,6 +396,38 @@ def test_nova_tentativa_copia_o_publico_da_origem_e_permite_novo_preflight(
     assert segundo.json()["contextos_montados"] == 1
     assert len(cliente.get(f"/api/v1/execucoes/{nova_id}/contextos").json()["registros"]) == 1
     assert len(cliente.get(f"/api/v1/execucoes/{origem_id}/contextos").json()["registros"]) == 1
+
+
+def test_reusar_a_chave_de_nova_tentativa_em_outra_origem_devolve_conflito(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """AD-002: a mesma Idempotency-Key para uma origem diferente é conflito, não reuso."""
+
+    cliente, caminho, origem_a = montar_cenario(tmp_path)
+    programar_openai(monkeypatch, openai_indisponivel())
+    cliente.post(
+        f"/api/v1/execucoes/{origem_a}/preflight", headers={"Idempotency-Key": "chave-1"}
+    )
+    cliente.post(
+        f"/api/v1/execucoes/{origem_a}/nova-tentativa-ia",
+        headers={"Idempotency-Key": "chave-2"},
+    )
+
+    regra_id = inserir_regra(caminho)
+    origem_b = RepositorioExecucaoPreventiva(caminho).criar(EstadoExecucao.AGUARDANDO_GERACAO)
+    inserir_elegibilidade(caminho, origem_b, regra_id, elegivel=True)
+    cliente.post(
+        f"/api/v1/execucoes/{origem_b}/preflight", headers={"Idempotency-Key": "chave-3"}
+    )
+
+    resposta = cliente.post(
+        f"/api/v1/execucoes/{origem_b}/nova-tentativa-ia",
+        headers={"Idempotency-Key": "chave-2"},
+    )
+
+    assert resposta.status_code == 409
+    assert resposta.json()["codigo"] == "conflito_idempotencia"
+    assert cliente.get(f"/api/v1/execucoes/{origem_b}").json()["retentativas"] == []
 
 
 def test_nova_tentativa_a_partir_de_origem_nao_terminal_devolve_409(
