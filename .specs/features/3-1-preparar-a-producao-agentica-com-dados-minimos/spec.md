@@ -135,8 +135,8 @@ O Épico 2 entrega execuções paradas em `aguardando_geracao` com um público e
 | PREFL-10 | P1: Inicialização segura e nova tentativa correlacionada | Design | Pending |
 | PREFL-11 | P1: Contexto mínimo do agente redator | T5 | Implementing |
 | PREFL-12 | P1: Contexto mínimo do agente redator | T2, T5 | Implementing |
-| PREFL-13 | P1: Contexto mínimo do agente redator | Design | Pending |
-| PREFL-14 | P1: Contexto mínimo do agente redator | Design | Pending |
+| PREFL-13 | P1: Contexto mínimo do agente redator | T6 | Implementing |
+| PREFL-14 | P1: Contexto mínimo do agente redator | T6 | Implementing |
 | PREFL-15 | P1: Contexto mínimo do agente redator | T5 | Implementing |
 | PREFL-16 | P2: Explicação de indisponibilidade sem substituto artificial | Design | Pending |
 | PREFL-17 | P2: Explicação de indisponibilidade sem substituto artificial | Design | Pending |

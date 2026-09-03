@@ -230,13 +230,19 @@ por posição nem por literal duplicado. Gate: 475 testes, ruff e pyright limpos
 
 **Done when**:
 
-- [ ] `salvar` persiste conteúdo serializado e as duas listas de categorias
-- [ ] `obter_por_elegibilidade` recupera sem recalcular
-- [ ] Nenhum conteúdo sensível aparece em log durante a persistência
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `salvar` persiste conteúdo serializado e as duas listas de categorias
+- [x] `obter_por_elegibilidade` recupera sem recalcular
+- [x] Nenhum conteúdo sensível aparece em log durante a persistência
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
+
+**Status**: ✅ Completo. **SPEC_DEVIATION (tipo de retorno)**: `obter_por_elegibilidade` devolve
+`RegistroContextoAgente` (contexto + as duas listas de categorias), não `ContextoAgente | None`
+como no design — PREFL-14 exige consultar a proveniência, e o tipo do design não a expõe.
+`listar_por_execucao` entrou pela mesma razão: é a leitura de proveniência por execução que a
+rota de consulta (T8) usa. Gate: 480 testes, ruff e pyright limpos.
 
 ---
 
