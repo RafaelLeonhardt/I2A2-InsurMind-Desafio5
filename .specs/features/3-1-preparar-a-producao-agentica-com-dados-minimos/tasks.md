@@ -332,13 +332,29 @@ aparecem na resposta. Gate: 524 testes, ruff e pyright limpos.
 
 **Done when**:
 
-- [ ] Bloqueio exibido com causa e ação de nova tentativa, sem texto fictício de mensagem gerada
-- [ ] Link de navegação origem↔retentativa funcional
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Bloqueio exibido com causa e ação de nova tentativa, sem texto fictício de mensagem gerada
+- [x] Link de navegação origem↔retentativa funcional
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full
+
+**Status**: ✅ Completo. Três notas:
+
+1. **Marcos de preflight (mudança de backend dentro do T9)**: `ServicoPreflightIA` passou a
+   registrar `falhou_preparacao_ia` (com a causa sanitizada) e `preparacao_ia_concluida` como
+   marcos da execução. Sem isso, uma tela aberta depois do bloqueio não teria de onde ler a
+   causa e teria que inventar um texto — exatamente o que o PREFL-16 proíbe. Reusa
+   `registrar_marco` (2.6) e a `causa` que o `GET /execucoes/{id}` já devolve.
+2. **`tipos-gerados.ts` reordenado**: `npm run gerar-tipos-api` lê o `openapi.json` servido pelo
+   backend em execução, que preserva a ordem de registro das rotas; o arquivo versionado
+   anterior tinha sido gerado a partir do snapshot ordenado alfabeticamente. Daí o diff grande.
+   Depois desta regeneração, `npm run verificar-tipos-api` passa (antes divergia).
+3. `SuperficiePreparacaoIA` ainda não está no switch de navegação de `App.tsx`, como as outras
+   quatro superfícies das Histórias 2.3–2.6 (risco (9) já registrado no Handoff da 2.6).
+
+Gate: 229 testes de frontend, lint e build limpos; 524 testes de backend, ruff e pyright limpos.
 
 **Commit**: `feat(preflight-ia): adicionar preparacao agentica com verificacao de disponibilidade e contexto minimo`
 

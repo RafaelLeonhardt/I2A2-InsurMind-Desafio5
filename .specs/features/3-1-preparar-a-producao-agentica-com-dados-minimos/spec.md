@@ -132,20 +132,20 @@ O Épico 2 entrega execuções paradas em `aguardando_geracao` com um público e
 | PREFL-07 | P1: Inicialização segura e nova tentativa correlacionada | T2, T7 | Implementing |
 | PREFL-08 | P1: Inicialização segura e nova tentativa correlacionada | T7 | Implementing |
 | PREFL-09 | P1: Inicialização segura e nova tentativa correlacionada | T7, T8 | Implementing |
-| PREFL-10 | P1: Inicialização segura e nova tentativa correlacionada | T8 | Implementing |
+| PREFL-10 | P1: Inicialização segura e nova tentativa correlacionada | T8, T9 | Implementing |
 | PREFL-11 | P1: Contexto mínimo do agente redator | T5 | Implementing |
 | PREFL-12 | P1: Contexto mínimo do agente redator | T2, T5 | Implementing |
 | PREFL-13 | P1: Contexto mínimo do agente redator | T6 | Implementing |
 | PREFL-14 | P1: Contexto mínimo do agente redator | T6, T8 | Implementing |
 | PREFL-15 | P1: Contexto mínimo do agente redator | T5, T7 | Implementing |
-| PREFL-16 | P2: Explicação de indisponibilidade sem substituto artificial | Design | Pending |
-| PREFL-17 | P2: Explicação de indisponibilidade sem substituto artificial | Design | Pending |
+| PREFL-16 | P2: Explicação de indisponibilidade sem substituto artificial | T4, T9 | Implementing |
+| PREFL-17 | P2: Explicação de indisponibilidade sem substituto artificial | T9 | Implementing |
 
 **ID format:** `PREFL-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 17 total, 0 mapped to tasks, 17 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 17 total, 17 mapped to tasks, 0 unmapped ✅
 
 ---
 

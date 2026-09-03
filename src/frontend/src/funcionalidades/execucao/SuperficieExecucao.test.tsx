@@ -39,6 +39,8 @@ function execucao(sobrescritas: Partial<Execucao>): Execucao {
     marcos: [],
     publicoElegivelTotal: null,
     publicoElegivelPrevia: [],
+    execucaoOrigemId: null,
+    retentativas: [],
     ...sobrescritas,
   }
 }

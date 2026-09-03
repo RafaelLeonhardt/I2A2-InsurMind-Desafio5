@@ -84,6 +84,14 @@ IMPACTO_ITEM_SEM_CONTEXTO = (
 CAUSA_INDISPONIVEL_SEM_DETALHE = "A OpenAI permaneceu indisponível durante o preflight."
 """Causa registrada quando o verificador não devolveu nenhuma causa própria."""
 
+MARCO_PREPARACAO_CONCLUIDA = "preparacao_ia_concluida"
+"""Marco de sucesso do preflight, correlacionado à execução (RUNNER-02)."""
+
+MARCO_FALHOU_PREPARACAO_IA = "falhou_preparacao_ia"
+"""Marco do bloqueio de preparação: carrega a causa sanitizada que a interface explica
+a Marina (PREFL-17). É o que torna a causa consultável depois, sem que nenhuma tela
+precise inventar um texto substituto (PREFL-16)."""
+
 
 def _causa_item(erro: ErroContexto) -> str:
     """Descreve a inconsistência de um item citando o campo, nunca o valor recusado."""
@@ -171,6 +179,10 @@ class _RepositorioExecucaoPreventiva(Protocol):
         self, execucao_id: UUID, versao_esperada: int, novo_estado: EstadoExecucao
     ) -> None:
         """Transiciona a execução sob checagem otimista de versão (AD-008)."""
+        ...
+
+    def registrar_marco(self, execucao_id: UUID, marco: str, causa: str | None = None) -> None:
+        """Persiste um marco de transição correlacionado à execução (RUNNER-02)."""
         ...
 
     def criar_correlacionada(
@@ -421,6 +433,9 @@ class ServicoPreflightIA:
             self._portas.excecoes.registrar(
                 execucao_id, causa_indisponibilidade, MAXIMO_TENTATIVAS, IMPACTO_PREPARACAO_IA
             )
+            self._portas.execucoes.registrar_marco(
+                execucao_id, MARCO_FALHOU_PREPARACAO_IA, causa_indisponibilidade
+            )
             return ResultadoPreflight(
                 execucao_id=execucao_id,
                 estado=EstadoExecucao.FALHOU_PREPARACAO_IA,
@@ -433,6 +448,7 @@ class ServicoPreflightIA:
         self._portas.execucoes.transicionar(
             execucao_id, versao_esperada, EstadoExecucao.PROCESSANDO_MENSAGENS
         )
+        self._portas.execucoes.registrar_marco(execucao_id, MARCO_PREPARACAO_CONCLUIDA)
         return ResultadoPreflight(
             execucao_id=execucao_id,
             estado=EstadoExecucao.PROCESSANDO_MENSAGENS,

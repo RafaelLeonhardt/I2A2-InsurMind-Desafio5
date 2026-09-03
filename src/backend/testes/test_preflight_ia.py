@@ -39,6 +39,8 @@ from central_preventiva.aplicacao.portas_persistencia import (
 from central_preventiva.aplicacao.preflight_ia import (
     IMPACTO_ITEM_SEM_CONTEXTO,
     IMPACTO_PREPARACAO_IA,
+    MARCO_FALHOU_PREPARACAO_IA,
+    MARCO_PREPARACAO_CONCLUIDA,
     EstadoNaoPreparavel,
     ExecucaoInexistente,
     OrigemNaoRetentavel,
@@ -147,6 +149,7 @@ class ExecucoesFalsas:
     def __init__(self, snapshots: dict[UUID, SnapshotExecucao] | None = None) -> None:
         self.snapshots: dict[UUID, SnapshotExecucao] = dict(snapshots or {})
         self.transicoes: list[tuple[UUID, int, EstadoExecucao]] = []
+        self.marcos: list[tuple[UUID, str, str | None]] = []
         self.criadas: list[tuple[UUID, UUID, EstadoExecucao]] = []
         self.conexoes_da_transacao: list[object] = []
 
@@ -164,6 +167,9 @@ class ExecucoesFalsas:
             versao=atual.versao + 1,
             execucao_origem_id=atual.execucao_origem_id,
         )
+
+    def registrar_marco(self, execucao_id: UUID, marco: str, causa: str | None = None) -> None:
+        self.marcos.append((execucao_id, marco, causa))
 
     def criar_correlacionada(
         self,
@@ -362,6 +368,7 @@ def test_disponibilidade_confirmada_transiciona_para_processando_mensagens() -> 
     assert cenario.execucoes.snapshots[EXECUCAO_ID].estado == (
         EstadoExecucao.PROCESSANDO_MENSAGENS
     )
+    assert cenario.execucoes.marcos == [(EXECUCAO_ID, MARCO_PREPARACAO_CONCLUIDA, None)]
     assert cenario.excecoes.registradas == []
 
 
@@ -415,6 +422,9 @@ def test_indisponibilidade_esgotada_transiciona_para_falhou_preparacao_ia() -> N
     ]
     assert cenario.excecoes.registradas == [
         (EXECUCAO_ID, INDISPONIVEL.causa, 3, IMPACTO_PREPARACAO_IA)
+    ]
+    assert cenario.execucoes.marcos == [
+        (EXECUCAO_ID, MARCO_FALHOU_PREPARACAO_IA, INDISPONIVEL.causa)
     ]
     assert cenario.contextos.salvos == []
 

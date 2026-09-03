@@ -21,6 +21,10 @@ export type Execucao = {
   marcos: Marco[]
   publicoElegivelTotal: number | null
   publicoElegivelPrevia: PreviaPublico[]
+  /** Execução terminal que originou esta nova tentativa; nula fora de uma correlação. */
+  execucaoOrigemId: string | null
+  /** Execuções criadas como nova tentativa a partir desta, sem mesclar históricos. */
+  retentativas: string[]
 }
 
 type CorpoProblema = Partial<components['schemas']['ProblemaExecucao']>
@@ -110,6 +114,8 @@ function paraExecucao(corpo: components['schemas']['RespostaExecucao']): Execuca
     marcos: corpo.marcos.map(paraMarco),
     publicoElegivelTotal: corpo.publico_elegivel_total,
     publicoElegivelPrevia: corpo.publico_elegivel_previa.map(paraPreviaPublico),
+    execucaoOrigemId: corpo.execucao_origem_id,
+    retentativas: corpo.retentativas,
   }
 }
 

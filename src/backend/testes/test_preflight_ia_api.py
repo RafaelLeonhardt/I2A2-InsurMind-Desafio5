@@ -332,7 +332,11 @@ def test_nova_tentativa_cria_execucao_correlacionada_navegavel_nos_dois_sentidos
     assert origem["estado"] == "falhou_preparacao_ia"
     assert origem["execucao_origem_id"] is None
     assert origem["retentativas"] == [nova_id]
-    assert origem["marcos"] == nova["marcos"] == []
+    # Históricos não se mesclam: o marco do bloqueio, com a causa que a interface explica,
+    # pertence só à origem; a execução nova começa sem nenhum marco herdado.
+    assert [marco["marco"] for marco in origem["marcos"]] == ["falhou_preparacao_ia"]
+    assert origem["marcos"][0]["causa"] == "A credencial da OpenAI foi recusada."
+    assert nova["marcos"] == []
 
 
 def test_nova_tentativa_copia_o_publico_da_origem_e_permite_novo_preflight(

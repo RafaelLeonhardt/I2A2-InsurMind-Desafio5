@@ -1,0 +1,33 @@
+.preparacao-ia {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
+.preparacao-ia__bloqueio {
+  border: 1px solid #b3261e;
+  border-left-width: 4px;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+
+.preparacao-ia__titulo-bloqueio,
+.preparacao-ia__preparada {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.preparacao-ia__sem-substituto {
+  font-style: italic;
+}
+
+.preparacao-ia__correlacoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
