@@ -98,9 +98,9 @@ A História 3.2 entrega mensagens estruturalmente válidas em `criticando`, mas 
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| CRIT-01 | P1: Avaliação crítica estruturada com contexto mínimo | Design | Pending |
-| CRIT-02 | P1: Avaliação crítica estruturada com contexto mínimo | Design | Pending |
-| CRIT-03 | P1: Avaliação crítica estruturada com contexto mínimo | Design | Pending |
+| CRIT-01 | P1: Avaliação crítica estruturada com contexto mínimo | Tasks | Implementing (T2) |
+| CRIT-02 | P1: Avaliação crítica estruturada com contexto mínimo | Tasks | Implementing (T2) |
+| CRIT-03 | P1: Avaliação crítica estruturada com contexto mínimo | Tasks | Implementing (T2) |
 | CRIT-04 | P1: Avaliação crítica estruturada com contexto mínimo | Design | Pending |
 | CRIT-05 | P1: Transições de estado a partir da decisão do crítico | Design | Pending |
 | CRIT-06 | P1: Transições de estado a partir da decisão do crítico | Tasks | Implementing (T1) |

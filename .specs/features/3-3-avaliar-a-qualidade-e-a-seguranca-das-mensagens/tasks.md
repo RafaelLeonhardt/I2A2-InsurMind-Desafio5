@@ -101,10 +101,18 @@ T5 → T6
 
 **Done when**:
 
-- [ ] Testado com um dublê do `ChatOpenAI` (sem rede real) para aprovação e para cada uma das 7 categorias de reprovação
-- [ ] Contexto passado ao agente não contém nenhum campo de risco/elegibilidade/cobertura/limite de canal além do necessário à avaliação de conteúdo
-- [ ] Exceção de transporte propagada sem tratamento (decidida pelo wrapper de retry)
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Testado com um dublê do `ChatOpenAI` (sem rede real) para aprovação e para cada uma das 7 categorias de reprovação
+- [x] Contexto passado ao agente não contém nenhum campo de risco/elegibilidade/cobertura/limite de canal além do necessário à avaliação de conteúdo (garantido por construção: sem `ValidadorSaidaCanal` na assinatura, sem número de limite no prompt, sem categoria de risco/elegibilidade/cobertura/limite no enum fechado)
+- [x] Exceção de transporte propagada sem tratamento (decidida pelo wrapper de retry)
+- [x] Gate check passa: `uv run --directory src/backend pytest`
+
+**Decisão de forma do retorno**: `avaliar(...)` devolve `AvaliacaoCritica | None`, não um embrulho
+com métricas ao estilo de `RespostaRedator` (3.2). `None` significa "o modelo respondeu, mas a
+saída não é interpretável com segurança" (CRIT-07); levantar exceção seria lido pelo
+`RetryComBackoff` como falha de transporte (levando a `falhou_integracao_ia`, terminal que o Edge
+Case da spec reserva ao transporte) e um sentinel `aprovada = False` seria exatamente a reprovação
+estruturada de que CRIT-07 distingue a falha. Não há embrulho porque `avaliacoes_criticas` não
+persiste métrica de uso — não há o que carregar junto. `SPEC_DEVIATION` registrada no módulo.
 
 **Tests**: unit
 **Gate**: quick
