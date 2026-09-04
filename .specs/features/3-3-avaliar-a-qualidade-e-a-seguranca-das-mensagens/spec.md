@@ -103,10 +103,10 @@ A História 3.2 entrega mensagens estruturalmente válidas em `criticando`, mas 
 | CRIT-03 | P1: Avaliação crítica estruturada com contexto mínimo | Tasks | Implementing (T2) |
 | CRIT-04 | P1: Avaliação crítica estruturada com contexto mínimo | Tasks | Implementing (T3) |
 | CRIT-05 | P1: Transições de estado a partir da decisão do crítico | Tasks | Implementing (T4) |
-| CRIT-06 | P1: Transições de estado a partir da decisão do crítico | Tasks | Implementing (T1, T4) |
+| CRIT-06 | P1: Transições de estado a partir da decisão do crítico | Tasks | Implementing (T1, T4, T6) |
 | CRIT-07 | P1: Transições de estado a partir da decisão do crítico | Tasks | Implementing (T3) |
-| CRIT-08 | P2: Detalhe da avaliação acessível a Marina | Tasks | Implementing (T5) |
-| CRIT-09 | P2: Detalhe da avaliação acessível a Marina | Tasks | Implementing (T5) |
+| CRIT-08 | P2: Detalhe da avaliação acessível a Marina | Tasks | Implementing (T5, T6) |
+| CRIT-09 | P2: Detalhe da avaliação acessível a Marina | Tasks | Implementing (T5, T6) |
 
 **ID format:** `CRIT-NN`
 

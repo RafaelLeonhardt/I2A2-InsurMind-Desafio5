@@ -1,0 +1,129 @@
+.avaliacao-critica__origens {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0.8rem 0 1.2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.avaliacao-critica__origem {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.8rem;
+  border-left-width: 4px;
+  border-left-style: solid;
+  border-left-color: var(--cor-origem);
+  border-radius: 0.25rem;
+  background: #f8fafc;
+  color: var(--cor-origem);
+}
+
+.avaliacao-critica__origem-rotulo {
+  font-weight: 600;
+}
+
+.avaliacao-critica__origem-detalhe {
+  flex-basis: 100%;
+  margin: 0.2rem 0 0;
+  font-size: 0.85rem;
+}
+
+/* As três origens de decisão sobre a mesma versão nunca compartilham cor, traço ou ícone.
+   A cor vem de `--cor-origem`, definida no próprio elemento pelo componente. */
+.avaliacao-critica__origem--agente_ia {
+  border-left-style: solid;
+}
+
+.avaliacao-critica__origem--regras_deterministicas {
+  border-left-style: double;
+}
+
+.avaliacao-critica__origem--decisao_humana {
+  border-left-style: dashed;
+}
+
+.avaliacao-critica__identificacao {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.6rem;
+  margin: 0 0 1.2rem;
+}
+
+.avaliacao-critica__identificacao dt {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: #475569;
+}
+
+.avaliacao-critica__identificacao dd {
+  margin: 0.1rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.avaliacao-critica__criterios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.5rem 0 1.2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.avaliacao-critica__criterios li {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.avaliacao-critica__motivos {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin: 0.5rem 0 1.2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.avaliacao-critica__motivos li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.8rem;
+  border-left: 4px solid #b91c1c;
+  border-radius: 0.25rem;
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+.avaliacao-critica__motivo-categoria {
+  font-weight: 600;
+}
+
+.avaliacao-critica__motivo-justificativa {
+  flex-basis: 100%;
+  margin: 0.2rem 0 0;
+  font-size: 0.9rem;
+}
+
+.avaliacao-critica__sem-motivos,
+.avaliacao-critica__nota {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.5rem 0 1.2rem;
+}
+
+.avaliacao-critica__nota {
+  padding: 0.5rem 0.8rem;
+  border-radius: 0.25rem;
+  background: #fefce8;
+  color: #713f12;
+  font-size: 0.9rem;
+}

@@ -214,13 +214,18 @@ para trazer o veredito determinístico ao lado da avaliação; `transicionar` n�
 
 **Done when**:
 
-- [ ] Todos os campos do AC exibidos em linguagem acessível
-- [ ] Aprovação agêntica visualmente distinta de aprovação humana (cor/ícone/rótulo diferentes)
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Todos os campos do AC exibidos em linguagem acessível
+- [x] Aprovação agêntica visualmente distinta de aprovação humana (cor/ícone/rótulo diferentes)
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full
+
+**Status**: ✅ Completo — três origens de decisão (`agente_ia`/`regras_deterministicas`/
+`decisao_humana`) distintas em texto+ícone+cor (L-024), a cor exposta como propriedade CSS
+`--cor-origem` no próprio elemento para ser observável por teste, não só pela folha de estilo.
+Gate: 630 backend (inalterado) + 247 frontend testes, lint/build limpos.
 
 **Commit**: `feat(critica): adicionar agente critico e avaliacao estruturada de mensagens`
 

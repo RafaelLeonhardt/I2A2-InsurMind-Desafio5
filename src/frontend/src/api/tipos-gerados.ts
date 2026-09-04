@@ -464,6 +464,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mensagens/{mensagem_id}/versoes/{versao_id}/avaliacao-critica": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o detalhe da avaliação crítica de uma versão de mensagem
+         * @description Devolve a versão avaliada, os sete critérios considerados, a decisão do agente crítico, os motivos categorizados, o agente, o modelo e a duração da avaliação. A decisão do agente ('agente_ia') vem separada da validação determinística de campos e limite de canal ('regras_deterministicas'), que é decidida por regra e nunca pelo modelo. É uma consulta de leitura: nada é reavaliado e nenhuma chamada à OpenAI é feita.
+         */
+        get: operations["consultar_avaliacao_api_v1_mensagens__mensagem_id__versoes__versao_id__avaliacao_critica_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -483,6 +503,37 @@ export interface components {
              * @description Motivo do erro em português brasileiro.
              */
             motivo: string;
+        };
+        /**
+         * ProblemaAvaliacaoCritica
+         * @description Falha da consulta do detalhe, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaAvaliacaoCritica: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
         };
         /**
          * ProblemaAvaliacaoRisco
@@ -798,6 +849,72 @@ export interface components {
              * @description Próxima ação segura recomendada para contornar a falha.
              */
             proxima_acao: string;
+        };
+        /**
+         * RespostaAvaliacaoCritica
+         * @description Detalhe de uma avaliação: versão, critérios, decisão, motivos e proveniência.
+         */
+        RespostaAvaliacaoCritica: {
+            /**
+             * Mensagem Id
+             * Format: uuid
+             * @description Mensagem a que a versão avaliada pertence.
+             */
+            mensagem_id: string;
+            /**
+             * Versao Mensagem Id
+             * Format: uuid
+             * @description Versão de mensagem avaliada.
+             */
+            versao_mensagem_id: string;
+            /**
+             * Numero Tentativa
+             * @description Número da tentativa de geração avaliada.
+             */
+            numero_tentativa: number;
+            /**
+             * Origem
+             * @description Sempre 'agente_ia': esta decisão é do agente crítico, não de uma regra.
+             */
+            origem: string;
+            /**
+             * Criterios
+             * @description Os sete critérios contra os quais a mensagem foi avaliada.
+             */
+            criterios: string[];
+            /**
+             * Aprovada
+             * @description Decisão do crítico sobre o conteúdo; não substitui a validação de regra.
+             */
+            aprovada: boolean;
+            /**
+             * Motivos
+             * @description Motivos específicos da decisão; vazio quando o crítico aprovou.
+             */
+            motivos: components["schemas"]["RespostaMotivoCritica"][];
+            /**
+             * Agente
+             * @description Agente que produziu a avaliação.
+             */
+            agente: string;
+            /**
+             * Modelo
+             * @description Modelo da OpenAI usado na avaliação.
+             */
+            modelo: string;
+            /**
+             * Duracao Ms
+             * @description Duração da chamada de avaliação, em milissegundos.
+             */
+            duracao_ms: number;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro da avaliação.
+             */
+            criado_em: string;
+            /** @description Veredito estrutural de 3.2 sobre a mesma versão, mantido separado. */
+            validacao_deterministica: components["schemas"]["RespostaValidacaoDeterministica"];
         };
         /**
          * RespostaAvaliacaoRisco
@@ -1358,6 +1475,22 @@ export interface components {
             registros: components["schemas"]["RespostaMensagem"][];
         };
         /**
+         * RespostaMotivoCritica
+         * @description Um motivo da decisão do crítico: a categoria avaliada e a justificativa.
+         */
+        RespostaMotivoCritica: {
+            /**
+             * Categoria
+             * @description Critério avaliado, entre os sete critérios fechados.
+             */
+            categoria: string;
+            /**
+             * Justificativa
+             * @description Por que este critério sustenta a decisão.
+             */
+            justificativa: string;
+        };
+        /**
          * RespostaNovaTentativaIA
          * @description Ack da execução correlacionada criada a partir de uma falha de preparação.
          */
@@ -1717,6 +1850,27 @@ export interface components {
              * @description Casos de teste, um por cenário sintético do tipo de evento da regra.
              */
             casos: components["schemas"]["RespostaCasoTeste"][];
+        };
+        /**
+         * RespostaValidacaoDeterministica
+         * @description Veredito estrutural de 3.2 sobre a mesma versão, decidido fora do modelo.
+         */
+        RespostaValidacaoDeterministica: {
+            /**
+             * Origem
+             * @description Sempre 'regras_deterministicas': decidido por regra, nunca pelo modelo.
+             */
+            origem: string;
+            /**
+             * Valida
+             * @description Se campos obrigatórios e limite de canal foram atendidos (3.2).
+             */
+            valida: boolean;
+            /**
+             * Motivo Invalidez
+             * @description Código estável do motivo da recusa estrutural, ou nulo quando válida.
+             */
+            motivo_invalidez: string | null;
         };
         /**
          * RespostaVerificacaoAceita
@@ -2825,6 +2979,47 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaMensagens"];
+                };
+            };
+        };
+    };
+    consultar_avaliacao_api_v1_mensagens__mensagem_id__versoes__versao_id__avaliacao_critica_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mensagem_id: string;
+                versao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Avaliação encontrada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaAvaliacaoCritica"];
+                };
+            };
+            /** @description Mensagem inexistente, versão inexistente ou versão ainda não avaliada. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaAvaliacaoCritica"];
+                };
+            };
+            /** @description Identificador de mensagem ou de versão inválido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaAvaliacaoCritica"];
                 };
             };
         };
