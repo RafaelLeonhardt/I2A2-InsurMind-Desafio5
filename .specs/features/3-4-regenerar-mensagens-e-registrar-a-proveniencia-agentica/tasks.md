@@ -92,7 +92,7 @@ T6
 
 ---
 
-### T2: `RepositorioMensagens.incrementar_tentativa`
+### T2: `RepositorioMensagens.incrementar_tentativa` ✅
 
 **What**: Incremento atômico de `tentativa_atual`, com `LimiteTentativasExcedido` se já em 3.
 **Where**: `src/backend/central_preventiva/adaptadores/persistencia/repositorio_mensagens.py` (extensão de 3.2)
@@ -104,9 +104,9 @@ T6
 
 **Done when**:
 
-- [ ] Incremento de 1→2 e 2→3 funciona atomicamente
-- [ ] Tentativa de incrementar a partir de 3 levanta `LimiteTentativasExcedido`, sem mutar a linha
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Incremento de 1→2 e 2→3 funciona atomicamente
+- [x] Tentativa de incrementar a partir de 3 levanta `LimiteTentativasExcedido`, sem mutar a linha
+- [x] Gate check passa: `uv run --directory src/backend pytest` (696 passed)
 
 **Tests**: integration
 **Gate**: quick

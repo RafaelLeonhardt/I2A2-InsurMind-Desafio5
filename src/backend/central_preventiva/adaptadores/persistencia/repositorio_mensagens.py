@@ -7,6 +7,8 @@ específico que o caso de uso trata como no-op idempotente (AD-010). Nenhuma che
 
 `transicionar` repete o padrão de concorrência otimista de `RepositorioExecucaoPreventiva`
 (AD-008): versão esperada, incremento na mesma instrução e recusa de sair de um terminal.
+`incrementar_tentativa` (3.4) repete o mesmo padrão para o contador de tentativas, com o
+limite de três cobrado na própria instrução de `UPDATE` (REGEN-02).
 """
 
 import json
@@ -50,6 +52,24 @@ class ConflitoVersaoMensagem(RuntimeError):
         )
         self.mensagem_id = mensagem_id
         self.versao_esperada = versao_esperada
+
+
+LIMITE_TENTATIVAS_MENSAGEM = 3
+"""Máximo de tentativas totais por mensagem (REGEN-02; AD-6, automáticas e humanas juntas)."""
+
+
+class LimiteTentativasExcedido(RuntimeError):
+    """Indica que a mensagem já consumiu as três tentativas permitidas (REGEN-02)."""
+
+    def __init__(self, mensagem_id: UUID, tentativa_atual: int) -> None:
+        """Registra a mensagem e a tentativa em que ela já está."""
+
+        super().__init__(
+            f"A mensagem {mensagem_id} já está na tentativa {tentativa_atual}, o máximo de "
+            f"{LIMITE_TENTATIVAS_MENSAGEM} permitido."
+        )
+        self.mensagem_id = mensagem_id
+        self.tentativa_atual = tentativa_atual
 
 
 class TransicaoMensagemInvalida(RuntimeError):
@@ -223,6 +243,43 @@ class RepositorioMensagens:
             ).fetchone()
         if resultado is None:
             raise ConflitoVersaoMensagem(mensagem_id, versao_esperada)
+
+    def incrementar_tentativa(self, mensagem_id: UUID, versao_esperada: int) -> int:
+        """Reserva a próxima tentativa da mensagem e devolve o número reservado (REGEN-02).
+
+        Pré-condição de toda reentrada em `gerando` (AD-4): o contador sobe uma vez só, na
+        mesma instrução que incrementa a versão de concorrência otimista (AD-008) e que
+        cobra o limite de três (`tentativa_atual < 3` no `WHERE`). Cobrar o limite no
+        `UPDATE`, e não apenas na leitura anterior, é o que impede duas regenerações
+        concorrentes de reservarem a quarta tentativa juntas.
+
+        Levanta `TransicaoMensagemInvalida` se a mensagem já estiver em terminal (AD-7),
+        `LimiteTentativasExcedido` se já estiver na terceira tentativa, ou
+        `ConflitoVersaoMensagem` se `versao_esperada` não bater. Em nenhum dos três casos a
+        linha é mutada.
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            atual = conexao.execute(
+                "SELECT estado, tentativa_atual FROM mensagens WHERE id = ?", [mensagem_id]
+            ).fetchone()
+            assert atual is not None, f"mensagem {mensagem_id} não encontrada"
+            estado_atual = EstadoMensagem(str(atual[0]))
+            if eh_terminal_mensagem(estado_atual):
+                raise TransicaoMensagemInvalida(mensagem_id, estado_atual)
+            tentativa_atual = int(atual[1])
+            if tentativa_atual >= LIMITE_TENTATIVAS_MENSAGEM:
+                raise LimiteTentativasExcedido(mensagem_id, tentativa_atual)
+
+            resultado = conexao.execute(
+                "UPDATE mensagens SET tentativa_atual = tentativa_atual + 1, "
+                "versao = versao + 1, atualizado_em = now() "
+                "WHERE id = ? AND versao = ? AND tentativa_atual < ? RETURNING tentativa_atual",
+                [mensagem_id, versao_esperada, LIMITE_TENTATIVAS_MENSAGEM],
+            ).fetchone()
+        if resultado is None:
+            raise ConflitoVersaoMensagem(mensagem_id, versao_esperada)
+        return int(resultado[0])
 
     def obter(self, mensagem_id: UUID) -> RegistroMensagem | None:
         """Lê uma mensagem pelo identificador, ou `None` se ela não existir."""

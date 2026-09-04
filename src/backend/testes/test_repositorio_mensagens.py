@@ -7,7 +7,9 @@ import pytest
 
 from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigracoes
 from central_preventiva.adaptadores.persistencia.repositorio_mensagens import (
+    LIMITE_TENTATIVAS_MENSAGEM,
     ConflitoVersaoMensagem,
+    LimiteTentativasExcedido,
     MensagemJaExiste,
     RepositorioMensagens,
     TransicaoMensagemInvalida,
@@ -227,3 +229,84 @@ def test_conteudo_de_whatsapp_e_sms_nao_carrega_assunto(tmp_path: Path) -> None:
     assert versao is not None
     assert versao.conteudo.assunto is None
     assert versao.conteudo.corpo == CONTEUDO_SMS.corpo
+
+
+def test_incrementar_tentativa_reserva_a_segunda_e_a_terceira_tentativa(
+    tmp_path: Path,
+) -> None:
+    """REGEN-02: o contador sobe 1→2 e 2→3, uma tentativa por chamada, incrementando a
+    versão de concorrência otimista junto (AD-008)."""
+
+    repo = repositorio(tmp_path)
+    mensagem_id = repo.criar(EXECUCAO_ID, ELEGIBILIDADE_ID, Canal.SMS)
+
+    segunda = repo.incrementar_tentativa(mensagem_id, 1)
+    apos_segunda = repo.obter(mensagem_id)
+    terceira = repo.incrementar_tentativa(mensagem_id, 2)
+
+    assert segunda == 2
+    assert apos_segunda is not None
+    assert apos_segunda.tentativa_atual == 2
+    assert apos_segunda.versao == 2
+    assert terceira == 3
+    registro = repo.obter(mensagem_id)
+    assert registro is not None
+    assert registro.tentativa_atual == 3
+    assert registro.versao == 3
+
+
+def test_incrementar_a_partir_da_terceira_tentativa_e_recusado_sem_mutar(
+    tmp_path: Path,
+) -> None:
+    """REGEN-02, REGEN-04: a quarta tentativa nunca é reservada; a linha fica intacta na
+    terceira, para a mensagem seguir para `falhou_conteudo` em vez de gerar de novo."""
+
+    repo = repositorio(tmp_path)
+    mensagem_id = repo.criar(EXECUCAO_ID, ELEGIBILIDADE_ID, Canal.SMS)
+    repo.incrementar_tentativa(mensagem_id, 1)
+    repo.incrementar_tentativa(mensagem_id, 2)
+
+    with pytest.raises(LimiteTentativasExcedido) as captura:
+        repo.incrementar_tentativa(mensagem_id, 3)
+
+    assert captura.value.mensagem_id == mensagem_id
+    assert captura.value.tentativa_atual == LIMITE_TENTATIVAS_MENSAGEM
+    registro = repo.obter(mensagem_id)
+    assert registro is not None
+    assert registro.tentativa_atual == 3
+    assert registro.versao == 3
+    assert registro.estado is EstadoMensagem.GERANDO
+
+
+def test_incrementar_tentativa_com_versao_errada_e_recusado_sem_mutar(tmp_path: Path) -> None:
+    """AD-008: o incremento é atômico sob checagem otimista — versão divergente não muta
+    nem o contador nem a versão."""
+
+    repo = repositorio(tmp_path)
+    mensagem_id = repo.criar(EXECUCAO_ID, ELEGIBILIDADE_ID, Canal.SMS)
+
+    with pytest.raises(ConflitoVersaoMensagem) as captura:
+        repo.incrementar_tentativa(mensagem_id, 9)
+
+    assert captura.value.versao_esperada == 9
+    registro = repo.obter(mensagem_id)
+    assert registro is not None
+    assert registro.tentativa_atual == 1
+    assert registro.versao == 1
+
+
+def test_incrementar_tentativa_a_partir_de_terminal_e_recusado(tmp_path: Path) -> None:
+    """REGEN-10: um terminal de mensagem nunca reabre — nem para uma tentativa nova."""
+
+    repo = repositorio(tmp_path)
+    mensagem_id = repo.criar(EXECUCAO_ID, ELEGIBILIDADE_ID, Canal.SMS)
+    repo.transicionar(mensagem_id, 1, EstadoMensagem.FALHOU_CONTEUDO)
+
+    with pytest.raises(TransicaoMensagemInvalida) as captura:
+        repo.incrementar_tentativa(mensagem_id, 2)
+
+    assert captura.value.estado_atual is EstadoMensagem.FALHOU_CONTEUDO
+    registro = repo.obter(mensagem_id)
+    assert registro is not None
+    assert registro.tentativa_atual == 1
+    assert registro.estado is EstadoMensagem.FALHOU_CONTEUDO
