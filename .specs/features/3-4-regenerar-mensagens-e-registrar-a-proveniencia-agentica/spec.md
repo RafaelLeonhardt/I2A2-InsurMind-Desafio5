@@ -113,24 +113,24 @@ As Histórias 3.2 e 3.3 entregam geração e crítica de uma única tentativa ca
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| REGEN-01 | P1: Regeneração automática limitada a três tentativas | Execute (T3) | Implementing |
-| REGEN-02 | P1: Regeneração automática limitada a três tentativas | Execute (T2, T3) | Implementing |
-| REGEN-03 | P1: Regeneração automática limitada a três tentativas | Execute (T3) | Implementing |
-| REGEN-04 | P1: Regeneração automática limitada a três tentativas | Execute (T1, T2, T3) | Implementing |
-| REGEN-05 | P1: Isolamento de falha de integração por mensagem | Execute (T3) | Implementing |
-| REGEN-06 | P1: Isolamento de falha de integração por mensagem | Execute (T3) | Implementing |
-| REGEN-07 | P1: Proveniência completa e retomada sem repetição | Execute (T5) | Implementing |
-| REGEN-08 | P1: Proveniência completa e retomada sem repetição | Execute (T5) | Implementing |
-| REGEN-09 | P1: Proveniência completa e retomada sem repetição | Execute (T4) | Implementing |
-| REGEN-10 | P1: Proveniência completa e retomada sem repetição | Execute (T2, T4) | Implementing |
-| REGEN-11 | P2: Acompanhamento acessível do ciclo por item | Execute (T6) | Implementing |
-| REGEN-12 | P2: Acompanhamento acessível do ciclo por item | Execute (T6) | Implementing |
+| REGEN-01 | P1: Regeneração automática limitada a três tentativas | Execute (T3) | ✅ Verified |
+| REGEN-02 | P1: Regeneração automática limitada a três tentativas | Execute (T2, T3) | ✅ Verified |
+| REGEN-03 | P1: Regeneração automática limitada a três tentativas | Execute (T3) | ✅ Verified |
+| REGEN-04 | P1: Regeneração automática limitada a três tentativas | Execute (T1, T2, T3) | ✅ Verified |
+| REGEN-05 | P1: Isolamento de falha de integração por mensagem | Execute (T3) | ✅ Verified |
+| REGEN-06 | P1: Isolamento de falha de integração por mensagem | Execute (T3) | ✅ Verified |
+| REGEN-07 | P1: Proveniência completa e retomada sem repetição | Execute (T5) | ✅ Verified |
+| REGEN-08 | P1: Proveniência completa e retomada sem repetição | Execute (T5) | ✅ Verified |
+| REGEN-09 | P1: Proveniência completa e retomada sem repetição | Execute (T4) | ⚠️ Needs Fix (teste) |
+| REGEN-10 | P1: Proveniência completa e retomada sem repetição | Execute (T2, T4) | ✅ Verified |
+| REGEN-11 | P2: Acompanhamento acessível do ciclo por item | Execute (T6) | ✅ Verified |
+| REGEN-12 | P2: Acompanhamento acessível do ciclo por item | Execute (T6) | ✅ Verified |
 
 **ID format:** `REGEN-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 12 total, 12 mapped to tasks, 0 unmapped (T1–T6 implementadas; verificação independente pendente)
+**Coverage:** 12 total, 12 mapped to tasks, 0 unmapped. Verificação independente (`validation.md`, `ce964f8..70ce8af`): 12/12 ACs com evidência `file:line` e desfecho batendo com a spec, 3/3 Edge Cases, gate verde (735 backend + 253 frontend). **REGEN-09 fica em Needs Fix**: o AC está coberto, mas o sensor de discriminação achou um mutante sobrevivente (M7 — número de tentativa reconstruído na retomada) e a correção é só de teste, sem mudança de produção.
 
 ---
 

@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 38,
+  "next_id": 42,
   "lessons": [
     {
       "id": "L-001",
@@ -615,16 +615,18 @@
       "status": "confirmed",
       "features": [
         "3-2-gerar-mensagens-automaticamente-para-cada-canal",
-        "3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens"
+        "3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens",
+        "3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica"
       ],
-      "recurrence": 2,
+      "recurrence": 3,
       "harmful": 0,
       "evidence": [
         "SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence)",
-        "src/backend/central_preventiva/adaptadores/persistencia/migracoes/0011_avaliacoes_criticas.sql:3 (SPEC_DEVIATION: design.md nomeia 0009) (persistencia)"
+        "src/backend/central_preventiva/adaptadores/persistencia/migracoes/0011_avaliacoes_criticas.sql:3 (SPEC_DEVIATION: design.md nomeia 0009) (persistencia)",
+        "SPEC_DEVIATION - src/backend/central_preventiva/adaptadores/persistencia/migracoes/0012_excecoes_mensagem.sql:3 (persistence)"
       ],
       "created": "2026-09-03T17:33:20Z",
-      "last_seen": "2026-09-04T10:25:44Z"
+      "last_seen": "2026-09-04T11:41:50Z"
     },
     {
       "id": "L-035",
@@ -679,6 +681,78 @@
       ],
       "created": "2026-09-04T10:25:44Z",
       "last_seen": "2026-09-04T10:25:44Z"
+    },
+    {
+      "id": "L-038",
+      "key": "surviving_mutant::when a resumption path rebuilds an attempt or sequence number from persisted state assert that number on the row the resumption writes not only the final state it reaches",
+      "text": "When a resumption path rebuilds an attempt or sequence number from persisted state, assert that number on the row the resumption writes, not only the final state it reaches.",
+      "signal": "surviving_mutant",
+      "scope": "resume",
+      "status": "candidate",
+      "features": [
+        "3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M7 - src/backend/central_preventiva/aplicacao/geracao_mensagens.py:514 (resume)"
+      ],
+      "created": "2026-09-04T11:41:50Z",
+      "last_seen": "2026-09-04T11:41:50Z"
+    },
+    {
+      "id": "L-039",
+      "key": "spec_deviation::do not give a graph or pure logic component a direct repository dependency in design md declare a port the use case implements or composition acquires a cycle",
+      "text": "Do not give a graph or pure-logic component a direct repository dependency in design.md; declare a port the use case implements, or composition acquires a cycle.",
+      "signal": "spec_deviation",
+      "scope": "design",
+      "status": "candidate",
+      "features": [
+        "3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "SPEC_DEVIATION - src/backend/central_preventiva/aplicacao/grafos/geracao_mensagem.py:27 (design)"
+      ],
+      "created": "2026-09-04T11:41:50Z",
+      "last_seen": "2026-09-04T11:41:50Z"
+    },
+    {
+      "id": "L-040",
+      "key": "spec_deviation::when design md says new data arrives through an existing context object check that context s own minimization contract admits it otherwise change the call signature explicitly",
+      "text": "When design.md says new data arrives through an existing context object, check that context's own minimization contract admits it; otherwise change the call signature explicitly.",
+      "signal": "spec_deviation",
+      "scope": "design",
+      "status": "candidate",
+      "features": [
+        "3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "SPEC_DEVIATION - src/backend/central_preventiva/adaptadores/ia/agente_redator.py:15 (design)"
+      ],
+      "created": "2026-09-04T11:41:50Z",
+      "last_seen": "2026-09-04T11:41:50Z"
+    },
+    {
+      "id": "L-041",
+      "key": "spec_deviation::declare collection fields in design md with the project s immutable collection type when the surrounding domain values are frozen",
+      "text": "Declare collection fields in design.md with the project's immutable collection type when the surrounding domain values are frozen.",
+      "signal": "spec_deviation",
+      "scope": "design",
+      "status": "candidate",
+      "features": [
+        "3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "SPEC_DEVIATION - src/backend/central_preventiva/aplicacao/grafos/geracao_mensagem.py:38 (design)"
+      ],
+      "created": "2026-09-04T11:41:50Z",
+      "last_seen": "2026-09-04T11:41:50Z"
     }
   ]
 }

@@ -21,10 +21,10 @@ Corroborated across multiple features. Safe to apply as guidance.
 - last seen: 2026-09-04T10:25:44Z
 
 ### L-034 - Do not fix a migration number in design.md; assign the next number at implementation time from the migrations directory.
-- signal: `spec_deviation` · recurrence: 2 feature(s) · scope: `persistence` · harmful: 0
-- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal, 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens
-- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence) (+1 more)
-- last seen: 2026-09-04T10:25:44Z
+- signal: `spec_deviation` · recurrence: 3 feature(s) · scope: `persistence` · harmful: 0
+- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal, 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens, 3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica
+- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence) (+2 more)
+- last seen: 2026-09-04T11:41:50Z
 
 ## Candidates (under observation - do NOT load as guidance yet)
 
@@ -233,6 +233,30 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - features: 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens
 - evidence: CRIT-09 (spec)
 - last seen: 2026-09-04T10:25:44Z
+
+### L-038 - When a resumption path rebuilds an attempt or sequence number from persisted state, assert that number on the row the resumption writes, not only the final state it reaches.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `resume` · harmful: 0
+- features: 3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica
+- evidence: M7 - src/backend/central_preventiva/aplicacao/geracao_mensagens.py:514 (resume)
+- last seen: 2026-09-04T11:41:50Z
+
+### L-039 - Do not give a graph or pure-logic component a direct repository dependency in design.md; declare a port the use case implements, or composition acquires a cycle.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `design` · harmful: 0
+- features: 3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica
+- evidence: SPEC_DEVIATION - src/backend/central_preventiva/aplicacao/grafos/geracao_mensagem.py:27 (design)
+- last seen: 2026-09-04T11:41:50Z
+
+### L-040 - When design.md says new data arrives through an existing context object, check that context's own minimization contract admits it; otherwise change the call signature explicitly.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `design` · harmful: 0
+- features: 3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica
+- evidence: SPEC_DEVIATION - src/backend/central_preventiva/adaptadores/ia/agente_redator.py:15 (design)
+- last seen: 2026-09-04T11:41:50Z
+
+### L-041 - Declare collection fields in design.md with the project's immutable collection type when the surrounding domain values are frozen.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `design` · harmful: 0
+- features: 3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica
+- evidence: SPEC_DEVIATION - src/backend/central_preventiva/aplicacao/grafos/geracao_mensagem.py:38 (design)
+- last seen: 2026-09-04T11:41:50Z
 
 ## Quarantined (failed when applied - ignore)
 
