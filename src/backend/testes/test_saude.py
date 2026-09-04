@@ -52,6 +52,7 @@ def test_openapi_em_portugues_nao_antecipa_recursos_futuros() -> None:
         "/api/v1/execucoes/{execucao_origem_id}/nova-tentativa-ia",
         "/api/v1/execucoes/{execucao_id}/mensagens",
         "/api/v1/mensagens/{mensagem_id}/versoes/{versao_id}/avaliacao-critica",
+        "/api/v1/mensagens/{mensagem_id}/proveniencia",
     }
     assert documento["paths"]["/api/v1/saude"]["get"]["description"].startswith("Confirma")
     assert documento["paths"]["/api/v1/saude"]["get"]["responses"]["200"]["description"] == (

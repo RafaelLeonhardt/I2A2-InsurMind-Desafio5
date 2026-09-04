@@ -178,7 +178,7 @@ História 3.5.
 
 ---
 
-### T5: Endpoint HTTP de proveniência
+### T5: Endpoint HTTP de proveniência ✅
 
 **What**: `GET /api/v1/mensagens/{mensagem_id}/proveniencia` retornando, por tentativa, agente, modelo, versão do prompt, categorias de entrada, saída, avaliação, duração e métricas de uso.
 **Where**: `src/backend/central_preventiva/adaptadores/http/proveniencia.py`
@@ -190,10 +190,16 @@ História 3.5.
 
 **Done when**:
 
-- [ ] Resposta inclui todos os campos do AC, por tentativa
-- [ ] Nenhum campo de resposta contém chave, contato ou prompt completo
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] Resposta inclui todos os campos do AC, por tentativa
+- [x] Nenhum campo de resposta contém chave, contato ou prompt completo
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest` (735 passed), ruff e pyright limpos
+
+**Nota de rastreabilidade**: a task lista "REGEN-07, REGEN-08" e a T4 lista "REGEN-08,
+REGEN-09", mas pela ordem das ACs em `spec.md` os IDs são REGEN-07 (campos da proveniência),
+REGEN-08 (nada sensível), REGEN-09 (retomada sem repetir) e REGEN-10 (terminal nunca reabre).
+A tabela de rastreabilidade da `spec.md` segue essa leitura: T5 cobre REGEN-07/08, T4 cobre
+REGEN-09 e, com a T2, REGEN-10.
 
 **Tests**: integration
 **Gate**: full

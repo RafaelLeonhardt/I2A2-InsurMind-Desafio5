@@ -315,6 +315,21 @@ class RepositorioMensagens:
             return None
         return _versao_de_linha(linha)
 
+    def listar_versoes(self, mensagem_id: UUID) -> list[VersaoMensagem]:
+        """Lista todas as versões da mensagem, da primeira tentativa à última (REGEN-07).
+
+        É o histórico imutável do ciclo: uma linha por tentativa, nenhuma sobrescrita, com a
+        proveniência completa de cada chamada.
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute(
+                f"{_SELECT_VERSAO} WHERE mensagem_id = ? "
+                "ORDER BY numero_tentativa, criado_em",
+                [mensagem_id],
+            ).fetchall()
+        return [_versao_de_linha(linha) for linha in linhas]
+
     def obter_versao_atual(self, mensagem_id: UUID) -> VersaoMensagem | None:
         """Lê a versão mais recente da mensagem, ou `None` se nenhuma foi persistida."""
 

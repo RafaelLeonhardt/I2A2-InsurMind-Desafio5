@@ -383,6 +383,46 @@
         "title": "ProblemaProntidao",
         "type": "object"
       },
+      "ProblemaProveniencia": {
+        "additionalProperties": false,
+        "description": "Falha da consulta de proveniência, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaProveniencia",
+        "type": "object"
+      },
       "ProblemaRegras": {
         "additionalProperties": false,
         "description": "Falha de uma operação de regras, com ocorrência, impacto e próxima ação segura.",
@@ -561,6 +601,56 @@
         "title": "RespostaAvaliacaoCritica",
         "type": "object"
       },
+      "RespostaAvaliacaoDaTentativa": {
+        "additionalProperties": false,
+        "description": "Avaliação crítica da versão produzida nesta tentativa, com sua proveniência.",
+        "properties": {
+          "agente": {
+            "description": "Agente que avaliou o conteúdo desta tentativa.",
+            "title": "Agente",
+            "type": "string"
+          },
+          "aprovada": {
+            "description": "Decisão do crítico sobre o conteúdo desta tentativa.",
+            "title": "Aprovada",
+            "type": "boolean"
+          },
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC do registro da avaliação.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "duracao_ms": {
+            "description": "Duração da chamada de avaliação, em milissegundos.",
+            "title": "Duracao Ms",
+            "type": "number"
+          },
+          "modelo": {
+            "description": "Modelo da OpenAI usado na avaliação.",
+            "title": "Modelo",
+            "type": "string"
+          },
+          "motivos": {
+            "description": "Motivos categorizados da decisão; vazio quando o crítico aprovou.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaMotivoProveniencia"
+            },
+            "title": "Motivos",
+            "type": "array"
+          }
+        },
+        "required": [
+          "agente",
+          "modelo",
+          "aprovada",
+          "motivos",
+          "duracao_ms",
+          "criado_em"
+        ],
+        "title": "RespostaAvaliacaoDaTentativa",
+        "type": "object"
+      },
       "RespostaAvaliacaoRisco": {
         "additionalProperties": false,
         "description": "Snapshot público da avaliação de relevância meteorológica de uma execução.",
@@ -676,6 +766,34 @@
           "motivo"
         ],
         "title": "RespostaCasoTeste",
+        "type": "object"
+      },
+      "RespostaCategoriasEntrada": {
+        "additionalProperties": false,
+        "description": "Categorias de dado que entraram (e que ficaram de fora) do contexto do agente.",
+        "properties": {
+          "nao_usadas": {
+            "description": "Categorias deliberadamente deixadas de fora do contexto.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Nao Usadas",
+            "type": "array"
+          },
+          "usadas": {
+            "description": "Categorias de dado que chegaram ao contexto mínimo do agente (3.1).",
+            "items": {
+              "type": "string"
+            },
+            "title": "Usadas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "usadas",
+          "nao_usadas"
+        ],
+        "title": "RespostaCategoriasEntrada",
         "type": "object"
       },
       "RespostaColetaAceita": {
@@ -1428,6 +1546,28 @@
         "title": "RespostaMotivoCritica",
         "type": "object"
       },
+      "RespostaMotivoProveniencia": {
+        "additionalProperties": false,
+        "description": "Um motivo da avaliação: a categoria fechada e a justificativa dela.",
+        "properties": {
+          "categoria": {
+            "description": "Critério avaliado, entre os sete critérios fechados.",
+            "title": "Categoria",
+            "type": "string"
+          },
+          "justificativa": {
+            "description": "Por que este critério sustenta a decisão.",
+            "title": "Justificativa",
+            "type": "string"
+          }
+        },
+        "required": [
+          "categoria",
+          "justificativa"
+        ],
+        "title": "RespostaMotivoProveniencia",
+        "type": "object"
+      },
       "RespostaNovaTentativaIA": {
         "additionalProperties": false,
         "description": "Ack da execução correlacionada criada a partir de uma falha de preparação.",
@@ -1559,6 +1699,75 @@
           "categorias_nao_usadas"
         ],
         "title": "RespostaProvenienciaContexto",
+        "type": "object"
+      },
+      "RespostaProvenienciaMensagem": {
+        "additionalProperties": false,
+        "description": "Proveniência agêntica completa de uma mensagem, tentativa por tentativa.",
+        "properties": {
+          "canal": {
+            "description": "Canal da mensagem (`whatsapp`, `email` ou `sms`).",
+            "title": "Canal",
+            "type": "string"
+          },
+          "categorias_entrada": {
+            "$ref": "#/components/schemas/RespostaCategoriasEntrada",
+            "description": "Categorias de dado usadas e não usadas no contexto do agente."
+          },
+          "elegibilidade_id": {
+            "description": "Item do público elegível que originou a mensagem.",
+            "format": "uuid",
+            "title": "Elegibilidade Id",
+            "type": "string"
+          },
+          "estado": {
+            "description": "Estado de conteúdo da mensagem, conforme o AD-4.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "execucao_id": {
+            "description": "Execução preventiva que originou a mensagem.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "limite_tentativas": {
+            "description": "Máximo de tentativas de conteúdo permitidas por mensagem.",
+            "title": "Limite Tentativas",
+            "type": "integer"
+          },
+          "mensagem_id": {
+            "description": "Identificador da mensagem consultada.",
+            "format": "uuid",
+            "title": "Mensagem Id",
+            "type": "string"
+          },
+          "tentativa_atual": {
+            "description": "Tentativa de geração em curso ou concluída.",
+            "title": "Tentativa Atual",
+            "type": "integer"
+          },
+          "tentativas": {
+            "description": "Histórico imutável das tentativas, da primeira à mais recente.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaTentativaProveniencia"
+            },
+            "title": "Tentativas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "mensagem_id",
+          "execucao_id",
+          "elegibilidade_id",
+          "canal",
+          "estado",
+          "tentativa_atual",
+          "limite_tentativas",
+          "categorias_entrada",
+          "tentativas"
+        ],
+        "title": "RespostaProvenienciaMensagem",
         "type": "object"
       },
       "RespostaProveniencias": {
@@ -1742,6 +1951,35 @@
         "title": "RespostaResumoElegibilidade",
         "type": "object"
       },
+      "RespostaSaidaGerada": {
+        "additionalProperties": false,
+        "description": "Conteúdo produzido em uma tentativa, nos campos do canal.",
+        "properties": {
+          "assunto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Assunto gerado, presente só no canal e-mail; nulo nos demais.",
+            "title": "Assunto"
+          },
+          "corpo": {
+            "description": "Corpo gerado nesta tentativa.",
+            "title": "Corpo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assunto",
+          "corpo"
+        ],
+        "title": "RespostaSaidaGerada",
+        "type": "object"
+      },
       "RespostaSaude": {
         "additionalProperties": false,
         "description": "Resposta pública da disponibilidade do processo backend.",
@@ -1920,6 +2158,115 @@
           "finalizado_em"
         ],
         "title": "RespostaTentativa",
+        "type": "object"
+      },
+      "RespostaTentativaProveniencia": {
+        "additionalProperties": false,
+        "description": "Proveniência completa de uma tentativa: geração e, quando houve, avaliação.",
+        "properties": {
+          "agente": {
+            "description": "Agente que gerou o conteúdo desta tentativa.",
+            "title": "Agente",
+            "type": "string"
+          },
+          "avaliacao": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaAvaliacaoDaTentativa"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Avaliação crítica desta tentativa, ou nula se ela ainda não foi avaliada."
+          },
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC do registro da versão.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "duracao_ms": {
+            "description": "Duração da chamada de geração, em milissegundos.",
+            "title": "Duracao Ms",
+            "type": "number"
+          },
+          "modelo": {
+            "description": "Modelo da OpenAI usado nesta tentativa de geração.",
+            "title": "Modelo",
+            "type": "string"
+          },
+          "motivo_invalidez": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Código estável do motivo da recusa estrutural, ou nulo quando válida.",
+            "title": "Motivo Invalidez"
+          },
+          "numero_tentativa": {
+            "description": "Número da tentativa, de 1 até o limite.",
+            "title": "Numero Tentativa",
+            "type": "integer"
+          },
+          "saida": {
+            "$ref": "#/components/schemas/RespostaSaidaGerada",
+            "description": "Conteúdo produzido nesta tentativa."
+          },
+          "tokens_entrada": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Tokens de entrada consumidos, ou nulo quando a chamada não os reportou.",
+            "title": "Tokens Entrada"
+          },
+          "tokens_saida": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Tokens de saída consumidos, ou nulo quando a chamada não os reportou.",
+            "title": "Tokens Saida"
+          },
+          "valida": {
+            "description": "Se a validação determinística aprovou a saída desta tentativa.",
+            "title": "Valida",
+            "type": "boolean"
+          },
+          "versao_prompt": {
+            "description": "Versão do prompt usada nesta tentativa.",
+            "title": "Versao Prompt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "numero_tentativa",
+          "agente",
+          "modelo",
+          "versao_prompt",
+          "saida",
+          "valida",
+          "motivo_invalidez",
+          "duracao_ms",
+          "tokens_entrada",
+          "tokens_saida",
+          "criado_em",
+          "avaliacao"
+        ],
+        "title": "RespostaTentativaProveniencia",
         "type": "object"
       },
       "RespostaTeste": {
@@ -2884,6 +3231,59 @@
         "summary": "Solicitar nova tentativa de preparação agêntica",
         "tags": [
           "Preparação da IA"
+        ]
+      }
+    },
+    "/api/v1/mensagens/{mensagem_id}/proveniencia": {
+      "get": {
+        "description": "Devolve o histórico completo do ciclo de uma mensagem, tentativa por tentativa: agente, modelo, versão do prompt, categorias de dado usadas e não usadas no contexto, conteúdo produzido, veredito da validação determinística, avaliação do agente crítico, duração e métricas de uso. Uma tentativa reprovada continua consultável depois da regeneração: nada é sobrescrito. É uma consulta de leitura: nada é gerado nem reavaliado e nenhuma chamada à OpenAI é feita. A resposta nunca expõe chave, contato, identificação direta do segurado ou texto de prompt.",
+        "operationId": "consultar_proveniencia_api_v1_mensagens__mensagem_id__proveniencia_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "mensagem_id",
+            "required": true,
+            "schema": {
+              "title": "Mensagem Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaProvenienciaMensagem"
+                }
+              }
+            },
+            "description": "Proveniência encontrada (pode ter zero tentativas)."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaProveniencia"
+                }
+              }
+            },
+            "description": "Mensagem inexistente."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaProveniencia"
+                }
+              }
+            },
+            "description": "O identificador da mensagem não é um UUID válido."
+          }
+        },
+        "summary": "Consultar a proveniência agêntica de uma mensagem",
+        "tags": [
+          "Proveniência"
         ]
       }
     },

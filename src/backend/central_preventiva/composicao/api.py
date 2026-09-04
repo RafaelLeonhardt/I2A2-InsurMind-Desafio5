@@ -41,6 +41,9 @@ from central_preventiva.adaptadores.http.preflight_ia import (
 from central_preventiva.adaptadores.http.prontidao import (
     criar_roteador as criar_roteador_prontidao,
 )
+from central_preventiva.adaptadores.http.proveniencia import (
+    criar_roteador as criar_roteador_proveniencia,
+)
 from central_preventiva.adaptadores.http.regras import (
     criar_roteador as criar_roteador_regras,
 )
@@ -141,6 +144,10 @@ def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
     )
     aplicacao.include_router(
         criar_roteador_avaliacoes_criticas(configuracao_ativa),
+        prefix="/api/v1",
+    )
+    aplicacao.include_router(
+        criar_roteador_proveniencia(configuracao_ativa),
         prefix="/api/v1",
     )
     return aplicacao
