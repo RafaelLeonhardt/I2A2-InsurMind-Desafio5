@@ -120,9 +120,9 @@ A História 3.6 executa a simulação e persiste entregas simuladas, mas nada ai
 | RESULT-05 | P1: Falha local sem entrega parcial e sem falha fictícia de canal | Execute (T2, T3) | Implementing |
 | RESULT-06 | P1: Reidratação sem repetição e sem regressão de estado terminal | Execute (T2, T3) | Implementing |
 | RESULT-07 | P1: Reidratação sem repetição e sem regressão de estado terminal | Execute (T2, T3) | Implementing |
-| RESULT-08 | P2: Acessibilidade da tabela e divergência consultável | Design | Pending |
-| RESULT-09 | P2: Acessibilidade da tabela e divergência consultável | Execute (T2, T3) | Implementing |
-| RESULT-10 | P2: Acessibilidade da tabela e divergência consultável | Design | Pending |
+| RESULT-08 | P2: Acessibilidade da tabela e divergência consultável | Execute (T4) | Implementing |
+| RESULT-09 | P2: Acessibilidade da tabela e divergência consultável | Execute (T2, T3, T4) | Implementing |
+| RESULT-10 | P2: Acessibilidade da tabela e divergência consultável | Execute (T4) | Implementing |
 
 **ID format:** `RESULT-NN`
 

@@ -1,0 +1,51 @@
+.tabela-totais,
+.tabela-nao-simulaveis {
+  width: 100%;
+  border-collapse: collapse;
+  margin-block: 1rem;
+}
+
+.tabela-totais th,
+.tabela-totais td,
+.tabela-nao-simulaveis th,
+.tabela-nao-simulaveis td {
+  border-bottom: 1px solid var(--line);
+  padding: 0.5rem 0.6rem;
+  text-align: left;
+}
+
+.tabela-totais th button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* O selo de estado distingue cada categoria por texto, ícone e cor. A cor vem de
+   `--cor-estado`, definida no próprio elemento pelo componente, para que a distinção
+   exigida pelo requisito (L-024) seja observável e não dependa desta folha de estilo. */
+.resultados__selo-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: var(--cor-estado);
+}
+
+.resultados__divergencia {
+  margin: 0.4rem 0 1rem;
+  padding: 0.6rem 0.8rem;
+  border-left: 4px solid var(--red);
+  border-radius: 0.25rem;
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+.resultados__divergencia p {
+  margin: 0.2rem 0;
+}

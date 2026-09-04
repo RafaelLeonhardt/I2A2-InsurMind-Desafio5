@@ -132,11 +132,11 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Totais por canal e por estado exibidos, com "Enviada — simulação" por extenso
-- [ ] Tabela navegável por teclado, cabeçalhos/ordenação/ações com nomes acessíveis
-- [ ] `totais_divergentes` exibido com correlação/impacto quando presente na resposta
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Totais por canal e por estado exibidos, com "Enviada — simulação" por extenso
+- [x] Tabela navegável por teclado, cabeçalhos/ordenação/ações com nomes acessíveis
+- [x] `totais_divergentes` exibido com correlação/impacto quando presente na resposta
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full

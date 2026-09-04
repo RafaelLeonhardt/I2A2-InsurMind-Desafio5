@@ -604,6 +604,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/execucoes/{execucao_id}/resultados": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar os resultados consolidados da simulação de uma execução
+         * @description Devolve os totais por canal e por estado de todas as mensagens do lote, com as rejeitadas, excluídas e em exceção técnica separadas em `nao_simulaveis` — nunca somadas às entregas simuladas. Enquanto a simulação não chega a `concluida` ou `falhou_simulacao`, `concluido` vem falso e os totais vêm vazios, para nunca apresentar um total parcial como final. Uma divergência entre a contagem de mensagens simuladas e as entregas persistidas é reportada em `divergencia`, nunca corrigida silenciosamente.
+         */
+        get: operations["consultar_resultados_api_v1_execucoes__execucao_id__resultados_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1033,6 +1053,37 @@ export interface components {
          * @description Falha da restauração, com ocorrência, impacto e próxima ação segura.
          */
         ProblemaRestauracao: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
+         * ProblemaResultados
+         * @description Falha da consulta de resultados, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaResultados: {
             /**
              * Codigo
              * @description Código estável que identifica o tipo da falha.
@@ -1779,6 +1830,31 @@ export interface components {
             total: number;
         };
         /**
+         * RespostaDivergenciaTotais
+         * @description Inconsistência entre mensagens `simulada_entregue` e entregas persistidas (RESULT-09).
+         *
+         *     Nunca esperada em operação normal; reportada com os dois lados e a execução como
+         *     correlação, nunca reconciliada silenciosamente.
+         */
+        RespostaDivergenciaTotais: {
+            /**
+             * Execucao Id
+             * Format: uuid
+             * @description Execução em que a divergência foi detectada.
+             */
+            execucao_id: string;
+            /**
+             * Mensagens Simulada Entregue
+             * @description Quantidade de mensagens no estado `simulada_entregue`.
+             */
+            mensagens_simulada_entregue: number;
+            /**
+             * Entregas Persistidas
+             * @description Quantidade de linhas persistidas em `entregas_simuladas`.
+             */
+            entregas_persistidas: number;
+        };
+        /**
          * RespostaElegibilidade
          * @description Quantidades e lista do público avaliado de uma execução (ELEG-08).
          */
@@ -2271,6 +2347,33 @@ export interface components {
             versao_atual: components["schemas"]["RespostaVersaoMensagem"] | null;
         };
         /**
+         * RespostaMensagemNaoSimulavel
+         * @description Uma mensagem que nunca foi nem será simulada nesta execução, com o motivo.
+         */
+        RespostaMensagemNaoSimulavel: {
+            /**
+             * Mensagem Id
+             * Format: uuid
+             * @description Identificador da mensagem.
+             */
+            mensagem_id: string;
+            /**
+             * Canal
+             * @description Canal da mensagem.
+             */
+            canal: string;
+            /**
+             * Estado
+             * @description Estado terminal da mensagem que a excluiu da simulação.
+             */
+            estado: string;
+            /**
+             * Motivo
+             * @description Motivo legível pelo qual a mensagem não foi simulada.
+             */
+            motivo: string;
+        };
+        /**
          * RespostaMensagens
          * @description Mensagens já persistidas de uma execução, na ordem em que foram criadas.
          */
@@ -2639,6 +2742,45 @@ export interface components {
             restaurado_em: string;
         };
         /**
+         * RespostaResultadosConsolidados
+         * @description Resultados consolidados de uma execução, ou o progresso real enquanto ela não termina.
+         */
+        RespostaResultadosConsolidados: {
+            /**
+             * Execucao Id
+             * Format: uuid
+             * @description Identificador da execução consultada.
+             */
+            execucao_id: string;
+            /**
+             * Estado
+             * @description Estado agregado atual da execução.
+             */
+            estado: string;
+            /**
+             * Concluido
+             * @description Se a simulação já terminou (`concluida` ou `falhou_simulacao`). Enquanto falso, os totais abaixo vêm vazios — não representam um resultado final.
+             */
+            concluido: boolean;
+            /**
+             * Totais Por Canal
+             * @description Totais de todas as mensagens do lote, por canal.
+             */
+            totais_por_canal: components["schemas"]["RespostaTotalPorChave"][];
+            /**
+             * Totais Por Estado
+             * @description Totais de todas as mensagens do lote, por estado.
+             */
+            totais_por_estado: components["schemas"]["RespostaTotalPorChave"][];
+            /**
+             * Nao Simulaveis
+             * @description Mensagens rejeitadas, excluídas ou em exceção técnica, com o motivo; nunca somadas às entregas simuladas.
+             */
+            nao_simulaveis: components["schemas"]["RespostaMensagemNaoSimulavel"][];
+            /** @description Preenchida somente se a contagem de mensagens simuladas divergir da contagem de entregas persistidas; nula em operação normal. */
+            divergencia: components["schemas"]["RespostaDivergenciaTotais"] | null;
+        };
+        /**
          * RespostaResumoElegibilidade
          * @description Um resultado de elegibilidade na listagem: segurado, apólice, localização, canal.
          */
@@ -2976,6 +3118,22 @@ export interface components {
              * @description Casos de teste, um por cenário sintético do tipo de evento da regra.
              */
             casos: components["schemas"]["RespostaCasoTeste"][];
+        };
+        /**
+         * RespostaTotalPorChave
+         * @description Uma contagem agregada por canal ou por estado.
+         */
+        RespostaTotalPorChave: {
+            /**
+             * Chave
+             * @description Canal ou estado agregado.
+             */
+            chave: string;
+            /**
+             * Total
+             * @description Quantidade de mensagens nesta chave.
+             */
+            total: number;
         };
         /**
          * RespostaValidacaoDeterministica
@@ -4512,6 +4670,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaSimulacao"];
+                };
+            };
+        };
+    };
+    consultar_resultados_api_v1_execucoes__execucao_id__resultados_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execucao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Execução encontrada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaResultadosConsolidados"];
+                };
+            };
+            /** @description Execução inexistente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaResultados"];
+                };
+            };
+            /** @description O identificador da execução não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaResultados"];
                 };
             };
         };
