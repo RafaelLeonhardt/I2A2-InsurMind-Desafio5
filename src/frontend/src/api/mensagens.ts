@@ -21,6 +21,7 @@ export type Mensagem = {
   canal: string
   estado: string
   tentativaAtual: number
+  limiteTentativas: number
   versao: number
   versaoAtual: VersaoMensagem | null
 }
@@ -109,6 +110,7 @@ function paraMensagem(corpo: components['schemas']['RespostaMensagem']): Mensage
     canal: corpo.canal,
     estado: corpo.estado,
     tentativaAtual: corpo.tentativa_atual,
+    limiteTentativas: corpo.limite_tentativas,
     versao: corpo.versao,
     versaoAtual: paraVersao(corpo.versao_atual),
   }

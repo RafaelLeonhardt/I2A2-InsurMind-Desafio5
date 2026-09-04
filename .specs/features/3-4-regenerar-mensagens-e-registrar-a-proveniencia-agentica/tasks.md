@@ -206,7 +206,7 @@ REGEN-09 e, com a T2, REGEN-10.
 
 ---
 
-### T6: Superfície — acompanhamento do ciclo por item
+### T6: Superfície — acompanhamento do ciclo por item ✅
 
 **What**: Estender `SuperficieGeracaoMensagens` (3.2) com etapa, tentativa atual, limite (3), aprovações e exceções por item, sem mover o foco inesperadamente e sem depender só de cor.
 **Where**: `src/frontend/src/funcionalidades/geracao-mensagens/SuperficieGeracaoMensagens.tsx` (extensão de 3.2)
@@ -218,10 +218,15 @@ REGEN-09 e, com a T2, REGEN-10.
 
 **Done when**:
 
-- [ ] Tentativa atual e limite exibidos por item, com texto+ícone além de cor
-- [ ] Foco do teclado preservado durante atualizações de estado (testado por simulação de foco antes/depois de uma mudança)
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Tentativa atual e limite exibidos por item, com texto+ícone além de cor (seis categorias distintas, cor exposta como propriedade CSS observável por teste — L-024)
+- [x] Foco do teclado preservado durante atualizações de estado (dois testes: foco no botão e foco fora da lista, ambos afirmando `document.activeElement` antes e depois; provados não vacuosos por mutação — uma chamada a `.focus()` no item mata os dois)
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test` (253 passed), `npm run lint` (só avisos pré-existentes), `npm run build` verdes; backend 735 passed
+
+**Nota de escopo**: `RespostaMensagem` (3.2) ganhou `limite_tentativas`, com o
+`openapi.json` e os tipos gerados regenerados. O limite exigido pelo REGEN-11 vem do backend
+(`LIMITE_TENTATIVAS_MENSAGEM`, T2) em vez de uma constante da interface, para que "tentativa 2
+de 3" nunca divirja da regra que o repositório realmente cobra.
 
 **Tests**: unit
 **Gate**: full

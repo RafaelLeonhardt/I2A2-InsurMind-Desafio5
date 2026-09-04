@@ -123,14 +123,14 @@ As Histórias 3.2 e 3.3 entregam geração e crítica de uma única tentativa ca
 | REGEN-08 | P1: Proveniência completa e retomada sem repetição | Execute (T5) | Implementing |
 | REGEN-09 | P1: Proveniência completa e retomada sem repetição | Execute (T4) | Implementing |
 | REGEN-10 | P1: Proveniência completa e retomada sem repetição | Execute (T2, T4) | Implementing |
-| REGEN-11 | P2: Acompanhamento acessível do ciclo por item | Design | Pending |
-| REGEN-12 | P2: Acompanhamento acessível do ciclo por item | Design | Pending |
+| REGEN-11 | P2: Acompanhamento acessível do ciclo por item | Execute (T6) | Implementing |
+| REGEN-12 | P2: Acompanhamento acessível do ciclo por item | Execute (T6) | Implementing |
 
 **ID format:** `REGEN-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 12 total, 0 mapped to tasks, 12 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 12 total, 12 mapped to tasks, 0 unmapped (T1–T6 implementadas; verificação independente pendente)
 
 ---
 

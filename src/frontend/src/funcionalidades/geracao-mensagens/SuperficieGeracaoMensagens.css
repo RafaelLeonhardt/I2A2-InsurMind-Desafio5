@@ -22,6 +22,15 @@
   border-left-style: solid;
   border-radius: 0.25rem;
   background: #f8fafc;
+  color: var(--cor-categoria);
+  border-left-color: var(--cor-categoria);
+}
+
+.geracao-mensagens__tentativa {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  font-size: 0.85rem;
+  color: #334155;
 }
 
 .geracao-mensagens__canal {
@@ -29,27 +38,29 @@
   text-transform: none;
 }
 
+.geracao-mensagens__item--aprovada {
+  border-left-style: double;
+  border-left-width: 6px;
+}
+
 .geracao-mensagens__item--gerada {
-  color: #15803d;
-  border-left-color: #15803d;
   border-left-style: solid;
 }
 
 .geracao-mensagens__item--gerando {
-  color: #1d4ed8;
-  border-left-color: #1d4ed8;
   border-left-style: dashed;
 }
 
 .geracao-mensagens__item--nova-tentativa {
-  color: #a16207;
-  border-left-color: #a16207;
   border-left-style: double;
 }
 
+.geracao-mensagens__item--reprovada {
+  border-left-style: groove;
+  border-left-width: 6px;
+}
+
 .geracao-mensagens__item--excecao {
-  color: #b91c1c;
-  border-left-color: #b91c1c;
   border-left-style: dotted;
   border-left-width: 6px;
 }

@@ -1464,6 +1464,11 @@
             "title": "Id",
             "type": "string"
           },
+          "limite_tentativas": {
+            "description": "Máximo de tentativas de conteúdo permitidas por mensagem.",
+            "title": "Limite Tentativas",
+            "type": "integer"
+          },
           "tentativa_atual": {
             "description": "Tentativa de geração em curso ou concluída.",
             "title": "Tentativa Atual",
@@ -1492,6 +1497,7 @@
           "canal",
           "estado",
           "tentativa_atual",
+          "limite_tentativas",
           "versao",
           "versao_atual"
         ],

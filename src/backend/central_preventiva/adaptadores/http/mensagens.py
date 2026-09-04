@@ -3,9 +3,11 @@
 Rota de leitura apenas: reidratar a página consulta este `GET` e reconstrói etapa e
 progresso do que está persistido, sem reenviar geração nenhuma.
 
-A resposta traz o estado de conteúdo, o canal, a tentativa e os metadados da versão atual
-(veredito, motivo, modelo, prompt), não o texto gerado: exibir a mensagem para decisão humana
-é a superfície de revisão da História 3.5, fora do escopo desta.
+A resposta traz o estado de conteúdo, o canal, a tentativa, o limite de tentativas (3.4) e os
+metadados da versão atual (veredito, motivo, modelo, prompt), não o texto gerado: exibir a
+mensagem para decisão humana é a superfície de revisão da História 3.5, fora do escopo desta.
+O limite vem do backend, e não de uma constante da interface, para que "tentativa 2 de 3"
+nunca divirja da regra que o repositório realmente cobra (REGEN-11).
 """
 
 from datetime import datetime
@@ -19,6 +21,7 @@ from central_preventiva.adaptadores.persistencia.repositorio_execucao_preventiva
     RepositorioExecucaoPreventiva,
 )
 from central_preventiva.adaptadores.persistencia.repositorio_mensagens import (
+    LIMITE_TENTATIVAS_MENSAGEM,
     RegistroMensagem,
     RepositorioMensagens,
     VersaoMensagem,
@@ -65,6 +68,9 @@ class RespostaMensagem(BaseModel):
     canal: str = Field(description="Canal da mensagem (`whatsapp`, `email` ou `sms`).")
     estado: str = Field(description="Estado de conteúdo da mensagem, conforme o AD-4.")
     tentativa_atual: int = Field(description="Tentativa de geração em curso ou concluída.")
+    limite_tentativas: int = Field(
+        description="Máximo de tentativas de conteúdo permitidas por mensagem."
+    )
     versao: int = Field(description="Versão de concorrência otimista da mensagem.")
     versao_atual: RespostaVersaoMensagem | None = Field(
         description="Versão mais recente registrada, ou nula se nenhuma foi persistida ainda."
@@ -138,6 +144,7 @@ def _resposta_mensagem(
         canal=str(registro.canal),
         estado=str(registro.estado),
         tentativa_atual=registro.tentativa_atual,
+        limite_tentativas=LIMITE_TENTATIVAS_MENSAGEM,
         versao=registro.versao,
         versao_atual=_resposta_versao(versao),
     )

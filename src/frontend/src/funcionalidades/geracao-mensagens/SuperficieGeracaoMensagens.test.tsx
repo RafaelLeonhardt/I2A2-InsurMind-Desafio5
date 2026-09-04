@@ -16,6 +16,10 @@ vi.mock('../../api/mensagens', async (importarOriginal) => ({
 
 const EXECUCAO_ID = '11111111-1111-1111-1111-111111111111'
 
+function corDe(elemento: Element | null): string {
+  return (elemento as HTMLElement).style.getPropertyValue('--cor-categoria').trim()
+}
+
 function mensagem(sobrescritas: Partial<Mensagem> = {}): Mensagem {
   return {
     id: crypto.randomUUID(),
@@ -23,6 +27,7 @@ function mensagem(sobrescritas: Partial<Mensagem> = {}): Mensagem {
     canal: 'sms',
     estado: 'criticando',
     tentativaAtual: 1,
+    limiteTentativas: 3,
     versao: 2,
     versaoAtual: {
       numeroTentativa: 1,
@@ -182,5 +187,114 @@ describe('superfície de geração de mensagens', () => {
     expect(alerta).toHaveTextContent(
       'Consulte a execução pelo identificador UUID retornado pela API.'
     )
+  })
+
+  it('mostra a tentativa atual e o limite de cada item', async () => {
+    getMensagens.mockResolvedValue([
+      mensagem({ canal: 'sms', estado: 'criticando', tentativaAtual: 2, limiteTentativas: 3 }),
+      mensagem({
+        canal: 'email',
+        estado: 'gerando',
+        tentativaAtual: 3,
+        limiteTentativas: 3,
+        versaoAtual: null,
+      }),
+    ])
+
+    render(<SuperficieGeracaoMensagens execucaoId={EXECUCAO_ID} />)
+
+    expect(await screen.findByText('Tentativa 2 de 3')).toBeInTheDocument()
+    expect(screen.getByText('Tentativa 3 de 3')).toBeInTheDocument()
+  })
+
+  it('distingue aprovação, reprovação de conteúdo e falha de integração por texto, ícone e cor', async () => {
+    getMensagens.mockResolvedValue([
+      mensagem({ canal: 'sms', estado: 'aguardando_revisao', tentativaAtual: 2 }),
+      mensagem({ canal: 'email', estado: 'falhou_conteudo', tentativaAtual: 3 }),
+      mensagem({ canal: 'whatsapp', estado: 'falhou_integracao_ia', versaoAtual: null }),
+    ])
+
+    render(<SuperficieGeracaoMensagens execucaoId={EXECUCAO_ID} />)
+
+    const aprovada = (
+      await screen.findByText('Aprovada pelo crítico — aguardando revisão')
+    ).closest('li')
+    const reprovada = screen.getByText('Reprovada em todas as tentativas').closest('li')
+    const integracao = screen.getByText('Falha de integração com a OpenAI').closest('li')
+
+    expect(aprovada).toHaveAttribute('data-categoria', 'aprovada')
+    expect(reprovada).toHaveAttribute('data-categoria', 'reprovada')
+    expect(integracao).toHaveAttribute('data-categoria', 'excecao')
+    expect(aprovada?.querySelector('[data-icone-nome="thumbs-up"]')).not.toBeNull()
+    expect(reprovada?.querySelector('[data-icone-nome="prohibit"]')).not.toBeNull()
+    expect(integracao?.querySelector('[data-icone-nome="warning"]')).not.toBeNull()
+    expect(new Set([corDe(aprovada), corDe(reprovada), corDe(integracao)]).size).toBe(3)
+    expect(corDe(aprovada)).not.toBe('')
+  })
+
+  it('resume aprovações e exceções do lote', async () => {
+    getMensagens.mockResolvedValue([
+      mensagem({ canal: 'sms', estado: 'aguardando_revisao' }),
+      mensagem({ canal: 'email', estado: 'falhou_conteudo' }),
+      mensagem({ canal: 'whatsapp', estado: 'falhou_integracao_ia', versaoAtual: null }),
+      mensagem({ canal: 'sms', estado: 'gerando', versaoAtual: null }),
+    ])
+
+    render(<SuperficieGeracaoMensagens execucaoId={EXECUCAO_ID} />)
+
+    expect(await screen.findByText('1 aprovadas pelo crítico, 2 em exceção')).toBeInTheDocument()
+    expect(screen.getByText('1 de 4 mensagens geradas')).toBeInTheDocument()
+  })
+
+  it('mantém o foco do teclado onde estava quando o estado dos itens muda', async () => {
+    getMensagens.mockResolvedValueOnce([
+      mensagem({ canal: 'sms', estado: 'gerando', tentativaAtual: 1, versaoAtual: null }),
+    ])
+    getMensagens.mockResolvedValueOnce([
+      mensagem({ canal: 'sms', estado: 'aguardando_revisao', tentativaAtual: 2 }),
+    ])
+
+    render(<SuperficieGeracaoMensagens execucaoId={EXECUCAO_ID} />)
+    await screen.findByText('Gerando mensagem…')
+    const botao = screen.getByRole('button', { name: /atualizar progresso/i })
+    botao.focus()
+    const focadoAntes = document.activeElement
+
+    botao.click()
+
+    expect(await screen.findByText('Aprovada pelo crítico — aguardando revisão')).toBeInTheDocument()
+    expect(document.activeElement).toBe(focadoAntes)
+    expect(document.activeElement).toBe(botao)
+  })
+
+  it('não rouba o foco de um elemento fora da lista durante a atualização', async () => {
+    getMensagens.mockResolvedValueOnce([
+      mensagem({ canal: 'sms', estado: 'gerando', tentativaAtual: 1, versaoAtual: null }),
+    ])
+    getMensagens.mockResolvedValueOnce([
+      mensagem({ canal: 'sms', estado: 'falhou_conteudo', tentativaAtual: 3 }),
+    ])
+
+    render(<SuperficieGeracaoMensagens execucaoId={EXECUCAO_ID} />)
+    await screen.findByText('Gerando mensagem…')
+    const principal = document.getElementById('conteudo-principal') as HTMLElement
+    principal.focus()
+    expect(document.activeElement).toBe(principal)
+
+    screen.getByRole('button', { name: /atualizar progresso/i }).click()
+
+    expect(await screen.findByText('Reprovada em todas as tentativas')).toBeInTheDocument()
+    expect(document.activeElement).toBe(principal)
+  })
+
+  it('anuncia a mudança de estado por região viva, sem mover o foco', async () => {
+    getMensagens.mockResolvedValue([mensagem({ canal: 'sms', estado: 'criticando' })])
+
+    render(<SuperficieGeracaoMensagens execucaoId={EXECUCAO_ID} />)
+    await screen.findByText('Mensagem gerada — em avaliação')
+
+    const lista = screen.getByRole('list')
+    expect(lista).toHaveAttribute('aria-live', 'polite')
+    expect(document.activeElement).toBe(document.body)
   })
 })

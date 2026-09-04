@@ -484,6 +484,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/mensagens/{mensagem_id}/proveniencia": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar a proveniência agêntica de uma mensagem
+         * @description Devolve o histórico completo do ciclo de uma mensagem, tentativa por tentativa: agente, modelo, versão do prompt, categorias de dado usadas e não usadas no contexto, conteúdo produzido, veredito da validação determinística, avaliação do agente crítico, duração e métricas de uso. Uma tentativa reprovada continua consultável depois da regeneração: nada é sobrescrito. É uma consulta de leitura: nada é gerado nem reavaliado e nenhuma chamada à OpenAI é feita. A resposta nunca expõe chave, contato, identificação direta do segurado ou texto de prompt.
+         */
+        get: operations["consultar_proveniencia_api_v1_mensagens__mensagem_id__proveniencia_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -784,6 +804,37 @@ export interface components {
             proxima_acao: string;
         };
         /**
+         * ProblemaProveniencia
+         * @description Falha da consulta de proveniência, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaProveniencia: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
          * ProblemaRegras
          * @description Falha de uma operação de regras, com ocorrência, impacto e próxima ação segura.
          */
@@ -917,6 +968,43 @@ export interface components {
             validacao_deterministica: components["schemas"]["RespostaValidacaoDeterministica"];
         };
         /**
+         * RespostaAvaliacaoDaTentativa
+         * @description Avaliação crítica da versão produzida nesta tentativa, com sua proveniência.
+         */
+        RespostaAvaliacaoDaTentativa: {
+            /**
+             * Agente
+             * @description Agente que avaliou o conteúdo desta tentativa.
+             */
+            agente: string;
+            /**
+             * Modelo
+             * @description Modelo da OpenAI usado na avaliação.
+             */
+            modelo: string;
+            /**
+             * Aprovada
+             * @description Decisão do crítico sobre o conteúdo desta tentativa.
+             */
+            aprovada: boolean;
+            /**
+             * Motivos
+             * @description Motivos categorizados da decisão; vazio quando o crítico aprovou.
+             */
+            motivos: components["schemas"]["RespostaMotivoProveniencia"][];
+            /**
+             * Duracao Ms
+             * @description Duração da chamada de avaliação, em milissegundos.
+             */
+            duracao_ms: number;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro da avaliação.
+             */
+            criado_em: string;
+        };
+        /**
          * RespostaAvaliacaoRisco
          * @description Snapshot público da avaliação de relevância meteorológica de uma execução.
          */
@@ -991,6 +1079,22 @@ export interface components {
              * @description Motivo tipado do resultado deste caso.
              */
             motivo: string;
+        };
+        /**
+         * RespostaCategoriasEntrada
+         * @description Categorias de dado que entraram (e que ficaram de fora) do contexto do agente.
+         */
+        RespostaCategoriasEntrada: {
+            /**
+             * Usadas
+             * @description Categorias de dado que chegaram ao contexto mínimo do agente (3.1).
+             */
+            usadas: string[];
+            /**
+             * Nao Usadas
+             * @description Categorias deliberadamente deixadas de fora do contexto.
+             */
+            nao_usadas: string[];
         };
         /**
          * RespostaColetaAceita
@@ -1450,6 +1554,11 @@ export interface components {
              */
             tentativa_atual: number;
             /**
+             * Limite Tentativas
+             * @description Máximo de tentativas de conteúdo permitidas por mensagem.
+             */
+            limite_tentativas: number;
+            /**
              * Versao
              * @description Versão de concorrência otimista da mensagem.
              */
@@ -1479,6 +1588,22 @@ export interface components {
          * @description Um motivo da decisão do crítico: a categoria avaliada e a justificativa.
          */
         RespostaMotivoCritica: {
+            /**
+             * Categoria
+             * @description Critério avaliado, entre os sete critérios fechados.
+             */
+            categoria: string;
+            /**
+             * Justificativa
+             * @description Por que este critério sustenta a decisão.
+             */
+            justificativa: string;
+        };
+        /**
+         * RespostaMotivoProveniencia
+         * @description Um motivo da avaliação: a categoria fechada e a justificativa dela.
+         */
+        RespostaMotivoProveniencia: {
             /**
              * Categoria
              * @description Critério avaliado, entre os sete critérios fechados.
@@ -1577,6 +1702,57 @@ export interface components {
              * @description Categorias deliberadamente deixadas de fora do contexto.
              */
             categorias_nao_usadas: string[];
+        };
+        /**
+         * RespostaProvenienciaMensagem
+         * @description Proveniência agêntica completa de uma mensagem, tentativa por tentativa.
+         */
+        RespostaProvenienciaMensagem: {
+            /**
+             * Mensagem Id
+             * Format: uuid
+             * @description Identificador da mensagem consultada.
+             */
+            mensagem_id: string;
+            /**
+             * Execucao Id
+             * Format: uuid
+             * @description Execução preventiva que originou a mensagem.
+             */
+            execucao_id: string;
+            /**
+             * Elegibilidade Id
+             * Format: uuid
+             * @description Item do público elegível que originou a mensagem.
+             */
+            elegibilidade_id: string;
+            /**
+             * Canal
+             * @description Canal da mensagem (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
+             * Estado
+             * @description Estado de conteúdo da mensagem, conforme o AD-4.
+             */
+            estado: string;
+            /**
+             * Tentativa Atual
+             * @description Tentativa de geração em curso ou concluída.
+             */
+            tentativa_atual: number;
+            /**
+             * Limite Tentativas
+             * @description Máximo de tentativas de conteúdo permitidas por mensagem.
+             */
+            limite_tentativas: number;
+            /** @description Categorias de dado usadas e não usadas no contexto do agente. */
+            categorias_entrada: components["schemas"]["RespostaCategoriasEntrada"];
+            /**
+             * Tentativas
+             * @description Histórico imutável das tentativas, da primeira à mais recente.
+             */
+            tentativas: components["schemas"]["RespostaTentativaProveniencia"][];
         };
         /**
          * RespostaProveniencias
@@ -1714,6 +1890,22 @@ export interface components {
             elegivel: boolean;
         };
         /**
+         * RespostaSaidaGerada
+         * @description Conteúdo produzido em uma tentativa, nos campos do canal.
+         */
+        RespostaSaidaGerada: {
+            /**
+             * Assunto
+             * @description Assunto gerado, presente só no canal e-mail; nulo nos demais.
+             */
+            assunto: string | null;
+            /**
+             * Corpo
+             * @description Corpo gerado nesta tentativa.
+             */
+            corpo: string;
+        };
+        /**
          * RespostaSaude
          * @description Resposta pública da disponibilidade do processo backend.
          */
@@ -1839,6 +2031,67 @@ export interface components {
              * @description Instante RFC 3339 em UTC de término da tentativa.
              */
             finalizado_em: string;
+        };
+        /**
+         * RespostaTentativaProveniencia
+         * @description Proveniência completa de uma tentativa: geração e, quando houve, avaliação.
+         */
+        RespostaTentativaProveniencia: {
+            /**
+             * Numero Tentativa
+             * @description Número da tentativa, de 1 até o limite.
+             */
+            numero_tentativa: number;
+            /**
+             * Agente
+             * @description Agente que gerou o conteúdo desta tentativa.
+             */
+            agente: string;
+            /**
+             * Modelo
+             * @description Modelo da OpenAI usado nesta tentativa de geração.
+             */
+            modelo: string;
+            /**
+             * Versao Prompt
+             * @description Versão do prompt usada nesta tentativa.
+             */
+            versao_prompt: string;
+            /** @description Conteúdo produzido nesta tentativa. */
+            saida: components["schemas"]["RespostaSaidaGerada"];
+            /**
+             * Valida
+             * @description Se a validação determinística aprovou a saída desta tentativa.
+             */
+            valida: boolean;
+            /**
+             * Motivo Invalidez
+             * @description Código estável do motivo da recusa estrutural, ou nulo quando válida.
+             */
+            motivo_invalidez: string | null;
+            /**
+             * Duracao Ms
+             * @description Duração da chamada de geração, em milissegundos.
+             */
+            duracao_ms: number;
+            /**
+             * Tokens Entrada
+             * @description Tokens de entrada consumidos, ou nulo quando a chamada não os reportou.
+             */
+            tokens_entrada: number | null;
+            /**
+             * Tokens Saida
+             * @description Tokens de saída consumidos, ou nulo quando a chamada não os reportou.
+             */
+            tokens_saida: number | null;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro da versão.
+             */
+            criado_em: string;
+            /** @description Avaliação crítica desta tentativa, ou nula se ela ainda não foi avaliada. */
+            avaliacao: components["schemas"]["RespostaAvaliacaoDaTentativa"] | null;
         };
         /**
          * RespostaTeste
@@ -3020,6 +3273,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaAvaliacaoCritica"];
+                };
+            };
+        };
+    };
+    consultar_proveniencia_api_v1_mensagens__mensagem_id__proveniencia_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mensagem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Proveniência encontrada (pode ter zero tentativas). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaProvenienciaMensagem"];
+                };
+            };
+            /** @description Mensagem inexistente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaProveniencia"];
+                };
+            };
+            /** @description O identificador da mensagem não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaProveniencia"];
                 };
             };
         };
