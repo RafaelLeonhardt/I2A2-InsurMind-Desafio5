@@ -1116,6 +1116,42 @@ def test_retomada_na_terceira_tentativa_ja_reprovada_esgota_sem_gerar_de_novo(
     assert mensagem is not None
     assert mensagem.estado is EstadoMensagem.FALHOU_CONTEUDO
     assert mensagem.tentativa_atual == 3
+    # REGEN-04/07: a `Exceção` de esgotamento carrega o número real de tentativas usadas
+    # (3), lido do registro retomado — nunca um valor incorreto herdado de um estado
+    # inicial de retomada mal reconstruído.
+    assert [tentativas for _, _, tentativas, _ in reiniciado.excecoes.registradas] == [3]
+
+
+def test_retomada_de_mensagem_reservada_na_terceira_tentativa_gera_com_o_numero_certo(
+    tmp_path: Path,
+) -> None:
+    """REGEN-08/09: a mensagem foi reprovada duas vezes e teve a terceira tentativa
+    reservada (`incrementar_tentativa`) antes de o processo cair — sem nenhuma versão 3
+    ainda persistida. A retomada precisa gerar essa versão com `numero_tentativa == 3`,
+    lido do registro persistido, nunca reiniciar a contagem do zero (o que sobrescreveria
+    a versão 1 já concluída em vez de completar a 3)."""
+
+    incluido = registro(canal="sms")
+    semeador = Cenario([incluido], tmp_path)
+    mensagem_id = _semear_tentativas_reprovadas(semeador, incluido.id, ate_tentativa=2)
+
+    reprovada = semeador.mensagens.obter(mensagem_id)
+    assert reprovada is not None
+    semeador.mensagens.incrementar_tentativa(mensagem_id, reprovada.versao)
+    reservada = semeador.mensagens.obter(mensagem_id)
+    assert reservada is not None
+    assert reservada.tentativa_atual == 3
+    semeador.mensagens.transicionar(mensagem_id, reservada.versao, EstadoMensagem.GERANDO)
+
+    reiniciado = Cenario([incluido], tmp_path, critico=CriticoFalso([AvaliacaoCritica(True, ())]))
+    asyncio.run(reiniciado.servico.retomar_mensagens_pendentes(EXECUCAO_ID))
+
+    assert reiniciado.redator.canais_chamados == [Canal.SMS]
+    assert [numero for numero, _, _ in _versoes_persistidas(tmp_path, mensagem_id)] == [1, 2, 3]
+    mensagem = reiniciado.mensagens.obter(mensagem_id)
+    assert mensagem is not None
+    assert mensagem.tentativa_atual == 3
+    assert mensagem.estado is EstadoMensagem.AGUARDANDO_REVISAO
 
 
 def test_retomada_de_mensagem_sem_versao_gera_a_tentativa_em_curso_sem_duplicar(
