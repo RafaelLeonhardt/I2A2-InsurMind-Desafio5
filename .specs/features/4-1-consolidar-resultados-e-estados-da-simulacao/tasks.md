@@ -87,11 +87,11 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Lote com 3 simuladas + 1 rejeitada + 1 em exceção retorna totais corretos, com as 2 últimas em `nao_simulaveis`, não somadas às entregas simuladas
-- [ ] Execução em `falhou_simulacao` retorna zero entregas simuladas, mensagens listadas como `aprovada`, nenhum texto de falha de canal
-- [ ] Chamar `consolidar` duas vezes seguidas para a mesma execução retorna resultado idêntico, sem efeito colateral
-- [ ] Divergência forçada (dado de teste com contagens diferentes) retorna `divergencia` preenchida com correlação, sem "corrigir" o total
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Lote com 3 simuladas + 1 rejeitada + 1 em exceção retorna totais corretos, com as 2 últimas em `nao_simulaveis`, não somadas às entregas simuladas
+- [x] Execução em `falhou_simulacao` retorna zero entregas simuladas, mensagens listadas como `aprovada`, nenhum texto de falha de canal
+- [x] Chamar `consolidar` duas vezes seguidas para a mesma execução retorna resultado idêntico, sem efeito colateral
+- [x] Divergência forçada (dado de teste com contagens diferentes) retorna `divergencia` preenchida com correlação, sem "corrigir" o total
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick

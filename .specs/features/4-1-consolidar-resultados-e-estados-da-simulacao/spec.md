@@ -113,22 +113,22 @@ A História 3.6 executa a simulação e persiste entregas simuladas, mas nada ai
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| RESULT-01 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | Design | Pending |
-| RESULT-02 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | Execute (T1) | Implementing |
-| RESULT-03 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | Execute (T1) | Implementing |
-| RESULT-04 | P1: Falha local sem entrega parcial e sem falha fictícia de canal | Design | Pending |
-| RESULT-05 | P1: Falha local sem entrega parcial e sem falha fictícia de canal | Design | Pending |
-| RESULT-06 | P1: Reidratação sem repetição e sem regressão de estado terminal | Design | Pending |
-| RESULT-07 | P1: Reidratação sem repetição e sem regressão de estado terminal | Design | Pending |
+| RESULT-01 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | 3.6 (ServicoSimulacao.confirmar) | Verified |
+| RESULT-02 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | Execute (T1, T2) | Implementing |
+| RESULT-03 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | Execute (T1, T2) | Implementing |
+| RESULT-04 | P1: Falha local sem entrega parcial e sem falha fictícia de canal | Execute (T2) | Implementing |
+| RESULT-05 | P1: Falha local sem entrega parcial e sem falha fictícia de canal | Execute (T2) | Implementing |
+| RESULT-06 | P1: Reidratação sem repetição e sem regressão de estado terminal | Execute (T2) | Implementing |
+| RESULT-07 | P1: Reidratação sem repetição e sem regressão de estado terminal | Execute (T2) | Implementing |
 | RESULT-08 | P2: Acessibilidade da tabela e divergência consultável | Design | Pending |
-| RESULT-09 | P2: Acessibilidade da tabela e divergência consultável | Design | Pending |
+| RESULT-09 | P2: Acessibilidade da tabela e divergência consultável | Execute (T2) | Implementing |
 | RESULT-10 | P2: Acessibilidade da tabela e divergência consultável | Design | Pending |
 
 **ID format:** `RESULT-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 10 total, 2 mapped to tasks (T1), 8 unmapped
+**Coverage:** 10 total, 8 mapped to tasks (T1, T2; RESULT-01 verificado em 3.6), 2 unmapped (RESULT-08, RESULT-10 — T4)
 
 ---
 
