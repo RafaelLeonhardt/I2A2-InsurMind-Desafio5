@@ -260,6 +260,16 @@ class ServicoElegibilidadeFalso:
         return ContagemFalsa(incluidos=self.incluidos)
 
 
+@dataclass
+class ServicoGeracaoFalso:
+    """Dublê da geração de mensagens: registra as execuções cuja retomada foi pedida."""
+
+    retomadas: list[UUID] = field(default_factory=list)
+
+    async def retomar_mensagens_pendentes(self, execucao_id: UUID) -> None:
+        self.retomadas.append(execucao_id)
+
+
 def montar_gerenciador(
     *,
     coleta: ServicoColetaFalso | None = None,
@@ -268,6 +278,7 @@ def montar_gerenciador(
     areas: list[AreaMonitorada] | None = None,
     eventos: list[EventoMeteorologico] | None = None,
     regras: list[RegraFalsa] | None = None,
+    geracao: ServicoGeracaoFalso | None = None,
 ) -> tuple[
     GerenciadorExecucoes,
     RepositorioExecucoesFalso,
@@ -310,6 +321,7 @@ def montar_gerenciador(
         coleta=coleta,  # type: ignore[arg-type]
         risco=risco,  # type: ignore[arg-type]
         elegibilidade=elegibilidade,  # type: ignore[arg-type]
+        geracao=geracao if geracao is not None else ServicoGeracaoFalso(),
     )
     return GerenciadorExecucoes(portas), execucoes, avaliacoes_risco, coleta, risco, elegibilidade
 
@@ -532,3 +544,34 @@ def test_iniciar_repetido_com_hash_diferente_levanta_conflito_idempotencia() -> 
             await gerenciador.iniciar(AREA_ID, "chave-repetida", "hash-y")
 
     asyncio.run(rodar())
+
+
+def test_retomar_pendentes_em_processando_mensagens_retoma_as_mensagens_da_execucao() -> None:
+    """REGEN-08: uma execução interrompida em `processando_mensagens` é retomada no boot,
+    no nível da mensagem — o buraco que 2.6 deixou aberto e que a 3.2 registrou como risco.
+    O estado da execução não é mexido: o que ficou pela metade é o ciclo de cada item."""
+
+    geracao = ServicoGeracaoFalso()
+    gerenciador, execucoes, *_ = montar_gerenciador(geracao=geracao)
+    execucao_id = execucoes.criar(EstadoExecucao.PROCESSANDO_MENSAGENS)
+
+    asyncio.run(gerenciador.retomar_pendentes())
+
+    assert geracao.retomadas == [execucao_id]
+    snapshot = execucoes.obter(execucao_id)
+    assert snapshot.estado == EstadoExecucao.PROCESSANDO_MENSAGENS
+    assert execucoes.listar_marcos(execucao_id) == []
+
+
+def test_retomar_pendentes_nao_retoma_mensagens_de_execucao_fora_de_processando() -> None:
+    """REGEN-09: a retomada de mensagens é escopada à execução que estava de fato gerando —
+    uma execução em `aguardando_geracao` ou em `coletando` nunca aciona o ciclo de conteúdo."""
+
+    geracao = ServicoGeracaoFalso()
+    gerenciador, execucoes, *_ = montar_gerenciador(geracao=geracao)
+    execucoes.criar(EstadoExecucao.AGUARDANDO_GERACAO)
+    execucoes.criar(EstadoExecucao.COLETANDO)
+
+    asyncio.run(gerenciador.retomar_pendentes())
+
+    assert geracao.retomadas == []

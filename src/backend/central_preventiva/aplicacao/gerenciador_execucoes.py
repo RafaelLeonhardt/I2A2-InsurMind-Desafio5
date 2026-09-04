@@ -160,6 +160,16 @@ class _ServicoElegibilidade(Protocol):
     ) -> _ContagemElegibilidade: ...
 
 
+class _ServicoGeracaoMensagens(Protocol):
+    """Porta mínima da geração de mensagens (3.2/3.4) usada só na retomada do boot.
+
+    A geração normal não é acionada por aqui: quem a dispara é `ServicoPreflightIA`, ao
+    entrar em `processando_mensagens`. Este orquestrador só precisa saber retomar o que
+    ficou pela metade quando o backend reiniciou no meio do lote (REGEN-08)."""
+
+    async def retomar_mensagens_pendentes(self, execucao_id: UUID) -> None: ...
+
+
 @dataclass(frozen=True, slots=True)
 class PortasGerenciadorExecucoes:
     """Agrupa as portas de que o orquestrador da execução preventiva depende."""
@@ -173,6 +183,7 @@ class PortasGerenciadorExecucoes:
     coleta: _ServicoColeta
     risco: _ServicoRisco
     elegibilidade: _ServicoElegibilidade
+    geracao: _ServicoGeracaoMensagens
 
 
 class GerenciadorExecucoes:
@@ -369,13 +380,21 @@ class GerenciadorExecucoes:
         original não está disponível fora da chamada de `iniciar` que a criou — e
         termina em `falhou_coleta` para nunca ficar presa indefinidamente (RUNNER-11,
         mesma limitação estrutural já conhecida desde 2.1/2.2: a coleta é síncrona
-        ponta a ponta). `aguardando_geracao` não é retomado por esta história — é o
-        checkpoint em que 2.6 termina.
+        ponta a ponta). `aguardando_geracao` não é retomado — é o checkpoint em que 2.6
+        termina, e sair dele é um comando explícito de Marina (o preflight de 3.1).
+
+        Uma execução em `processando_mensagens` é retomada no nível da mensagem (REGEN-08):
+        o que ficou pela metade é o ciclo de cada item, não a cadeia determinística, então a
+        retomada delega a `ServicoGeracaoMensagens.retomar_mensagens_pendentes`, que
+        continua cada mensagem não terminal do seu último marco durável.
         """
 
         for execucao_id in self._portas.execucoes.listar_nao_terminais():
             snap = self._portas.execucoes.obter(execucao_id)
             if snap.estado == EstadoExecucao.AGUARDANDO_GERACAO:
+                continue
+            if snap.estado == EstadoExecucao.PROCESSANDO_MENSAGENS:
+                await self._portas.geracao.retomar_mensagens_pendentes(execucao_id)
                 continue
             if snap.estado == EstadoExecucao.COLETANDO:
                 self._registrar_falha_processamento(

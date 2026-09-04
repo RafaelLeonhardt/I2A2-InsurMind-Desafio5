@@ -189,6 +189,7 @@ class EstadoGrafoMensagem(TypedDict):
     motivos_reprovacao_anterior: NotRequired[tuple[MotivoCritica, ...]]
     resultado: NotRequired[ResultadoGeracao]
     resultado_critica: NotRequired[ResultadoCritica]
+    retomar_de: NotRequired[str]
 
 
 class AtualizacaoGrafoMensagem(TypedDict):
@@ -456,12 +457,31 @@ def construir_grafo(dependencias: DependenciasGrafo) -> GrafoMensagemCompilado:
             return END
         return _apos_reprovacao(state)
 
+    def rota_inicial(state: EstadoGrafoMensagem) -> str:
+        """Escolhe o nó de entrada: `gerar` no fluxo normal, o marco seguinte na retomada.
+
+        Uma execução nova sempre começa em `gerar`. Uma retomada no boot (REGEN-08) informa
+        `retomar_de` a partir do que está persistido, para continuar do último marco durável
+        em vez de repetir uma tentativa já concluída.
+        """
+
+        return state.get("retomar_de", NO_GERAR)
+
     grafo = StateGraph(EstadoGrafoMensagem)
     grafo.add_node(NO_GERAR, gerar)  # pyright: ignore[reportUnknownMemberType]
     grafo.add_node(NO_CRITICAR, criticar)  # pyright: ignore[reportUnknownMemberType]
     grafo.add_node(NO_REGENERAR, regenerar)  # pyright: ignore[reportUnknownMemberType]
     grafo.add_node(NO_ESGOTAR, esgotar)  # pyright: ignore[reportUnknownMemberType]
-    grafo.add_edge(START, NO_GERAR)
+    grafo.add_conditional_edges(  # pyright: ignore[reportUnknownMemberType]
+        START,
+        rota_inicial,
+        {
+            NO_GERAR: NO_GERAR,
+            NO_CRITICAR: NO_CRITICAR,
+            NO_REGENERAR: NO_REGENERAR,
+            NO_ESGOTAR: NO_ESGOTAR,
+        },
+    )
     grafo.add_conditional_edges(  # pyright: ignore[reportUnknownMemberType]
         NO_GERAR,
         rota_apos_gerar,

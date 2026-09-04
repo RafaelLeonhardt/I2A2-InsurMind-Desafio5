@@ -120,9 +120,9 @@ As Histórias 3.2 e 3.3 entregam geração e crítica de uma única tentativa ca
 | REGEN-05 | P1: Isolamento de falha de integração por mensagem | Execute (T3) | Implementing |
 | REGEN-06 | P1: Isolamento de falha de integração por mensagem | Execute (T3) | Implementing |
 | REGEN-07 | P1: Proveniência completa e retomada sem repetição | Design | Pending |
-| REGEN-08 | P1: Proveniência completa e retomada sem repetição | Design | Pending |
-| REGEN-09 | P1: Proveniência completa e retomada sem repetição | Design | Pending |
-| REGEN-10 | P1: Proveniência completa e retomada sem repetição | Design | Pending |
+| REGEN-08 | P1: Proveniência completa e retomada sem repetição | Execute (T4) | Implementing |
+| REGEN-09 | P1: Proveniência completa e retomada sem repetição | Execute (T4) | Implementing |
+| REGEN-10 | P1: Proveniência completa e retomada sem repetição | Execute (T2, T4) | Implementing |
 | REGEN-11 | P2: Acompanhamento acessível do ciclo por item | Design | Pending |
 | REGEN-12 | P2: Acompanhamento acessível do ciclo por item | Design | Pending |
 

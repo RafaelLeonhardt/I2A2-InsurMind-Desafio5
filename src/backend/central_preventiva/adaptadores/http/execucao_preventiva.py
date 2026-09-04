@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 
 from central_preventiva.adaptadores.http.meteorologia import montar_portas_coleta
+from central_preventiva.adaptadores.http.preflight_ia import montar_servico_geracao
 from central_preventiva.adaptadores.persistencia.repositorio_avaliacoes_risco import (
     RepositorioAvaliacoesRisco,
 )
@@ -176,6 +177,7 @@ def montar_portas_execucao(configuracao: Configuracao) -> PortasGerenciadorExecu
                 elegibilidades=RepositorioElegibilidades(caminho),
             )
         ),
+        geracao=montar_servico_geracao(configuracao),
     )
 
 

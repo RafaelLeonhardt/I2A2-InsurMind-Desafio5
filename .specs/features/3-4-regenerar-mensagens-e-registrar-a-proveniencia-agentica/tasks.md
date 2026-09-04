@@ -150,7 +150,7 @@ silêncio dentro da task desacoplada. Nenhum estado terminal novo de execução 
 
 ---
 
-### T4: Extensão de `GerenciadorExecucoes.retomar_pendentes`
+### T4: Extensão de `GerenciadorExecucoes.retomar_pendentes` ✅
 
 **What**: Ao retomar uma execução em `processando_mensagens`, identifica mensagens não terminais e continua cada uma do seu último marco durável.
 **Where**: `src/backend/central_preventiva/aplicacao/gerenciador_execucoes.py` (extensão de 2.6)
@@ -162,9 +162,16 @@ silêncio dentro da task desacoplada. Nenhum estado terminal novo de execução 
 
 **Done when**:
 
-- [ ] Mensagem persistida com tentativa 2 concluída (reprovada) é retomada continuando na tentativa 3, sem repetir a 1 ou 2
-- [ ] Mensagem já em estado terminal (`aguardando_revisao`, `falhou_conteudo`, `falhou_integracao_ia`) nunca é reaberta pela retomada
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Mensagem persistida com tentativa 2 concluída (reprovada) é retomada continuando na tentativa 3, sem repetir a 1 ou 2
+- [x] Mensagem já em estado terminal (`aguardando_revisao`, `falhou_conteudo`, `falhou_integracao_ia`) nunca é reaberta pela retomada
+- [x] Gate check passa: `uv run --directory src/backend pytest` (727 passed), ruff e pyright limpos
+
+**Fecha o risco 12(b) do `STATE.md`**: uma execução presa em `processando_mensagens` deixou de
+ser ignorada no boot. `retomar_pendentes` agora delega a
+`ServicoGeracaoMensagens.retomar_mensagens_pendentes`, que continua cada mensagem em
+`gerando`/`criticando` do último marco durável — versão gravada, avaliação gravada, tentativa
+reservada. O estado da execução não é mexido: o gate de saída de `processando_mensagens` é da
+História 3.5.
 
 **Tests**: integration
 **Gate**: quick

@@ -35,6 +35,9 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 from uuid import UUID
 
+from central_preventiva.adaptadores.persistencia.repositorio_avaliacoes_criticas import (
+    RegistroAvaliacaoCritica,
+)
 from central_preventiva.adaptadores.persistencia.repositorio_contextos_agente import (
     RegistroContextoAgente,
 )
@@ -47,6 +50,11 @@ from central_preventiva.adaptadores.persistencia.repositorio_mensagens import (
     VersaoMensagem,
 )
 from central_preventiva.aplicacao.grafos.geracao_mensagem import (
+    MAXIMO_TENTATIVAS_MENSAGEM,
+    NO_CRITICAR,
+    NO_ESGOTAR,
+    NO_GERAR,
+    NO_REGENERAR,
     DesfechoCritica,
     DesfechoGeracao,
     EstadoGrafoMensagem,
@@ -74,6 +82,14 @@ IMPACTO_ITEM_FORA_DO_LOTE = (
 
 MOTIVO_SEM_CATEGORIA = "sem_motivo_estruturado"
 """Usado na causa quando a reprovação final não trouxe nenhum motivo categorizado."""
+
+ESTADOS_RETOMAVEIS = frozenset({EstadoMensagem.GERANDO, EstadoMensagem.CRITICANDO})
+"""Únicos estados em que o ciclo automático ainda tem trabalho a fazer (REGEN-08).
+
+Os cinco terminais do AD-4 nunca reabrem (REGEN-10). `aguardando_revisao` e `aprovada`
+também ficam de fora: não são terminais, mas esperam uma decisão humana (3.5), não a
+automação — retomá-las geraria conteúdo por cima de uma mensagem já aprovada.
+"""
 
 
 def _causa_contexto_ausente(elegibilidade_id: UUID) -> str:
@@ -117,6 +133,38 @@ def _causa_falha_tecnica(elegibilidade_id: UUID, erro: BaseException) -> str:
     return f"falha_tecnica_item:{elegibilidade_id}:{type(erro).__name__}: {erro}"
 
 
+def _resultado_de(versao: VersaoMensagem) -> ResultadoGeracao:
+    """Reconstrói o desfecho de uma tentativa a partir da versão já persistida.
+
+    A retomada nunca recalcula nada: o veredito determinístico, o conteúdo e as métricas
+    vêm exatamente da linha gravada quando a tentativa aconteceu (REGEN-08).
+    """
+
+    return ResultadoGeracao(
+        desfecho=DesfechoGeracao.VALIDA if versao.valida else DesfechoGeracao.INVALIDA,
+        saida=versao.conteudo,
+        motivo=versao.motivo_invalidez,
+        duracao_ms=versao.duracao_ms,
+        modelo=versao.modelo,
+        tokens_entrada=versao.tokens_entrada,
+        tokens_saida=versao.tokens_saida,
+    )
+
+
+def _critica_de(registro: RegistroAvaliacaoCritica) -> ResultadoCritica:
+    """Reconstrói a avaliação de uma tentativa a partir da linha já persistida."""
+
+    return ResultadoCritica(
+        desfecho=DesfechoCritica.APROVADA
+        if registro.avaliacao.aprovada
+        else DesfechoCritica.REPROVADA,
+        motivos=registro.avaliacao.motivos,
+        causa=None,
+        duracao_ms=registro.duracao_ms,
+        modelo=registro.modelo,
+    )
+
+
 class _RepositorioElegibilidades(Protocol):
     """Porta mínima do público elegível preservado pela execução (2.5)."""
 
@@ -137,6 +185,8 @@ class _RepositorioMensagens(Protocol):
     def criar(self, execucao_id: UUID, elegibilidade_id: UUID, canal: Canal) -> UUID: ...
 
     def obter(self, mensagem_id: UUID) -> RegistroMensagem | None: ...
+
+    def listar_por_execucao(self, execucao_id: UUID) -> list[RegistroMensagem]: ...
 
     def salvar_versao(
         self,
@@ -172,6 +222,10 @@ class _RepositorioAvaliacoesCriticas(Protocol):
         modelo: str,
         duracao_ms: float,
     ) -> UUID: ...
+
+    def obter_por_versao(
+        self, versao_mensagem_id: UUID
+    ) -> RegistroAvaliacaoCritica | None: ...
 
 
 class _RepositorioExcecoesOperacionais(Protocol):
@@ -368,6 +422,105 @@ class ServicoGeracaoMensagens:
             if not registro.elegivel:
                 continue
             await self._gerar_item_isolado(execucao_id, registro)
+
+    async def retomar_mensagens_pendentes(self, execucao_id: UUID) -> None:
+        """Retoma, no boot, as mensagens da execução ainda no ciclo automático (REGEN-08).
+
+        Chamado por `GerenciadorExecucoes.retomar_pendentes` para uma execução achada em
+        `processando_mensagens`. Cada mensagem continua do seu último marco durável: uma
+        tentativa já concluída nunca é refeita, e um estado terminal nunca reabre (REGEN-09).
+        Uma falha isolada de uma mensagem não impede a retomada das demais.
+        """
+
+        for registro in self._portas.mensagens.listar_por_execucao(execucao_id):
+            if registro.estado not in ESTADOS_RETOMAVEIS:
+                continue
+            await self._retomar_item_isolado(registro)
+
+    async def _retomar_item_isolado(self, registro: RegistroMensagem) -> None:
+        """Retoma uma mensagem convertendo qualquer falha técnica em exceção dela."""
+
+        try:
+            await self._retomar_item(registro)
+        except Exception as erro:  # noqa: BLE001 - falha técnica isolada no item (AD-8)
+            self._registrar_excecao(
+                registro.execucao_id, _causa_falha_tecnica(registro.elegibilidade_id, erro)
+            )
+
+    async def _retomar_item(self, registro: RegistroMensagem) -> None:
+        """Reentra no grafo da mensagem no marco seguinte ao último já persistido."""
+
+        contexto = self._portas.contextos.obter_por_elegibilidade(registro.elegibilidade_id)
+        if contexto is None:
+            self._registrar_excecao(
+                registro.execucao_id, _causa_contexto_ausente(registro.elegibilidade_id)
+            )
+            return
+
+        versao = self._portas.mensagens.obter_versao_atual(registro.id)
+        if versao is None or versao.numero_tentativa < registro.tentativa_atual:
+            await self._retomar_grafo(registro, contexto.contexto, NO_GERAR)
+            return
+
+        resultado = _resultado_de(versao)
+        if not versao.valida:
+            await self._retomar_grafo(
+                registro, contexto.contexto, self._apos_reprovacao(registro), resultado
+            )
+            return
+
+        avaliacao = self._portas.avaliacoes.obter_por_versao(versao.id)
+        if avaliacao is None:
+            await self._retomar_grafo(
+                registro, contexto.contexto, NO_CRITICAR, resultado
+            )
+            return
+
+        critica = _critica_de(avaliacao)
+        if critica.desfecho is DesfechoCritica.APROVADA:
+            self._ciclo.registrar_critica(registro.id, versao.numero_tentativa, critica)
+            return
+
+        await self._retomar_grafo(
+            registro,
+            contexto.contexto,
+            self._apos_reprovacao(registro),
+            resultado,
+            critica,
+        )
+
+    def _apos_reprovacao(self, registro: RegistroMensagem) -> str:
+        """Regenera se ainda houver tentativa; senão esgota (mesma regra do grafo)."""
+
+        return (
+            NO_REGENERAR
+            if registro.tentativa_atual < MAXIMO_TENTATIVAS_MENSAGEM
+            else NO_ESGOTAR
+        )
+
+    async def _retomar_grafo(
+        self,
+        registro: RegistroMensagem,
+        contexto: ContextoAgente,
+        retomar_de: str,
+        resultado: ResultadoGeracao | None = None,
+        critica: ResultadoCritica | None = None,
+    ) -> None:
+        """Invoca o grafo já posicionado no marco de retomada, com o estado reconstruído."""
+
+        estado: EstadoGrafoMensagem = {
+            "contexto": contexto,
+            "canal": registro.canal,
+            "tentativa": registro.tentativa_atual,
+            "mensagem_id": registro.id,
+            "ciclo": self._ciclo,
+            "retomar_de": retomar_de,
+        }
+        if resultado is not None:
+            estado["resultado"] = resultado
+        if critica is not None:
+            estado["resultado_critica"] = critica
+        await self._portas.grafo.ainvoke(estado)
 
     async def _gerar_item_isolado(
         self, execucao_id: UUID, registro: RegistroElegibilidade

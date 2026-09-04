@@ -12,6 +12,8 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
+import pytest
+
 from central_preventiva.adaptadores.ia.agente_redator import RespostaRedator
 from central_preventiva.adaptadores.ia.verificador_disponibilidade_openai import (
     ResultadoDisponibilidade,
@@ -1026,3 +1028,226 @@ def test_item_com_falha_tecnica_nao_interrompe_o_restante_do_lote(tmp_path: Path
     assert causas == [
         f"falha_tecnica_item:{quebrado.id}:RuntimeError: banco indisponível"
     ]
+
+
+MOTIVOS_REPROVACAO = (MotivoCritica(CategoriaCritica.TOM, "O texto usa tom alarmista."),)
+
+
+def _semear_tentativas_reprovadas(
+    cenario: Cenario, elegibilidade_id: UUID, ate_tentativa: int
+) -> UUID:
+    """Persiste uma mensagem com N tentativas concluídas e reprovadas pelo crítico.
+
+    Escreve exatamente a sequência de marcos que o ciclo real grava — versão, transição,
+    avaliação, incremento — para que a retomada encontre o mesmo estado durável que
+    encontraria depois de um reinício de verdade.
+    """
+
+    repo = cenario.mensagens
+    mensagem_id = repo.criar(EXECUCAO_ID, elegibilidade_id, Canal.SMS)
+    for tentativa in range(1, ate_tentativa + 1):
+        registro_atual = repo.obter(mensagem_id)
+        assert registro_atual is not None
+        versao_id = repo.salvar_versao(
+            mensagem_id=mensagem_id,
+            numero_tentativa=tentativa,
+            conteudo=SaidaCanal(corpo=f"{CORPO_VALIDO} tentativa {tentativa}"),
+            duracao_ms=10.0,
+            modelo="gpt-4o-mini",
+            versao_prompt=VERSAO_PROMPT,
+            tokens_entrada=100,
+            tokens_saida=30,
+            valida=True,
+            motivo_invalidez=None,
+        )
+        repo.transicionar(mensagem_id, registro_atual.versao, EstadoMensagem.CRITICANDO)
+        cenario.avaliacoes.salvar(versao_id, False, MOTIVOS_REPROVACAO, "gpt-4o-mini", 5.0)
+        if tentativa < ate_tentativa:
+            reprovada = repo.obter(mensagem_id)
+            assert reprovada is not None
+            repo.incrementar_tentativa(mensagem_id, reprovada.versao)
+            reservada = repo.obter(mensagem_id)
+            assert reservada is not None
+            repo.transicionar(mensagem_id, reservada.versao, EstadoMensagem.GERANDO)
+    return mensagem_id
+
+
+def test_retomada_continua_na_terceira_tentativa_sem_repetir_a_primeira_nem_a_segunda(
+    tmp_path: Path,
+) -> None:
+    """REGEN-08 (teste independente da spec): com a tentativa 2 concluída e reprovada, a
+    retomada não refaz a 1 nem a 2. O redator é chamado uma única vez, a versão nova é a de
+    número 3 e o conteúdo das duas anteriores permanece exatamente como estava."""
+
+    incluido = registro(canal="sms")
+    semeador = Cenario([incluido], tmp_path)
+    mensagem_id = _semear_tentativas_reprovadas(semeador, incluido.id, ate_tentativa=2)
+
+    reiniciado = Cenario([incluido], tmp_path, critico=CriticoFalso([AvaliacaoCritica(True, ())]))
+    asyncio.run(reiniciado.servico.retomar_mensagens_pendentes(EXECUCAO_ID))
+
+    assert reiniciado.redator.canais_chamados == [Canal.SMS]
+    versoes = _versoes_persistidas(tmp_path, mensagem_id)
+    assert [numero for numero, _, _ in versoes] == [1, 2, 3]
+    assert versoes[0][1] == f'{{"corpo": "{CORPO_VALIDO} tentativa 1"}}'
+    assert versoes[1][1] == f'{{"corpo": "{CORPO_VALIDO} tentativa 2"}}'
+    mensagem = reiniciado.mensagens.obter(mensagem_id)
+    assert mensagem is not None
+    assert mensagem.tentativa_atual == 3
+    assert mensagem.estado is EstadoMensagem.AGUARDANDO_REVISAO
+
+
+def test_retomada_na_terceira_tentativa_ja_reprovada_esgota_sem_gerar_de_novo(
+    tmp_path: Path,
+) -> None:
+    """REGEN-08 + REGEN-04: retomada de uma mensagem cuja terceira tentativa já foi reprovada
+    não dispara uma quarta geração — fecha em `falhou_conteudo`, o desfecho que faltava."""
+
+    incluido = registro(canal="sms")
+    semeador = Cenario([incluido], tmp_path)
+    mensagem_id = _semear_tentativas_reprovadas(semeador, incluido.id, ate_tentativa=3)
+
+    reiniciado = Cenario([incluido], tmp_path)
+    asyncio.run(reiniciado.servico.retomar_mensagens_pendentes(EXECUCAO_ID))
+
+    assert reiniciado.redator.canais_chamados == []
+    assert [numero for numero, _, _ in _versoes_persistidas(tmp_path, mensagem_id)] == [1, 2, 3]
+    mensagem = reiniciado.mensagens.obter(mensagem_id)
+    assert mensagem is not None
+    assert mensagem.estado is EstadoMensagem.FALHOU_CONTEUDO
+    assert mensagem.tentativa_atual == 3
+
+
+def test_retomada_de_mensagem_sem_versao_gera_a_tentativa_em_curso_sem_duplicar(
+    tmp_path: Path,
+) -> None:
+    """REGEN-08: interrompida antes de a tentativa em curso produzir versão, a retomada gera
+    exatamente aquela tentativa — não uma tentativa nova nem uma segunda versão da mesma."""
+
+    incluido = registro(canal="sms")
+    semeador = Cenario([incluido], tmp_path)
+    mensagem_id = semeador.mensagens.criar(EXECUCAO_ID, incluido.id, Canal.SMS)
+
+    reiniciado = Cenario([incluido], tmp_path, critico=CriticoFalso([AvaliacaoCritica(True, ())]))
+    asyncio.run(reiniciado.servico.retomar_mensagens_pendentes(EXECUCAO_ID))
+
+    assert [numero for numero, _, _ in _versoes_persistidas(tmp_path, mensagem_id)] == [1]
+    mensagem = reiniciado.mensagens.obter(mensagem_id)
+    assert mensagem is not None
+    assert mensagem.tentativa_atual == 1
+    assert mensagem.estado is EstadoMensagem.AGUARDANDO_REVISAO
+
+
+def test_retomada_de_mensagem_em_criticando_sem_avaliacao_critica_a_versao_persistida(
+    tmp_path: Path,
+) -> None:
+    """REGEN-08: interrompida entre a versão válida e a avaliação, a retomada avalia a versão
+    já gravada em vez de gerar de novo — o marco durável é o ponto de partida."""
+
+    incluido = registro(canal="sms")
+    semeador = Cenario([incluido], tmp_path)
+    mensagem_id = semeador.mensagens.criar(EXECUCAO_ID, incluido.id, Canal.SMS)
+    semeador.mensagens.salvar_versao(
+        mensagem_id=mensagem_id,
+        numero_tentativa=1,
+        conteudo=SaidaCanal(corpo=f"{CORPO_VALIDO} tentativa 1"),
+        duracao_ms=10.0,
+        modelo="gpt-4o-mini",
+        versao_prompt=VERSAO_PROMPT,
+        tokens_entrada=100,
+        tokens_saida=30,
+        valida=True,
+        motivo_invalidez=None,
+    )
+    semeador.mensagens.transicionar(mensagem_id, 1, EstadoMensagem.CRITICANDO)
+
+    reiniciado = Cenario([incluido], tmp_path, critico=CriticoFalso([AvaliacaoCritica(True, ())]))
+    asyncio.run(reiniciado.servico.retomar_mensagens_pendentes(EXECUCAO_ID))
+
+    assert reiniciado.redator.canais_chamados == []
+    assert reiniciado.critico.chamadas == 1
+    assert [numero for numero, _, _ in _versoes_persistidas(tmp_path, mensagem_id)] == [1]
+    mensagem = reiniciado.mensagens.obter(mensagem_id)
+    assert mensagem is not None
+    assert mensagem.estado is EstadoMensagem.AGUARDANDO_REVISAO
+
+
+@pytest.mark.parametrize(
+    "terminal",
+    [
+        EstadoMensagem.FALHOU_CONTEUDO,
+        EstadoMensagem.FALHOU_INTEGRACAO_IA,
+        EstadoMensagem.SIMULADA_ENTREGUE,
+        EstadoMensagem.EXCLUIDA,
+        EstadoMensagem.REJEITADA,
+    ],
+)
+def test_retomada_nunca_reabre_uma_mensagem_em_estado_terminal(
+    tmp_path: Path, terminal: EstadoMensagem
+) -> None:
+    """REGEN-09/REGEN-10: um terminal de mensagem nunca reabre. A retomada não muta a linha
+    (a versão de concorrência fica igual), não grava versão nova e não chama a OpenAI."""
+
+    incluido = registro(canal="sms")
+    semeador = Cenario([incluido], tmp_path)
+    mensagem_id = semeador.mensagens.criar(EXECUCAO_ID, incluido.id, Canal.SMS)
+    semeador.mensagens.transicionar(mensagem_id, 1, terminal)
+    antes = semeador.mensagens.obter(mensagem_id)
+    assert antes is not None
+
+    reiniciado = Cenario([incluido], tmp_path)
+    asyncio.run(reiniciado.servico.retomar_mensagens_pendentes(EXECUCAO_ID))
+
+    depois = reiniciado.mensagens.obter(mensagem_id)
+    assert depois is not None
+    assert depois.estado is terminal
+    assert depois.versao == antes.versao
+    assert depois.tentativa_atual == antes.tentativa_atual
+    assert _versoes_persistidas(tmp_path, mensagem_id) == []
+    assert reiniciado.redator.canais_chamados == []
+    assert reiniciado.excecoes.registradas == []
+
+
+def test_retomada_nao_toca_mensagem_que_ja_aguarda_revisao_humana(tmp_path: Path) -> None:
+    """REGEN-09: `aguardando_revisao` não é terminal, mas espera uma decisão humana (3.5),
+    não a automação — a retomada não gera conteúdo por cima de uma mensagem já aprovada."""
+
+    incluido = registro(canal="sms")
+    semeador = Cenario([incluido], tmp_path)
+    mensagem_id = semeador.mensagens.criar(EXECUCAO_ID, incluido.id, Canal.SMS)
+    semeador.mensagens.transicionar(mensagem_id, 1, EstadoMensagem.AGUARDANDO_REVISAO)
+    antes = semeador.mensagens.obter(mensagem_id)
+    assert antes is not None
+
+    reiniciado = Cenario([incluido], tmp_path)
+    asyncio.run(reiniciado.servico.retomar_mensagens_pendentes(EXECUCAO_ID))
+
+    depois = reiniciado.mensagens.obter(mensagem_id)
+    assert depois is not None
+    assert depois.estado is EstadoMensagem.AGUARDANDO_REVISAO
+    assert depois.versao == antes.versao
+    assert reiniciado.redator.canais_chamados == []
+
+
+def test_retomada_isola_a_falha_de_uma_mensagem_e_continua_as_demais(tmp_path: Path) -> None:
+    """REGEN-06: na retomada, como na geração, a falha de um item nunca impede os demais."""
+
+    sem_contexto = registro(canal="sms")
+    com_contexto = registro(canal="email")
+    semeador = Cenario([sem_contexto, com_contexto], tmp_path)
+    semeador.mensagens.criar(EXECUCAO_ID, sem_contexto.id, Canal.SMS)
+    outra_id = semeador.mensagens.criar(EXECUCAO_ID, com_contexto.id, Canal.EMAIL)
+
+    reiniciado = Cenario(
+        [sem_contexto, com_contexto],
+        tmp_path,
+        contextos={com_contexto.id: contexto_de("email")},
+        critico=CriticoFalso([AvaliacaoCritica(True, ())]),
+    )
+    asyncio.run(reiniciado.servico.retomar_mensagens_pendentes(EXECUCAO_ID))
+
+    outra = reiniciado.mensagens.obter(outra_id)
+    assert outra is not None
+    assert outra.estado is EstadoMensagem.AGUARDANDO_REVISAO
+    causas = [causa for _, causa, _, _ in reiniciado.excecoes.registradas]
+    assert causas == [f"contexto_ausente:{sem_contexto.id}"]
