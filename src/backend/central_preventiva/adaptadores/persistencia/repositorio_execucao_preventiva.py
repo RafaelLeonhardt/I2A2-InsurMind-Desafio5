@@ -285,6 +285,18 @@ class RepositorioExcecoesOperacionais:
 
         self._caminho = caminho
 
+    @contextmanager
+    def _conexao_ativa(
+        self, conexao: duckdb.DuckDBPyConnection | None
+    ) -> Generator[duckdb.DuckDBPyConnection]:
+        """Usa a conexão do chamador quando há uma; senão abre e fecha a própria."""
+
+        if conexao is not None:
+            yield conexao
+            return
+        with abrir_conexao(self._caminho) as propria:
+            yield propria
+
     def registrar(
         self,
         execucao_id: UUID,
@@ -292,15 +304,22 @@ class RepositorioExcecoesOperacionais:
         tentativas: int,
         impacto: str,
         mensagem_id: UUID | None = None,
+        conexao: duckdb.DuckDBPyConnection | None = None,
     ) -> None:
         """Persiste a exceção operacional (causa, tentativas, impacto) da execução.
 
         `mensagem_id` correlaciona a exceção a uma mensagem específica quando a falha é do
         conteúdo ou da integração de um item, e não da execução inteira (REGEN-04).
+
+        SPEC_DEVIATION (História 3.6): o `design.md` da 3.6 lista este repositório como
+        reusado sem alteração. `registrar` ganhou o parâmetro opcional `conexao` porque o
+        SIMUL-09 exige que a transição para `falhou_simulacao` e a `Exceção` sanitizada
+        entrem na *mesma* segunda transação — com duas conexões, uma delas sobreviveria ao
+        `ROLLBACK` da outra (achado de 3.5). Chamadores de 2.2/3.1/3.4 seguem sem passá-lo.
         """
 
-        with abrir_conexao(self._caminho) as conexao:
-            conexao.execute(
+        with self._conexao_ativa(conexao) as ativa:
+            ativa.execute(
                 "INSERT INTO excecoes_operacionais "
                 "(id, execucao_id, causa, tentativas, impacto, mensagem_id) "
                 "VALUES (?, ?, ?, ?, ?, ?)",

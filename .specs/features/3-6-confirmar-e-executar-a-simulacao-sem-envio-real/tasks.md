@@ -113,7 +113,7 @@ T5
 
 ---
 
-### T3: `ServicoSimulacao`
+### T3: `ServicoSimulacao` ✅
 
 **What**: `confirmar` (reclamação atômica, transação 1 de entregas+transição de mensagens, rollback+transação 2 de `falhou_simulacao` em falha local) e `solicitar_nova_tentativa` (execução correlacionada).
 **Where**: `src/backend/central_preventiva/aplicacao/simulacao.py`
@@ -125,15 +125,16 @@ T5
 
 **Done when**:
 
-- [ ] Reclamação atômica reconsulta o estado real das mensagens (não confia em estado enviado pelo cliente); só as `aprovada` são reclamadas
-- [ ] Sucesso: entregas criadas, mensagens `simulada_entregue`, execução `concluida`, tudo na mesma transação 1
-- [ ] Falha local injetada (via `injecao_falha_teste`): rollback da transação 1 (mensagens permanecem `aprovada`, nenhuma entrega parcial), transação 2 move para `falhou_simulacao` com `Exceção` sanitizada
-- [ ] Repetir `confirmar` com a mesma `Idempotency-Key` devolve o resultado já registrado, sem criar segunda entrega
-- [ ] Duas chamadas concorrentes para a mesma `versao_esperada`: só uma reclama; a outra recebe idempotente ou conflito, sem duplicação
-- [ ] `solicitar_nova_tentativa` com snapshot corrompido rejeita sem criar execução; com snapshot válido cria execução correlacionada em `aguardando_geracao` com `execucao_origem_id`, origem permanece terminal
-- [ ] `solicitar_nova_tentativa` copia as elegibilidades da origem para a nova execução na mesma transação (`RepositorioElegibilidades.copiar_para_execucao`, AD-012); teste cobre origem que chegou a `simulando` (com contextos e mensagens existentes) e confirma que a nova execução gera contexto e mensagem sem violar as `UNIQUE`s de `contextos_agente`/`mensagens`
-- [ ] Nenhum teste ou código de produção invoca qualquer conector real de canal
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Reclamação atômica reconsulta o estado real das mensagens (não confia em estado enviado pelo cliente); só as `aprovada` são reclamadas — e com aprovação dupla real (crítico + Marina, REVISAO-14)
+- [x] Sucesso: entregas criadas, mensagens `simulada_entregue`, execução `concluida`, tudo na mesma transação 1
+- [x] Falha local injetada (via `injecao_falha_teste`): rollback da transação 1 (mensagens permanecem `aprovada`, nenhuma entrega parcial), transação 2 move para `falhou_simulacao` com `Exceção` sanitizada
+- [x] Segunda transação idempotente: repeti-la sobre um agregado já em `falhou_simulacao` não erra, não reabre o terminal e não grava uma segunda `Exceção`
+- [x] Repetir `confirmar` com a mesma `Idempotency-Key` devolve o resultado já registrado, sem criar segunda entrega
+- [x] Duas chamadas concorrentes para a mesma `versao_esperada`: só uma reclama; a outra recebe idempotente ou conflito, sem duplicação
+- [x] `solicitar_nova_tentativa` com snapshot corrompido rejeita sem criar execução; com snapshot válido cria execução correlacionada em `aguardando_geracao` com `execucao_origem_id`, origem permanece terminal
+- [x] `solicitar_nova_tentativa` copia as elegibilidades da origem para a nova execução na mesma transação (`RepositorioElegibilidades.copiar_para_execucao`, AD-012); teste cobre origem que chegou a `simulando` (com contextos e mensagens existentes) e confirma que a nova execução gera contexto e mensagem sem violar as `UNIQUE`s de `contextos_agente`/`mensagens`
+- [x] Nenhum teste ou código de produção invoca qualquer conector real de canal (teste estrutural sobre o próprio fonte)
+- [x] Gate check passa: `uv run --directory src/backend pytest` (869 passed), `ruff` e `pyright` limpos
 
 **Tests**: unit
 **Gate**: quick

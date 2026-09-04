@@ -121,13 +121,13 @@ A História 3.5 entrega a execução em `aguardando_confirmacao` com o lote apro
 | SIMUL-01 | P1: Confirmação com gate separado e reconhecimento explícito | Design | Pending |
 | SIMUL-02 | P1: Confirmação com gate separado e reconhecimento explícito | Design | Pending |
 | SIMUL-03 | P1: Confirmação com gate separado e reconhecimento explícito | Design | Pending |
-| SIMUL-04 | P1: Reclamação atômica e criação das entregas simuladas | Design | Pending |
-| SIMUL-05 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T1, T2) | Implementing |
-| SIMUL-06 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T2) | Implementing |
-| SIMUL-07 | P1: Idempotência, concorrência e rollback local | Design | Pending |
-| SIMUL-08 | P1: Idempotência, concorrência e rollback local | Design | Pending |
-| SIMUL-09 | P1: Idempotência, concorrência e rollback local | Design | Pending |
-| SIMUL-10 | P2: Retentativa correlacionada e progresso visível | Design | Pending |
+| SIMUL-04 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T3) | Implementing |
+| SIMUL-05 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T1, T2, T3) | Implementing |
+| SIMUL-06 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T2, T3) | Implementing |
+| SIMUL-07 | P1: Idempotência, concorrência e rollback local | Execute (T3) | Implementing |
+| SIMUL-08 | P1: Idempotência, concorrência e rollback local | Execute (T3) | Implementing |
+| SIMUL-09 | P1: Idempotência, concorrência e rollback local | Execute (T3) | Implementing |
+| SIMUL-10 | P2: Retentativa correlacionada e progresso visível | Execute (T3) | Implementing |
 | SIMUL-11 | P2: Retentativa correlacionada e progresso visível | Design | Pending |
 | SIMUL-12 | P2: Retentativa correlacionada e progresso visível | Design | Pending |
 
