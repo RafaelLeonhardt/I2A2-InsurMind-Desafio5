@@ -118,24 +118,24 @@ A História 3.5 entrega a execução em `aguardando_confirmacao` com o lote apro
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| SIMUL-01 | P1: Confirmação com gate separado e reconhecimento explícito | Execute (T4) | Implementing |
-| SIMUL-02 | P1: Confirmação com gate separado e reconhecimento explícito | Execute (T4) | Implementing |
-| SIMUL-03 | P1: Confirmação com gate separado e reconhecimento explícito | Execute (T3, T4) | Implementing |
+| SIMUL-01 | P1: Confirmação com gate separado e reconhecimento explícito | Execute (T4, T5) | Implementing |
+| SIMUL-02 | P1: Confirmação com gate separado e reconhecimento explícito | Execute (T4, T5) | Implementing |
+| SIMUL-03 | P1: Confirmação com gate separado e reconhecimento explícito | Execute (T3, T4, T5) | Implementing |
 | SIMUL-04 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T3) | Implementing |
 | SIMUL-05 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T1, T2, T3) | Implementing |
-| SIMUL-06 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T2, T3, T4) | Implementing |
+| SIMUL-06 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T2, T3, T4, T5) | Implementing |
 | SIMUL-07 | P1: Idempotência, concorrência e rollback local | Execute (T3, T4) | Implementing |
 | SIMUL-08 | P1: Idempotência, concorrência e rollback local | Execute (T3, T4) | Implementing |
 | SIMUL-09 | P1: Idempotência, concorrência e rollback local | Execute (T3) | Implementing |
 | SIMUL-10 | P2: Retentativa correlacionada e progresso visível | Execute (T3, T4) | Implementing |
-| SIMUL-11 | P2: Retentativa correlacionada e progresso visível | Execute (T4) | Implementing |
-| SIMUL-12 | P2: Retentativa correlacionada e progresso visível | Design | Pending |
+| SIMUL-11 | P2: Retentativa correlacionada e progresso visível | Execute (T4, T5) | Implementing |
+| SIMUL-12 | P2: Retentativa correlacionada e progresso visível | Execute (T5) | Implementing |
 
 **ID format:** `SIMUL-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 12 total, 0 mapped to tasks, 12 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 12 total, 12 mapped to tasks, 0 unmapped. T1–T5 implementadas com gate verde (887 backend + 285 frontend, `ruff`/`pyright`/`oxlint`/`build` limpos). Verificação independente pendente.
 
 ---
 

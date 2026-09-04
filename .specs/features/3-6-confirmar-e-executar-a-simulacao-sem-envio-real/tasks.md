@@ -167,7 +167,7 @@ T5
 
 ---
 
-### T5: Modal de confirmação e superfície de progresso da simulação
+### T5: Modal de confirmação e superfície de progresso da simulação ✅
 
 **What**: Modal com evento/regra/período/quantidade/distribuição por canal, checkbox de reconhecimento bloqueando a ação principal até marcado; superfície de progresso com os 5 estados (`Bloqueada`, `Pronta`, `Simulando`, `Concluída`, `Falha local`) e navegação origem↔retentativa.
 **Where**: `src/frontend/src/funcionalidades/simulacao/SuperficieSimulacao.tsx`
@@ -179,11 +179,13 @@ T5
 
 **Done when**:
 
-- [ ] Botão de confirmar desabilitado até o reconhecimento ser marcado
-- [ ] Os 5 estados exibidos distintamente, caráter simulado sempre visível (durante e depois)
-- [ ] Link de navegação origem↔retentativa funcional
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Botão de confirmar desabilitado até o reconhecimento ser marcado
+- [x] Os 5 estados exibidos distintamente em texto, ícone e cor (L-024); caráter simulado sempre visível (durante e depois)
+- [x] Link de navegação origem↔retentativa funcional, nos dois sentidos, sem mesclar históricos
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado contra o backend real em 127.0.0.1:8000; `verificar-tipos-api` confirma a sincronia
+- [x] Gate check passa: `npm test -- --run` (285 passed), `npm run lint` (exit 0) e `npm run build`
+
+**Observação de escopo**: `SuperficieSimulacao` é a 9ª superfície ainda não ligada ao switch de navegação de `App.tsx`/`PerfilContexto.tsx` — mesma pendência já registrada no risco (9) do `STATE.md`, fora do escopo desta task.
 
 **Tests**: unit
 **Gate**: full

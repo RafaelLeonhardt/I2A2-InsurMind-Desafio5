@@ -1,0 +1,101 @@
+.simulacao__aviso {
+  margin: 0.4rem 0 1rem;
+  padding: 0.5rem 0.8rem;
+  border-left: 4px solid #b45309;
+  border-radius: 0.25rem;
+  background: #fffbeb;
+  color: #7c2d12;
+  font-weight: 600;
+}
+
+/* O selo de progresso distingue os cinco estados por texto, ícone e cor. A cor vem de
+   `--cor-progresso`, definida no próprio elemento pelo componente, para que a distinção
+   exigida pelo requisito seja observável e não dependa desta folha de estilo. */
+.simulacao__progresso {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.8rem;
+  border-left: 4px solid var(--cor-progresso);
+  border-radius: 0.25rem;
+  background: #f8fafc;
+  color: var(--cor-progresso);
+}
+
+.simulacao__progresso-explicacao {
+  flex-basis: 100%;
+  color: #334155;
+  font-size: 0.85rem;
+}
+
+.simulacao__resumo,
+.simulacao__modal-resumo {
+  display: grid;
+  gap: 0.4rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.simulacao__resumo dt,
+.simulacao__modal-resumo dt {
+  color: #475569;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.simulacao__resumo dd,
+.simulacao__modal-resumo dd {
+  margin: 0 0 0.4rem;
+}
+
+.simulacao__acao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.simulacao__modal-aviso {
+  margin: 0.6rem 0;
+  font-weight: 600;
+}
+
+.simulacao__reconhecimento {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.simulacao__entregas ul,
+.simulacao__correlacionadas ul {
+  margin: 0.6rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.simulacao__entregas li {
+  margin-bottom: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid #cbd5f5;
+  border-radius: 0.25rem;
+  background: #f8fafc;
+}
+
+.simulacao__entrega-rotulo {
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  color: #1e3a8a;
+}
+
+.simulacao__entrega-assunto,
+.simulacao__entrega-corpo {
+  margin: 0.3rem 0 0;
+}
+
+.simulacao__entregas-aviso {
+  font-size: 0.85rem;
+  color: #334155;
+}

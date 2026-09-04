@@ -544,6 +544,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/execucoes/{execucao_id}/simulacao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o resumo da simulação de uma execução
+         * @description Devolve o que a confirmação da simulação precisa mostrar: evento, regra, período observado, quantidade de destinatários e distribuição entre WhatsApp, e-mail e SMS. Depois da simulação, devolve também cada entrega simulada com a apresentação que o canal teria, sempre rotulada como simulada e sem nenhuma confirmação ou falha de provedor externo. Traz ainda a navegação entre esta execução, sua origem e suas retentativas, sem mesclar históricos.
+         */
+        get: operations["consultar_resumo_api_v1_execucoes__execucao_id__simulacao_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/execucoes/{execucao_id}/confirmar-simulacao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Confirmar e executar a simulação de uma execução
+         * @description Executa a simulação local do lote aprovado. Exige o campo `reconhecimento_simulacao` marcado: sem ele o comando é recusado, mesmo por chamada direta à API. A elegibilidade das mensagens é reverificada do estado real no momento da confirmação, e só as aprovadas pelo agente crítico e por Marina são reclamadas: rejeitada, excluída, em exceção ou de volta ao ciclo de geração fica de fora. Cada mensagem reclamada ganha uma entrega simulada e passa a 'simulada_entregue' na mesma transação; nenhum conector real de WhatsApp, e-mail ou SMS é usado. Uma falha local desfaz a transação inteira, preserva as mensagens como 'aprovada' e move a execução a 'falhou_simulacao'. Exige o cabeçalho `Idempotency-Key`; repeti-lo devolve a simulação já registrada.
+         */
+        post: operations["confirmar_simulacao_api_v1_execucoes__execucao_id__confirmar_simulacao_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/execucoes/{execucao_origem_id}/nova-tentativa-simulacao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Solicitar nova tentativa de simulação
+         * @description Valida a integridade dos snapshots versionados da execução de origem e, passando, cria uma execução correlacionada nova em 'aguardando_geracao', com `execucao_origem_id` próprio e uma cópia integral do público elegível da origem (incluídos e excluídos). A execução de origem permanece em 'falhou_simulacao' e nunca é reaberta. Exige o cabeçalho `Idempotency-Key`.
+         */
+        post: operations["solicitar_nova_tentativa_simulacao_api_v1_execucoes__execucao_origem_id__nova_tentativa_simulacao_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -563,6 +623,23 @@ export interface components {
              * @description Motivo do erro em português brasileiro.
              */
             motivo: string;
+        };
+        /**
+         * PedidoConfirmacaoSimulacao
+         * @description Confirmação consciente da simulação, com o reconhecimento explícito (SIMUL-03).
+         */
+        PedidoConfirmacaoSimulacao: {
+            /**
+             * Versao Esperada
+             * @description Versão de concorrência otimista lida no resumo (AD-008).
+             */
+            versao_esperada: number;
+            /**
+             * Reconhecimento Simulacao
+             * @description Reconhecimento explícito de que a operação é uma simulação e nenhuma comunicação real será enviada. Sem ele o comando é recusado.
+             * @default false
+             */
+            reconhecimento_simulacao: boolean;
         };
         /**
          * PedidoDecisao
@@ -1014,6 +1091,37 @@ export interface components {
             proxima_acao: string;
         };
         /**
+         * ProblemaSimulacao
+         * @description Falha da simulação, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaSimulacao: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem solicitou a operação.
+             */
+            impacto: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
          * RespostaAvaliacaoCritica
          * @description Detalhe de uma avaliação: versão, critérios, decisão, motivos e proveniência.
          */
@@ -1195,6 +1303,22 @@ export interface components {
              * @description Instante RFC 3339 em UTC da avaliação.
              */
             criado_em: string;
+        };
+        /**
+         * RespostaCanalSimulacao
+         * @description Quantidade de destinatários do lote simulável em um canal.
+         */
+        RespostaCanalSimulacao: {
+            /**
+             * Canal
+             * @description Canal da comunicação (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
+             * Total
+             * @description Destinatários do lote simulável neste canal.
+             */
+            total: number;
         };
         /**
          * RespostaCasoTeste
@@ -1676,6 +1800,50 @@ export interface components {
             registros: components["schemas"]["RespostaResumoElegibilidade"][];
         };
         /**
+         * RespostaEntregaSimulada
+         * @description Uma entrega simulada: como o conteúdo aprovado apareceria no canal (SIMUL-06).
+         */
+        RespostaEntregaSimulada: {
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador da entrega simulada.
+             */
+            id: string;
+            /**
+             * Mensagem Id
+             * Format: uuid
+             * @description Mensagem aprovada que originou a entrega.
+             */
+            mensagem_id: string;
+            /**
+             * Canal
+             * @description Canal em que a apresentação seria feita.
+             */
+            canal: string;
+            /**
+             * Rotulo
+             * @description Rótulo fixo da natureza da entrega: sempre 'simulada'. Nenhuma confirmação nem falha de provedor externo é registrada, porque nenhum conector real é usado.
+             */
+            rotulo: string;
+            /**
+             * Assunto
+             * @description Assunto apresentado, presente somente no canal de e-mail.
+             */
+            assunto: string | null;
+            /**
+             * Corpo
+             * @description Corpo apresentado, cópia exata do conteúdo aprovado.
+             */
+            corpo: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro da entrega.
+             */
+            criado_em: string;
+        };
+        /**
          * RespostaEvento
          * @description Evento meteorológico normalizado, pronto para exibição.
          */
@@ -1730,6 +1898,50 @@ export interface components {
          * @description Evento meteorológico que originou a execução em revisão.
          */
         RespostaEventoLote: {
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador do evento meteorológico.
+             */
+            id: string;
+            /**
+             * Tipo
+             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
+             */
+            tipo: string;
+            /**
+             * Area
+             * @description Código de área monitorada afetada pelo evento.
+             */
+            area: string;
+            /**
+             * Intensidade
+             * @description Intensidade observada do evento.
+             */
+            intensidade: number;
+            /**
+             * Proveniencia
+             * @description Origem do evento (`real_inmet` ou `sintetico`).
+             */
+            proveniencia: string;
+            /**
+             * Periodo Inicio
+             * Format: date-time
+             * @description Início do período observado, em UTC.
+             */
+            periodo_inicio: string;
+            /**
+             * Periodo Fim
+             * Format: date-time
+             * @description Fim do período observado, em UTC.
+             */
+            periodo_fim: string;
+        };
+        /**
+         * RespostaEventoSimulacao
+         * @description Evento meteorológico que originou a execução a simular.
+         */
+        RespostaEventoSimulacao: {
             /**
              * Id
              * Format: uuid
@@ -2142,6 +2354,24 @@ export interface components {
             execucao_origem_id: string;
         };
         /**
+         * RespostaNovaTentativaSimulacao
+         * @description Ack da execução correlacionada criada a partir de uma falha local de simulação.
+         */
+        RespostaNovaTentativaSimulacao: {
+            /**
+             * Execucao Id
+             * Format: uuid
+             * @description Identificador da execução correlacionada criada.
+             */
+            execucao_id: string;
+            /**
+             * Execucao Origem Id
+             * Format: uuid
+             * @description Execução terminal de origem, que permanece terminal.
+             */
+            execucao_origem_id: string;
+        };
+        /**
          * RespostaOrigem
          * @description Dados de origem da mensagem: evento, regra versionada e critérios avaliados.
          */
@@ -2447,6 +2677,65 @@ export interface components {
             elegivel: boolean;
         };
         /**
+         * RespostaResumoSimulacao
+         * @description Resumo da simulação de uma execução, antes e depois de confirmá-la (SIMUL-01).
+         */
+        RespostaResumoSimulacao: {
+            /**
+             * Execucao Id
+             * Format: uuid
+             * @description Identificador da execução.
+             */
+            execucao_id: string;
+            /**
+             * Estado
+             * @description Estado agregado atual da execução.
+             */
+            estado: string;
+            /**
+             * Versao
+             * @description Versão de concorrência otimista a reenviar como `versao_esperada`.
+             */
+            versao: number;
+            /** @description Evento de origem, ou nulo quando a execução não tem público preservado. */
+            evento: components["schemas"]["RespostaEventoSimulacao"] | null;
+            /**
+             * Regra Id
+             * @description Regra preventiva aplicada ao público do lote.
+             */
+            regra_id: string | null;
+            /**
+             * Regra Versao
+             * @description Versão da regra aplicada ao público.
+             */
+            regra_versao: number | null;
+            /**
+             * Total Destinatarios
+             * @description Destinatários do lote simulável: aprovados e já simulados.
+             */
+            total_destinatarios: number;
+            /**
+             * Distribuicao Por Canal
+             * @description Distribuição do lote simulável entre WhatsApp, e-mail e SMS.
+             */
+            distribuicao_por_canal: components["schemas"]["RespostaCanalSimulacao"][];
+            /**
+             * Entregas
+             * @description Entregas simuladas já registradas, vazias antes da confirmação.
+             */
+            entregas: components["schemas"]["RespostaEntregaSimulada"][];
+            /**
+             * Execucao Origem Id
+             * @description Execução terminal que originou esta nova tentativa; nula quando esta execução não é correlacionada a nenhuma outra.
+             */
+            execucao_origem_id: string | null;
+            /**
+             * Retentativas
+             * @description Execuções criadas como nova tentativa a partir desta; cada uma mantém seu próprio histórico, sem mesclar marcos.
+             */
+            retentativas: string[];
+        };
+        /**
          * RespostaSaidaGerada
          * @description Conteúdo produzido em uma tentativa, nos campos do canal.
          */
@@ -2495,6 +2784,33 @@ export interface components {
              * @description Nome do segurado sintético padrão.
              */
             nome: string;
+        };
+        /**
+         * RespostaSimulacaoConfirmada
+         * @description Desfecho da confirmação: onde o agregado parou e o que a simulação registrou.
+         */
+        RespostaSimulacaoConfirmada: {
+            /**
+             * Execucao Id
+             * Format: uuid
+             * @description Execução cuja simulação foi executada.
+             */
+            execucao_id: string;
+            /**
+             * Estado
+             * @description Estado agregado da execução após a simulação.
+             */
+            estado: string;
+            /**
+             * Entregas Criadas
+             * @description Entregas simuladas criadas nesta confirmação.
+             */
+            entregas_criadas: string[];
+            /**
+             * Mensagens Simuladas
+             * @description Mensagens que passaram a `simulada_entregue` nesta confirmação.
+             */
+            mensagens_simuladas: string[];
         };
         /**
          * RespostaSincronizacao
@@ -4041,6 +4357,161 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaRevisao"];
+                };
+            };
+        };
+    };
+    consultar_resumo_api_v1_execucoes__execucao_id__simulacao_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execucao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Execução encontrada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaResumoSimulacao"];
+                };
+            };
+            /** @description Execução inexistente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaSimulacao"];
+                };
+            };
+            /** @description O identificador da execução não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaSimulacao"];
+                };
+            };
+        };
+    };
+    confirmar_simulacao_api_v1_execucoes__execucao_id__confirmar_simulacao_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                execucao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PedidoConfirmacaoSimulacao"];
+            };
+        };
+        responses: {
+            /** @description Simulação executada (ou já registrada, no replay). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaSimulacaoConfirmada"];
+                };
+            };
+            /** @description Execução inexistente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaSimulacao"];
+                };
+            };
+            /** @description Execução fora de 'aguardando_confirmacao', `versao_esperada` desatualizada ou chave de idempotência reusada com outro conteúdo. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaSimulacao"];
+                };
+            };
+            /** @description Requisição sem `Idempotency-Key`, identificador inválido, reconhecimento não marcado ou lote sem nenhuma mensagem aprovada. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaSimulacao"];
+                };
+            };
+            /** @description Falha local durante a simulação, já revertida. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaSimulacao"];
+                };
+            };
+        };
+    };
+    solicitar_nova_tentativa_simulacao_api_v1_execucoes__execucao_origem_id__nova_tentativa_simulacao_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                execucao_origem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Execução correlacionada criada. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaNovaTentativaSimulacao"];
+                };
+            };
+            /** @description Execução de origem inexistente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaSimulacao"];
+                };
+            };
+            /** @description Origem fora de 'falhou_simulacao' ou conflito de chave. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaSimulacao"];
+                };
+            };
+            /** @description Requisição sem `Idempotency-Key`, identificador inválido ou snapshot da origem incompleto. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaSimulacao"];
                 };
             };
         };
