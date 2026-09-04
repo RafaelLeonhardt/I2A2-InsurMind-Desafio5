@@ -306,6 +306,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: aplicacao/simulacao.py:38-44 (SPEC_DEVIATION) — design.md:65 omite reconhecimento e hash_requisicao (design)
 - last seen: 2026-09-04T20:20:21Z
 
+### L-050 - When testing a sortable table, assert the actual rendered row order after activating sort, not only the aria-sort attribute value.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend-tables` · harmful: 0
+- features: 4-1-consolidar-resultados-e-estados-da-simulacao
+- evidence: src/frontend/src/funcionalidades/resultados/SuperficieResultados.tsx:122 (frontend-tables)
+- last seen: 2026-09-04T23:41:41Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

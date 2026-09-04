@@ -114,21 +114,21 @@ A História 3.6 executa a simulação e persiste entregas simuladas, mas nada ai
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
 | RESULT-01 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | 3.6 (ServicoSimulacao.confirmar) | Verified |
-| RESULT-02 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | Execute (T1, T2, T3) | Implementing |
-| RESULT-03 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | Execute (T1, T2) | Implementing |
-| RESULT-04 | P1: Falha local sem entrega parcial e sem falha fictícia de canal | Execute (T2, T3) | Implementing |
-| RESULT-05 | P1: Falha local sem entrega parcial e sem falha fictícia de canal | Execute (T2, T3) | Implementing |
-| RESULT-06 | P1: Reidratação sem repetição e sem regressão de estado terminal | Execute (T2, T3) | Implementing |
-| RESULT-07 | P1: Reidratação sem repetição e sem regressão de estado terminal | Execute (T2, T3) | Implementing |
-| RESULT-08 | P2: Acessibilidade da tabela e divergência consultável | Execute (T4) | Implementing |
-| RESULT-09 | P2: Acessibilidade da tabela e divergência consultável | Execute (T2, T3, T4) | Implementing |
-| RESULT-10 | P2: Acessibilidade da tabela e divergência consultável | Execute (T4) | Implementing |
+| RESULT-02 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | Execute (T1, T2, T3) | Verified |
+| RESULT-03 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | Execute (T1, T2) | Verified |
+| RESULT-04 | P1: Falha local sem entrega parcial e sem falha fictícia de canal | Execute (T2, T3) | Verified |
+| RESULT-05 | P1: Falha local sem entrega parcial e sem falha fictícia de canal | Execute (T2, T3) | Verified |
+| RESULT-06 | P1: Reidratação sem repetição e sem regressão de estado terminal | Execute (T2, T3) | Verified |
+| RESULT-07 | P1: Reidratação sem repetição e sem regressão de estado terminal | Execute (T2, T3) | Verified |
+| RESULT-08 | P2: Acessibilidade da tabela e divergência consultável | Execute (T4) | Verified |
+| RESULT-09 | P2: Acessibilidade da tabela e divergência consultável | Execute (T2, T3, T4) | Verified |
+| RESULT-10 | P2: Acessibilidade da tabela e divergência consultável | Execute (T4) | Verified |
 
 **ID format:** `RESULT-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 10 total, 8 mapped to tasks (T1, T2; RESULT-01 verificado em 3.6), 2 unmapped (RESULT-08, RESULT-10 — T4)
+**Coverage:** 10 total, 10 verified (independent Verifier, round 2 — `validation.md`; round 1 flagged a discrimination-sensor gap in RESULT-08's sort test, closed by Fix 1 `27f9968`)
 
 ---
 
