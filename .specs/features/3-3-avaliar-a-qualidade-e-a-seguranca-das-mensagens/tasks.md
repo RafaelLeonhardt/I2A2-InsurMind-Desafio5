@@ -225,7 +225,7 @@ para trazer o veredito determinístico ao lado da avaliação; `transicionar` n�
 **Status**: ✅ Completo — três origens de decisão (`agente_ia`/`regras_deterministicas`/
 `decisao_humana`) distintas em texto+ícone+cor (L-024), a cor exposta como propriedade CSS
 `--cor-origem` no próprio elemento para ser observável por teste, não só pela folha de estilo.
-Gate: 630 backend (inalterado) + 247 frontend testes, lint/build limpos.
+Gate: 689 backend (+59 desde a 3.2, T1-T5) + 247 frontend testes, lint/build limpos.
 
 **Commit**: `feat(critica): adicionar agente critico e avaliacao estruturada de mensagens`
 
