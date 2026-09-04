@@ -75,6 +75,7 @@ from central_preventiva.aplicacao.portas_persistencia import (
 from central_preventiva.dominio.estados_execucao import EstadoExecucao
 from central_preventiva.dominio.estados_mensagem import EstadoMensagem
 from central_preventiva.dominio.evento_meteorologico import EventoMeteorologico
+from central_preventiva.dominio.validador_saida_canal import Canal
 
 OPERACAO_CONFIRMAR_SIMULACAO = "confirmar_simulacao"
 """Escopo da confirmação no armazenamento genérico de chaves idempotentes (AD-002)."""
@@ -214,6 +215,28 @@ class ResultadoSimulacao:
     mensagens_simuladas: tuple[UUID, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class ResumoSimulacao:
+    """O que a confirmação precisa mostrar antes, durante e depois da simulação.
+
+    Antes: evento, regra, período, quantidade de destinatários e distribuição pelos três
+    canais (SIMUL-01). Depois: as entregas simuladas, sempre rotuladas (SIMUL-06). Sempre: a
+    navegação entre a origem e as retentativas, sem mesclar históricos (SIMUL-11).
+    """
+
+    execucao_id: UUID
+    estado: EstadoExecucao
+    versao: int
+    evento: EventoMeteorologico | None
+    regra_id: UUID | None
+    regra_versao: int | None
+    total_destinatarios: int
+    distribuicao_por_canal: tuple[tuple[Canal, int], ...]
+    entregas: tuple[EntregaSimulada, ...]
+    execucao_origem_id: UUID | None
+    retentativas: tuple[UUID, ...]
+
+
 class _RepositorioExecucaoPreventiva(Protocol):
     """Porta mínima do agregado da execução (2.2)."""
 
@@ -230,6 +253,10 @@ class _RepositorioExecucaoPreventiva(Protocol):
     def registrar_marco(
         self, execucao_id: UUID, marco: str, causa: str | None = None
     ) -> None: ...
+
+    def listar_correlacionadas(
+        self, execucao_origem_id: UUID
+    ) -> list[SnapshotExecucao]: ...
 
     def criar_correlacionada(
         self,
@@ -433,6 +460,53 @@ class ServicoSimulacao:
             json.dumps({"execucao_id": str(nova_execucao_id)}),
         )
         return nova_execucao_id
+
+    def obter_resumo(self, execucao_id: UUID) -> ResumoSimulacao | None:
+        """Monta o resumo da simulação da execução, ou `None` se ela não existir (SIMUL-01).
+
+        A resposta é idêntica para execução inexistente e para execução de outro escopo
+        (AD-011): quem traduz `None` em `404` é o roteador.
+
+        A contagem de destinatários e a distribuição por canal cobrem o lote simulável — o
+        que ainda vai ser simulado (`aprovada`) e o que já foi (`simulada_entregue`) — para
+        que o número que Marina viu no modal continue verdadeiro depois da simulação.
+        """
+
+        snapshot = self._portas.execucoes.buscar(execucao_id)
+        if snapshot is None:
+            return None
+
+        elegibilidades = self._portas.elegibilidades.listar_por_execucao(execucao_id)
+        evento = (
+            None
+            if not elegibilidades
+            else self._portas.eventos.buscar_por_id(elegibilidades[0].evento_id)
+        )
+        a_simular = {registro.id for registro, _ in self._mensagens_a_simular(execucao_id)}
+        canais = [
+            registro.canal
+            for registro in self._portas.mensagens.listar_por_execucao(execucao_id)
+            if registro.id in a_simular
+            or registro.estado is EstadoMensagem.SIMULADA_ENTREGUE
+        ]
+        return ResumoSimulacao(
+            execucao_id=execucao_id,
+            estado=snapshot.estado,
+            versao=snapshot.versao,
+            evento=evento,
+            regra_id=elegibilidades[0].regra_id if elegibilidades else None,
+            regra_versao=elegibilidades[0].regra_versao if elegibilidades else None,
+            total_destinatarios=len(canais),
+            distribuicao_por_canal=tuple(
+                (canal, canais.count(canal)) for canal in Canal
+            ),
+            entregas=tuple(self._portas.entregas.listar_por_execucao(execucao_id)),
+            execucao_origem_id=snapshot.execucao_origem_id,
+            retentativas=tuple(
+                correlacionada.id
+                for correlacionada in self._portas.execucoes.listar_correlacionadas(execucao_id)
+            ),
+        )
 
     def _confirmar_agora(
         self,

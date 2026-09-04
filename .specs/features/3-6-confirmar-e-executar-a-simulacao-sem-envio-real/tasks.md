@@ -141,7 +141,7 @@ T5
 
 ---
 
-### T4: Roteador HTTP — confirmação e nova tentativa
+### T4: Roteador HTTP — confirmação e nova tentativa ✅
 
 **What**: `POST /api/v1/execucoes/{id}/confirmar-simulacao` (idempotente, exige campo de reconhecimento) e `POST /api/v1/execucoes/{origem_id}/nova-tentativa-simulacao`; `GET /api/v1/execucoes/{id}` estendido com o resumo da simulação (destinatários, distribuição por canal, estado).
 **Where**: `src/backend/central_preventiva/adaptadores/http/simulacao.py`
@@ -153,11 +153,14 @@ T5
 
 **Done when**:
 
-- [ ] Confirmação sem o campo de reconhecimento marcado retorna erro `application/problem+json`
-- [ ] Confirmação com `versao_esperada` desatualizada retorna `409`
-- [ ] Repetir a mesma `Idempotency-Key` devolve a resposta registrada
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] Confirmação sem o campo de reconhecimento marcado retorna erro `application/problem+json` (`422 reconhecimento_obrigatorio`)
+- [x] Confirmação com `versao_esperada` desatualizada retorna `409`
+- [x] Repetir a mesma `Idempotency-Key` devolve a resposta registrada; a mesma chave em outra execução é `409` (hash escopado pelo alvo, L-027)
+- [x] Resumo da simulação exposto em `GET /execucoes/{id}/simulacao` (`SPEC_DEVIATION` no módulo: a T4 escreve "`GET /execucoes/{id}` estendido", mas essa rota é do recurso de acompanhamento da 2.6, que já cobre a navegação origem↔retentativa de SIMUL-11)
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde; `test_saude.py` atualizado com as três rotas novas
+- [x] Gate check passa: `uv run --directory src/backend pytest && ruff check . && pyright` (887 passed, 0 erro)
+
+**Spec-precision gap**: a spec não nomeia o status HTTP da falha local genuína (SIMUL-09 descreve o efeito, não a resposta). Escolhido `500` com `problem+json` (`falha_local_simulacao`), carregando a causa sanitizada e a próxima ação (L-003).
 
 **Tests**: integration
 **Gate**: full

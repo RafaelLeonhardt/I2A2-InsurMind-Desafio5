@@ -23,6 +23,28 @@
         "title": "ErroCampo",
         "type": "object"
       },
+      "PedidoConfirmacaoSimulacao": {
+        "additionalProperties": false,
+        "description": "Confirmação consciente da simulação, com o reconhecimento explícito (SIMUL-03).",
+        "properties": {
+          "reconhecimento_simulacao": {
+            "default": false,
+            "description": "Reconhecimento explícito de que a operação é uma simulação e nenhuma comunicação real será enviada. Sem ele o comando é recusado.",
+            "title": "Reconhecimento Simulacao",
+            "type": "boolean"
+          },
+          "versao_esperada": {
+            "description": "Versão de concorrência otimista lida no resumo (AD-008).",
+            "title": "Versao Esperada",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "versao_esperada"
+        ],
+        "title": "PedidoConfirmacaoSimulacao",
+        "type": "object"
+      },
       "PedidoDecisao": {
         "additionalProperties": false,
         "description": "Uma decisão que Marina envia sobre uma mensagem específica.",
@@ -613,6 +635,46 @@
         "title": "ProblemaRevisao",
         "type": "object"
       },
+      "ProblemaSimulacao": {
+        "additionalProperties": false,
+        "description": "Falha da simulação, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem solicitou a operação.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaSimulacao",
+        "type": "object"
+      },
       "RespostaAvaliacaoCritica": {
         "additionalProperties": false,
         "description": "Detalhe de uma avaliação: versão, critérios, decisão, motivos e proveniência.",
@@ -873,6 +935,28 @@
           "criado_em"
         ],
         "title": "RespostaAvaliacaoRisco",
+        "type": "object"
+      },
+      "RespostaCanalSimulacao": {
+        "additionalProperties": false,
+        "description": "Quantidade de destinatários do lote simulável em um canal.",
+        "properties": {
+          "canal": {
+            "description": "Canal da comunicação (`whatsapp`, `email` ou `sms`).",
+            "title": "Canal",
+            "type": "string"
+          },
+          "total": {
+            "description": "Destinatários do lote simulável neste canal.",
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "canal",
+          "total"
+        ],
+        "title": "RespostaCanalSimulacao",
         "type": "object"
       },
       "RespostaCasoTeste": {
@@ -1553,6 +1637,68 @@
         "title": "RespostaElegibilidade",
         "type": "object"
       },
+      "RespostaEntregaSimulada": {
+        "additionalProperties": false,
+        "description": "Uma entrega simulada: como o conteúdo aprovado apareceria no canal (SIMUL-06).",
+        "properties": {
+          "assunto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Assunto apresentado, presente somente no canal de e-mail.",
+            "title": "Assunto"
+          },
+          "canal": {
+            "description": "Canal em que a apresentação seria feita.",
+            "title": "Canal",
+            "type": "string"
+          },
+          "corpo": {
+            "description": "Corpo apresentado, cópia exata do conteúdo aprovado.",
+            "title": "Corpo",
+            "type": "string"
+          },
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC do registro da entrega.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "id": {
+            "description": "Identificador da entrega simulada.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "mensagem_id": {
+            "description": "Mensagem aprovada que originou a entrega.",
+            "format": "uuid",
+            "title": "Mensagem Id",
+            "type": "string"
+          },
+          "rotulo": {
+            "description": "Rótulo fixo da natureza da entrega: sempre 'simulada'. Nenhuma confirmação nem falha de provedor externo é registrada, porque nenhum conector real é usado.",
+            "title": "Rotulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "mensagem_id",
+          "canal",
+          "rotulo",
+          "assunto",
+          "corpo",
+          "criado_em"
+        ],
+        "title": "RespostaEntregaSimulada",
+        "type": "object"
+      },
       "RespostaEvento": {
         "additionalProperties": false,
         "description": "Evento meteorológico normalizado, pronto para exibição.",
@@ -1668,6 +1814,61 @@
           "periodo_fim"
         ],
         "title": "RespostaEventoLote",
+        "type": "object"
+      },
+      "RespostaEventoSimulacao": {
+        "additionalProperties": false,
+        "description": "Evento meteorológico que originou a execução a simular.",
+        "properties": {
+          "area": {
+            "description": "Código de área monitorada afetada pelo evento.",
+            "title": "Area",
+            "type": "string"
+          },
+          "id": {
+            "description": "Identificador do evento meteorológico.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "intensidade": {
+            "description": "Intensidade observada do evento.",
+            "title": "Intensidade",
+            "type": "number"
+          },
+          "periodo_fim": {
+            "description": "Fim do período observado, em UTC.",
+            "format": "date-time",
+            "title": "Periodo Fim",
+            "type": "string"
+          },
+          "periodo_inicio": {
+            "description": "Início do período observado, em UTC.",
+            "format": "date-time",
+            "title": "Periodo Inicio",
+            "type": "string"
+          },
+          "proveniencia": {
+            "description": "Origem do evento (`real_inmet` ou `sintetico`).",
+            "title": "Proveniencia",
+            "type": "string"
+          },
+          "tipo": {
+            "description": "Tipo do evento (`chuva_intensa` ou `granizo`).",
+            "title": "Tipo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tipo",
+          "area",
+          "intensidade",
+          "proveniencia",
+          "periodo_inicio",
+          "periodo_fim"
+        ],
+        "title": "RespostaEventoSimulacao",
         "type": "object"
       },
       "RespostaEventos": {
@@ -2280,6 +2481,30 @@
         "title": "RespostaNovaTentativaIA",
         "type": "object"
       },
+      "RespostaNovaTentativaSimulacao": {
+        "additionalProperties": false,
+        "description": "Ack da execução correlacionada criada a partir de uma falha local de simulação.",
+        "properties": {
+          "execucao_id": {
+            "description": "Identificador da execução correlacionada criada.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "execucao_origem_id": {
+            "description": "Execução terminal de origem, que permanece terminal.",
+            "format": "uuid",
+            "title": "Execucao Origem Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "execucao_id",
+          "execucao_origem_id"
+        ],
+        "title": "RespostaNovaTentativaSimulacao",
+        "type": "object"
+      },
       "RespostaOrigem": {
         "additionalProperties": false,
         "description": "Dados de origem da mensagem: evento, regra versionada e critérios avaliados.",
@@ -2712,6 +2937,122 @@
         "title": "RespostaResumoElegibilidade",
         "type": "object"
       },
+      "RespostaResumoSimulacao": {
+        "additionalProperties": false,
+        "description": "Resumo da simulação de uma execução, antes e depois de confirmá-la (SIMUL-01).",
+        "properties": {
+          "distribuicao_por_canal": {
+            "description": "Distribuição do lote simulável entre WhatsApp, e-mail e SMS.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaCanalSimulacao"
+            },
+            "title": "Distribuicao Por Canal",
+            "type": "array"
+          },
+          "entregas": {
+            "description": "Entregas simuladas já registradas, vazias antes da confirmação.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaEntregaSimulada"
+            },
+            "title": "Entregas",
+            "type": "array"
+          },
+          "estado": {
+            "description": "Estado agregado atual da execução.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "evento": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaEventoSimulacao"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Evento de origem, ou nulo quando a execução não tem público preservado."
+          },
+          "execucao_id": {
+            "description": "Identificador da execução.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "execucao_origem_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Execução terminal que originou esta nova tentativa; nula quando esta execução não é correlacionada a nenhuma outra.",
+            "title": "Execucao Origem Id"
+          },
+          "regra_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Regra preventiva aplicada ao público do lote.",
+            "title": "Regra Id"
+          },
+          "regra_versao": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Versão da regra aplicada ao público.",
+            "title": "Regra Versao"
+          },
+          "retentativas": {
+            "description": "Execuções criadas como nova tentativa a partir desta; cada uma mantém seu próprio histórico, sem mesclar marcos.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Retentativas",
+            "type": "array"
+          },
+          "total_destinatarios": {
+            "description": "Destinatários do lote simulável: aprovados e já simulados.",
+            "title": "Total Destinatarios",
+            "type": "integer"
+          },
+          "versao": {
+            "description": "Versão de concorrência otimista a reenviar como `versao_esperada`.",
+            "title": "Versao",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "execucao_id",
+          "estado",
+          "versao",
+          "evento",
+          "regra_id",
+          "regra_versao",
+          "total_destinatarios",
+          "distribuicao_por_canal",
+          "entregas",
+          "execucao_origem_id",
+          "retentativas"
+        ],
+        "title": "RespostaResumoSimulacao",
+        "type": "object"
+      },
       "RespostaSaidaGerada": {
         "additionalProperties": false,
         "description": "Conteúdo produzido em uma tentativa, nos campos do canal.",
@@ -2785,6 +3126,49 @@
           "nome"
         ],
         "title": "RespostaSeguradoPadrao",
+        "type": "object"
+      },
+      "RespostaSimulacaoConfirmada": {
+        "additionalProperties": false,
+        "description": "Desfecho da confirmação: onde o agregado parou e o que a simulação registrou.",
+        "properties": {
+          "entregas_criadas": {
+            "description": "Entregas simuladas criadas nesta confirmação.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Entregas Criadas",
+            "type": "array"
+          },
+          "estado": {
+            "description": "Estado agregado da execução após a simulação.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "execucao_id": {
+            "description": "Execução cuja simulação foi executada.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "mensagens_simuladas": {
+            "description": "Mensagens que passaram a `simulada_entregue` nesta confirmação.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Mensagens Simuladas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "execucao_id",
+          "estado",
+          "entregas_criadas",
+          "mensagens_simuladas"
+        ],
+        "title": "RespostaSimulacaoConfirmada",
         "type": "object"
       },
       "RespostaSincronizacao": {
@@ -3761,6 +4145,105 @@
         ]
       }
     },
+    "/api/v1/execucoes/{execucao_id}/confirmar-simulacao": {
+      "post": {
+        "description": "Executa a simulação local do lote aprovado. Exige o campo `reconhecimento_simulacao` marcado: sem ele o comando é recusado, mesmo por chamada direta à API. A elegibilidade das mensagens é reverificada do estado real no momento da confirmação, e só as aprovadas pelo agente crítico e por Marina são reclamadas: rejeitada, excluída, em exceção ou de volta ao ciclo de geração fica de fora. Cada mensagem reclamada ganha uma entrega simulada e passa a 'simulada_entregue' na mesma transação; nenhum conector real de WhatsApp, e-mail ou SMS é usado. Uma falha local desfaz a transação inteira, preserva as mensagens como 'aprovada' e move a execução a 'falhou_simulacao'. Exige o cabeçalho `Idempotency-Key`; repeti-lo devolve a simulação já registrada.",
+        "operationId": "confirmar_simulacao_api_v1_execucoes__execucao_id__confirmar_simulacao_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoConfirmacaoSimulacao"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaSimulacaoConfirmada"
+                }
+              }
+            },
+            "description": "Simulação executada (ou já registrada, no replay)."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaSimulacao"
+                }
+              }
+            },
+            "description": "Execução inexistente."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaSimulacao"
+                }
+              }
+            },
+            "description": "Execução fora de 'aguardando_confirmacao', `versao_esperada` desatualizada ou chave de idempotência reusada com outro conteúdo."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaSimulacao"
+                }
+              }
+            },
+            "description": "Requisição sem `Idempotency-Key`, identificador inválido, reconhecimento não marcado ou lote sem nenhuma mensagem aprovada."
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaSimulacao"
+                }
+              }
+            },
+            "description": "Falha local durante a simulação, já revertida."
+          }
+        },
+        "summary": "Confirmar e executar a simulação de uma execução",
+        "tags": [
+          "Simulação"
+        ]
+      }
+    },
     "/api/v1/execucoes/{execucao_id}/contextos": {
       "get": {
         "description": "Devolve, para cada item do público elegível já preparado, quais categorias de dado foram usadas no contexto do agente redator e quais foram deliberadamente deixadas de fora. São nomes de categoria, nunca conteúdo: a consulta nunca expõe documento, dado financeiro, dado de pagamento ou credencial.",
@@ -4193,6 +4676,59 @@
         ]
       }
     },
+    "/api/v1/execucoes/{execucao_id}/simulacao": {
+      "get": {
+        "description": "Devolve o que a confirmação da simulação precisa mostrar: evento, regra, período observado, quantidade de destinatários e distribuição entre WhatsApp, e-mail e SMS. Depois da simulação, devolve também cada entrega simulada com a apresentação que o canal teria, sempre rotulada como simulada e sem nenhuma confirmação ou falha de provedor externo. Traz ainda a navegação entre esta execução, sua origem e suas retentativas, sem mesclar históricos.",
+        "operationId": "consultar_resumo_api_v1_execucoes__execucao_id__simulacao_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaResumoSimulacao"
+                }
+              }
+            },
+            "description": "Execução encontrada."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaSimulacao"
+                }
+              }
+            },
+            "description": "Execução inexistente."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaSimulacao"
+                }
+              }
+            },
+            "description": "O identificador da execução não é um UUID válido."
+          }
+        },
+        "summary": "Consultar o resumo da simulação de uma execução",
+        "tags": [
+          "Simulação"
+        ]
+      }
+    },
     "/api/v1/execucoes/{execucao_origem_id}/nova-tentativa-ia": {
       "post": {
         "description": "Valida a integridade dos snapshots versionados da execução de origem e, passando, cria uma execução correlacionada nova em 'aguardando_geracao', com `execucao_origem_id` próprio e uma cópia integral do público elegível da origem. A execução de origem permanece terminal e nunca é reaberta. Exige o cabeçalho `Idempotency-Key`.",
@@ -4269,6 +4805,85 @@
         "summary": "Solicitar nova tentativa de preparação agêntica",
         "tags": [
           "Preparação da IA"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_origem_id}/nova-tentativa-simulacao": {
+      "post": {
+        "description": "Valida a integridade dos snapshots versionados da execução de origem e, passando, cria uma execução correlacionada nova em 'aguardando_geracao', com `execucao_origem_id` próprio e uma cópia integral do público elegível da origem (incluídos e excluídos). A execução de origem permanece em 'falhou_simulacao' e nunca é reaberta. Exige o cabeçalho `Idempotency-Key`.",
+        "operationId": "solicitar_nova_tentativa_simulacao_api_v1_execucoes__execucao_origem_id__nova_tentativa_simulacao_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_origem_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Origem Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaNovaTentativaSimulacao"
+                }
+              }
+            },
+            "description": "Execução correlacionada criada."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaSimulacao"
+                }
+              }
+            },
+            "description": "Execução de origem inexistente."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaSimulacao"
+                }
+              }
+            },
+            "description": "Origem fora de 'falhou_simulacao' ou conflito de chave."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaSimulacao"
+                }
+              }
+            },
+            "description": "Requisição sem `Idempotency-Key`, identificador inválido ou snapshot da origem incompleto."
+          }
+        },
+        "summary": "Solicitar nova tentativa de simulação",
+        "tags": [
+          "Simulação"
         ]
       }
     },
