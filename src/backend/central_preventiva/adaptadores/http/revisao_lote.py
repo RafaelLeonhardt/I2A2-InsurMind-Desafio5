@@ -101,7 +101,7 @@ class RespostaDestinatario(BaseModel):
     canal: str = Field(description="Canal preferido registrado no snapshot da elegibilidade.")
 
 
-class RespostaCriterio(BaseModel):
+class RespostaCriterioLote(BaseModel):
     """Um critério avaliado da elegibilidade, com o valor observado e o veredito."""
 
     model_config = ConfigDict(extra="forbid")
@@ -121,7 +121,7 @@ class RespostaOrigem(BaseModel):
     regra_id: UUID = Field(description="Regra preventiva aplicada.")
     regra_versao: int = Field(description="Versão da regra aplicada no momento da avaliação.")
     justificativa: str = Field(description="Justificativa da inclusão no público elegível.")
-    criterios: list[RespostaCriterio] = Field(
+    criterios: list[RespostaCriterioLote] = Field(
         description="Critérios avaliados, com o valor observado e o veredito de cada um."
     )
 
@@ -416,11 +416,11 @@ def _problema_execucao_id_invalido(execucao_id: str) -> JSONResponse:
     )
 
 
-def _resposta_criterios(item: ItemLoteRevisao) -> list[RespostaCriterio]:
+def _resposta_criterios(item: ItemLoteRevisao) -> list[RespostaCriterioLote]:
     """Traduz os critérios do snapshot de elegibilidade para o contrato público."""
 
     return [
-        RespostaCriterio(
+        RespostaCriterioLote(
             operando=criterio.operando,
             valor_observado=criterio.valor_observado,
             atende=criterio.atende,

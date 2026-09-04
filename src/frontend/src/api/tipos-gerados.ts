@@ -504,6 +504,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/execucoes/{execucao_id}/revisao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o lote de revisão de uma execução
+         * @description Devolve o lote inteiro de comunicação da execução: evento, regra, público, distribuição por canal, aprovações agênticas e exceções no cabeçalho, e um item por mensagem com destinatário sintético, conteúdo de cada versão, verificação determinística, avaliação crítica, dados de origem e proveniência. Os itens que exigem atenção vêm primeiro: exceções, depois reprovações em alguma tentativa anterior, depois as aprovações limpas.
+         */
+        get: operations["consultar_lote_api_v1_execucoes__execucao_id__revisao_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/execucoes/{execucao_id}/revisao/decisoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Decidir uma ou várias mensagens do lote de revisão
+         * @description Aplica as decisões humanas (aprovar, rejeitar, excluir do lote ou solicitar nova geração) numa única transação: ou todas as decisões válidas do envio são aplicadas, ou nenhuma. Um conflito de `versao_esperada` em qualquer item devolve 409 sem efeito parcial; um item já decidido antes é recusado no corpo da resposta, com motivo, sem impedir os demais. Rejeitar, excluir e regenerar exigem justificativa. Aplicadas as decisões, a execução avança para 'aguardando_confirmacao' quando houver ao menos uma mensagem aprovada pelo crítico e por Marina, conclui sem simulação quando não houver nenhuma, e volta a 'processando_mensagens' enquanto houver regeneração ativa. Exige o cabeçalho `Idempotency-Key`.
+         */
+        post: operations["decidir_lote_api_v1_execucoes__execucao_id__revisao_decisoes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -523,6 +563,47 @@ export interface components {
              * @description Motivo do erro em português brasileiro.
              */
             motivo: string;
+        };
+        /**
+         * PedidoDecisao
+         * @description Uma decisão que Marina envia sobre uma mensagem específica.
+         */
+        PedidoDecisao: {
+            /**
+             * Mensagem Id
+             * Format: uuid
+             * @description Mensagem sobre a qual se decide.
+             */
+            mensagem_id: string;
+            /**
+             * Versao Esperada
+             * @description Versão de concorrência otimista lida no lote (AD-008).
+             */
+            versao_esperada: number;
+            /** @description Decisão: aprovar, rejeitar, excluir do lote ou solicitar nova geração. */
+            resultado: components["schemas"]["ResultadoDecisaoHumana"];
+            /**
+             * Justificativa
+             * @description Justificativa da decisão, obrigatória fora da aprovação.
+             */
+            justificativa?: string | null;
+        };
+        /**
+         * PedidoDecisaoLote
+         * @description Envio de decisões sobre uma ou várias mensagens do lote.
+         */
+        PedidoDecisaoLote: {
+            /**
+             * Decisoes
+             * @description Decisões a aplicar na mesma transação; lista vazia apenas reconhece o lote.
+             */
+            decisoes?: components["schemas"]["PedidoDecisao"][];
+            /**
+             * Perfil
+             * @description Perfil sintético responsável pela decisão, registrado no histórico.
+             * @default administrador
+             */
+            perfil: string;
         };
         /**
          * ProblemaAvaliacaoCritica
@@ -902,6 +983,37 @@ export interface components {
             proxima_acao: string;
         };
         /**
+         * ProblemaRevisao
+         * @description Falha da revisão do lote, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaRevisao: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem solicitou a operação.
+             */
+            impacto: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
          * RespostaAvaliacaoCritica
          * @description Detalhe de uma avaliação: versão, critérios, decisão, motivos e proveniência.
          */
@@ -966,6 +1078,37 @@ export interface components {
             criado_em: string;
             /** @description Veredito estrutural de 3.2 sobre a mesma versão, mantido separado. */
             validacao_deterministica: components["schemas"]["RespostaValidacaoDeterministica"];
+        };
+        /**
+         * RespostaAvaliacaoCriticaLote
+         * @description Avaliação do agente crítico sobre uma versão da mensagem (3.3).
+         */
+        RespostaAvaliacaoCriticaLote: {
+            /**
+             * Aprovada
+             * @description Decisão textual do agente crítico sobre esta versão.
+             */
+            aprovada: boolean;
+            /**
+             * Motivos
+             * @description Motivos categorizados da reprovação; vazio quando a versão foi aprovada.
+             */
+            motivos: components["schemas"]["RespostaMotivoCritico"][];
+            /**
+             * Agente
+             * @description Agente responsável pela avaliação.
+             */
+            agente: string;
+            /**
+             * Modelo
+             * @description Modelo da OpenAI usado na avaliação.
+             */
+            modelo: string;
+            /**
+             * Duracao Ms
+             * @description Duração da chamada de crítica, em milissegundos.
+             */
+            duracao_ms: number;
         };
         /**
          * RespostaAvaliacaoDaTentativa
@@ -1188,6 +1331,32 @@ export interface components {
             justificativa: string;
         };
         /**
+         * RespostaCriterioLote
+         * @description Um critério avaliado da elegibilidade, com o valor observado e o veredito.
+         */
+        RespostaCriterioLote: {
+            /**
+             * Operando
+             * @description O que foi comparado (ex.: área afetada, cobertura).
+             */
+            operando: string;
+            /**
+             * Valor Observado
+             * @description Valor observado no momento da avaliação.
+             */
+            valor_observado: string;
+            /**
+             * Atende
+             * @description Se o valor observado atende ao critério.
+             */
+            atende: boolean;
+            /**
+             * Justificativa
+             * @description Explicação em português brasileiro do resultado.
+             */
+            justificativa: string;
+        };
+        /**
          * RespostaCriterioTeste
          * @description Um critério avaliado no teste determinístico: operando, valor, resultado e justificativa.
          */
@@ -1212,6 +1381,93 @@ export interface components {
              * @description Explicação em português brasileiro do resultado.
              */
             justificativa: string;
+        };
+        /**
+         * RespostaDecisaoLote
+         * @description Desfecho do envio: o que foi aplicado, o que foi recusado e onde o agregado parou.
+         */
+        RespostaDecisaoLote: {
+            /**
+             * Execucao Id
+             * Format: uuid
+             * @description Execução cujo lote foi decidido.
+             */
+            execucao_id: string;
+            /**
+             * Estado
+             * @description Estado agregado da execução após o envio.
+             */
+            estado: string;
+            /**
+             * Aplicadas
+             * @description Mensagens cujas decisões foram aplicadas.
+             */
+            aplicadas: string[];
+            /**
+             * Recusadas
+             * @description Itens recusados do envio, cada um com o seu motivo.
+             */
+            recusadas: components["schemas"]["RespostaDecisaoRecusada"][];
+            /**
+             * Mensagens Aprovadas
+             * @description Mensagens aprovadas pelo agente crítico e por Marina.
+             */
+            mensagens_aprovadas: string[];
+            /**
+             * Regeneracoes Ativas
+             * @description Mensagens devolvidas ao ciclo de geração por decisão humana.
+             */
+            regeneracoes_ativas: string[];
+        };
+        /**
+         * RespostaDecisaoRecusada
+         * @description Um item excluído do envio, com o motivo estável da recusa.
+         */
+        RespostaDecisaoRecusada: {
+            /**
+             * Mensagem Id
+             * Format: uuid
+             * @description Mensagem recusada do envio.
+             */
+            mensagem_id: string;
+            /**
+             * Motivo
+             * @description Código estável do motivo da recusa deste item.
+             */
+            motivo: string;
+        };
+        /**
+         * RespostaDecisaoRegistrada
+         * @description Uma decisão humana já registrada sobre a mensagem (REVISAO-07).
+         */
+        RespostaDecisaoRegistrada: {
+            /**
+             * Versao Mensagem Id
+             * Format: uuid
+             * @description Versão da mensagem sobre a qual se decidiu.
+             */
+            versao_mensagem_id: string;
+            /**
+             * Perfil Responsavel
+             * @description Perfil sintético que tomou a decisão.
+             */
+            perfil_responsavel: string;
+            /**
+             * Resultado
+             * @description Resultado da decisão humana.
+             */
+            resultado: string;
+            /**
+             * Justificativa
+             * @description Justificativa registrada, obrigatória fora da aprovação.
+             */
+            justificativa: string | null;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC da decisão.
+             */
+            criado_em: string;
         };
         /**
          * RespostaDependencia
@@ -1259,6 +1515,45 @@ export interface components {
              * @description Estado de prontidão de cada uma das 4 dependências monitoradas.
              */
             dependencias: components["schemas"]["RespostaDependencia"][];
+        };
+        /**
+         * RespostaDestinatario
+         * @description Destinatário sintético da mensagem, como o snapshot da elegibilidade registrou.
+         */
+        RespostaDestinatario: {
+            /**
+             * Elegibilidade Id
+             * Format: uuid
+             * @description Item do público elegível que originou a mensagem.
+             */
+            elegibilidade_id: string;
+            /**
+             * Segurado Id
+             * Format: uuid
+             * @description Segurado sintético destinatário.
+             */
+            segurado_id: string;
+            /**
+             * Nome Segurado
+             * @description Nome sintético registrado no momento da avaliação.
+             */
+            nome_segurado: string;
+            /**
+             * Apolice Id
+             * Format: uuid
+             * @description Apólice sintética que sustentou a elegibilidade.
+             */
+            apolice_id: string;
+            /**
+             * Codigo Ibge Area
+             * @description Área do destinatário no momento da avaliação.
+             */
+            codigo_ibge_area: string;
+            /**
+             * Canal
+             * @description Canal preferido registrado no snapshot da elegibilidade.
+             */
+            canal: string;
         };
         /**
          * RespostaDetalheElegibilidade
@@ -1344,6 +1639,22 @@ export interface components {
             criado_em: string;
         };
         /**
+         * RespostaDistribuicaoCanal
+         * @description Quantidade de mensagens do lote em um canal.
+         */
+        RespostaDistribuicaoCanal: {
+            /**
+             * Canal
+             * @description Canal da comunicação.
+             */
+            canal: string;
+            /**
+             * Total
+             * @description Quantidade de mensagens do lote neste canal.
+             */
+            total: number;
+        };
+        /**
          * RespostaElegibilidade
          * @description Quantidades e lista do público avaliado de uma execução (ELEG-08).
          */
@@ -1413,6 +1724,50 @@ export interface components {
              * @description Instante RFC 3339 em UTC em que a medida foi observada.
              */
             instante_observado: string;
+        };
+        /**
+         * RespostaEventoLote
+         * @description Evento meteorológico que originou a execução em revisão.
+         */
+        RespostaEventoLote: {
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador do evento meteorológico.
+             */
+            id: string;
+            /**
+             * Tipo
+             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
+             */
+            tipo: string;
+            /**
+             * Area
+             * @description Código de área monitorada afetada pelo evento.
+             */
+            area: string;
+            /**
+             * Intensidade
+             * @description Intensidade observada do evento.
+             */
+            intensidade: number;
+            /**
+             * Proveniencia
+             * @description Origem do evento (`real_inmet` ou `sintetico`).
+             */
+            proveniencia: string;
+            /**
+             * Periodo Inicio
+             * Format: date-time
+             * @description Início do período observado, em UTC.
+             */
+            periodo_inicio: string;
+            /**
+             * Periodo Fim
+             * Format: date-time
+             * @description Fim do período observado, em UTC.
+             */
+            periodo_fim: string;
         };
         /**
          * RespostaEventos
@@ -1498,6 +1853,143 @@ export interface components {
              * @description Histórico completo, da tentativa mais recente para a mais antiga.
              */
             resultados_anteriores: components["schemas"]["RespostaSincronizacao"][];
+        };
+        /**
+         * RespostaItemLote
+         * @description Uma mensagem do lote, com tudo que a decisão humana precisa (REVISAO-03).
+         */
+        RespostaItemLote: {
+            /**
+             * Mensagem Id
+             * Format: uuid
+             * @description Identificador da mensagem.
+             */
+            mensagem_id: string;
+            /**
+             * Canal
+             * @description Canal da mensagem (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
+             * Estado
+             * @description Estado de conteúdo da mensagem, conforme o AD-4.
+             */
+            estado: string;
+            /**
+             * Tentativa Atual
+             * @description Tentativa de geração em curso ou concluída.
+             */
+            tentativa_atual: number;
+            /**
+             * Limite Tentativas
+             * @description Máximo de tentativas de conteúdo permitidas por mensagem.
+             */
+            limite_tentativas: number;
+            /**
+             * Versao
+             * @description Versão de concorrência otimista a reenviar como `versao_esperada`.
+             */
+            versao: number;
+            /** @description Destinatário sintético da mensagem. */
+            destinatario: components["schemas"]["RespostaDestinatario"];
+            /** @description Dados de origem que produziram a mensagem. */
+            origem: components["schemas"]["RespostaOrigem"];
+            /** @description Proveniência do contexto do agente, ou nula se ele não foi montado. */
+            proveniencia: components["schemas"]["RespostaProveniencia"] | null;
+            /**
+             * Versoes
+             * @description Tentativas registradas, da primeira à última.
+             */
+            versoes: components["schemas"]["RespostaVersaoRevisada"][];
+            /**
+             * Decisoes
+             * @description Decisões humanas já registradas sobre esta mensagem.
+             */
+            decisoes: components["schemas"]["RespostaDecisaoRegistrada"][];
+            /**
+             * Aprovada Pelo Critico
+             * @description Se a última tentativa foi aprovada pelo agente crítico.
+             */
+            aprovada_pelo_critico: boolean;
+            /**
+             * Reprovacao Historica
+             * @description Se alguma tentativa foi reprovada, ainda que a final tenha sido aprovada.
+             */
+            reprovacao_historica: boolean;
+            /**
+             * Em Excecao
+             * @description Se a mensagem terminou em exceção de conteúdo ou de integração.
+             */
+            em_excecao: boolean;
+            /**
+             * Decidivel
+             * @description Se a mensagem aguarda decisão humana agora.
+             */
+            decidivel: boolean;
+            /**
+             * Pode Regenerar
+             * @description Se ainda há tentativa disponível para solicitar nova geração.
+             */
+            pode_regenerar: boolean;
+            /**
+             * Prioridade
+             * @description Ordem de atenção do item: menor valor exige atenção antes.
+             */
+            prioridade: number;
+        };
+        /**
+         * RespostaLoteRevisao
+         * @description O lote de revisão de uma execução, com os itens de atenção primeiro (REVISAO-01).
+         */
+        RespostaLoteRevisao: {
+            /**
+             * Execucao Id
+             * Format: uuid
+             * @description Identificador da execução em revisão.
+             */
+            execucao_id: string;
+            /**
+             * Estado
+             * @description Estado agregado atual da execução.
+             */
+            estado: string;
+            /** @description Evento meteorológico de origem, ou nulo se o lote ainda está vazio. */
+            evento: components["schemas"]["RespostaEventoLote"] | null;
+            /**
+             * Regra Id
+             * @description Regra preventiva aplicada ao público do lote.
+             */
+            regra_id: string | null;
+            /**
+             * Regra Versao
+             * @description Versão da regra aplicada ao público do lote.
+             */
+            regra_versao: number | null;
+            /**
+             * Total Publico Incluido
+             * @description Itens incluídos do público elegível desta execução.
+             */
+            total_publico_incluido: number;
+            /**
+             * Distribuicao Por Canal
+             * @description Quantidade de mensagens do lote por canal.
+             */
+            distribuicao_por_canal: components["schemas"]["RespostaDistribuicaoCanal"][];
+            /**
+             * Aprovacoes Agenticas
+             * @description Mensagens cuja última tentativa foi aprovada pelo agente crítico.
+             */
+            aprovacoes_agenticas: number;
+            /**
+             * Itens Em Excecao
+             * @description Mensagens que terminaram em exceção de conteúdo ou de integração.
+             */
+            itens_em_excecao: number;
+            /**
+             * Itens
+             * @description Mensagens do lote, com os itens que exigem atenção primeiro.
+             */
+            itens: components["schemas"]["RespostaItemLote"][];
         };
         /**
          * RespostaMarco
@@ -1600,6 +2092,22 @@ export interface components {
             justificativa: string;
         };
         /**
+         * RespostaMotivoCritico
+         * @description Um motivo categorizado da reprovação do agente crítico.
+         */
+        RespostaMotivoCritico: {
+            /**
+             * Categoria
+             * @description Categoria fechada do motivo avaliado.
+             */
+            categoria: string;
+            /**
+             * Justificativa
+             * @description Justificativa do crítico para esta categoria.
+             */
+            justificativa: string;
+        };
+        /**
          * RespostaMotivoProveniencia
          * @description Um motivo da avaliação: a categoria fechada e a justificativa dela.
          */
@@ -1632,6 +2140,39 @@ export interface components {
              * @description Identificador da execução terminal que originou a nova tentativa.
              */
             execucao_origem_id: string;
+        };
+        /**
+         * RespostaOrigem
+         * @description Dados de origem da mensagem: evento, regra versionada e critérios avaliados.
+         */
+        RespostaOrigem: {
+            /**
+             * Evento Id
+             * Format: uuid
+             * @description Evento meteorológico de origem.
+             */
+            evento_id: string;
+            /**
+             * Regra Id
+             * Format: uuid
+             * @description Regra preventiva aplicada.
+             */
+            regra_id: string;
+            /**
+             * Regra Versao
+             * @description Versão da regra aplicada no momento da avaliação.
+             */
+            regra_versao: number;
+            /**
+             * Justificativa
+             * @description Justificativa da inclusão no público elegível.
+             */
+            justificativa: string;
+            /**
+             * Criterios
+             * @description Critérios avaliados, com o valor observado e o veredito de cada um.
+             */
+            criterios: components["schemas"]["RespostaCriterioLote"][];
         };
         /**
          * RespostaPreflight
@@ -1680,6 +2221,22 @@ export interface components {
              * @description Canal preferencial do segurado, no momento da avaliação.
              */
             canal: string;
+        };
+        /**
+         * RespostaProveniencia
+         * @description Proveniência do contexto do agente: o que foi e o que não foi usado (3.1).
+         */
+        RespostaProveniencia: {
+            /**
+             * Categorias Usadas
+             * @description Categorias de dado que chegaram ao contexto do agente redator.
+             */
+            categorias_usadas: string[];
+            /**
+             * Categorias Nao Usadas
+             * @description Categorias deliberadamente deixadas de fora do contexto.
+             */
+            categorias_nao_usadas: string[];
         };
         /**
          * RespostaProvenienciaContexto
@@ -2199,6 +2756,82 @@ export interface components {
              */
             criado_em: string;
         };
+        /**
+         * RespostaVersaoRevisada
+         * @description Uma tentativa de geração: conteúdo, verificação determinística e crítica.
+         */
+        RespostaVersaoRevisada: {
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador da versão da mensagem.
+             */
+            id: string;
+            /**
+             * Numero Tentativa
+             * @description Número da tentativa de geração registrada.
+             */
+            numero_tentativa: number;
+            /**
+             * Assunto
+             * @description Assunto gerado, presente somente no canal de e-mail.
+             */
+            assunto: string | null;
+            /**
+             * Corpo
+             * @description Texto gerado desta tentativa, exibido sem edição possível.
+             */
+            corpo: string;
+            /**
+             * Valida
+             * @description Veredito da verificação determinística de canal sobre esta tentativa.
+             */
+            valida: boolean;
+            /**
+             * Motivo Invalidez
+             * @description Motivo da recusa determinística, ou nulo quando a saída é válida.
+             */
+            motivo_invalidez: string | null;
+            /**
+             * Modelo
+             * @description Modelo da OpenAI usado nesta tentativa.
+             */
+            modelo: string;
+            /**
+             * Versao Prompt
+             * @description Versão do prompt usada nesta tentativa.
+             */
+            versao_prompt: string;
+            /**
+             * Duracao Ms
+             * @description Duração da chamada de geração, em milissegundos.
+             */
+            duracao_ms: number;
+            /**
+             * Tokens Entrada
+             * @description Tokens de entrada consumidos, ou nulo quando não reportados.
+             */
+            tokens_entrada: number | null;
+            /**
+             * Tokens Saida
+             * @description Tokens de saída consumidos, ou nulo quando não reportados.
+             */
+            tokens_saida: number | null;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro da versão.
+             */
+            criado_em: string;
+            /** @description Avaliação do crítico sobre esta versão, ou nula se ela não foi avaliada. */
+            avaliacao_critica: components["schemas"]["RespostaAvaliacaoCriticaLote"] | null;
+        };
+        /**
+         * ResultadoDecisaoHumana
+         * @description As quatro decisões que Marina pode tomar sobre uma mensagem (REVISAO-05).
+         * @enum {string}
+         */
+        ResultadoDecisaoHumana: "aprovar" | "rejeitar" | "excluir" | "regenerar";
         /**
          * SolicitacaoAtivarCenarioSintetico
          * @description Corpo da ativação de um cenário sintético: a área monitorada a usar.
@@ -3313,6 +3946,101 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaProveniencia"];
+                };
+            };
+        };
+    };
+    consultar_lote_api_v1_execucoes__execucao_id__revisao_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execucao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Lote encontrado (pode estar vazio). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaLoteRevisao"];
+                };
+            };
+            /** @description Execução inexistente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRevisao"];
+                };
+            };
+            /** @description O identificador da execução não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRevisao"];
+                };
+            };
+        };
+    };
+    decidir_lote_api_v1_execucoes__execucao_id__revisao_decisoes_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                execucao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PedidoDecisaoLote"];
+            };
+        };
+        responses: {
+            /** @description Envio processado; o corpo informa aplicadas e recusadas. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaDecisaoLote"];
+                };
+            };
+            /** @description Execução inexistente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRevisao"];
+                };
+            };
+            /** @description Conflito de `versao_esperada`, execução fora de revisão ou chave de idempotência reusada com outro conteúdo. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRevisao"];
+                };
+            };
+            /** @description Requisição sem `Idempotency-Key`, identificador inválido ou decisão sem justificativa. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRevisao"];
                 };
             };
         };

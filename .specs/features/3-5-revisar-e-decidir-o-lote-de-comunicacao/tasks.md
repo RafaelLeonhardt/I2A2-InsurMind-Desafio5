@@ -183,7 +183,7 @@ T6
 
 ---
 
-### T6: Superfície do revisor e do lote
+### T6: Superfície do revisor e do lote ✅
 
 **What**: Lista do lote (itens de atenção primeiro) + revisor individual com destinatário/conteúdo/contexto de IA separados visualmente; ações aprovar/rejeitar/excluir/regenerar com validação inline de justificativa e rascunho preservado; seleção múltipla para decisão em lote; foco/teclado acessíveis.
 **Where**: `src/frontend/src/funcionalidades/revisao-lote/SuperficieRevisaoLote.tsx`
@@ -195,12 +195,12 @@ T6
 
 **Done when**:
 
-- [ ] Seções destinatário/conteúdo-versionamento/contexto-IA visualmente separadas
-- [ ] Rejeitar/excluir/regenerar sem justificativa bloqueia inline; rascunho preservado ao navegar sem confirmar
-- [ ] Ação "regenerar" indisponível com explicação acessível quando `tentativas = 3`
-- [ ] Nenhum campo de edição de texto da mensagem existe na interface
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Seções destinatário/conteúdo-versionamento/contexto-IA visualmente separadas
+- [x] Rejeitar/excluir/regenerar sem justificativa bloqueia inline; rascunho preservado ao navegar sem confirmar
+- [x] Ação "regenerar" indisponível com explicação acessível quando `tentativas = 3`
+- [x] Nenhum campo de edição de texto da mensagem existe na interface
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado (backend real em 127.0.0.1:8000); `verificar-tipos-api` confirma a sincronia
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend` (268 passed, lint sem erro, build OK)
 
 **Tests**: unit
 **Gate**: full

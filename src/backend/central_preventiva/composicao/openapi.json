@@ -809,7 +809,7 @@
           "criterios": {
             "description": "Critérios avaliados, na ordem aplicada.",
             "items": {
-              "$ref": "#/components/schemas/central_preventiva__adaptadores__http__avaliacao_risco__RespostaCriterio"
+              "$ref": "#/components/schemas/RespostaCriterio"
             },
             "title": "Criterios",
             "type": "array"
@@ -997,6 +997,40 @@
         "title": "RespostaColetaAceita",
         "type": "object"
       },
+      "RespostaCriterio": {
+        "additionalProperties": false,
+        "description": "Um critério avaliado: operando, valor observado, resultado e justificativa.",
+        "properties": {
+          "atende": {
+            "description": "Se o valor observado atende ao critério.",
+            "title": "Atende",
+            "type": "boolean"
+          },
+          "justificativa": {
+            "description": "Explicação em português brasileiro do resultado.",
+            "title": "Justificativa",
+            "type": "string"
+          },
+          "operando": {
+            "description": "O que foi comparado (ex.: área aplicável, intensidade).",
+            "title": "Operando",
+            "type": "string"
+          },
+          "valor_observado": {
+            "description": "Valor observado no evento para este critério.",
+            "title": "Valor Observado",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operando",
+          "valor_observado",
+          "atende",
+          "justificativa"
+        ],
+        "title": "RespostaCriterio",
+        "type": "object"
+      },
       "RespostaCriterioElegibilidade": {
         "additionalProperties": false,
         "description": "Um critério avaliado: operando, valor observado, resultado e justificativa.",
@@ -1029,6 +1063,40 @@
           "justificativa"
         ],
         "title": "RespostaCriterioElegibilidade",
+        "type": "object"
+      },
+      "RespostaCriterioLote": {
+        "additionalProperties": false,
+        "description": "Um critério avaliado da elegibilidade, com o valor observado e o veredito.",
+        "properties": {
+          "atende": {
+            "description": "Se o valor observado atende ao critério.",
+            "title": "Atende",
+            "type": "boolean"
+          },
+          "justificativa": {
+            "description": "Explicação em português brasileiro do resultado.",
+            "title": "Justificativa",
+            "type": "string"
+          },
+          "operando": {
+            "description": "O que foi comparado (ex.: área afetada, cobertura).",
+            "title": "Operando",
+            "type": "string"
+          },
+          "valor_observado": {
+            "description": "Valor observado no momento da avaliação.",
+            "title": "Valor Observado",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operando",
+          "valor_observado",
+          "atende",
+          "justificativa"
+        ],
+        "title": "RespostaCriterioLote",
         "type": "object"
       },
       "RespostaCriterioTeste": {
@@ -2219,7 +2287,7 @@
           "criterios": {
             "description": "Critérios avaliados, com o valor observado e o veredito de cada um.",
             "items": {
-              "$ref": "#/components/schemas/central_preventiva__adaptadores__http__revisao_lote__RespostaCriterio"
+              "$ref": "#/components/schemas/RespostaCriterioLote"
             },
             "title": "Criterios",
             "type": "array"
@@ -3425,74 +3493,6 @@
           "canal"
         ],
         "title": "SolicitacaoRegra",
-        "type": "object"
-      },
-      "central_preventiva__adaptadores__http__avaliacao_risco__RespostaCriterio": {
-        "additionalProperties": false,
-        "description": "Um critério avaliado: operando, valor observado, resultado e justificativa.",
-        "properties": {
-          "atende": {
-            "description": "Se o valor observado atende ao critério.",
-            "title": "Atende",
-            "type": "boolean"
-          },
-          "justificativa": {
-            "description": "Explicação em português brasileiro do resultado.",
-            "title": "Justificativa",
-            "type": "string"
-          },
-          "operando": {
-            "description": "O que foi comparado (ex.: área aplicável, intensidade).",
-            "title": "Operando",
-            "type": "string"
-          },
-          "valor_observado": {
-            "description": "Valor observado no evento para este critério.",
-            "title": "Valor Observado",
-            "type": "string"
-          }
-        },
-        "required": [
-          "operando",
-          "valor_observado",
-          "atende",
-          "justificativa"
-        ],
-        "title": "RespostaCriterio",
-        "type": "object"
-      },
-      "central_preventiva__adaptadores__http__revisao_lote__RespostaCriterio": {
-        "additionalProperties": false,
-        "description": "Um critério avaliado da elegibilidade, com o valor observado e o veredito.",
-        "properties": {
-          "atende": {
-            "description": "Se o valor observado atende ao critério.",
-            "title": "Atende",
-            "type": "boolean"
-          },
-          "justificativa": {
-            "description": "Explicação em português brasileiro do resultado.",
-            "title": "Justificativa",
-            "type": "string"
-          },
-          "operando": {
-            "description": "O que foi comparado (ex.: área afetada, cobertura).",
-            "title": "Operando",
-            "type": "string"
-          },
-          "valor_observado": {
-            "description": "Valor observado no momento da avaliação.",
-            "title": "Valor Observado",
-            "type": "string"
-          }
-        },
-        "required": [
-          "operando",
-          "valor_observado",
-          "atende",
-          "justificativa"
-        ],
-        "title": "RespostaCriterio",
         "type": "object"
       }
     }

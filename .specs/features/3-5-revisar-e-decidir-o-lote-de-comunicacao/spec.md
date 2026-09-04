@@ -133,26 +133,26 @@ As Histórias 3.2–3.4 entregam mensagens que chegam a `aguardando_revisao` (ap
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| REVISAO-01 | P1: Lote de revisão priorizado por atenção | Execute (T3) | Implementing |
-| REVISAO-02 | P1: Lote de revisão priorizado por atenção | Execute (T3) | Implementing |
-| REVISAO-03 | P1: Detalhe do revisor com contexto separado | Execute (T3) | Implementing |
-| REVISAO-04 | P1: Detalhe do revisor com contexto separado | Execute (T3) | Implementing |
-| REVISAO-05 | P1: Decisão individual sem edição de texto | Execute (T2, T4) | Implementing |
-| REVISAO-06 | P1: Decisão individual sem edição de texto | Execute (T1, T2, T4) | Implementing |
+| REVISAO-01 | P1: Lote de revisão priorizado por atenção | Execute (T3, T5) | Implementing |
+| REVISAO-02 | P1: Lote de revisão priorizado por atenção | Execute (T3, T6) | Implementing |
+| REVISAO-03 | P1: Detalhe do revisor com contexto separado | Execute (T3, T6) | Implementing |
+| REVISAO-04 | P1: Detalhe do revisor com contexto separado | Execute (T3, T6) | Implementing |
+| REVISAO-05 | P1: Decisão individual sem edição de texto | Execute (T2, T4, T6) | Implementing |
+| REVISAO-06 | P1: Decisão individual sem edição de texto | Execute (T1, T2, T4, T6) | Implementing |
 | REVISAO-07 | P1: Decisão individual sem edição de texto | Execute (T1, T2, T4) | Implementing |
 | REVISAO-08 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T4) | Implementing |
-| REVISAO-09 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T4) | Implementing |
+| REVISAO-09 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T3, T4, T6) | Implementing |
 | REVISAO-10 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T4) | Implementing |
 | REVISAO-11 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T2, T4) | Implementing |
-| REVISAO-12 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4) | Implementing |
-| REVISAO-13 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4) | Implementing |
-| REVISAO-14 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4) | Implementing |
+| REVISAO-12 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4, T5) | Implementing |
+| REVISAO-13 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4, T5) | Implementing |
+| REVISAO-14 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4, T5) | Implementing |
 
 **ID format:** `REVISAO-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 14 total, 0 mapped to tasks, 14 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 14 total, 14 mapped to tasks, 0 unmapped. T1–T6 implementadas e com gate verde (825 backend + 268 frontend); verificação independente pendente.
 
 ---
 
