@@ -114,14 +114,14 @@ A História 3.6 executa a simulação e persiste entregas simuladas, mas nada ai
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
 | RESULT-01 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | 3.6 (ServicoSimulacao.confirmar) | Verified |
-| RESULT-02 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | Execute (T1, T2) | Implementing |
+| RESULT-02 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | Execute (T1, T2, T3) | Implementing |
 | RESULT-03 | P1: Confirmação atômica e totais reconciliáveis por canal/estado | Execute (T1, T2) | Implementing |
-| RESULT-04 | P1: Falha local sem entrega parcial e sem falha fictícia de canal | Execute (T2) | Implementing |
-| RESULT-05 | P1: Falha local sem entrega parcial e sem falha fictícia de canal | Execute (T2) | Implementing |
-| RESULT-06 | P1: Reidratação sem repetição e sem regressão de estado terminal | Execute (T2) | Implementing |
-| RESULT-07 | P1: Reidratação sem repetição e sem regressão de estado terminal | Execute (T2) | Implementing |
+| RESULT-04 | P1: Falha local sem entrega parcial e sem falha fictícia de canal | Execute (T2, T3) | Implementing |
+| RESULT-05 | P1: Falha local sem entrega parcial e sem falha fictícia de canal | Execute (T2, T3) | Implementing |
+| RESULT-06 | P1: Reidratação sem repetição e sem regressão de estado terminal | Execute (T2, T3) | Implementing |
+| RESULT-07 | P1: Reidratação sem repetição e sem regressão de estado terminal | Execute (T2, T3) | Implementing |
 | RESULT-08 | P2: Acessibilidade da tabela e divergência consultável | Design | Pending |
-| RESULT-09 | P2: Acessibilidade da tabela e divergência consultável | Execute (T2) | Implementing |
+| RESULT-09 | P2: Acessibilidade da tabela e divergência consultável | Execute (T2, T3) | Implementing |
 | RESULT-10 | P2: Acessibilidade da tabela e divergência consultável | Design | Pending |
 
 **ID format:** `RESULT-NN`

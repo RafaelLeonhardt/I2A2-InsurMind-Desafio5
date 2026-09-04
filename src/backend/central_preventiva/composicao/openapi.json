@@ -595,6 +595,46 @@
         "title": "ProblemaRestauracao",
         "type": "object"
       },
+      "ProblemaResultados": {
+        "additionalProperties": false,
+        "description": "Falha da consulta de resultados, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaResultados",
+        "type": "object"
+      },
       "ProblemaRevisao": {
         "additionalProperties": false,
         "description": "Falha da revisão do lote, com ocorrência, impacto e próxima ação segura.",
@@ -1606,6 +1646,35 @@
         "title": "RespostaDistribuicaoCanal",
         "type": "object"
       },
+      "RespostaDivergenciaTotais": {
+        "additionalProperties": false,
+        "description": "Inconsistência entre mensagens `simulada_entregue` e entregas persistidas (RESULT-09).\n\nNunca esperada em operação normal; reportada com os dois lados e a execução como\ncorrelação, nunca reconciliada silenciosamente.",
+        "properties": {
+          "entregas_persistidas": {
+            "description": "Quantidade de linhas persistidas em `entregas_simuladas`.",
+            "title": "Entregas Persistidas",
+            "type": "integer"
+          },
+          "execucao_id": {
+            "description": "Execução em que a divergência foi detectada.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "mensagens_simulada_entregue": {
+            "description": "Quantidade de mensagens no estado `simulada_entregue`.",
+            "title": "Mensagens Simulada Entregue",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "execucao_id",
+          "mensagens_simulada_entregue",
+          "entregas_persistidas"
+        ],
+        "title": "RespostaDivergenciaTotais",
+        "type": "object"
+      },
       "RespostaElegibilidade": {
         "additionalProperties": false,
         "description": "Quantidades e lista do público avaliado de uma execução (ELEG-08).",
@@ -2365,6 +2434,41 @@
         "title": "RespostaMensagem",
         "type": "object"
       },
+      "RespostaMensagemNaoSimulavel": {
+        "additionalProperties": false,
+        "description": "Uma mensagem que nunca foi nem será simulada nesta execução, com o motivo.",
+        "properties": {
+          "canal": {
+            "description": "Canal da mensagem.",
+            "title": "Canal",
+            "type": "string"
+          },
+          "estado": {
+            "description": "Estado terminal da mensagem que a excluiu da simulação.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "mensagem_id": {
+            "description": "Identificador da mensagem.",
+            "format": "uuid",
+            "title": "Mensagem Id",
+            "type": "string"
+          },
+          "motivo": {
+            "description": "Motivo legível pelo qual a mensagem não foi simulada.",
+            "title": "Motivo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mensagem_id",
+          "canal",
+          "estado",
+          "motivo"
+        ],
+        "title": "RespostaMensagemNaoSimulavel",
+        "type": "object"
+      },
       "RespostaMensagens": {
         "additionalProperties": false,
         "description": "Mensagens já persistidas de uma execução, na ordem em que foram criadas.",
@@ -2887,6 +2991,74 @@
           "restaurado_em"
         ],
         "title": "RespostaRestauracao",
+        "type": "object"
+      },
+      "RespostaResultadosConsolidados": {
+        "additionalProperties": false,
+        "description": "Resultados consolidados de uma execução, ou o progresso real enquanto ela não termina.",
+        "properties": {
+          "concluido": {
+            "description": "Se a simulação já terminou (`concluida` ou `falhou_simulacao`). Enquanto falso, os totais abaixo vêm vazios — não representam um resultado final.",
+            "title": "Concluido",
+            "type": "boolean"
+          },
+          "divergencia": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaDivergenciaTotais"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Preenchida somente se a contagem de mensagens simuladas divergir da contagem de entregas persistidas; nula em operação normal."
+          },
+          "estado": {
+            "description": "Estado agregado atual da execução.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "execucao_id": {
+            "description": "Identificador da execução consultada.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "nao_simulaveis": {
+            "description": "Mensagens rejeitadas, excluídas ou em exceção técnica, com o motivo; nunca somadas às entregas simuladas.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaMensagemNaoSimulavel"
+            },
+            "title": "Nao Simulaveis",
+            "type": "array"
+          },
+          "totais_por_canal": {
+            "description": "Totais de todas as mensagens do lote, por canal.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaTotalPorChave"
+            },
+            "title": "Totais Por Canal",
+            "type": "array"
+          },
+          "totais_por_estado": {
+            "description": "Totais de todas as mensagens do lote, por estado.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaTotalPorChave"
+            },
+            "title": "Totais Por Estado",
+            "type": "array"
+          }
+        },
+        "required": [
+          "execucao_id",
+          "estado",
+          "concluido",
+          "totais_por_canal",
+          "totais_por_estado",
+          "nao_simulaveis",
+          "divergencia"
+        ],
+        "title": "RespostaResultadosConsolidados",
         "type": "object"
       },
       "RespostaResumoElegibilidade": {
@@ -3431,6 +3603,28 @@
           "casos"
         ],
         "title": "RespostaTeste",
+        "type": "object"
+      },
+      "RespostaTotalPorChave": {
+        "additionalProperties": false,
+        "description": "Uma contagem agregada por canal ou por estado.",
+        "properties": {
+          "chave": {
+            "description": "Canal ou estado agregado.",
+            "title": "Chave",
+            "type": "string"
+          },
+          "total": {
+            "description": "Quantidade de mensagens nesta chave.",
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "chave",
+          "total"
+        ],
+        "title": "RespostaTotalPorChave",
         "type": "object"
       },
       "RespostaValidacaoDeterministica": {
@@ -4531,6 +4725,59 @@
         "summary": "Preparar a etapa agêntica de uma execução preventiva",
         "tags": [
           "Preparação da IA"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_id}/resultados": {
+      "get": {
+        "description": "Devolve os totais por canal e por estado de todas as mensagens do lote, com as rejeitadas, excluídas e em exceção técnica separadas em `nao_simulaveis` — nunca somadas às entregas simuladas. Enquanto a simulação não chega a `concluida` ou `falhou_simulacao`, `concluido` vem falso e os totais vêm vazios, para nunca apresentar um total parcial como final. Uma divergência entre a contagem de mensagens simuladas e as entregas persistidas é reportada em `divergencia`, nunca corrigida silenciosamente.",
+        "operationId": "consultar_resultados_api_v1_execucoes__execucao_id__resultados_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaResultadosConsolidados"
+                }
+              }
+            },
+            "description": "Execução encontrada."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaResultados"
+                }
+              }
+            },
+            "description": "Execução inexistente."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaResultados"
+                }
+              }
+            },
+            "description": "O identificador da execução não é um UUID válido."
+          }
+        },
+        "summary": "Consultar os resultados consolidados da simulação de uma execução",
+        "tags": [
+          "Resultados"
         ]
       }
     },

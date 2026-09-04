@@ -110,10 +110,10 @@ T3 → T4
 
 **Done when**:
 
-- [ ] `200` com totais para execução concluída
-- [ ] Execução em `simulando` retorna progresso, não totais finais
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `200` com totais para execução concluída
+- [x] Execução em `simulando` retorna progresso, não totais finais
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full
