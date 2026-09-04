@@ -70,7 +70,7 @@ T6
 
 ## Task Breakdown
 
-### T1: Migração `0010_excecoes_mensagem.sql`
+### T1: Migração `0010_excecoes_mensagem.sql` ✅
 
 **What**: Adicionar `mensagem_id` (nulo) a `excecoes_operacionais`; atualizar `README.md` de persistência.
 **Where**: `src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_excecoes_mensagem.sql`
@@ -82,10 +82,10 @@ T6
 
 **Done when**:
 
-- [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] `README.md` documenta a coluna nova
-- [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0010`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Migração aplica em transação própria, registrada em `schema_migracoes`
+- [x] `README.md` documenta a coluna nova
+- [x] `testes/test_migracoes.py` cobre a aplicação da migração `0012` (renumerada de `0010`)
+- [x] Gate check passa: `uv run --directory src/backend pytest` (692 passed)
 
 **Tests**: integration
 **Gate**: quick

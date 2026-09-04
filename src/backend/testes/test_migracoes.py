@@ -84,8 +84,8 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
-    assert resultado.versao_final == 11
+    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
+    assert resultado.versao_final == 12
     assert tabelas(caminho) == TABELAS_ESPERADAS
     assert registros(caminho) == [
         (1, "schema inicial"),
@@ -99,6 +99,7 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
         (9, "preflight ia"),
         (10, "mensagens"),
         (11, "avaliacoes criticas"),
+        (12, "excecoes mensagem"),
     ]
 
 
@@ -109,7 +110,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 11
+    assert resultado.versao_final == 12
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
@@ -122,6 +123,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
         (9, "preflight ia"),
         (10, "mensagens"),
         (11, "avaliacoes criticas"),
+        (12, "excecoes mensagem"),
     ]
 
 
@@ -803,3 +805,99 @@ def test_documentacao_versionada_descreve_as_tabelas_de_mensagem() -> None:
     assert "UNIQUE (elegibilidade_id, canal)" in documento
     assert "motivo_invalidez" in documento
     assert "tentativa_atual" in documento
+
+
+def test_migracao_excecoes_mensagem_acrescenta_mensagem_id_nula_as_excecoes_existentes(
+    tmp_path: Path,
+) -> None:
+    """A migração `0012` acrescenta `mensagem_id` a `excecoes_operacionais` (REGEN-04):
+    coluna nula, sem backfill — toda exceção de execução pré-existente permanece intacta com
+    `NULL`, e uma exceção nova de uma mensagem específica correlaciona-se por `mensagem_id`."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho, list(MIGRACOES[:11])).aplicar_pendentes()
+    execucao_id = "11111111-1111-1111-1111-111111111111"
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO excecoes_operacionais (id, execucao_id, causa, tentativas, impacto) "
+            "VALUES ('22222222-2222-2222-2222-222222222222', ?, 'coleta esgotada', 3, "
+            "'Nenhum evento foi coletado.')",
+            [execucao_id],
+        )
+
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        anterior = conexao.execute(
+            "SELECT causa, tentativas, impacto, mensagem_id FROM excecoes_operacionais "
+            "WHERE id = '22222222-2222-2222-2222-222222222222'"
+        ).fetchone()
+        assert anterior == ("coleta esgotada", 3, "Nenhum evento foi coletado.", None)
+
+        mensagem_id = "33333333-3333-3333-3333-333333333333"
+        conexao.execute(
+            "INSERT INTO excecoes_operacionais "
+            "(id, execucao_id, causa, tentativas, impacto, mensagem_id) VALUES "
+            "('44444444-4444-4444-4444-444444444444', ?, 'falhou_conteudo', 3, "
+            "'Este item não integra o lote simulável.', ?)",
+            [execucao_id, mensagem_id],
+        )
+        de_mensagem = conexao.execute(
+            "SELECT causa, tentativas, mensagem_id FROM excecoes_operacionais "
+            "WHERE id = '44444444-4444-4444-4444-444444444444'"
+        ).fetchone()
+
+    assert de_mensagem is not None
+    assert de_mensagem[0] == "falhou_conteudo"
+    assert de_mensagem[1] == 3
+    assert str(de_mensagem[2]) == mensagem_id
+
+
+def test_migracao_excecoes_mensagem_distingue_excecao_de_execucao_e_de_mensagem(
+    tmp_path: Path,
+) -> None:
+    """REGEN-04: com a coluna nova, a exceção de uma mensagem específica é filtrável à parte
+    da exceção da execução inteira — o motivo de reusar `excecoes_operacionais` em vez de
+    criar uma tabela paralela."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+    execucao_id = "55555555-5555-5555-5555-555555555555"
+    mensagem_id = "66666666-6666-6666-6666-666666666666"
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO excecoes_operacionais (id, execucao_id, causa, tentativas, impacto) "
+            "VALUES ('77777777-7777-7777-7777-777777777777', ?, 'falhou_coleta', 3, 'x')",
+            [execucao_id],
+        )
+        conexao.execute(
+            "INSERT INTO excecoes_operacionais "
+            "(id, execucao_id, causa, tentativas, impacto, mensagem_id) VALUES "
+            "('88888888-8888-8888-8888-888888888888', ?, 'falhou_conteudo', 3, 'y', ?)",
+            [execucao_id, mensagem_id],
+        )
+        da_mensagem = conexao.execute(
+            "SELECT causa FROM excecoes_operacionais WHERE mensagem_id = ?", [mensagem_id]
+        ).fetchall()
+        da_execucao = conexao.execute(
+            "SELECT causa FROM excecoes_operacionais "
+            "WHERE execucao_id = ? AND mensagem_id IS NULL",
+            [execucao_id],
+        ).fetchall()
+
+    assert [causa for (causa,) in da_mensagem] == ["falhou_conteudo"]
+    assert [causa for (causa,) in da_execucao] == ["falhou_coleta"]
+
+
+def test_documentacao_versionada_descreve_a_coluna_de_excecao_de_mensagem() -> None:
+    """A coluna nova de `0012` é documentada junto das tabelas (T1), não só no `.sql`."""
+
+    documento = Path("central_preventiva/adaptadores/persistencia/README.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "0012_excecoes_mensagem" in documento
+    assert "`mensagem_id` | `UUID` | nulo, chave estrangeira lógica para `mensagens(id)`" in (
+        documento
+    )

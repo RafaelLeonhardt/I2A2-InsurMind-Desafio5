@@ -1,0 +1,23 @@
+-- Migração 12: exceção operacional correlacionada a uma mensagem (História 3.4). Uma mudança.
+--
+-- SPEC_DEVIATION: o `design.md` da 3.4 nomeia esta migração `0010_excecoes_mensagem.sql`.
+-- Motivo: `0009`, `0010` e `0011` já foram consumidos pelas Histórias 3.1, 3.2 e 3.3,
+-- implementadas antes desta. Mesma renumeração já registrada desde a 2.4 — o conteúdo é o do
+-- design.
+--
+-- `excecoes_operacionais.mensagem_id`: a `Exceção` de uma mensagem que esgotou as três
+-- tentativas (`falhou_conteudo`, REGEN-04) ou que perdeu a integração com a OpenAI
+-- (`falhou_integracao_ia`, REGEN-05) precisa ser distinguível de uma exceção da execução
+-- inteira. A coluna é opcional: fica nula quando a exceção é da execução (2.2) e preenchida
+-- quando é de uma mensagem específica. Um único repositório de exceções serve os dois casos,
+-- em vez de uma segunda tabela com o mesmo propósito.
+--
+-- A coluna é nula, sem `NOT NULL`, sem `UNIQUE`/`CHECK` e sem backfill — `NULL` já é o valor
+-- correto de toda linha pré-existente (exceção de execução). Por isso o recreate-and-copy do
+-- AD-015 não se aplica aqui: ele governa constraints novas e colunas com backfill, e um
+-- `ALTER TABLE ADD COLUMN` nulo não é nenhum dos dois. Mesmo caso já aplicado na `0009`.
+--
+-- Nenhuma coluna declara `REFERENCES` (AD-005); a relação com `mensagens(id)` é chave
+-- estrangeira lógica, documentada aqui e no `README.md` da persistência.
+
+ALTER TABLE excecoes_operacionais ADD COLUMN mensagem_id UUID;

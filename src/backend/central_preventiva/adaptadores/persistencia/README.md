@@ -475,3 +475,27 @@ A avaliação do crítico é textual e nunca sobrepõe a validação determinís
 `gerando` e, portanto, nunca chega a ter avaliação crítica (CRIT-04). Uma saída do crítico inválida
 ou não interpretável não gera linha nenhuma nesta tabela: é falha da tentativa, nunca aprovação
 (CRIT-07).
+
+## Tabelas da migração `0012_excecoes_mensagem`
+
+A migração acrescenta uma coluna opcional a `excecoes_operacionais` (História 3.4). O `design.md`
+da história numera o arquivo como `0010_excecoes_mensagem.sql`; `0009`, `0010` e `0011` já haviam
+sido consumidos pelas Histórias 3.1, 3.2 e 3.3, então a migração entrou como `0012` — mesma
+renumeração já registrada desde a 2.4. Nenhuma tabela nova: a proveniência por tentativa continua
+inteiramente em `versoes_mensagem`/`avaliacoes_criticas`, que já admitem uma linha por tentativa.
+
+### `excecoes_operacionais` (coluna nova)
+
+| Coluna adicionada | Tipo | Restrições |
+| --- | --- | --- |
+| `mensagem_id` | `UUID` | nulo, chave estrangeira lógica para `mensagens(id)` |
+
+`mensagem_id` fica nulo quando a exceção é da execução inteira (2.2, `falhou_coleta`) e preenchido
+quando é de uma mensagem específica: a que esgotou as três tentativas e alcançou `falhou_conteudo`
+(REGEN-04) ou a que perdeu a integração com a OpenAI e alcançou `falhou_integracao_ia` (REGEN-05).
+Um único repositório de exceções serve os dois casos, em vez de uma segunda tabela com o mesmo
+propósito.
+
+A coluna entra por `ALTER TABLE ADD COLUMN` nulo, sem backfill: `NULL` já é o valor correto de toda
+linha pré-existente. O recreate-and-copy do AD-015 não se aplica — ele governa constraint nova e
+coluna com backfill, e este `ALTER` não é nenhum dos dois (mesmo caso da `0009`).
