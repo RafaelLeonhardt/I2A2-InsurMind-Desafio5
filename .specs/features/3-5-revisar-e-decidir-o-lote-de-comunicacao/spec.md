@@ -139,7 +139,7 @@ As Histórias 3.2–3.4 entregam mensagens que chegam a `aguardando_revisao` (ap
 | REVISAO-04 | P1: Detalhe do revisor com contexto separado | Design | Pending |
 | REVISAO-05 | P1: Decisão individual sem edição de texto | Design | Pending |
 | REVISAO-06 | P1: Decisão individual sem edição de texto | Design | Pending |
-| REVISAO-07 | P1: Decisão individual sem edição de texto | Design | Pending |
+| REVISAO-07 | P1: Decisão individual sem edição de texto | Execute (T1) | Implementing |
 | REVISAO-08 | P1: Regeneração humana compartilhando o limite de tentativas | Design | Pending |
 | REVISAO-09 | P1: Regeneração humana compartilhando o limite de tentativas | Design | Pending |
 | REVISAO-10 | P1: Regeneração humana compartilhando o limite de tentativas | Design | Pending |

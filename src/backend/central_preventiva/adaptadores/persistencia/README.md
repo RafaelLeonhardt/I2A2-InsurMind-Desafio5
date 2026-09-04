@@ -499,3 +499,42 @@ propósito.
 A coluna entra por `ALTER TABLE ADD COLUMN` nulo, sem backfill: `NULL` já é o valor correto de toda
 linha pré-existente. O recreate-and-copy do AD-015 não se aplica — ele governa constraint nova e
 coluna com backfill, e este `ALTER` não é nenhum dos dois (mesmo caso da `0009`).
+
+## Tabelas da migração `0013_decisoes_humanas`
+
+A migração cria a tabela da decisão humana sobre o lote de comunicação (História 3.5). O
+`design.md` da história numera o arquivo como `0011_decisoes_humanas.sql`; `0009`, `0010`, `0011` e
+`0012` já haviam sido consumidos pelas Histórias 3.1, 3.2, 3.3 e 3.4, então a migração entrou como
+`0013` — mesma renumeração já registrada desde a 2.4.
+
+### `decisoes_humanas`
+
+Uma linha por decisão que Marina toma sobre uma versão de mensagem, com o perfil sintético
+responsável, o resultado, a justificativa (quando aplicável) e o instante.
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `mensagem_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `mensagens(id)` |
+| `versao_mensagem_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `versoes_mensagem(id)` |
+| `perfil_responsavel` | `VARCHAR` | `NOT NULL` — perfil sintético que decidiu (Épico 1) |
+| `resultado` | `VARCHAR` | `NOT NULL`, `CHECK` em `aprovar`, `rejeitar`, `excluir`, `regenerar` |
+| `justificativa` | `VARCHAR` | `CHECK (resultado = 'aprovar' OR justificativa IS NOT NULL)` |
+| `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
+
+A decisão humana é registrada aqui, e nunca em `avaliacoes_criticas`: a aprovação do agente crítico
+(3.3) e a decisão de Marina são fatos distintos, de origens distintas, e o lote só é simulável
+quando as duas concordam (REVISAO-07, REVISAO-14).
+
+A obrigatoriedade da justificativa em `rejeitar`, `excluir` e `regenerar` é cobrada pelo próprio
+banco, não apenas pela validação da aplicação (REVISAO-06): nenhum caminho de escrita futuro
+consegue gravar uma rejeição sem motivo.
+
+Nenhuma restrição `UNIQUE` é declarada, deliberadamente. Uma mensagem recebe legitimamente mais de
+uma decisão ao longo da vida — regenerar a tentativa 1 e aprovar a tentativa 2 são duas decisões
+auditáveis da mesma mensagem (REVISAO-11) —, então `mensagem_id` não é chave natural.
+`versao_mensagem_id` também não vira `UNIQUE`: a dedução do AD-010 existe para o fato que dois
+comandos independentes podem reproduzir, com semântica de insert-or-noop, e uma segunda decisão
+sobre a mesma versão não é isso. Ela é impedida pela máquina de estados da mensagem (só
+`aguardando_revisao` é decidível, REVISAO-12), e o replay do mesmo comando é coberto por
+`chaves_idempotencia` (AD-002); silenciá-la como no-op esconderia um erro real.

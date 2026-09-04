@@ -37,6 +37,7 @@ TABELAS_ESPERADAS = {
     "mensagens",
     "versoes_mensagem",
     "avaliacoes_criticas",
+    "decisoes_humanas",
 }
 
 REGISTRO_MINIMO = (
@@ -84,8 +85,8 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
-    assert resultado.versao_final == 12
+    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
+    assert resultado.versao_final == 13
     assert tabelas(caminho) == TABELAS_ESPERADAS
     assert registros(caminho) == [
         (1, "schema inicial"),
@@ -100,6 +101,7 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
         (10, "mensagens"),
         (11, "avaliacoes criticas"),
         (12, "excecoes mensagem"),
+        (13, "decisoes humanas"),
     ]
 
 
@@ -110,7 +112,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 12
+    assert resultado.versao_final == 13
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
@@ -124,6 +126,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
         (10, "mensagens"),
         (11, "avaliacoes criticas"),
         (12, "excecoes mensagem"),
+        (13, "decisoes humanas"),
     ]
 
 
@@ -901,3 +904,166 @@ def test_documentacao_versionada_descreve_a_coluna_de_excecao_de_mensagem() -> N
     assert "`mensagem_id` | `UUID` | nulo, chave estrangeira lógica para `mensagens(id)`" in (
         documento
     )
+
+
+def _inserir_decisao(
+    conexao: duckdb.DuckDBPyConnection,
+    id_decisao: str,
+    resultado: str,
+    justificativa: str | None,
+    *,
+    mensagem_id: str = "11111111-1111-1111-1111-111111111111",
+    versao_mensagem_id: str = "22222222-2222-2222-2222-222222222222",
+) -> None:
+    """Insere uma decisão humana sobre uma versão de mensagem (REVISAO-07)."""
+
+    conexao.execute(
+        "INSERT INTO decisoes_humanas "
+        "(id, mensagem_id, versao_mensagem_id, perfil_responsavel, resultado, justificativa) "
+        "VALUES (?, ?, ?, 'Administrador', ?, ?)",
+        [id_decisao, mensagem_id, versao_mensagem_id, resultado, justificativa],
+    )
+
+
+def test_migracao_decisoes_humanas_persiste_perfil_resultado_e_versao_decidida(
+    tmp_path: Path,
+) -> None:
+    """A migração `0013` cria `decisoes_humanas` com perfil sintético responsável, data,
+    resultado, justificativa e versão da mensagem decidida (REVISAO-07)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        _inserir_decisao(
+            conexao,
+            "aaaaaaaa-0000-0000-0000-000000000001",
+            "rejeitar",
+            "O texto não deixa claro que o aviso é da seguradora.",
+        )
+        linha = conexao.execute(
+            "SELECT mensagem_id, versao_mensagem_id, perfil_responsavel, resultado, "
+            "justificativa, criado_em FROM decisoes_humanas "
+            "WHERE id = 'aaaaaaaa-0000-0000-0000-000000000001'"
+        ).fetchone()
+
+    assert linha is not None
+    assert str(linha[0]) == "11111111-1111-1111-1111-111111111111"
+    assert str(linha[1]) == "22222222-2222-2222-2222-222222222222"
+    assert linha[2] == "Administrador"
+    assert linha[3] == "rejeitar"
+    assert linha[4] == "O texto não deixa claro que o aviso é da seguradora."
+    assert linha[5] is not None
+
+
+def test_migracao_decisoes_humanas_recusa_resultado_fora_do_conjunto_fechado(
+    tmp_path: Path,
+) -> None:
+    """REVISAO-05: os quatro resultados possíveis são fechados no schema — nenhuma decisão
+    de "editar o texto" tem sequer como ser gravada."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        for indice, resultado in enumerate(("aprovar", "rejeitar", "excluir", "regenerar")):
+            _inserir_decisao(
+                conexao,
+                f"bbbbbbbb-0000-0000-0000-00000000000{indice}",
+                resultado,
+                "Motivo suficiente para a decisão.",
+            )
+
+        with pytest.raises(duckdb.ConstraintException):
+            _inserir_decisao(
+                conexao,
+                "bbbbbbbb-0000-0000-0000-000000000009",
+                "editar",
+                "Reescrevi o texto na mão.",
+            )
+        total = conexao.execute("SELECT count(*) FROM decisoes_humanas").fetchone()
+
+    assert total == (4,)
+
+
+def test_migracao_decisoes_humanas_exige_justificativa_exceto_na_aprovacao(
+    tmp_path: Path,
+) -> None:
+    """REVISAO-06: rejeitar, excluir e regenerar sem justificativa são recusados pelo próprio
+    banco; só `aprovar` admite justificativa nula."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        for indice, resultado in enumerate(("rejeitar", "excluir", "regenerar")):
+            with pytest.raises(duckdb.ConstraintException):
+                _inserir_decisao(
+                    conexao,
+                    f"cccccccc-0000-0000-0000-00000000000{indice}",
+                    resultado,
+                    None,
+                )
+
+        _inserir_decisao(
+            conexao, "cccccccc-0000-0000-0000-000000000009", "aprovar", None
+        )
+        linhas = conexao.execute(
+            "SELECT resultado, justificativa FROM decisoes_humanas"
+        ).fetchall()
+
+    assert linhas == [("aprovar", None)]
+
+
+def test_migracao_decisoes_humanas_admite_varias_decisoes_da_mesma_mensagem(
+    tmp_path: Path,
+) -> None:
+    """REVISAO-11: a solicitação humana de regeneração e a decisão sobre a versão seguinte
+    coexistem como histórico auditável da mesma mensagem — nenhuma `UNIQUE` as impede."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+    mensagem_id = "33333333-3333-3333-3333-333333333333"
+
+    with abrir_conexao(caminho) as conexao:
+        _inserir_decisao(
+            conexao,
+            "dddddddd-0000-0000-0000-000000000001",
+            "regenerar",
+            "O texto está longo demais para SMS.",
+            mensagem_id=mensagem_id,
+            versao_mensagem_id="44444444-4444-4444-4444-444444444444",
+        )
+        _inserir_decisao(
+            conexao,
+            "dddddddd-0000-0000-0000-000000000002",
+            "aprovar",
+            None,
+            mensagem_id=mensagem_id,
+            versao_mensagem_id="55555555-5555-5555-5555-555555555555",
+        )
+        linhas = conexao.execute(
+            "SELECT resultado, versao_mensagem_id FROM decisoes_humanas "
+            "WHERE mensagem_id = ? ORDER BY id",
+            [mensagem_id],
+        ).fetchall()
+
+    assert [
+        (resultado, str(versao_id)) for resultado, versao_id in linhas
+    ] == [
+        ("regenerar", "44444444-4444-4444-4444-444444444444"),
+        ("aprovar", "55555555-5555-5555-5555-555555555555"),
+    ]
+
+
+def test_documentacao_versionada_descreve_a_tabela_de_decisao_humana() -> None:
+    """A tabela de `0013` é documentada no `README.md` versionado, não só no `.sql` (T1)."""
+
+    documento = Path("central_preventiva/adaptadores/persistencia/README.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "0013_decisoes_humanas" in documento
+    assert "decisoes_humanas" in documento
+    assert "CHECK (resultado = 'aprovar' OR justificativa IS NOT NULL)" in documento
+    assert "perfil_responsavel" in documento

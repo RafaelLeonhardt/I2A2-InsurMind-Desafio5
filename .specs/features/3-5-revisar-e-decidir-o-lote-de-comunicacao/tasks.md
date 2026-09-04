@@ -69,7 +69,7 @@ T6
 
 ## Task Breakdown
 
-### T1: Migração `0011_decisoes_humanas.sql`
+### T1: Migração `0011_decisoes_humanas.sql` ✅
 
 **What**: Criar `decisoes_humanas`; atualizar `README.md` de persistência.
 **Where**: `src/backend/central_preventiva/adaptadores/persistencia/migracoes/0011_decisoes_humanas.sql`
@@ -81,10 +81,10 @@ T6
 
 **Done when**:
 
-- [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] `README.md` documenta a tabela nova
-- [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0011`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Migração aplica em transação própria, registrada em `schema_migracoes`
+- [x] `README.md` documenta a tabela nova
+- [x] `testes/test_migracoes.py` cobre a aplicação da migração `0013` (renumerada de `0011`)
+- [x] Gate check passa: `uv run --directory src/backend pytest` (742 passed)
 
 **Tests**: integration
 **Gate**: quick
