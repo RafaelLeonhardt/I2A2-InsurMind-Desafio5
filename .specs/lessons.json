@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 35,
+  "next_id": 38,
   "lessons": [
     {
       "id": "L-001",
@@ -592,17 +592,19 @@
       "text": "A return type declared in design.md must carry every field the acceptance criteria require to be persisted.",
       "signal": "spec_deviation",
       "scope": "design",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "3-2-gerar-mensagens-automaticamente-para-cada-canal"
+        "3-2-gerar-mensagens-automaticamente-para-cada-canal",
+        "3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/ia/agente_redator.py:8 (design)"
+        "SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/ia/agente_redator.py:8 (design)",
+        "src/backend/central_preventiva/adaptadores/persistencia/repositorio_avaliacoes_criticas.py:10 (SPEC_DEVIATION: obter_por_versao devolve RegistroAvaliacaoCritica, nao AvaliacaoCritica) (repo-layer)"
       ],
       "created": "2026-09-03T17:33:20Z",
-      "last_seen": "2026-09-03T17:33:20Z"
+      "last_seen": "2026-09-04T10:25:44Z"
     },
     {
       "id": "L-034",
@@ -610,17 +612,73 @@
       "text": "Do not fix a migration number in design.md; assign the next number at implementation time from the migrations directory.",
       "signal": "spec_deviation",
       "scope": "persistence",
+      "status": "confirmed",
+      "features": [
+        "3-2-gerar-mensagens-automaticamente-para-cada-canal",
+        "3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens"
+      ],
+      "recurrence": 2,
+      "harmful": 0,
+      "evidence": [
+        "SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence)",
+        "src/backend/central_preventiva/adaptadores/persistencia/migracoes/0011_avaliacoes_criticas.sql:3 (SPEC_DEVIATION: design.md nomeia 0009) (persistencia)"
+      ],
+      "created": "2026-09-03T17:33:20Z",
+      "last_seen": "2026-09-04T10:25:44Z"
+    },
+    {
+      "id": "L-035",
+      "key": "spec_deviation::when an acceptance criterion distinguishes an uninterpretable model response from a structured rejection give the agent call a third return outcome instead of reusing the rejection value or raising",
+      "text": "When an acceptance criterion distinguishes an uninterpretable model response from a structured rejection, give the agent call a third return outcome instead of reusing the rejection value or raising.",
+      "signal": "spec_deviation",
+      "scope": "adaptadores-ia",
       "status": "candidate",
       "features": [
-        "3-2-gerar-mensagens-automaticamente-para-cada-canal"
+        "3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens"
       ],
       "recurrence": 1,
       "harmful": 0,
       "evidence": [
-        "SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence)"
+        "src/backend/central_preventiva/adaptadores/ia/agente_critico.py:14 (SPEC_DEVIATION: avaliar devolve AvaliacaoCritica | None) (adaptadores-ia)"
       ],
-      "created": "2026-09-03T17:33:20Z",
-      "last_seen": "2026-09-03T17:33:20Z"
+      "created": "2026-09-04T10:25:44Z",
+      "last_seen": "2026-09-04T10:25:44Z"
+    },
+    {
+      "id": "L-036",
+      "key": "spec_precision_gap::when a criterion defers half of its outcome to a later story name the observable state this story must leave behind or that half cannot be asserted",
+      "text": "When a criterion defers half of its outcome to a later story, name the observable state this story must leave behind, or that half cannot be asserted.",
+      "signal": "spec_precision_gap",
+      "scope": "spec",
+      "status": "candidate",
+      "features": [
+        "3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "CRIT-06 (spec)"
+      ],
+      "created": "2026-09-04T10:25:44Z",
+      "last_seen": "2026-09-04T10:25:44Z"
+    },
+    {
+      "id": "L-037",
+      "key": "spec_precision_gap::do not accept a subjective quality adjective such as accessible or clear as an acceptance criterion outcome without naming the observable text or element it requires",
+      "text": "Do not accept a subjective quality adjective such as accessible or clear as an acceptance criterion outcome without naming the observable text or element it requires.",
+      "signal": "spec_precision_gap",
+      "scope": "spec",
+      "status": "candidate",
+      "features": [
+        "3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "CRIT-09 (spec)"
+      ],
+      "created": "2026-09-04T10:25:44Z",
+      "last_seen": "2026-09-04T10:25:44Z"
     }
   ]
 }

@@ -14,6 +14,18 @@ Corroborated across multiple features. Safe to apply as guidance.
 - evidence: RISCO-12 - src/frontend/src/funcionalidades/evento-decisao/SuperficieEventoDecisao.test.tsx:80-126 (frontend) (+1 more)
 - last seen: 2026-09-02T14:42:34Z
 
+### L-033 - A return type declared in design.md must carry every field the acceptance criteria require to be persisted.
+- signal: `spec_deviation` · recurrence: 2 feature(s) · scope: `design` · harmful: 0
+- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal, 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens
+- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/ia/agente_redator.py:8 (design) (+1 more)
+- last seen: 2026-09-04T10:25:44Z
+
+### L-034 - Do not fix a migration number in design.md; assign the next number at implementation time from the migrations directory.
+- signal: `spec_deviation` · recurrence: 2 feature(s) · scope: `persistence` · harmful: 0
+- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal, 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens
+- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence) (+1 more)
+- last seen: 2026-09-04T10:25:44Z
+
 ## Candidates (under observation - do NOT load as guidance yet)
 
 Seen once or not yet corroborated. Tracked, not trusted.
@@ -204,17 +216,23 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: SPEC_DEVIATION em src/backend/central_preventiva/aplicacao/preflight_ia.py:275 (design)
 - last seen: 2026-09-03T17:33:20Z
 
-### L-033 - A return type declared in design.md must carry every field the acceptance criteria require to be persisted.
-- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `design` · harmful: 0
-- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal
-- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/ia/agente_redator.py:8 (design)
-- last seen: 2026-09-03T17:33:20Z
+### L-035 - When an acceptance criterion distinguishes an uninterpretable model response from a structured rejection, give the agent call a third return outcome instead of reusing the rejection value or raising.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `adaptadores-ia` · harmful: 0
+- features: 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens
+- evidence: src/backend/central_preventiva/adaptadores/ia/agente_critico.py:14 (SPEC_DEVIATION: avaliar devolve AvaliacaoCritica | None) (adaptadores-ia)
+- last seen: 2026-09-04T10:25:44Z
 
-### L-034 - Do not fix a migration number in design.md; assign the next number at implementation time from the migrations directory.
-- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `persistence` · harmful: 0
-- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal
-- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence)
-- last seen: 2026-09-03T17:33:20Z
+### L-036 - When a criterion defers half of its outcome to a later story, name the observable state this story must leave behind, or that half cannot be asserted.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
+- features: 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens
+- evidence: CRIT-06 (spec)
+- last seen: 2026-09-04T10:25:44Z
+
+### L-037 - Do not accept a subjective quality adjective such as accessible or clear as an acceptance criterion outcome without naming the observable text or element it requires.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `spec` · harmful: 0
+- features: 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens
+- evidence: CRIT-09 (spec)
+- last seen: 2026-09-04T10:25:44Z
 
 ## Quarantined (failed when applied - ignore)
 

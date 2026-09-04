@@ -98,21 +98,21 @@ A História 3.2 entrega mensagens estruturalmente válidas em `criticando`, mas 
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| CRIT-01 | P1: Avaliação crítica estruturada com contexto mínimo | Tasks | Implementing (T2) |
-| CRIT-02 | P1: Avaliação crítica estruturada com contexto mínimo | Tasks | Implementing (T2) |
-| CRIT-03 | P1: Avaliação crítica estruturada com contexto mínimo | Tasks | Implementing (T2) |
-| CRIT-04 | P1: Avaliação crítica estruturada com contexto mínimo | Tasks | Implementing (T3) |
-| CRIT-05 | P1: Transições de estado a partir da decisão do crítico | Tasks | Implementing (T4) |
-| CRIT-06 | P1: Transições de estado a partir da decisão do crítico | Tasks | Implementing (T1, T4, T6) |
-| CRIT-07 | P1: Transições de estado a partir da decisão do crítico | Tasks | Implementing (T3) |
-| CRIT-08 | P2: Detalhe da avaliação acessível a Marina | Tasks | Implementing (T5, T6) |
-| CRIT-09 | P2: Detalhe da avaliação acessível a Marina | Tasks | Implementing (T5, T6) |
+| CRIT-01 | P1: Avaliação crítica estruturada com contexto mínimo | Execute | ✅ Verified (T2) |
+| CRIT-02 | P1: Avaliação crítica estruturada com contexto mínimo | Execute | ✅ Verified (T2) |
+| CRIT-03 | P1: Avaliação crítica estruturada com contexto mínimo | Execute | ✅ Verified (T2) |
+| CRIT-04 | P1: Avaliação crítica estruturada com contexto mínimo | Execute | ✅ Verified (T3) |
+| CRIT-05 | P1: Transições de estado a partir da decisão do crítico | Execute | ✅ Verified (T4) |
+| CRIT-06 | P1: Transições de estado a partir da decisão do crítico | Execute | ✅ Verified (T1, T4, T6) — ⚠️ spec-precision: "disponível para a próxima tentativa dentro do limite" não tem outcome observável nesta história (limite é 3.4) |
+| CRIT-07 | P1: Transições de estado a partir da decisão do crítico | Execute | ✅ Verified (T3) |
+| CRIT-08 | P2: Detalhe da avaliação acessível a Marina | Execute | ✅ Verified (T5, T6) — ⚠️ superfície ainda não roteada em `App.tsx` (risco (9) do projeto) |
+| CRIT-09 | P2: Detalhe da avaliação acessível a Marina | Execute | ✅ Verified (T5, T6) — ⚠️ spec-precision: "linguagem acessível" sem outcome definido |
 
 **ID format:** `CRIT-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 9 total, 0 mapped to tasks, 9 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 9 total, 9 verificados com evidência `file:line`, 0 sem cobertura. Relatório: `validation.md` (Verifier independente, `2484f3c..edadc86`, sensor 5/5 mutantes mortos, 689 backend + 247 frontend testes verdes).
 
 ---
 
