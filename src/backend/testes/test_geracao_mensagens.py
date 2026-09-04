@@ -1208,6 +1208,48 @@ def test_retomada_de_mensagem_em_criticando_sem_avaliacao_critica_a_versao_persi
     assert mensagem.estado is EstadoMensagem.AGUARDANDO_REVISAO
 
 
+def test_retomada_de_avaliacao_aprovada_sem_transicao_aplicada_conclui_sem_duplicar(
+    tmp_path: Path,
+) -> None:
+    """REGEN-08: a avaliação de aprovação já foi persistida mas a transição para
+    `aguardando_revisao` não chegou a ser aplicada antes de o processo cair. A retomada
+    não chama nenhum agente de novo, completa a transição e não duplica a linha de
+    avaliação (`UNIQUE(versao_mensagem_id)`, insert-or-noop)."""
+
+    incluido = registro(canal="sms")
+    semeador = Cenario([incluido], tmp_path)
+    mensagem_id = semeador.mensagens.criar(EXECUCAO_ID, incluido.id, Canal.SMS)
+    versao_id = semeador.mensagens.salvar_versao(
+        mensagem_id=mensagem_id,
+        numero_tentativa=1,
+        conteudo=SaidaCanal(corpo=CORPO_VALIDO),
+        duracao_ms=10.0,
+        modelo="gpt-4o-mini",
+        versao_prompt=VERSAO_PROMPT,
+        tokens_entrada=100,
+        tokens_saida=30,
+        valida=True,
+        motivo_invalidez=None,
+    )
+    semeador.mensagens.transicionar(mensagem_id, 1, EstadoMensagem.CRITICANDO)
+    semeador.avaliacoes.salvar(versao_id, True, (), "gpt-4o-mini", 5.0)
+
+    reiniciado = Cenario([incluido], tmp_path, critico=CriticoFalso([AvaliacaoCritica(True, ())]))
+    asyncio.run(reiniciado.servico.retomar_mensagens_pendentes(EXECUCAO_ID))
+
+    assert reiniciado.redator.canais_chamados == []
+    assert reiniciado.critico.chamadas == 0
+    mensagem = reiniciado.mensagens.obter(mensagem_id)
+    assert mensagem is not None
+    assert mensagem.estado is EstadoMensagem.AGUARDANDO_REVISAO
+    with abrir_conexao(tmp_path / "central_preventiva.duckdb") as conexao:
+        total = conexao.execute(
+            "SELECT count(*) FROM avaliacoes_criticas WHERE versao_mensagem_id = ?",
+            [versao_id],
+        ).fetchone()
+    assert total == (1,)
+
+
 @pytest.mark.parametrize(
     "terminal",
     [
