@@ -231,6 +231,7 @@ def montar_servico_geracao(configuracao: Configuracao) -> ServicoGeracaoMensagen
             mensagens=RepositorioMensagens(caminho),
             avaliacoes=RepositorioAvaliacoesCriticas(caminho),
             excecoes=RepositorioExcecoesOperacionais(caminho),
+            execucoes=RepositorioExecucaoPreventiva(caminho),
             grafo=construir_grafo(
                 DependenciasGrafo(redator=redator, validador=validador, critico=critico)
             ),

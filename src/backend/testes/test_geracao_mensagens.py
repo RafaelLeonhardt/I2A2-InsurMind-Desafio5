@@ -31,6 +31,7 @@ from central_preventiva.adaptadores.persistencia.repositorio_elegibilidade impor
     RegistroElegibilidade,
 )
 from central_preventiva.adaptadores.persistencia.repositorio_execucao_preventiva import (
+    RepositorioExecucaoPreventiva,
     SnapshotExecucao,
 )
 from central_preventiva.adaptadores.persistencia.repositorio_mensagens import (
@@ -307,6 +308,13 @@ class Cenario:
             else {item.id: contexto_de(item.canal) for item in registros}
         )
         self.excecoes = ExcecoesEspias()
+        self.execucoes = RepositorioExecucaoPreventiva(caminho)
+        with abrir_conexao(caminho) as conexao:
+            conexao.execute(
+                "INSERT INTO execucao_preventiva (id, estado, versao) VALUES (?, ?, 1) "
+                "ON CONFLICT DO NOTHING",
+                [EXECUCAO_ID, EstadoExecucao.PROCESSANDO_MENSAGENS.value],
+            )
         self.servico = ServicoGeracaoMensagens(
             PortasGeracaoMensagens(
                 elegibilidades=self.elegibilidades,
@@ -314,6 +322,7 @@ class Cenario:
                 mensagens=self.mensagens,
                 avaliacoes=self.avaliacoes,
                 excecoes=self.excecoes,
+                execucoes=self.execucoes,
                 grafo=construir_grafo(
                     DependenciasGrafo(
                         redator=self.redator,
@@ -330,6 +339,13 @@ class Cenario:
         """Dispara a geração do lote inteiro, sem nenhuma ação por mensagem."""
 
         asyncio.run(self.servico.gerar_lote(execucao_id))
+
+    def estado_execucao(self, execucao_id: UUID = EXECUCAO_ID) -> EstadoExecucao:
+        """Lê o estado agregado real persistido da execução do cenário."""
+
+        snapshot = self.execucoes.buscar(execucao_id)
+        assert snapshot is not None
+        return snapshot.estado
 
 
 def test_duas_elegibilidades_incluidas_geram_duas_mensagens_sem_acao_manual(
@@ -1329,3 +1345,102 @@ def test_retomada_isola_a_falha_de_uma_mensagem_e_continua_as_demais(tmp_path: P
     assert outra.estado is EstadoMensagem.AGUARDANDO_REVISAO
     causas = [causa for _, causa, _, _ in reiniciado.excecoes.registradas]
     assert causas == [f"contexto_ausente:{sem_contexto.id}"]
+
+
+def test_lote_completo_leva_a_execucao_a_aguardando_revisao(tmp_path: Path) -> None:
+    """REVISAO-01: quando toda mensagem do lote alcança um terminal de conteúdo, a execução
+    sai de `processando_mensagens` e entra em `aguardando_revisao` — sem ação humana e sem
+    depender de quem terminou por último."""
+
+    primeiro = registro(canal="sms")
+    segundo = registro(canal="email")
+    cenario = Cenario([primeiro, segundo], tmp_path)
+
+    cenario.gerar_lote()
+
+    assert {item.estado for item in cenario.mensagens.listar_por_execucao(EXECUCAO_ID)} == {
+        EstadoMensagem.AGUARDANDO_REVISAO
+    }
+    assert cenario.estado_execucao() is EstadoExecucao.AGUARDANDO_REVISAO
+
+
+def test_execucao_permanece_processando_enquanto_uma_mensagem_segue_no_ciclo(
+    tmp_path: Path,
+) -> None:
+    """REVISAO-01/REVISAO-10: basta uma mensagem ainda em `gerando` para o lote não abrir.
+    É a mesma guarda que impede o agregado de voltar a `aguardando_revisao` durante uma
+    regeneração humana ativa."""
+
+    incluido = registro(canal="sms")
+    cenario = Cenario([incluido], tmp_path)
+    ainda_gerando = cenario.mensagens.criar(EXECUCAO_ID, uuid4(), Canal.WHATSAPP)
+
+    cenario.gerar_lote()
+
+    pendente = cenario.mensagens.obter(ainda_gerando)
+    assert pendente is not None
+    assert pendente.estado is EstadoMensagem.GERANDO
+    assert cenario.estado_execucao() is EstadoExecucao.PROCESSANDO_MENSAGENS
+
+
+def test_lote_inteiro_em_excecao_ainda_abre_a_revisao(tmp_path: Path) -> None:
+    """Primeiro Edge Case da 3.5: um lote em que nenhuma mensagem chegou a
+    `aguardando_revisao` ainda assim leva a execução a `aguardando_revisao` — a conclusão
+    depende do reconhecimento de Marina, não do gatilho automático."""
+
+    primeiro = registro(canal="sms")
+    segundo = registro(canal="email")
+    cenario = Cenario(
+        [primeiro, segundo],
+        tmp_path,
+        redator=RedatorFalso(erros={"9990001": TimeoutError("conexão expirou")}),
+    )
+
+    cenario.gerar_lote()
+
+    assert {item.estado for item in cenario.mensagens.listar_por_execucao(EXECUCAO_ID)} == {
+        EstadoMensagem.FALHOU_INTEGRACAO_IA
+    }
+    assert cenario.estado_execucao() is EstadoExecucao.AGUARDANDO_REVISAO
+
+
+def test_retomada_no_boot_tambem_abre_a_revisao_ao_fechar_a_ultima_mensagem(
+    tmp_path: Path,
+) -> None:
+    """REVISAO-01: o gatilho vale também para a retomada de 3.4 — uma execução que reiniciou
+    no meio do ciclo abre o lote quando a última mensagem pendente alcança seu terminal."""
+
+    incluido = registro(canal="sms")
+    semeador = Cenario([incluido], tmp_path)
+    mensagem_id = semeador.mensagens.criar(EXECUCAO_ID, incluido.id, Canal.SMS)
+    assert semeador.estado_execucao() is EstadoExecucao.PROCESSANDO_MENSAGENS
+
+    reiniciado = Cenario([incluido], tmp_path, critico=CriticoFalso([AvaliacaoCritica(True, ())]))
+    asyncio.run(reiniciado.servico.retomar_mensagens_pendentes(EXECUCAO_ID))
+
+    mensagem = reiniciado.mensagens.obter(mensagem_id)
+    assert mensagem is not None
+    assert mensagem.estado is EstadoMensagem.AGUARDANDO_REVISAO
+    assert reiniciado.estado_execucao() is EstadoExecucao.AGUARDANDO_REVISAO
+
+
+def test_execucao_ja_fora_de_processando_mensagens_nao_e_transicionada_de_novo(
+    tmp_path: Path,
+) -> None:
+    """O gatilho só age sobre uma execução em `processando_mensagens`: uma execução que já
+    avançou (`aguardando_confirmacao`, depois da decisão de Marina) nunca é puxada de volta
+    para `aguardando_revisao` por uma reinvocação do lote (REVISAO-10, REVISAO-14)."""
+
+    incluido = registro(canal="sms")
+    cenario = Cenario([incluido], tmp_path)
+    cenario.gerar_lote()
+    snapshot = cenario.execucoes.buscar(EXECUCAO_ID)
+    assert snapshot is not None
+    cenario.execucoes.transicionar(
+        EXECUCAO_ID, snapshot.versao, EstadoExecucao.AGUARDANDO_CONFIRMACAO
+    )
+
+    cenario.gerar_lote()
+
+    assert cenario.estado_execucao() is EstadoExecucao.AGUARDANDO_CONFIRMACAO
+    assert cenario.excecoes.registradas == []

@@ -133,10 +133,10 @@ As Histórias 3.2–3.4 entregam mensagens que chegam a `aguardando_revisao` (ap
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| REVISAO-01 | P1: Lote de revisão priorizado por atenção | Design | Pending |
-| REVISAO-02 | P1: Lote de revisão priorizado por atenção | Design | Pending |
-| REVISAO-03 | P1: Detalhe do revisor com contexto separado | Design | Pending |
-| REVISAO-04 | P1: Detalhe do revisor com contexto separado | Design | Pending |
+| REVISAO-01 | P1: Lote de revisão priorizado por atenção | Execute (T3) | Implementing |
+| REVISAO-02 | P1: Lote de revisão priorizado por atenção | Execute (T3) | Implementing |
+| REVISAO-03 | P1: Detalhe do revisor com contexto separado | Execute (T3) | Implementing |
+| REVISAO-04 | P1: Detalhe do revisor com contexto separado | Execute (T3) | Implementing |
 | REVISAO-05 | P1: Decisão individual sem edição de texto | Execute (T2) | Implementing |
 | REVISAO-06 | P1: Decisão individual sem edição de texto | Execute (T1, T2) | Implementing |
 | REVISAO-07 | P1: Decisão individual sem edição de texto | Execute (T1, T2) | Implementing |

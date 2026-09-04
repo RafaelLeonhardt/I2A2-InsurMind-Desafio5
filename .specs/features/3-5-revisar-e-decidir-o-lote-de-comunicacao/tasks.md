@@ -112,7 +112,7 @@ T6
 
 ---
 
-### T3: `ServicoRevisaoLote.obter_lote`
+### T3: `ServicoRevisaoLote.obter_lote` ✅
 
 **What**: Monta o lote (evento, regra, público, distribuição por canal, aprovações agênticas, exceções) ordenado com itens de atenção primeiro.
 **Where**: `src/backend/central_preventiva/aplicacao/revisao_lote.py`
@@ -124,9 +124,10 @@ T6
 
 **Done when**:
 
-- [ ] Lote com exceções + reprovações históricas + aprovações limpas retorna nessa ordem exata
-- [ ] Cada item expõe destinatário sintético, conteúdo, versões, verificações determinísticas, avaliações críticas, dados de origem e proveniência
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Lote com exceções + reprovações históricas + aprovações limpas retorna nessa ordem exata
+- [x] Cada item expõe destinatário sintético, conteúdo, versões, verificações determinísticas, avaliações críticas, dados de origem e proveniência
+- [x] Gatilho agregado do REVISAO-01 implementado em `ServicoGeracaoMensagens.abrir_revisao_se_lote_completo` (SPEC_DEVIATION documentado no módulo): nenhuma task o atribuía, e sem ele a execução nunca sairia de `processando_mensagens`
+- [x] Gate check passa: `uv run --directory src/backend pytest` (781 passed)
 
 **Tests**: unit
 **Gate**: quick

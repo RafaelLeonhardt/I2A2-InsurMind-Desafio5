@@ -38,3 +38,36 @@ def eh_terminal_mensagem(estado: EstadoMensagem) -> bool:
     """Informa se o estado encerra o ciclo de vida da mensagem."""
 
     return estado in ESTADOS_TERMINAIS_MENSAGEM
+
+
+ESTADOS_EM_CICLO_DE_CONTEUDO: frozenset[EstadoMensagem] = frozenset(
+    {EstadoMensagem.GERANDO, EstadoMensagem.CRITICANDO}
+)
+"""Estados em que a mensagem ainda está produzindo conteúdo (geração ou crítica)."""
+
+
+ESTADOS_TERMINAIS_DE_CONTEUDO: frozenset[EstadoMensagem] = frozenset(
+    {
+        EstadoMensagem.AGUARDANDO_REVISAO,
+        EstadoMensagem.FALHOU_CONTEUDO,
+        EstadoMensagem.FALHOU_INTEGRACAO_IA,
+    }
+)
+"""Os três desfechos em que o ciclo de conteúdo de uma mensagem para (REVISAO-01).
+
+`aguardando_revisao` é o desfecho bom; os outros dois são exceção. Depois deles a mensagem só
+avança por decisão humana (3.5), nunca pela automação.
+"""
+
+
+def em_ciclo_de_conteudo(estado: EstadoMensagem) -> bool:
+    """Informa se a mensagem ainda está gerando ou sendo criticada.
+
+    É a negação útil de "alcançou um terminal de conteúdo" (REVISAO-01): os estados que vêm
+    *depois* da decisão humana (`aprovada`, `rejeitada`, `excluida`, `simulada_entregue`)
+    também já passaram pelo ciclo, então perguntar "ainda está no ciclo?" responde
+    corretamente tanto na primeira formação do lote quanto no retorno depois de uma
+    regeneração humana (REVISAO-10).
+    """
+
+    return estado in ESTADOS_EM_CICLO_DE_CONTEUDO

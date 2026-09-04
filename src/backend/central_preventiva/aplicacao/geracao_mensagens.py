@@ -29,6 +29,17 @@ persistido. Os desfechos:
 Reinvocar `gerar_lote` para uma execução já processada é no-op: a `UNIQUE
 (elegibilidade_id, canal)` recusa a segunda criação, o item é pulado antes de qualquer
 chamada à OpenAI e nenhuma mensagem é duplicada nem reavaliada (GERAR-11, GERAR-12, AD-010).
+
+SPEC_DEVIATION (História 3.5): a `tasks.md` da 3.5 não atribui a nenhuma task o gatilho
+agregado do REVISAO-01 ("quando todas as mensagens alcançarem um terminal de conteúdo, a
+execução entra em `aguardando_revisao`"), e nenhum arquivo desta história aparece no campo
+`Where` das tasks. Ele foi implementado aqui, na T3, porque este é o único módulo por onde
+passa todo desfecho terminal de mensagem — `gerar_lote` e `retomar_mensagens_pendentes` —, e
+porque sem ele a saída de `processando_mensagens` nunca aconteceria em produção: 3.2/3.3/3.4
+deixam a execução onde ela estava, qualquer que seja o estado final de cada mensagem. O
+gatilho recomputa o estado real persistido a cada item concluído (nunca um contador em
+memória), e por isso é também a resposta correta do REVISAO-10: enquanto uma regeneração
+humana estiver em `gerando`/`criticando`, ele não dispara.
 """
 
 from dataclasses import dataclass
@@ -43,6 +54,9 @@ from central_preventiva.adaptadores.persistencia.repositorio_contextos_agente im
 )
 from central_preventiva.adaptadores.persistencia.repositorio_elegibilidade import (
     RegistroElegibilidade,
+)
+from central_preventiva.adaptadores.persistencia.repositorio_execucao_preventiva import (
+    SnapshotExecucao,
 )
 from central_preventiva.adaptadores.persistencia.repositorio_mensagens import (
     MensagemJaExiste,
@@ -62,7 +76,8 @@ from central_preventiva.aplicacao.grafos.geracao_mensagem import (
     ResultadoGeracao,
 )
 from central_preventiva.dominio.avaliacao_critica import MotivoCritica
-from central_preventiva.dominio.estados_mensagem import EstadoMensagem
+from central_preventiva.dominio.estados_execucao import EstadoExecucao
+from central_preventiva.dominio.estados_mensagem import EstadoMensagem, em_ciclo_de_conteudo
 from central_preventiva.dominio.montador_contexto_agente import ContextoAgente
 from central_preventiva.dominio.validador_saida_canal import Canal, SaidaCanal
 
@@ -131,6 +146,12 @@ def _causa_falha_tecnica(elegibilidade_id: UUID, erro: BaseException) -> str:
     """Descreve uma falha técnica não prevista de um item, nomeando o tipo do erro."""
 
     return f"falha_tecnica_item:{elegibilidade_id}:{type(erro).__name__}: {erro}"
+
+
+def _causa_falha_abertura_revisao(erro: BaseException) -> str:
+    """Descreve uma falha ao levar a execução a `aguardando_revisao` (REVISAO-01)."""
+
+    return f"falha_abertura_revisao:{type(erro).__name__}: {erro}"
 
 
 def _resultado_de(versao: VersaoMensagem) -> ResultadoGeracao:
@@ -228,6 +249,16 @@ class _RepositorioAvaliacoesCriticas(Protocol):
     ) -> RegistroAvaliacaoCritica | None: ...
 
 
+class _RepositorioExecucaoPreventiva(Protocol):
+    """Porta mínima do agregado da execução (2.2), usada só para fechar o lote."""
+
+    def buscar(self, execucao_id: UUID) -> SnapshotExecucao | None: ...
+
+    def transicionar(
+        self, execucao_id: UUID, versao_esperada: int, novo_estado: EstadoExecucao
+    ) -> None: ...
+
+
 class _RepositorioExcecoesOperacionais(Protocol):
     """Porta mínima de registro de `Exceção` operacional sanitizada."""
 
@@ -256,6 +287,7 @@ class PortasGeracaoMensagens:
     mensagens: _RepositorioMensagens
     avaliacoes: _RepositorioAvaliacoesCriticas
     excecoes: _RepositorioExcecoesOperacionais
+    execucoes: _RepositorioExecucaoPreventiva
     grafo: _GrafoGeracao
     versao_prompt: str
 
@@ -446,6 +478,42 @@ class ServicoGeracaoMensagens:
             self._registrar_excecao(
                 registro.execucao_id, _causa_falha_tecnica(registro.elegibilidade_id, erro)
             )
+        self.abrir_revisao_se_lote_completo(registro.execucao_id)
+
+    def abrir_revisao_se_lote_completo(self, execucao_id: UUID) -> None:
+        """Leva a execução a `aguardando_revisao` quando nenhuma mensagem segue no ciclo.
+
+        REVISAO-01: o lote só é apresentado a Marina quando toda mensagem alcançou um
+        terminal de conteúdo. A condição é recomputada do estado real persistido a cada
+        item concluído — nunca de um contador acumulado —, então o último item a terminar é
+        o que dispara a transição, sem depender da ordem em que os itens acabaram.
+
+        A mesma releitura é a guarda do REVISAO-10: uma regeneração humana em andamento
+        deixa a mensagem em `gerando`/`criticando`, e enquanto isso durar a execução
+        permanece em `processando_mensagens`. Estados posteriores à decisão humana
+        (`aprovada`, `rejeitada`, `excluida`) não bloqueiam: eles já passaram pelo ciclo.
+
+        Nunca decide `concluida` nem `aguardando_confirmacao`. Mesmo um lote inteiro em
+        exceção passa por `aguardando_revisao`, porque o desfecho do agregado depende do
+        reconhecimento de Marina (primeiro Edge Case da 3.5) — quem o decide é
+        `ServicoRevisaoLote.decidir_lote`.
+
+        A checagem é a última coisa que roda por item, fora do `try` da geração, e engole a
+        própria falha como exceção operacional: ela nunca pode derrubar o restante do lote.
+        """
+
+        try:
+            registros = self._portas.mensagens.listar_por_execucao(execucao_id)
+            if not registros or any(em_ciclo_de_conteudo(item.estado) for item in registros):
+                return
+            snapshot = self._portas.execucoes.buscar(execucao_id)
+            if snapshot is None or snapshot.estado is not EstadoExecucao.PROCESSANDO_MENSAGENS:
+                return
+            self._portas.execucoes.transicionar(
+                execucao_id, snapshot.versao, EstadoExecucao.AGUARDANDO_REVISAO
+            )
+        except Exception as erro:  # noqa: BLE001 - concorrência ou falha técnica (AD-8)
+            self._registrar_excecao(execucao_id, _causa_falha_abertura_revisao(erro))
 
     async def _retomar_item(self, registro: RegistroMensagem) -> None:
         """Reentra no grafo da mensagem no marco seguinte ao último já persistido."""
@@ -538,6 +606,7 @@ class ServicoGeracaoMensagens:
             await self._gerar_item(execucao_id, registro)
         except Exception as erro:  # noqa: BLE001 - falha técnica isolada no item (AD-8)
             self._registrar_excecao(execucao_id, _causa_falha_tecnica(registro.id, erro))
+        self.abrir_revisao_se_lote_completo(execucao_id)
 
     async def _gerar_item(self, execucao_id: UUID, registro: RegistroElegibilidade) -> None:
         """Cria a mensagem do item e roda o ciclo completo do grafo sobre ela."""
