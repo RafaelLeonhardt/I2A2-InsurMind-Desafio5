@@ -69,7 +69,7 @@ T5
 
 ## Task Breakdown
 
-### T1: Migração `0012_entregas_simuladas.sql`
+### T1: Migração `0012_entregas_simuladas.sql` ✅
 
 **What**: Criar `entregas_simuladas` (`UNIQUE(mensagem_id)`); atualizar `README.md` de persistência.
 **Where**: `src/backend/central_preventiva/adaptadores/persistencia/migracoes/0012_entregas_simuladas.sql`
@@ -81,10 +81,10 @@ T5
 
 **Done when**:
 
-- [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] `README.md` documenta a tabela nova e a `UNIQUE`
-- [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0012`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Migração aplica em transação própria, registrada em `schema_migracoes` (renumerada para `0014`: `0009`–`0013` já consumidas por 3.1–3.5; `SPEC_DEVIATION` no topo do `.sql`)
+- [x] `README.md` documenta a tabela nova e a `UNIQUE`
+- [x] `testes/test_migracoes.py` cobre a aplicação da migração `0014`
+- [x] Gate check passa: `uv run --directory src/backend pytest` (832 passed)
 
 **Tests**: integration
 **Gate**: quick

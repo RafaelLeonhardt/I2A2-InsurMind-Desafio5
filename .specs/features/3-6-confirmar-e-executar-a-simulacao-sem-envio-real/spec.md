@@ -122,7 +122,7 @@ A História 3.5 entrega a execução em `aguardando_confirmacao` com o lote apro
 | SIMUL-02 | P1: Confirmação com gate separado e reconhecimento explícito | Design | Pending |
 | SIMUL-03 | P1: Confirmação com gate separado e reconhecimento explícito | Design | Pending |
 | SIMUL-04 | P1: Reclamação atômica e criação das entregas simuladas | Design | Pending |
-| SIMUL-05 | P1: Reclamação atômica e criação das entregas simuladas | Design | Pending |
+| SIMUL-05 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T1) | Implementing |
 | SIMUL-06 | P1: Reclamação atômica e criação das entregas simuladas | Design | Pending |
 | SIMUL-07 | P1: Idempotência, concorrência e rollback local | Design | Pending |
 | SIMUL-08 | P1: Idempotência, concorrência e rollback local | Design | Pending |

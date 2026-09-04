@@ -38,6 +38,7 @@ TABELAS_ESPERADAS = {
     "versoes_mensagem",
     "avaliacoes_criticas",
     "decisoes_humanas",
+    "entregas_simuladas",
 }
 
 REGISTRO_MINIMO = (
@@ -85,8 +86,8 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13)
-    assert resultado.versao_final == 13
+    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)
+    assert resultado.versao_final == 14
     assert tabelas(caminho) == TABELAS_ESPERADAS
     assert registros(caminho) == [
         (1, "schema inicial"),
@@ -102,6 +103,7 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
         (11, "avaliacoes criticas"),
         (12, "excecoes mensagem"),
         (13, "decisoes humanas"),
+        (14, "entregas simuladas"),
     ]
 
 
@@ -112,7 +114,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 13
+    assert resultado.versao_final == 14
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
@@ -127,6 +129,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
         (11, "avaliacoes criticas"),
         (12, "excecoes mensagem"),
         (13, "decisoes humanas"),
+        (14, "entregas simuladas"),
     ]
 
 
@@ -1067,3 +1070,144 @@ def test_documentacao_versionada_descreve_a_tabela_de_decisao_humana() -> None:
     assert "decisoes_humanas" in documento
     assert "CHECK (resultado = 'aprovar' OR justificativa IS NOT NULL)" in documento
     assert "perfil_responsavel" in documento
+
+
+APRESENTACAO_SMS = '{"corpo": "Chuva forte hoje na sua regiao. Evite areas alagadas."}'
+MENSAGEM_SIMULADA_ID = "66666666-6666-6666-6666-666666666666"
+EXECUCAO_SIMULADA_ID = "77777777-7777-7777-7777-777777777777"
+
+
+def _inserir_entrega_simulada(
+    conexao: duckdb.DuckDBPyConnection,
+    id_entrega: str,
+    canal: str = "sms",
+    *,
+    mensagem_id: str = MENSAGEM_SIMULADA_ID,
+    apresentacao: str = APRESENTACAO_SMS,
+) -> None:
+    """Insere uma entrega simulada de uma mensagem aprovada (SIMUL-05)."""
+
+    conexao.execute(
+        "INSERT INTO entregas_simuladas "
+        "(id, execucao_id, mensagem_id, canal, apresentacao) VALUES (?, ?, ?, ?, ?)",
+        [id_entrega, EXECUCAO_SIMULADA_ID, mensagem_id, canal, apresentacao],
+    )
+
+
+def test_migracao_entregas_simuladas_persiste_execucao_mensagem_canal_e_apresentacao(
+    tmp_path: Path,
+) -> None:
+    """A migração `0014` cria `entregas_simuladas` com a execução, a mensagem, o canal e a
+    apresentação copiada do conteúdo já aprovado (SIMUL-05)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        _inserir_entrega_simulada(conexao, "eeeeeeee-0000-0000-0000-000000000001")
+        linha = conexao.execute(
+            "SELECT execucao_id, mensagem_id, canal, apresentacao, criado_em "
+            "FROM entregas_simuladas WHERE id = 'eeeeeeee-0000-0000-0000-000000000001'"
+        ).fetchone()
+
+    assert linha is not None
+    assert str(linha[0]) == EXECUCAO_SIMULADA_ID
+    assert str(linha[1]) == MENSAGEM_SIMULADA_ID
+    assert linha[2] == "sms"
+    assert linha[3] == APRESENTACAO_SMS
+    assert linha[4] is not None
+
+
+def test_migracao_entregas_simuladas_recusa_segunda_entrega_da_mesma_mensagem(
+    tmp_path: Path,
+) -> None:
+    """SIMUL-07/SIMUL-08: a `UNIQUE (mensagem_id)` (AD-010) impede que uma segunda confirmação
+    crie uma segunda entrega para a mesma mensagem."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        _inserir_entrega_simulada(conexao, "eeeeeeee-0000-0000-0000-000000000002")
+
+        with pytest.raises(duckdb.ConstraintException):
+            _inserir_entrega_simulada(conexao, "eeeeeeee-0000-0000-0000-000000000003")
+        total = conexao.execute(
+            "SELECT count(*) FROM entregas_simuladas WHERE mensagem_id = ?",
+            [MENSAGEM_SIMULADA_ID],
+        ).fetchone()
+
+    assert total == (1,)
+
+
+def test_migracao_entregas_simuladas_recusa_canal_fora_do_conjunto_fechado(
+    tmp_path: Path,
+) -> None:
+    """SIMUL-05: os três canais são fechados no schema; nenhum canal inventado tem como ser
+    gravado como entrega simulada."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        for indice, canal in enumerate(("whatsapp", "email", "sms")):
+            _inserir_entrega_simulada(
+                conexao,
+                f"ffffffff-0000-0000-0000-00000000000{indice}",
+                canal,
+                mensagem_id=f"88888888-8888-8888-8888-88888888800{indice}",
+            )
+
+        with pytest.raises(duckdb.ConstraintException):
+            _inserir_entrega_simulada(
+                conexao,
+                "ffffffff-0000-0000-0000-000000000009",
+                "pombo_correio",
+                mensagem_id="88888888-8888-8888-8888-888888888009",
+            )
+        canais = conexao.execute(
+            "SELECT canal FROM entregas_simuladas ORDER BY canal"
+        ).fetchall()
+
+    assert canais == [("email",), ("sms",), ("whatsapp",)]
+
+
+def test_migracao_entregas_simuladas_nao_tem_coluna_de_desfecho_de_provedor(
+    tmp_path: Path,
+) -> None:
+    """SIMUL-06: a tabela não guarda confirmação nem falha de provedor externo — não existe
+    coluna onde inventá-las, porque nenhum conector real é invocado."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        colunas = {
+            nome
+            for (nome,) in conexao.execute(
+                "SELECT column_name FROM information_schema.columns "
+                "WHERE table_schema = 'main' AND table_name = 'entregas_simuladas'"
+            ).fetchall()
+        }
+
+    assert colunas == {
+        "id",
+        "execucao_id",
+        "mensagem_id",
+        "canal",
+        "apresentacao",
+        "criado_em",
+    }
+
+
+def test_documentacao_versionada_descreve_a_tabela_de_entrega_simulada() -> None:
+    """A tabela de `0014` é documentada no `README.md` versionado, não só no `.sql` (T1)."""
+
+    documento = Path("central_preventiva/adaptadores/persistencia/README.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "0014_entregas_simuladas" in documento
+    assert "entregas_simuladas" in documento
+    assert "`NOT NULL`, `UNIQUE`, chave estrangeira lógica para `mensagens(id)`" in documento
+    assert "`CHECK` em `whatsapp`, `email`, `sms`" in documento

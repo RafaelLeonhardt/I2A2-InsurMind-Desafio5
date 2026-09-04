@@ -538,3 +538,36 @@ comandos independentes podem reproduzir, com semântica de insert-or-noop, e uma
 sobre a mesma versão não é isso. Ela é impedida pela máquina de estados da mensagem (só
 `aguardando_revisao` é decidível, REVISAO-12), e o replay do mesmo comando é coberto por
 `chaves_idempotencia` (AD-002); silenciá-la como no-op esconderia um erro real.
+
+## Tabelas da migração `0014_entregas_simuladas`
+
+A migração cria a tabela da entrega simulada localmente (História 3.6). O `design.md` da história
+numera o arquivo como `0012_entregas_simuladas.sql`; `0009`–`0013` já haviam sido consumidos pelas
+Histórias 3.1–3.5, então a migração entrou como `0014` — mesma renumeração já registrada desde a
+2.4.
+
+### `entregas_simuladas`
+
+Uma linha por mensagem aprovada que a simulação local apresentou em seu canal.
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `execucao_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `execucao_preventiva(id)` |
+| `mensagem_id` | `UUID` | `NOT NULL`, `UNIQUE`, chave estrangeira lógica para `mensagens(id)` |
+| `canal` | `VARCHAR` | `NOT NULL`, `CHECK` em `whatsapp`, `email`, `sms` |
+| `apresentacao` | `VARCHAR` | `NOT NULL` — JSON serializado, cópia do `conteudo` da versão aprovada |
+| `criado_em` | `TIMESTAMP` | `NOT NULL`, padrão `now()` |
+
+Nenhum conector real de WhatsApp, e-mail ou SMS participa da escrita desta tabela: a `apresentacao`
+é uma cópia exata do `conteudo` da versão aprovada em `versoes_mensagem` (3.2), no mesmo formato
+(`{corpo}` ou `{assunto, corpo}`), sem nova geração nem transformação (SIMUL-05, SIMUL-06).
+
+A tabela não tem coluna de confirmação nem de falha de provedor externo, deliberadamente: a
+simulação nunca inventa um desfecho de canal que não existiu (ADR-0009/0013).
+
+`UNIQUE (mensagem_id)` é a dedução de conteúdo do AD-010: uma mensagem tem no máximo uma entrega
+simulada, e uma segunda confirmação do mesmo lote é recusada pelo próprio banco em vez de duplicar
+a simulação (SIMUL-07, SIMUL-08). A `UNIQUE` fica na mensagem, que já carrega seu canal, e não no
+par `(execucao_id, mensagem_id)`: uma mensagem pertence a uma única execução, então incluir a
+execução afrouxaria a dedução sem ganho nenhum.
