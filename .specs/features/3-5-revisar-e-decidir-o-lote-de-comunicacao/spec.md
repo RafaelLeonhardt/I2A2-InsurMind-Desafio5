@@ -133,26 +133,26 @@ As Histórias 3.2–3.4 entregam mensagens que chegam a `aguardando_revisao` (ap
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| REVISAO-01 | P1: Lote de revisão priorizado por atenção | Execute (T3, T5) | Implementing |
-| REVISAO-02 | P1: Lote de revisão priorizado por atenção | Execute (T3, T6) | Implementing |
-| REVISAO-03 | P1: Detalhe do revisor com contexto separado | Execute (T3, T6) | Implementing |
-| REVISAO-04 | P1: Detalhe do revisor com contexto separado | Execute (T3, T6) | Implementing |
-| REVISAO-05 | P1: Decisão individual sem edição de texto | Execute (T2, T4, T6) | Implementing |
-| REVISAO-06 | P1: Decisão individual sem edição de texto | Execute (T1, T2, T4, T6) | Implementing |
-| REVISAO-07 | P1: Decisão individual sem edição de texto | Execute (T1, T2, T4) | Implementing |
-| REVISAO-08 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T4) | Implementing |
-| REVISAO-09 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T3, T4, T6) | Implementing |
-| REVISAO-10 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T4) | Implementing |
-| REVISAO-11 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T2, T4) | Implementing |
-| REVISAO-12 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4, T5) | Implementing |
-| REVISAO-13 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4, T5) | Implementing |
-| REVISAO-14 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4, T5) | Implementing |
+| REVISAO-01 | P1: Lote de revisão priorizado por atenção | Execute (T3, T5) | ❌ Needs Fix |
+| REVISAO-02 | P1: Lote de revisão priorizado por atenção | Execute (T3, T6) | ✅ Verified |
+| REVISAO-03 | P1: Detalhe do revisor com contexto separado | Execute (T3, T6) | ✅ Verified |
+| REVISAO-04 | P1: Detalhe do revisor com contexto separado | Execute (T3, T6) | ✅ Verified |
+| REVISAO-05 | P1: Decisão individual sem edição de texto | Execute (T2, T4, T6) | ✅ Verified |
+| REVISAO-06 | P1: Decisão individual sem edição de texto | Execute (T1, T2, T4, T6) | ✅ Verified |
+| REVISAO-07 | P1: Decisão individual sem edição de texto | Execute (T1, T2, T4) | ✅ Verified |
+| REVISAO-08 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T4) | ✅ Verified |
+| REVISAO-09 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T3, T4, T6) | ✅ Verified |
+| REVISAO-10 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T4) | ✅ Verified |
+| REVISAO-11 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T2, T4) | ✅ Verified |
+| REVISAO-12 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4, T5) | ✅ Verified |
+| REVISAO-13 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4, T5) | ✅ Verified |
+| REVISAO-14 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4, T5) | ❌ Needs Fix |
 
 **ID format:** `REVISAO-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 14 total, 14 mapped to tasks, 0 unmapped. T1–T6 implementadas e com gate verde (825 backend + 268 frontend); verificação independente pendente.
+**Coverage:** 14 total, 14 mapped to tasks, 0 unmapped. T1–T6 implementadas com gate verde (825 backend + 268 frontend). Verificação independente rodada 1 (`50c8602`): **FAIL** — 12/14 Verified, 2 Needs Fix. REVISAO-01: `abrir_revisao_se_lote_completo` mora dentro do laço por item de `retomar_mensagens_pendentes`, então um reinício com todas as mensagens já em terminal de conteúdo deixa a execução presa em `processando_mensagens` (reproduzido pelo Verificador). REVISAO-14: a metade "aprovada pelo crítico" da aprovação dupla não tem teste discriminante (mutante M4 sobreviveu). Evidência completa em `validation.md`.
 
 ---
 

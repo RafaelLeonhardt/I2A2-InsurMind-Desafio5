@@ -264,6 +264,30 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation.md M8 - src/backend/central_preventiva/aplicacao/geracao_mensagens.py:480 (resume)
 - last seen: 2026-09-04T16:58:49Z
 
+### L-043 - When a criterion requires two independent approvals, seed the case where only one of them holds and assert exclusion; otherwise the second conjunct is never discriminated.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `application` · harmful: 0
+- features: 3-5-revisar-e-decidir-o-lote-de-comunicacao
+- evidence: M4 src/backend/central_preventiva/aplicacao/revisao_lote.py:645 (application)
+- last seen: 2026-09-04T18:14:18Z
+
+### L-044 - A state trigger placed inside a per-item loop never fires when the loop body is empty; also invoke it once after the loop so the zero-pending case still converges.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `application` · harmful: 0
+- features: 3-5-revisar-e-decidir-o-lote-de-comunicacao
+- evidence: REVISAO-01 src/backend/central_preventiva/aplicacao/geracao_mensagens.py:467 (application)
+- last seen: 2026-09-04T18:14:26Z
+
+### L-045 - Two enums that share a literal member value are indistinguishable to behavioural tests, so a swap between them is caught only by the static type check - keep the type checker inside the mandatory gate.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `domain` · harmful: 0
+- features: 3-5-revisar-e-decidir-o-lote-de-comunicacao
+- evidence: M2 src/backend/central_preventiva/aplicacao/geracao_mensagens.py:513 (domain)
+- last seen: 2026-09-04T18:14:26Z
+
+### L-046 - Extending a component that design.md declares reused without change is a deviation - mark it with the project's deviation marker even when the signature change is backward compatible.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `design` · harmful: 0
+- features: 3-5-revisar-e-decidir-o-lote-de-comunicacao
+- evidence: design.md:44 vs src/backend/central_preventiva/adaptadores/persistencia/repositorio_mensagens.py:241 (design)
+- last seen: 2026-09-04T18:14:26Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
