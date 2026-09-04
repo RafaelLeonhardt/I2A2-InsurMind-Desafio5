@@ -91,7 +91,7 @@ T5
 
 ---
 
-### T2: `RepositorioEntregasSimuladas`
+### T2: `RepositorioEntregasSimuladas` ✅
 
 **What**: `criar_lote` (dentro da transação do chamador), `listar_por_execucao`.
 **Where**: `src/backend/central_preventiva/adaptadores/persistencia/repositorio_entregas_simuladas.py`
@@ -103,9 +103,10 @@ T5
 
 **Done when**:
 
-- [ ] `criar_lote` insere uma entrega por mensagem+canal, com `apresentacao` copiada do `conteudo` da versão aprovada
-- [ ] `listar_por_execucao` retorna todas as entregas de uma execução
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `criar_lote` insere uma entrega por mensagem+canal, com `apresentacao` copiada do `conteudo` da versão aprovada
+- [x] `listar_por_execucao` retorna todas as entregas de uma execução
+- [x] `criar_lote` participa da transação já aberta pelo chamador (parâmetro `conexao`, `SPEC_DEVIATION` no módulo: sem ele a atomicidade que o próprio design exige seria impossível)
+- [x] Gate check passa: `uv run --directory src/backend pytest` (838 passed)
 
 **Tests**: integration
 **Gate**: quick
