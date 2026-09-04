@@ -133,7 +133,7 @@ As Histórias 3.2–3.4 entregam mensagens que chegam a `aguardando_revisao` (ap
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| REVISAO-01 | P1: Lote de revisão priorizado por atenção | Execute (T3, T5) | ❌ Needs Fix |
+| REVISAO-01 | P1: Lote de revisão priorizado por atenção | Execute (T3, T5) | ✅ Verified |
 | REVISAO-02 | P1: Lote de revisão priorizado por atenção | Execute (T3, T6) | ✅ Verified |
 | REVISAO-03 | P1: Detalhe do revisor com contexto separado | Execute (T3, T6) | ✅ Verified |
 | REVISAO-04 | P1: Detalhe do revisor com contexto separado | Execute (T3, T6) | ✅ Verified |
@@ -146,13 +146,13 @@ As Histórias 3.2–3.4 entregam mensagens que chegam a `aguardando_revisao` (ap
 | REVISAO-11 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T2, T4) | ✅ Verified |
 | REVISAO-12 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4, T5) | ✅ Verified |
 | REVISAO-13 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4, T5) | ✅ Verified |
-| REVISAO-14 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4, T5) | ❌ Needs Fix |
+| REVISAO-14 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4, T5) | ✅ Verified |
 
 **ID format:** `REVISAO-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 14 total, 14 mapped to tasks, 0 unmapped. T1–T6 implementadas com gate verde (825 backend + 268 frontend). Verificação independente rodada 1 (`50c8602`): **FAIL** — 12/14 Verified, 2 Needs Fix. REVISAO-01: `abrir_revisao_se_lote_completo` mora dentro do laço por item de `retomar_mensagens_pendentes`, então um reinício com todas as mensagens já em terminal de conteúdo deixa a execução presa em `processando_mensagens` (reproduzido pelo Verificador). REVISAO-14: a metade "aprovada pelo crítico" da aprovação dupla não tem teste discriminante (mutante M4 sobreviveu). Evidência completa em `validation.md`.
+**Coverage:** 14 total, 14 mapped to tasks, 0 unmapped. T1–T6 implementadas com gate verde. Verificação independente rodada 1 (`50c8602`): **FAIL** — 12/14 Verified, 2 Needs Fix (REVISAO-01: gatilho do lote preso dentro do laço por item de `retomar_mensagens_pendentes`; REVISAO-14: metade "aprovada pelo crítico" sem teste discriminante — mutante M4 sobreviveu). Correções em `0e6d557`. Verificação independente rodada 2 (`7bca11d..0e6d557`, verificador novo): **PASS** — **14/14 Verified**, 0 gaps. REVISAO-01, REVISAO-09, REVISAO-10 e REVISAO-14 re-derivados do zero; os demais carregados da rodada 1. Gate Build: **827 backend + 268 frontend**, 0 falhas, `ruff`/`pyright`/`oxlint`/`build` limpos. Sensor acumulado 7/7 mortos (M4 e a regressão da correção re-injetadas e mortas; M2 morto pelo `pyright` do gate obrigatório). Evidência completa em `validation.md`.
 
 ---
 
