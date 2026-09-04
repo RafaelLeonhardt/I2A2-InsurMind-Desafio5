@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 47,
+  "next_id": 50,
   "lessons": [
     {
       "id": "L-001",
@@ -48,18 +48,20 @@
       "text": "Name the exact HTTP status code in the spec for every refusal path; when the spec only says \"explicit error\", record the chosen status as a spec-precision gap instead of passing it silently.",
       "signal": "spec_precision_gap",
       "scope": "adaptadores/http",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "1-2-inicializar-e-restaurar-dados-sinteticos"
+        "1-2-inicializar-e-restaurar-dados-sinteticos",
+        "3-6-confirmar-e-executar-a-simulacao-sem-envio-real"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
         "spec.md Edge Cases - src/backend/central_preventiva/adaptadores/http/dados_sinteticos.py:146 (adaptadores/http)",
-        "validation.md Edge Cases (pass 2) - src/backend/central_preventiva/adaptadores/http/dados_sinteticos.py:146 (adaptadores/http)"
+        "validation.md Edge Cases (pass 2) - src/backend/central_preventiva/adaptadores/http/dados_sinteticos.py:146 (adaptadores/http)",
+        "tasks.md T4 Spec-precision gap — SIMUL-09 descreve o efeito da falha local, nao o status HTTP (api)"
       ],
       "created": "2026-08-29T08:53:06Z",
-      "last_seen": "2026-08-29T09:06:16Z"
+      "last_seen": "2026-09-04T20:20:21Z"
     },
     {
       "id": "L-004",
@@ -616,17 +618,19 @@
       "features": [
         "3-2-gerar-mensagens-automaticamente-para-cada-canal",
         "3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens",
-        "3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica"
+        "3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica",
+        "3-6-confirmar-e-executar-a-simulacao-sem-envio-real"
       ],
-      "recurrence": 3,
+      "recurrence": 4,
       "harmful": 0,
       "evidence": [
         "SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence)",
         "src/backend/central_preventiva/adaptadores/persistencia/migracoes/0011_avaliacoes_criticas.sql:3 (SPEC_DEVIATION: design.md nomeia 0009) (persistencia)",
-        "SPEC_DEVIATION - src/backend/central_preventiva/adaptadores/persistencia/migracoes/0012_excecoes_mensagem.sql:3 (persistence)"
+        "SPEC_DEVIATION - src/backend/central_preventiva/adaptadores/persistencia/migracoes/0012_excecoes_mensagem.sql:3 (persistence)",
+        "migracoes/0014_entregas_simuladas.sql:3-5 (SPEC_DEVIATION) — design.md:84 fixa 0012 (persistence)"
       ],
       "created": "2026-09-03T17:33:20Z",
-      "last_seen": "2026-09-04T11:41:50Z"
+      "last_seen": "2026-09-04T20:20:12Z"
     },
     {
       "id": "L-035",
@@ -843,6 +847,60 @@
       ],
       "created": "2026-09-04T18:14:26Z",
       "last_seen": "2026-09-04T18:14:26Z"
+    },
+    {
+      "id": "L-047",
+      "key": "spec_deviation::when a design requires a repository write to join the caller s open transaction declare the caller connection parameter in that method s signature a signature without it contradicts the atomicity the same design demands",
+      "text": "When a design requires a repository write to join the caller's open transaction, declare the caller-connection parameter in that method's signature; a signature without it contradicts the atomicity the same design demands.",
+      "signal": "spec_deviation",
+      "scope": "repo-layer",
+      "status": "candidate",
+      "features": [
+        "3-6-confirmar-e-executar-a-simulacao-sem-envio-real"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "repositorio_entregas_simuladas.py:14-19 e repositorio_execucao_preventiva.py:310-315 (SPEC_DEVIATION) — design.md:75 exige atomicidade sem declarar o parametro (repo-layer)"
+      ],
+      "created": "2026-09-04T20:20:12Z",
+      "last_seen": "2026-09-04T20:20:12Z"
+    },
+    {
+      "id": "L-048",
+      "key": "spec_deviation::before a task says to extend an existing endpoint verify that endpoint belongs to the resource module named in the task s where field otherwise name the new route explicitly",
+      "text": "Before a task says to extend an existing endpoint, verify that endpoint belongs to the resource module named in the task's Where field; otherwise name the new route explicitly.",
+      "signal": "spec_deviation",
+      "scope": "routes",
+      "status": "candidate",
+      "features": [
+        "3-6-confirmar-e-executar-a-simulacao-sem-envio-real"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "adaptadores/http/simulacao.py:17-22 (SPEC_DEVIATION) — tasks.md T4 manda estender GET /execucoes/{id}, rota de outro recurso (routes)"
+      ],
+      "created": "2026-09-04T20:20:21Z",
+      "last_seen": "2026-09-04T20:20:21Z"
+    },
+    {
+      "id": "L-049",
+      "key": "spec_deviation::declare in design md every use case parameter the idempotency scoping and the error handling table s guards require not only the domain arguments",
+      "text": "Declare in design.md every use-case parameter the idempotency scoping and the error-handling table's guards require, not only the domain arguments.",
+      "signal": "spec_deviation",
+      "scope": "design",
+      "status": "candidate",
+      "features": [
+        "3-6-confirmar-e-executar-a-simulacao-sem-envio-real"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "aplicacao/simulacao.py:38-44 (SPEC_DEVIATION) — design.md:65 omite reconhecimento e hash_requisicao (design)"
+      ],
+      "created": "2026-09-04T20:20:21Z",
+      "last_seen": "2026-09-04T20:20:21Z"
     }
   ]
 }

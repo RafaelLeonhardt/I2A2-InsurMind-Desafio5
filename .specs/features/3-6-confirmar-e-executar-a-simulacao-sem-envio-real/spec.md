@@ -118,24 +118,24 @@ A História 3.5 entrega a execução em `aguardando_confirmacao` com o lote apro
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| SIMUL-01 | P1: Confirmação com gate separado e reconhecimento explícito | Execute (T4, T5) | Implementing |
-| SIMUL-02 | P1: Confirmação com gate separado e reconhecimento explícito | Execute (T4, T5) | Implementing |
-| SIMUL-03 | P1: Confirmação com gate separado e reconhecimento explícito | Execute (T3, T4, T5) | Implementing |
-| SIMUL-04 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T3) | Implementing |
-| SIMUL-05 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T1, T2, T3) | Implementing |
-| SIMUL-06 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T2, T3, T4, T5) | Implementing |
-| SIMUL-07 | P1: Idempotência, concorrência e rollback local | Execute (T3, T4) | Implementing |
-| SIMUL-08 | P1: Idempotência, concorrência e rollback local | Execute (T3, T4) | Implementing |
-| SIMUL-09 | P1: Idempotência, concorrência e rollback local | Execute (T3) | Implementing |
-| SIMUL-10 | P2: Retentativa correlacionada e progresso visível | Execute (T3, T4) | Implementing |
-| SIMUL-11 | P2: Retentativa correlacionada e progresso visível | Execute (T4, T5) | Implementing |
-| SIMUL-12 | P2: Retentativa correlacionada e progresso visível | Execute (T5) | Implementing |
+| SIMUL-01 | P1: Confirmação com gate separado e reconhecimento explícito | Execute (T4, T5) | ✅ Verified |
+| SIMUL-02 | P1: Confirmação com gate separado e reconhecimento explícito | Execute (T4, T5) | ✅ Verified |
+| SIMUL-03 | P1: Confirmação com gate separado e reconhecimento explícito | Execute (T3, T4, T5) | ✅ Verified |
+| SIMUL-04 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T3) | ✅ Verified |
+| SIMUL-05 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T1, T2, T3) | ✅ Verified |
+| SIMUL-06 | P1: Reclamação atômica e criação das entregas simuladas | Execute (T2, T3, T4, T5) | ✅ Verified |
+| SIMUL-07 | P1: Idempotência, concorrência e rollback local | Execute (T3, T4) | ✅ Verified |
+| SIMUL-08 | P1: Idempotência, concorrência e rollback local | Execute (T3, T4) | ✅ Verified |
+| SIMUL-09 | P1: Idempotência, concorrência e rollback local | Execute (T3) | ✅ Verified |
+| SIMUL-10 | P2: Retentativa correlacionada e progresso visível | Execute (T3, T4) | ✅ Verified |
+| SIMUL-11 | P2: Retentativa correlacionada e progresso visível | Execute (T4, T5) | ✅ Verified |
+| SIMUL-12 | P2: Retentativa correlacionada e progresso visível | Execute (T5) | ✅ Verified |
 
 **ID format:** `SIMUL-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 12 total, 12 mapped to tasks, 0 unmapped. T1–T5 implementadas com gate verde (887 backend + 285 frontend, `ruff`/`pyright`/`oxlint`/`build` limpos). Verificação independente pendente.
+**Coverage:** 12 total, 12 mapped to tasks, 0 unmapped, 12 verificados. T1–T5 implementadas com gate verde (887 backend + 285 frontend, `ruff`/`pyright`/`oxlint`/`build` limpos). Verificação independente **PASS** — 12/12 ACs casadas com o desfecho da spec, 3/3 Edge Cases cobertos, 6/6 mutações do sensor mortas: `validation.md`.
 
 ---
 

@@ -8,6 +8,12 @@
 
 Corroborated across multiple features. Safe to apply as guidance.
 
+### L-003 - Name the exact HTTP status code in the spec for every refusal path; when the spec only says "explicit error", record the chosen status as a spec-precision gap instead of passing it silently.
+- signal: `spec_precision_gap` · recurrence: 2 feature(s) · scope: `adaptadores/http` · harmful: 0
+- features: 1-2-inicializar-e-restaurar-dados-sinteticos, 3-6-confirmar-e-executar-a-simulacao-sem-envio-real
+- evidence: spec.md Edge Cases - src/backend/central_preventiva/adaptadores/http/dados_sinteticos.py:146 (adaptadores/http) (+2 more)
+- last seen: 2026-09-04T20:20:21Z
+
 ### L-024 - When a requirement demands distinction by text, icon and color, assert that all three signals differ across categories.
 - signal: `spec_precision_gap` · recurrence: 2 feature(s) · scope: `frontend` · harmful: 0
 - features: 2-3-identificar-eventos-meteorologicos-relevantes, 2-4-configurar-testar-e-versionar-regras-preventivas
@@ -21,10 +27,10 @@ Corroborated across multiple features. Safe to apply as guidance.
 - last seen: 2026-09-04T10:25:44Z
 
 ### L-034 - Do not fix a migration number in design.md; assign the next number at implementation time from the migrations directory.
-- signal: `spec_deviation` · recurrence: 3 feature(s) · scope: `persistence` · harmful: 0
-- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal, 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens, 3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica
-- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence) (+2 more)
-- last seen: 2026-09-04T11:41:50Z
+- signal: `spec_deviation` · recurrence: 4 feature(s) · scope: `persistence` · harmful: 0
+- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal, 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens, 3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica, 3-6-confirmar-e-executar-a-simulacao-sem-envio-real
+- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence) (+3 more)
+- last seen: 2026-09-04T20:20:12Z
 
 ## Candidates (under observation - do NOT load as guidance yet)
 
@@ -40,12 +46,6 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `adaptadores/http` · harmful: 0
 - features: 1-2-inicializar-e-restaurar-dados-sinteticos
 - evidence: spec.md SEED-13 - src/backend/testes/test_dados_sinteticos_api.py:174 (adaptadores/http) (+1 more)
-- last seen: 2026-08-29T09:06:16Z
-
-### L-003 - Name the exact HTTP status code in the spec for every refusal path; when the spec only says "explicit error", record the chosen status as a spec-precision gap instead of passing it silently.
-- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `adaptadores/http` · harmful: 0
-- features: 1-2-inicializar-e-restaurar-dados-sinteticos
-- evidence: spec.md Edge Cases - src/backend/central_preventiva/adaptadores/http/dados_sinteticos.py:146 (adaptadores/http) (+1 more)
 - last seen: 2026-08-29T09:06:16Z
 
 ### L-004 - DuckDB checks foreign keys immediately and cannot defer them within a transaction, so a schema needing single-transaction delete-and-reinsert must declare relationships as documented logical foreign keys instead of REFERENCES.
@@ -287,6 +287,24 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - features: 3-5-revisar-e-decidir-o-lote-de-comunicacao
 - evidence: design.md:44 vs src/backend/central_preventiva/adaptadores/persistencia/repositorio_mensagens.py:241 (design)
 - last seen: 2026-09-04T18:14:26Z
+
+### L-047 - When a design requires a repository write to join the caller's open transaction, declare the caller-connection parameter in that method's signature; a signature without it contradicts the atomicity the same design demands.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `repo-layer` · harmful: 0
+- features: 3-6-confirmar-e-executar-a-simulacao-sem-envio-real
+- evidence: repositorio_entregas_simuladas.py:14-19 e repositorio_execucao_preventiva.py:310-315 (SPEC_DEVIATION) — design.md:75 exige atomicidade sem declarar o parametro (repo-layer)
+- last seen: 2026-09-04T20:20:12Z
+
+### L-048 - Before a task says to extend an existing endpoint, verify that endpoint belongs to the resource module named in the task's Where field; otherwise name the new route explicitly.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: 3-6-confirmar-e-executar-a-simulacao-sem-envio-real
+- evidence: adaptadores/http/simulacao.py:17-22 (SPEC_DEVIATION) — tasks.md T4 manda estender GET /execucoes/{id}, rota de outro recurso (routes)
+- last seen: 2026-09-04T20:20:21Z
+
+### L-049 - Declare in design.md every use-case parameter the idempotency scoping and the error-handling table's guards require, not only the domain arguments.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `design` · harmful: 0
+- features: 3-6-confirmar-e-executar-a-simulacao-sem-envio-real
+- evidence: aplicacao/simulacao.py:38-44 (SPEC_DEVIATION) — design.md:65 omite reconhecimento e hash_requisicao (design)
+- last seen: 2026-09-04T20:20:21Z
 
 ## Quarantined (failed when applied - ignore)
 
