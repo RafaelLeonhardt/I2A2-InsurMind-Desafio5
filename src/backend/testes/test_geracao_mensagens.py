@@ -1424,6 +1424,48 @@ def test_retomada_no_boot_tambem_abre_a_revisao_ao_fechar_a_ultima_mensagem(
     assert reiniciado.estado_execucao() is EstadoExecucao.AGUARDANDO_REVISAO
 
 
+def test_retomada_no_boot_com_todas_as_mensagens_ja_terminais_ainda_abre_a_revisao(
+    tmp_path: Path,
+) -> None:
+    """REVISAO-01: se toda mensagem do lote já estava em um terminal de conteúdo antes do
+    boot, o laço de `retomar_mensagens_pendentes` não itera nenhum item (nenhuma está em
+    `gerando`/`criticando`) — sem uma checagem final incondicional após o laço, a execução
+    ficaria presa em `processando_mensagens` para sempre, porque nada dispararia a abertura
+    do lote."""
+
+    incluido = registro(canal="sms")
+    semeador = Cenario([incluido], tmp_path)
+    mensagem_id = semeador.mensagens.criar(EXECUCAO_ID, incluido.id, Canal.SMS)
+    versao_id = semeador.mensagens.salvar_versao(
+        mensagem_id=mensagem_id,
+        numero_tentativa=1,
+        conteudo=SaidaCanal(corpo=CORPO_VALIDO),
+        duracao_ms=10.0,
+        modelo="gpt-4o-mini",
+        versao_prompt=VERSAO_PROMPT,
+        tokens_entrada=100,
+        tokens_saida=30,
+        valida=True,
+        motivo_invalidez=None,
+    )
+    aberto = semeador.mensagens.obter(mensagem_id)
+    assert aberto is not None
+    semeador.mensagens.transicionar(mensagem_id, aberto.versao, EstadoMensagem.CRITICANDO)
+    semeador.avaliacoes.salvar(versao_id, True, (), "gpt-4o-mini", 5.0)
+    avaliado = semeador.mensagens.obter(mensagem_id)
+    assert avaliado is not None
+    semeador.mensagens.transicionar(
+        mensagem_id, avaliado.versao, EstadoMensagem.AGUARDANDO_REVISAO
+    )
+    assert semeador.estado_execucao() is EstadoExecucao.PROCESSANDO_MENSAGENS
+
+    reiniciado = Cenario([incluido], tmp_path)
+    asyncio.run(reiniciado.servico.retomar_mensagens_pendentes(EXECUCAO_ID))
+
+    assert reiniciado.redator.canais_chamados == []
+    assert reiniciado.estado_execucao() is EstadoExecucao.AGUARDANDO_REVISAO
+
+
 def test_execucao_ja_fora_de_processando_mensagens_nao_e_transicionada_de_novo(
     tmp_path: Path,
 ) -> None:

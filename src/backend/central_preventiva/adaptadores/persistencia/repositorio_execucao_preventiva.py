@@ -186,6 +186,12 @@ class RepositorioExecucaoPreventiva:
         Levanta `TransicaoInvalida` se o estado atual já for terminal (AD-7: estados
         terminais nunca reabrem) ou `ConflitoVersao` se `versao_esperada` não bater —
         em nenhum dos dois casos a linha é mutada.
+
+        SPEC_DEVIATION (História 3.5): o `design.md` da 3.5 lista este método como reusado
+        "sem alteração". Ganhou o parâmetro opcional `conexao` para poder participar da
+        mesma transação que `ServicoRevisaoLote.decidir_lote` abre para o lote inteiro
+        (REVISAO-12) — mesmo padrão já aplicado a `RepositorioMensagens` nesta história.
+        Chamadores existentes (2.2, 2.6) continuam sem passá-lo, comportamento inalterado.
         """
 
         with self._conexao(conexao) as ativa:

@@ -1,13 +1,17 @@
 """Transação única do DuckDB oferecida como porta ao caso de uso (REVISAO-12).
 
+SPEC_DEVIATION (História 3.5): componente ausente da seção Components do `design.md` da 3.5,
+que só descreve `RepositorioDecisoesHumanas` e `ServicoRevisaoLote`. `TransacaoDuckDB` foi
+necessário porque design.md's "uma transação DuckDB por chamada de `decidir_lote`" não é
+implementável sem um objeto que abra a conexão uma vez e a repasse a todos os repositórios
+participantes — confirmado empiricamente nesta história: uma segunda conexão ao mesmo arquivo
+não enxerga a transação aberta pela primeira e sobrevive ao `ROLLBACK` dela, então qualquer
+repositório que abrisse sua própria conexão quebraria a atomicidade "tudo ou nada".
+
 Mesma forma já usada por `RepositorioExecucaoPreventiva.criar_correlacionada` (AD-012): quem
 abre a transação é a persistência, e o caso de uso só recebe a conexão para repassá-la aos
 repositórios que participam dela. Assim a aplicação decide *o que* é atômico sem conhecer
 DuckDB nem `abrir_conexao`.
-
-Uma segunda conexão ao mesmo arquivo não enxerga a transação aberta da primeira e sobrevive
-ao `ROLLBACK` dela. É por isso que "tudo ou nada" exige que cada escrita da decisão em lote
-receba esta conexão, e não abra a sua.
 """
 
 from collections.abc import Callable

@@ -10,11 +10,16 @@ específico que o caso de uso trata como no-op idempotente (AD-010). Nenhuma che
 `incrementar_tentativa` (3.4) repete o mesmo padrão para o contador de tentativas, com o
 limite de três cobrado na própria instrução de `UPDATE` (REGEN-02).
 
-Leitura e transição aceitam uma conexão já aberta pelo chamador (3.5). É o que permite à
-decisão em lote aplicar todas as decisões válidas numa única transação (REVISAO-12): uma
-segunda conexão ao mesmo arquivo não enxerga a transação aberta da primeira e sobrevive ao
-`ROLLBACK` dela. Mesmo parâmetro opcional já usado por
-`RepositorioElegibilidades.copiar_para_execucao` (AD-012).
+SPEC_DEVIATION (História 3.5): o `design.md` da 3.5 lista este repositório como reusado "sem
+alteração" (`transicionar`, `incrementar_tentativa`). `obter`, `listar_por_execucao`,
+`transicionar` e `incrementar_tentativa` ganharam um parâmetro `conexao` opcional — leitura e
+transição passam a aceitar uma conexão já aberta pelo chamador. É o que permite à decisão em
+lote aplicar todas as decisões válidas numa única transação (REVISAO-12): uma segunda conexão
+ao mesmo arquivo não enxerga a transação aberta da primeira e sobrevive ao `ROLLBACK` dela —
+sem o parâmetro, cada método reabriria sua própria conexão e a atomicidade seria impossível.
+Mesmo parâmetro opcional já usado por `RepositorioElegibilidades.copiar_para_execucao`
+(AD-012); nenhum comportamento muda para os chamadores existentes de 2.2/3.2/3.4, que
+continuam sem passar `conexao` (default `None`, mesma conexão própria de sempre).
 """
 
 import json

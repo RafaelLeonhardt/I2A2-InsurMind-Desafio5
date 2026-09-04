@@ -1163,6 +1163,46 @@ def test_com_ao_menos_uma_aprovada_a_execucao_vai_para_aguardando_confirmacao(
     assert estados[rejeitada] is EstadoMensagem.REJEITADA
 
 
+def test_marina_aprova_mas_o_critico_nao_avaliou_a_versao_fica_de_fora(
+    tmp_path: Path,
+) -> None:
+    """REVISAO-14: a dupla aprovação é verificada de fato, não presumida. No fluxo normal só
+    uma saída já aprovada pelo crítico alcança `aguardando_revisao`, então este cenário (uma
+    versão sem nenhuma avaliação crítica salva) não deveria surgir sozinho — mas a guarda de
+    `_mensagens_aprovadas` precisa segurá-lo mesmo assim: Marina pode decidir `aprovar` (a
+    transição de mensagem em si não exige aprovação do crítico), mas o item não entra em
+    `mensagens_aprovadas` nem, portanto, no lote que segue para `aguardando_confirmacao`."""
+
+    cenario = Cenario(tmp_path)
+    sem_avaliacao_critica = cenario.semear_mensagem(
+        canal=Canal.SMS, tentativas=((True, None),), nome="Sem avaliação do crítico"
+    )
+    aprovada_pelos_dois = cenario.semear_mensagem(canal=Canal.EMAIL, nome="Aprovada pelos dois")
+
+    decisao = cenario.decidir(
+        DecisaoRequisitada(
+            sem_avaliacao_critica,
+            cenario.versao_de(sem_avaliacao_critica),
+            ResultadoDecisaoHumana.APROVAR,
+            None,
+        ),
+        DecisaoRequisitada(
+            aprovada_pelos_dois,
+            cenario.versao_de(aprovada_pelos_dois),
+            ResultadoDecisaoHumana.APROVAR,
+            None,
+        ),
+    )
+
+    assert decisao.estado is EstadoExecucao.AGUARDANDO_CONFIRMACAO
+    assert decisao.mensagens_aprovadas == (aprovada_pelos_dois,)
+    assert sem_avaliacao_critica not in decisao.mensagens_aprovadas
+    lote = cenario.servico.obter_lote(EXECUCAO_ID)
+    assert lote is not None
+    estados = {item.mensagem_id: item.estado for item in lote.itens}
+    assert estados[sem_avaliacao_critica] is EstadoMensagem.APROVADA
+
+
 def test_agregado_nao_avanca_enquanto_uma_revisavel_segue_sem_decisao(
     tmp_path: Path,
 ) -> None:

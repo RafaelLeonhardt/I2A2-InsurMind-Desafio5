@@ -462,12 +462,19 @@ class ServicoGeracaoMensagens:
         `processando_mensagens`. Cada mensagem continua do seu último marco durável: uma
         tentativa já concluída nunca é refeita, e um estado terminal nunca reabre (REGEN-09).
         Uma falha isolada de uma mensagem não impede a retomada das demais.
+
+        A checagem do REVISAO-01 roda dentro do laço (via `_retomar_item_isolado`) para cada
+        item retomado, e roda mais uma vez incondicionalmente ao final: se todas as mensagens
+        já estavam em um terminal de conteúdo antes deste boot, o laço não itera nenhuma —
+        sem esta chamada final, a execução ficaria presa em `processando_mensagens` para
+        sempre, porque nenhum item dispararia a reabertura do lote.
         """
 
         for registro in self._portas.mensagens.listar_por_execucao(execucao_id):
             if registro.estado not in ESTADOS_RETOMAVEIS:
                 continue
             await self._retomar_item_isolado(registro)
+        self.abrir_revisao_se_lote_completo(execucao_id)
 
     async def _retomar_item_isolado(self, registro: RegistroMensagem) -> None:
         """Retoma uma mensagem convertendo qualquer falha técnica em exceção dela."""
