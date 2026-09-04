@@ -112,18 +112,27 @@ describe('acessibilidade da tabela: cabeçalhos e ordenação', () => {
     ).toBeInTheDocument()
   })
 
-  it('ordena a tabela de totais por estado ao ativar o cabeçalho pelo teclado', async () => {
+  it('ordena de fato as linhas da tabela por estado ao ativar o cabeçalho de quantidade', async () => {
     const utilitario = userEvent.setup()
     renderizar()
 
-    const botaoQuantidade = await screen.findAllByRole('button', { name: /quantidade/i })
-    await utilitario.click(botaoQuantidade[1])
+    const tabelaEstado = await screen.findByRole('table', { name: /totais por estado/i })
+    const botaoQuantidade = within(tabelaEstado).getByRole('button', { name: /quantidade/i })
+    const cabecalho = within(tabelaEstado).getByRole('columnheader', { name: /quantidade/i })
+    const linhasDeDados = () => within(tabelaEstado).getAllByRole('row').slice(1)
 
-    const cabecalho = screen.getAllByRole('columnheader', { name: /quantidade/i })[1]
+    // Dados: "Enviada — simulação" tem quantidade 2, "Rejeitada" tem quantidade 1.
+    await utilitario.click(botaoQuantidade)
     expect(cabecalho).toHaveAttribute('aria-sort', 'ascending')
+    let linhas = linhasDeDados()
+    expect(linhas[0]).toHaveTextContent('Rejeitada')
+    expect(linhas[1]).toHaveTextContent('Enviada — simulação')
 
-    await utilitario.click(botaoQuantidade[1])
+    await utilitario.click(botaoQuantidade)
     expect(cabecalho).toHaveAttribute('aria-sort', 'descending')
+    linhas = linhasDeDados()
+    expect(linhas[0]).toHaveTextContent('Enviada — simulação')
+    expect(linhas[1]).toHaveTextContent('Rejeitada')
   })
 
   it('permite alcançar e ativar o botão de ordenação só com o teclado', async () => {
