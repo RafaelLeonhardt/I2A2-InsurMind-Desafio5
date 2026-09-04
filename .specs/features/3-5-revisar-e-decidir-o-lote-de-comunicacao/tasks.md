@@ -91,7 +91,7 @@ T6
 
 ---
 
-### T2: `RepositorioDecisoesHumanas`
+### T2: `RepositorioDecisoesHumanas` ✅
 
 **What**: `salvar`/`obter_por_mensagem`.
 **Where**: `src/backend/central_preventiva/adaptadores/persistencia/repositorio_decisoes_humanas.py`
@@ -103,9 +103,9 @@ T6
 
 **Done when**:
 
-- [ ] `salvar` persiste perfil, resultado, justificativa (quando aplicável), versão da mensagem
-- [ ] `obter_por_mensagem` retorna todas as decisões, distintas de `avaliacoes_criticas` (3.3)
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `salvar` persiste perfil, resultado, justificativa (quando aplicável), versão da mensagem
+- [x] `obter_por_mensagem` retorna todas as decisões, distintas de `avaliacoes_criticas` (3.3)
+- [x] Gate check passa: `uv run --directory src/backend pytest` (756 passed)
 
 **Tests**: integration
 **Gate**: quick
