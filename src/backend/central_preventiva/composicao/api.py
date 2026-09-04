@@ -47,6 +47,9 @@ from central_preventiva.adaptadores.http.proveniencia import (
 from central_preventiva.adaptadores.http.regras import (
     criar_roteador as criar_roteador_regras,
 )
+from central_preventiva.adaptadores.http.revisao_lote import (
+    criar_roteador as criar_roteador_revisao_lote,
+)
 from central_preventiva.adaptadores.http.saude import roteador as roteador_saude
 from central_preventiva.aplicacao.coleta_meteorologica import ServicoColetaMeteorologica
 from central_preventiva.aplicacao.gerenciador_execucoes import GerenciadorExecucoes
@@ -148,6 +151,10 @@ def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
     )
     aplicacao.include_router(
         criar_roteador_proveniencia(configuracao_ativa),
+        prefix="/api/v1",
+    )
+    aplicacao.include_router(
+        criar_roteador_revisao_lote(configuracao_ativa),
         prefix="/api/v1",
     )
     return aplicacao

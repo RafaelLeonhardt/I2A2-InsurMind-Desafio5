@@ -161,7 +161,7 @@ T6
 
 ---
 
-### T5: Roteador HTTP — lote e decisão
+### T5: Roteador HTTP — lote e decisão ✅
 
 **What**: `GET /api/v1/execucoes/{id}/revisao` (lote ordenado) e `POST /api/v1/execucoes/{id}/revisao/decisoes` (lote de decisões, idempotente, `versao_esperada` por item).
 **Where**: `src/backend/central_preventiva/adaptadores/http/revisao_lote.py`
@@ -173,10 +173,10 @@ T6
 
 **Done when**:
 
-- [ ] `GET` retorna o lote ordenado com todos os campos do AC
-- [ ] `POST` com conflito de versão em qualquer item retorna `409` sem efeito parcial (verificado via `GET` subsequente)
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `GET` retorna o lote ordenado com todos os campos do AC
+- [x] `POST` com conflito de versão em qualquer item retorna `409` sem efeito parcial (verificado via `GET` subsequente)
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright` (825 passed, ruff/pyright limpos)
 
 **Tests**: integration
 **Gate**: full

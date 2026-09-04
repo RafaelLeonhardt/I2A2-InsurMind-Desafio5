@@ -23,6 +23,68 @@
         "title": "ErroCampo",
         "type": "object"
       },
+      "PedidoDecisao": {
+        "additionalProperties": false,
+        "description": "Uma decisão que Marina envia sobre uma mensagem específica.",
+        "properties": {
+          "justificativa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Justificativa da decisão, obrigatória fora da aprovação.",
+            "title": "Justificativa"
+          },
+          "mensagem_id": {
+            "description": "Mensagem sobre a qual se decide.",
+            "format": "uuid",
+            "title": "Mensagem Id",
+            "type": "string"
+          },
+          "resultado": {
+            "$ref": "#/components/schemas/ResultadoDecisaoHumana",
+            "description": "Decisão: aprovar, rejeitar, excluir do lote ou solicitar nova geração."
+          },
+          "versao_esperada": {
+            "description": "Versão de concorrência otimista lida no lote (AD-008).",
+            "title": "Versao Esperada",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "mensagem_id",
+          "versao_esperada",
+          "resultado"
+        ],
+        "title": "PedidoDecisao",
+        "type": "object"
+      },
+      "PedidoDecisaoLote": {
+        "additionalProperties": false,
+        "description": "Envio de decisões sobre uma ou várias mensagens do lote.",
+        "properties": {
+          "decisoes": {
+            "description": "Decisões a aplicar na mesma transação; lista vazia apenas reconhece o lote.",
+            "items": {
+              "$ref": "#/components/schemas/PedidoDecisao"
+            },
+            "title": "Decisoes",
+            "type": "array"
+          },
+          "perfil": {
+            "default": "administrador",
+            "description": "Perfil sintético responsável pela decisão, registrado no histórico.",
+            "title": "Perfil",
+            "type": "string"
+          }
+        },
+        "title": "PedidoDecisaoLote",
+        "type": "object"
+      },
       "ProblemaAvaliacaoCritica": {
         "additionalProperties": false,
         "description": "Falha da consulta do detalhe, com ocorrência, impacto e próxima ação segura.",
@@ -511,6 +573,46 @@
         "title": "ProblemaRestauracao",
         "type": "object"
       },
+      "ProblemaRevisao": {
+        "additionalProperties": false,
+        "description": "Falha da revisão do lote, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem solicitou a operação.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaRevisao",
+        "type": "object"
+      },
       "RespostaAvaliacaoCritica": {
         "additionalProperties": false,
         "description": "Detalhe de uma avaliação: versão, critérios, decisão, motivos e proveniência.",
@@ -601,6 +703,49 @@
         "title": "RespostaAvaliacaoCritica",
         "type": "object"
       },
+      "RespostaAvaliacaoCriticaLote": {
+        "additionalProperties": false,
+        "description": "Avaliação do agente crítico sobre uma versão da mensagem (3.3).",
+        "properties": {
+          "agente": {
+            "description": "Agente responsável pela avaliação.",
+            "title": "Agente",
+            "type": "string"
+          },
+          "aprovada": {
+            "description": "Decisão textual do agente crítico sobre esta versão.",
+            "title": "Aprovada",
+            "type": "boolean"
+          },
+          "duracao_ms": {
+            "description": "Duração da chamada de crítica, em milissegundos.",
+            "title": "Duracao Ms",
+            "type": "number"
+          },
+          "modelo": {
+            "description": "Modelo da OpenAI usado na avaliação.",
+            "title": "Modelo",
+            "type": "string"
+          },
+          "motivos": {
+            "description": "Motivos categorizados da reprovação; vazio quando a versão foi aprovada.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaMotivoCritico"
+            },
+            "title": "Motivos",
+            "type": "array"
+          }
+        },
+        "required": [
+          "aprovada",
+          "motivos",
+          "agente",
+          "modelo",
+          "duracao_ms"
+        ],
+        "title": "RespostaAvaliacaoCriticaLote",
+        "type": "object"
+      },
       "RespostaAvaliacaoDaTentativa": {
         "additionalProperties": false,
         "description": "Avaliação crítica da versão produzida nesta tentativa, com sua proveniência.",
@@ -664,7 +809,7 @@
           "criterios": {
             "description": "Critérios avaliados, na ordem aplicada.",
             "items": {
-              "$ref": "#/components/schemas/RespostaCriterio"
+              "$ref": "#/components/schemas/central_preventiva__adaptadores__http__avaliacao_risco__RespostaCriterio"
             },
             "title": "Criterios",
             "type": "array"
@@ -852,40 +997,6 @@
         "title": "RespostaColetaAceita",
         "type": "object"
       },
-      "RespostaCriterio": {
-        "additionalProperties": false,
-        "description": "Um critério avaliado: operando, valor observado, resultado e justificativa.",
-        "properties": {
-          "atende": {
-            "description": "Se o valor observado atende ao critério.",
-            "title": "Atende",
-            "type": "boolean"
-          },
-          "justificativa": {
-            "description": "Explicação em português brasileiro do resultado.",
-            "title": "Justificativa",
-            "type": "string"
-          },
-          "operando": {
-            "description": "O que foi comparado (ex.: área aplicável, intensidade).",
-            "title": "Operando",
-            "type": "string"
-          },
-          "valor_observado": {
-            "description": "Valor observado no evento para este critério.",
-            "title": "Valor Observado",
-            "type": "string"
-          }
-        },
-        "required": [
-          "operando",
-          "valor_observado",
-          "atende",
-          "justificativa"
-        ],
-        "title": "RespostaCriterio",
-        "type": "object"
-      },
       "RespostaCriterioElegibilidade": {
         "additionalProperties": false,
         "description": "Um critério avaliado: operando, valor observado, resultado e justificativa.",
@@ -952,6 +1063,140 @@
           "justificativa"
         ],
         "title": "RespostaCriterioTeste",
+        "type": "object"
+      },
+      "RespostaDecisaoLote": {
+        "additionalProperties": false,
+        "description": "Desfecho do envio: o que foi aplicado, o que foi recusado e onde o agregado parou.",
+        "properties": {
+          "aplicadas": {
+            "description": "Mensagens cujas decisões foram aplicadas.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Aplicadas",
+            "type": "array"
+          },
+          "estado": {
+            "description": "Estado agregado da execução após o envio.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "execucao_id": {
+            "description": "Execução cujo lote foi decidido.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "mensagens_aprovadas": {
+            "description": "Mensagens aprovadas pelo agente crítico e por Marina.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Mensagens Aprovadas",
+            "type": "array"
+          },
+          "recusadas": {
+            "description": "Itens recusados do envio, cada um com o seu motivo.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaDecisaoRecusada"
+            },
+            "title": "Recusadas",
+            "type": "array"
+          },
+          "regeneracoes_ativas": {
+            "description": "Mensagens devolvidas ao ciclo de geração por decisão humana.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Regeneracoes Ativas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "execucao_id",
+          "estado",
+          "aplicadas",
+          "recusadas",
+          "mensagens_aprovadas",
+          "regeneracoes_ativas"
+        ],
+        "title": "RespostaDecisaoLote",
+        "type": "object"
+      },
+      "RespostaDecisaoRecusada": {
+        "additionalProperties": false,
+        "description": "Um item excluído do envio, com o motivo estável da recusa.",
+        "properties": {
+          "mensagem_id": {
+            "description": "Mensagem recusada do envio.",
+            "format": "uuid",
+            "title": "Mensagem Id",
+            "type": "string"
+          },
+          "motivo": {
+            "description": "Código estável do motivo da recusa deste item.",
+            "title": "Motivo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mensagem_id",
+          "motivo"
+        ],
+        "title": "RespostaDecisaoRecusada",
+        "type": "object"
+      },
+      "RespostaDecisaoRegistrada": {
+        "additionalProperties": false,
+        "description": "Uma decisão humana já registrada sobre a mensagem (REVISAO-07).",
+        "properties": {
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC da decisão.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "justificativa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Justificativa registrada, obrigatória fora da aprovação.",
+            "title": "Justificativa"
+          },
+          "perfil_responsavel": {
+            "description": "Perfil sintético que tomou a decisão.",
+            "title": "Perfil Responsavel",
+            "type": "string"
+          },
+          "resultado": {
+            "description": "Resultado da decisão humana.",
+            "title": "Resultado",
+            "type": "string"
+          },
+          "versao_mensagem_id": {
+            "description": "Versão da mensagem sobre a qual se decidiu.",
+            "format": "uuid",
+            "title": "Versao Mensagem Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "versao_mensagem_id",
+          "perfil_responsavel",
+          "resultado",
+          "justificativa",
+          "criado_em"
+        ],
+        "title": "RespostaDecisaoRegistrada",
         "type": "object"
       },
       "RespostaDependencia": {
@@ -1032,6 +1277,55 @@
           "dependencias"
         ],
         "title": "RespostaDependencias",
+        "type": "object"
+      },
+      "RespostaDestinatario": {
+        "additionalProperties": false,
+        "description": "Destinatário sintético da mensagem, como o snapshot da elegibilidade registrou.",
+        "properties": {
+          "apolice_id": {
+            "description": "Apólice sintética que sustentou a elegibilidade.",
+            "format": "uuid",
+            "title": "Apolice Id",
+            "type": "string"
+          },
+          "canal": {
+            "description": "Canal preferido registrado no snapshot da elegibilidade.",
+            "title": "Canal",
+            "type": "string"
+          },
+          "codigo_ibge_area": {
+            "description": "Área do destinatário no momento da avaliação.",
+            "title": "Codigo Ibge Area",
+            "type": "string"
+          },
+          "elegibilidade_id": {
+            "description": "Item do público elegível que originou a mensagem.",
+            "format": "uuid",
+            "title": "Elegibilidade Id",
+            "type": "string"
+          },
+          "nome_segurado": {
+            "description": "Nome sintético registrado no momento da avaliação.",
+            "title": "Nome Segurado",
+            "type": "string"
+          },
+          "segurado_id": {
+            "description": "Segurado sintético destinatário.",
+            "format": "uuid",
+            "title": "Segurado Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "elegibilidade_id",
+          "segurado_id",
+          "nome_segurado",
+          "apolice_id",
+          "codigo_ibge_area",
+          "canal"
+        ],
+        "title": "RespostaDestinatario",
         "type": "object"
       },
       "RespostaDetalheElegibilidade": {
@@ -1138,6 +1432,28 @@
         "title": "RespostaDetalheElegibilidade",
         "type": "object"
       },
+      "RespostaDistribuicaoCanal": {
+        "additionalProperties": false,
+        "description": "Quantidade de mensagens do lote em um canal.",
+        "properties": {
+          "canal": {
+            "description": "Canal da comunicação.",
+            "title": "Canal",
+            "type": "string"
+          },
+          "total": {
+            "description": "Quantidade de mensagens do lote neste canal.",
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "canal",
+          "total"
+        ],
+        "title": "RespostaDistribuicaoCanal",
+        "type": "object"
+      },
       "RespostaElegibilidade": {
         "additionalProperties": false,
         "description": "Quantidades e lista do público avaliado de uma execução (ELEG-08).",
@@ -1229,6 +1545,61 @@
           "instante_observado"
         ],
         "title": "RespostaEvento",
+        "type": "object"
+      },
+      "RespostaEventoLote": {
+        "additionalProperties": false,
+        "description": "Evento meteorológico que originou a execução em revisão.",
+        "properties": {
+          "area": {
+            "description": "Código de área monitorada afetada pelo evento.",
+            "title": "Area",
+            "type": "string"
+          },
+          "id": {
+            "description": "Identificador do evento meteorológico.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "intensidade": {
+            "description": "Intensidade observada do evento.",
+            "title": "Intensidade",
+            "type": "number"
+          },
+          "periodo_fim": {
+            "description": "Fim do período observado, em UTC.",
+            "format": "date-time",
+            "title": "Periodo Fim",
+            "type": "string"
+          },
+          "periodo_inicio": {
+            "description": "Início do período observado, em UTC.",
+            "format": "date-time",
+            "title": "Periodo Inicio",
+            "type": "string"
+          },
+          "proveniencia": {
+            "description": "Origem do evento (`real_inmet` ou `sintetico`).",
+            "title": "Proveniencia",
+            "type": "string"
+          },
+          "tipo": {
+            "description": "Tipo do evento (`chuva_intensa` ou `granizo`).",
+            "title": "Tipo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tipo",
+          "area",
+          "intensidade",
+          "proveniencia",
+          "periodo_inicio",
+          "periodo_fim"
+        ],
+        "title": "RespostaEventoLote",
         "type": "object"
       },
       "RespostaEventos": {
@@ -1402,6 +1773,227 @@
         "title": "RespostaHistoricoSincronizacoes",
         "type": "object"
       },
+      "RespostaItemLote": {
+        "additionalProperties": false,
+        "description": "Uma mensagem do lote, com tudo que a decisão humana precisa (REVISAO-03).",
+        "properties": {
+          "aprovada_pelo_critico": {
+            "description": "Se a última tentativa foi aprovada pelo agente crítico.",
+            "title": "Aprovada Pelo Critico",
+            "type": "boolean"
+          },
+          "canal": {
+            "description": "Canal da mensagem (`whatsapp`, `email` ou `sms`).",
+            "title": "Canal",
+            "type": "string"
+          },
+          "decidivel": {
+            "description": "Se a mensagem aguarda decisão humana agora.",
+            "title": "Decidivel",
+            "type": "boolean"
+          },
+          "decisoes": {
+            "description": "Decisões humanas já registradas sobre esta mensagem.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaDecisaoRegistrada"
+            },
+            "title": "Decisoes",
+            "type": "array"
+          },
+          "destinatario": {
+            "$ref": "#/components/schemas/RespostaDestinatario",
+            "description": "Destinatário sintético da mensagem."
+          },
+          "em_excecao": {
+            "description": "Se a mensagem terminou em exceção de conteúdo ou de integração.",
+            "title": "Em Excecao",
+            "type": "boolean"
+          },
+          "estado": {
+            "description": "Estado de conteúdo da mensagem, conforme o AD-4.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "limite_tentativas": {
+            "description": "Máximo de tentativas de conteúdo permitidas por mensagem.",
+            "title": "Limite Tentativas",
+            "type": "integer"
+          },
+          "mensagem_id": {
+            "description": "Identificador da mensagem.",
+            "format": "uuid",
+            "title": "Mensagem Id",
+            "type": "string"
+          },
+          "origem": {
+            "$ref": "#/components/schemas/RespostaOrigem",
+            "description": "Dados de origem que produziram a mensagem."
+          },
+          "pode_regenerar": {
+            "description": "Se ainda há tentativa disponível para solicitar nova geração.",
+            "title": "Pode Regenerar",
+            "type": "boolean"
+          },
+          "prioridade": {
+            "description": "Ordem de atenção do item: menor valor exige atenção antes.",
+            "title": "Prioridade",
+            "type": "integer"
+          },
+          "proveniencia": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaProveniencia"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Proveniência do contexto do agente, ou nula se ele não foi montado."
+          },
+          "reprovacao_historica": {
+            "description": "Se alguma tentativa foi reprovada, ainda que a final tenha sido aprovada.",
+            "title": "Reprovacao Historica",
+            "type": "boolean"
+          },
+          "tentativa_atual": {
+            "description": "Tentativa de geração em curso ou concluída.",
+            "title": "Tentativa Atual",
+            "type": "integer"
+          },
+          "versao": {
+            "description": "Versão de concorrência otimista a reenviar como `versao_esperada`.",
+            "title": "Versao",
+            "type": "integer"
+          },
+          "versoes": {
+            "description": "Tentativas registradas, da primeira à última.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaVersaoRevisada"
+            },
+            "title": "Versoes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "mensagem_id",
+          "canal",
+          "estado",
+          "tentativa_atual",
+          "limite_tentativas",
+          "versao",
+          "destinatario",
+          "origem",
+          "proveniencia",
+          "versoes",
+          "decisoes",
+          "aprovada_pelo_critico",
+          "reprovacao_historica",
+          "em_excecao",
+          "decidivel",
+          "pode_regenerar",
+          "prioridade"
+        ],
+        "title": "RespostaItemLote",
+        "type": "object"
+      },
+      "RespostaLoteRevisao": {
+        "additionalProperties": false,
+        "description": "O lote de revisão de uma execução, com os itens de atenção primeiro (REVISAO-01).",
+        "properties": {
+          "aprovacoes_agenticas": {
+            "description": "Mensagens cuja última tentativa foi aprovada pelo agente crítico.",
+            "title": "Aprovacoes Agenticas",
+            "type": "integer"
+          },
+          "distribuicao_por_canal": {
+            "description": "Quantidade de mensagens do lote por canal.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaDistribuicaoCanal"
+            },
+            "title": "Distribuicao Por Canal",
+            "type": "array"
+          },
+          "estado": {
+            "description": "Estado agregado atual da execução.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "evento": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaEventoLote"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Evento meteorológico de origem, ou nulo se o lote ainda está vazio."
+          },
+          "execucao_id": {
+            "description": "Identificador da execução em revisão.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "itens": {
+            "description": "Mensagens do lote, com os itens que exigem atenção primeiro.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaItemLote"
+            },
+            "title": "Itens",
+            "type": "array"
+          },
+          "itens_em_excecao": {
+            "description": "Mensagens que terminaram em exceção de conteúdo ou de integração.",
+            "title": "Itens Em Excecao",
+            "type": "integer"
+          },
+          "regra_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Regra preventiva aplicada ao público do lote.",
+            "title": "Regra Id"
+          },
+          "regra_versao": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Versão da regra aplicada ao público do lote.",
+            "title": "Regra Versao"
+          },
+          "total_publico_incluido": {
+            "description": "Itens incluídos do público elegível desta execução.",
+            "title": "Total Publico Incluido",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "execucao_id",
+          "estado",
+          "evento",
+          "regra_id",
+          "regra_versao",
+          "total_publico_incluido",
+          "distribuicao_por_canal",
+          "aprovacoes_agenticas",
+          "itens_em_excecao",
+          "itens"
+        ],
+        "title": "RespostaLoteRevisao",
+        "type": "object"
+      },
       "RespostaMarco": {
         "additionalProperties": false,
         "description": "Um marco de transição já persistido da execução.",
@@ -1552,6 +2144,28 @@
         "title": "RespostaMotivoCritica",
         "type": "object"
       },
+      "RespostaMotivoCritico": {
+        "additionalProperties": false,
+        "description": "Um motivo categorizado da reprovação do agente crítico.",
+        "properties": {
+          "categoria": {
+            "description": "Categoria fechada do motivo avaliado.",
+            "title": "Categoria",
+            "type": "string"
+          },
+          "justificativa": {
+            "description": "Justificativa do crítico para esta categoria.",
+            "title": "Justificativa",
+            "type": "string"
+          }
+        },
+        "required": [
+          "categoria",
+          "justificativa"
+        ],
+        "title": "RespostaMotivoCritico",
+        "type": "object"
+      },
       "RespostaMotivoProveniencia": {
         "additionalProperties": false,
         "description": "Um motivo da avaliação: a categoria fechada e a justificativa dela.",
@@ -1596,6 +2210,51 @@
           "execucao_origem_id"
         ],
         "title": "RespostaNovaTentativaIA",
+        "type": "object"
+      },
+      "RespostaOrigem": {
+        "additionalProperties": false,
+        "description": "Dados de origem da mensagem: evento, regra versionada e critérios avaliados.",
+        "properties": {
+          "criterios": {
+            "description": "Critérios avaliados, com o valor observado e o veredito de cada um.",
+            "items": {
+              "$ref": "#/components/schemas/central_preventiva__adaptadores__http__revisao_lote__RespostaCriterio"
+            },
+            "title": "Criterios",
+            "type": "array"
+          },
+          "evento_id": {
+            "description": "Evento meteorológico de origem.",
+            "format": "uuid",
+            "title": "Evento Id",
+            "type": "string"
+          },
+          "justificativa": {
+            "description": "Justificativa da inclusão no público elegível.",
+            "title": "Justificativa",
+            "type": "string"
+          },
+          "regra_id": {
+            "description": "Regra preventiva aplicada.",
+            "format": "uuid",
+            "title": "Regra Id",
+            "type": "string"
+          },
+          "regra_versao": {
+            "description": "Versão da regra aplicada no momento da avaliação.",
+            "title": "Regra Versao",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "evento_id",
+          "regra_id",
+          "regra_versao",
+          "justificativa",
+          "criterios"
+        ],
+        "title": "RespostaOrigem",
         "type": "object"
       },
       "RespostaPreflight": {
@@ -1670,6 +2329,34 @@
           "canal"
         ],
         "title": "RespostaPreviaPublico",
+        "type": "object"
+      },
+      "RespostaProveniencia": {
+        "additionalProperties": false,
+        "description": "Proveniência do contexto do agente: o que foi e o que não foi usado (3.1).",
+        "properties": {
+          "categorias_nao_usadas": {
+            "description": "Categorias deliberadamente deixadas de fora do contexto.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Categorias Nao Usadas",
+            "type": "array"
+          },
+          "categorias_usadas": {
+            "description": "Categorias de dado que chegaram ao contexto do agente redator.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Categorias Usadas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "categorias_usadas",
+          "categorias_nao_usadas"
+        ],
+        "title": "RespostaProveniencia",
         "type": "object"
       },
       "RespostaProvenienciaContexto": {
@@ -2444,6 +3131,141 @@
         "title": "RespostaVersaoMensagem",
         "type": "object"
       },
+      "RespostaVersaoRevisada": {
+        "additionalProperties": false,
+        "description": "Uma tentativa de geração: conteúdo, verificação determinística e crítica.",
+        "properties": {
+          "assunto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Assunto gerado, presente somente no canal de e-mail.",
+            "title": "Assunto"
+          },
+          "avaliacao_critica": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaAvaliacaoCriticaLote"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Avaliação do crítico sobre esta versão, ou nula se ela não foi avaliada."
+          },
+          "corpo": {
+            "description": "Texto gerado desta tentativa, exibido sem edição possível.",
+            "title": "Corpo",
+            "type": "string"
+          },
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC do registro da versão.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "duracao_ms": {
+            "description": "Duração da chamada de geração, em milissegundos.",
+            "title": "Duracao Ms",
+            "type": "number"
+          },
+          "id": {
+            "description": "Identificador da versão da mensagem.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "modelo": {
+            "description": "Modelo da OpenAI usado nesta tentativa.",
+            "title": "Modelo",
+            "type": "string"
+          },
+          "motivo_invalidez": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Motivo da recusa determinística, ou nulo quando a saída é válida.",
+            "title": "Motivo Invalidez"
+          },
+          "numero_tentativa": {
+            "description": "Número da tentativa de geração registrada.",
+            "title": "Numero Tentativa",
+            "type": "integer"
+          },
+          "tokens_entrada": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Tokens de entrada consumidos, ou nulo quando não reportados.",
+            "title": "Tokens Entrada"
+          },
+          "tokens_saida": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Tokens de saída consumidos, ou nulo quando não reportados.",
+            "title": "Tokens Saida"
+          },
+          "valida": {
+            "description": "Veredito da verificação determinística de canal sobre esta tentativa.",
+            "title": "Valida",
+            "type": "boolean"
+          },
+          "versao_prompt": {
+            "description": "Versão do prompt usada nesta tentativa.",
+            "title": "Versao Prompt",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "numero_tentativa",
+          "assunto",
+          "corpo",
+          "valida",
+          "motivo_invalidez",
+          "modelo",
+          "versao_prompt",
+          "duracao_ms",
+          "tokens_entrada",
+          "tokens_saida",
+          "criado_em",
+          "avaliacao_critica"
+        ],
+        "title": "RespostaVersaoRevisada",
+        "type": "object"
+      },
+      "ResultadoDecisaoHumana": {
+        "description": "As quatro decisões que Marina pode tomar sobre uma mensagem (REVISAO-05).",
+        "enum": [
+          "aprovar",
+          "rejeitar",
+          "excluir",
+          "regenerar"
+        ],
+        "title": "ResultadoDecisaoHumana",
+        "type": "string"
+      },
       "SolicitacaoAtivarCenarioSintetico": {
         "additionalProperties": false,
         "description": "Corpo da ativação de um cenário sintético: a área monitorada a usar.",
@@ -2603,6 +3425,74 @@
           "canal"
         ],
         "title": "SolicitacaoRegra",
+        "type": "object"
+      },
+      "central_preventiva__adaptadores__http__avaliacao_risco__RespostaCriterio": {
+        "additionalProperties": false,
+        "description": "Um critério avaliado: operando, valor observado, resultado e justificativa.",
+        "properties": {
+          "atende": {
+            "description": "Se o valor observado atende ao critério.",
+            "title": "Atende",
+            "type": "boolean"
+          },
+          "justificativa": {
+            "description": "Explicação em português brasileiro do resultado.",
+            "title": "Justificativa",
+            "type": "string"
+          },
+          "operando": {
+            "description": "O que foi comparado (ex.: área aplicável, intensidade).",
+            "title": "Operando",
+            "type": "string"
+          },
+          "valor_observado": {
+            "description": "Valor observado no evento para este critério.",
+            "title": "Valor Observado",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operando",
+          "valor_observado",
+          "atende",
+          "justificativa"
+        ],
+        "title": "RespostaCriterio",
+        "type": "object"
+      },
+      "central_preventiva__adaptadores__http__revisao_lote__RespostaCriterio": {
+        "additionalProperties": false,
+        "description": "Um critério avaliado da elegibilidade, com o valor observado e o veredito.",
+        "properties": {
+          "atende": {
+            "description": "Se o valor observado atende ao critério.",
+            "title": "Atende",
+            "type": "boolean"
+          },
+          "justificativa": {
+            "description": "Explicação em português brasileiro do resultado.",
+            "title": "Justificativa",
+            "type": "string"
+          },
+          "operando": {
+            "description": "O que foi comparado (ex.: área afetada, cobertura).",
+            "title": "Operando",
+            "type": "string"
+          },
+          "valor_observado": {
+            "description": "Valor observado no momento da avaliação.",
+            "title": "Valor Observado",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operando",
+          "valor_observado",
+          "atende",
+          "justificativa"
+        ],
+        "title": "RespostaCriterio",
         "type": "object"
       }
     }
@@ -3158,6 +4048,148 @@
         "summary": "Preparar a etapa agêntica de uma execução preventiva",
         "tags": [
           "Preparação da IA"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_id}/revisao": {
+      "get": {
+        "description": "Devolve o lote inteiro de comunicação da execução: evento, regra, público, distribuição por canal, aprovações agênticas e exceções no cabeçalho, e um item por mensagem com destinatário sintético, conteúdo de cada versão, verificação determinística, avaliação crítica, dados de origem e proveniência. Os itens que exigem atenção vêm primeiro: exceções, depois reprovações em alguma tentativa anterior, depois as aprovações limpas.",
+        "operationId": "consultar_lote_api_v1_execucoes__execucao_id__revisao_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaLoteRevisao"
+                }
+              }
+            },
+            "description": "Lote encontrado (pode estar vazio)."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaRevisao"
+                }
+              }
+            },
+            "description": "Execução inexistente."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaRevisao"
+                }
+              }
+            },
+            "description": "O identificador da execução não é um UUID válido."
+          }
+        },
+        "summary": "Consultar o lote de revisão de uma execução",
+        "tags": [
+          "Revisão do lote"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_id}/revisao/decisoes": {
+      "post": {
+        "description": "Aplica as decisões humanas (aprovar, rejeitar, excluir do lote ou solicitar nova geração) numa única transação: ou todas as decisões válidas do envio são aplicadas, ou nenhuma. Um conflito de `versao_esperada` em qualquer item devolve 409 sem efeito parcial; um item já decidido antes é recusado no corpo da resposta, com motivo, sem impedir os demais. Rejeitar, excluir e regenerar exigem justificativa. Aplicadas as decisões, a execução avança para 'aguardando_confirmacao' quando houver ao menos uma mensagem aprovada pelo crítico e por Marina, conclui sem simulação quando não houver nenhuma, e volta a 'processando_mensagens' enquanto houver regeneração ativa. Exige o cabeçalho `Idempotency-Key`.",
+        "operationId": "decidir_lote_api_v1_execucoes__execucao_id__revisao_decisoes_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PedidoDecisaoLote"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaDecisaoLote"
+                }
+              }
+            },
+            "description": "Envio processado; o corpo informa aplicadas e recusadas."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaRevisao"
+                }
+              }
+            },
+            "description": "Execução inexistente."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaRevisao"
+                }
+              }
+            },
+            "description": "Conflito de `versao_esperada`, execução fora de revisão ou chave de idempotência reusada com outro conteúdo."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaRevisao"
+                }
+              }
+            },
+            "description": "Requisição sem `Idempotency-Key`, identificador inválido ou decisão sem justificativa."
+          }
+        },
+        "summary": "Decidir uma ou várias mensagens do lote de revisão",
+        "tags": [
+          "Revisão do lote"
         ]
       }
     },
