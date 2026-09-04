@@ -242,19 +242,36 @@ def _snapshot_de_linha(linha: tuple[object, ...]) -> SnapshotExecucao:
 
 
 class RepositorioExcecoesOperacionais:
-    """Registra a `Exceção` operacional quando uma execução alcança `falhou_coleta`."""
+    """Registra a `Exceção` operacional de uma execução ou de uma mensagem específica.
+
+    Um único repositório serve os dois escopos (migração `0012`): `mensagem_id` fica nulo
+    quando a exceção é da execução inteira (2.2, `falhou_coleta`) e preenchido quando é de
+    uma mensagem que alcançou `falhou_conteudo` ou `falhou_integracao_ia` (3.4).
+    """
 
     def __init__(self, caminho: Path) -> None:
         """Vincula o repositório ao arquivo operacional do DuckDB."""
 
         self._caminho = caminho
 
-    def registrar(self, execucao_id: UUID, causa: str, tentativas: int, impacto: str) -> None:
-        """Persiste a exceção operacional (causa, tentativas, impacto) da execução."""
+    def registrar(
+        self,
+        execucao_id: UUID,
+        causa: str,
+        tentativas: int,
+        impacto: str,
+        mensagem_id: UUID | None = None,
+    ) -> None:
+        """Persiste a exceção operacional (causa, tentativas, impacto) da execução.
+
+        `mensagem_id` correlaciona a exceção a uma mensagem específica quando a falha é do
+        conteúdo ou da integração de um item, e não da execução inteira (REGEN-04).
+        """
 
         with abrir_conexao(self._caminho) as conexao:
             conexao.execute(
                 "INSERT INTO excecoes_operacionais "
-                "(id, execucao_id, causa, tentativas, impacto) VALUES (?, ?, ?, ?, ?)",
-                [uuid4(), execucao_id, causa, tentativas, impacto],
+                "(id, execucao_id, causa, tentativas, impacto, mensagem_id) "
+                "VALUES (?, ?, ?, ?, ?, ?)",
+                [uuid4(), execucao_id, causa, tentativas, impacto, mensagem_id],
             )

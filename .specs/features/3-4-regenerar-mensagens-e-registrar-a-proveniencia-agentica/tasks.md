@@ -113,7 +113,7 @@ T6
 
 ---
 
-### T3: Extensão de `GrafoGeracaoMensagem` — ciclo automático
+### T3: Extensão de `GrafoGeracaoMensagem` — ciclo automático ✅
 
 **What**: Aresta condicional `criticar`→`gerar` (reprovada e `tentativa < 3`, via `incrementar_tentativa`, motivos passados ao redator) e `criticar`→`falhou_conteudo` (terceira reprovação); `EstadoGrafoMensagem` ganha `motivos_reprovacao_anterior`.
 **Where**: `src/backend/central_preventiva/aplicacao/grafos/geracao_mensagem.py` (extensão de 3.2/3.3)
@@ -125,12 +125,25 @@ T6
 
 **Done when**:
 
-- [ ] Reprovação na tentativa 1 ou 2 incrementa a tentativa e reentra em `gerar` com os motivos da reprovação anterior no contexto
-- [ ] Aprovação em qualquer tentativa encerra o ciclo imediatamente, sem tentativa extra
-- [ ] Reprovação na tentativa 3 transiciona a mensagem para `falhou_conteudo` e registra `Exceção` correlacionada por `mensagem_id`
-- [ ] Falha de transporte esgotada em `gerar` OU em `criticar`, em qualquer tentativa, transiciona só a mensagem afetada para `falhou_integracao_ia`, distinto de `falhou_conteudo`
-- [ ] Nenhum teste chama a OpenAI real
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Reprovação na tentativa 1 ou 2 incrementa a tentativa e reentra em `gerar` com os motivos da reprovação anterior no contexto
+- [x] Aprovação em qualquer tentativa encerra o ciclo imediatamente, sem tentativa extra
+- [x] Reprovação na tentativa 3 transiciona a mensagem para `falhou_conteudo` e registra `Exceção` correlacionada por `mensagem_id`
+- [x] Falha de transporte esgotada em `gerar` OU em `criticar`, em qualquer tentativa, transiciona só a mensagem afetada para `falhou_integracao_ia`, distinto de `falhou_conteudo`
+- [x] Nenhum teste chama a OpenAI real (redator e crítico sempre dublês)
+- [x] Gate check passa: `uv run --directory src/backend pytest` (714 passed), ruff e pyright limpos
+
+**Nota de escopo**: a reprovação da validação determinística também consome a tentativa e
+alimenta a regeneração (REGEN-01 cita "validação determinística recuperável"; o AD-4 diz que
+"saída inválida do redator ou do crítico nunca é aprovação e consome a tentativa"). Isso
+supersede seis testes de 3.2/3.3 que afirmavam a parada em `gerando`/`criticando` — parada
+que aquelas histórias declararam explicitamente como deferida a esta. Os seis foram
+reescritos para o desfecho desta spec, nenhum removido nem enfraquecido.
+
+**Adição deliberada além do texto da task** (risco 12a do `STATE.md`, herdado da 3.2): cada
+item do lote roda dentro de um `except Exception` amplo que registra uma `Exceção`
+operacional, espelhando `GerenciadorExecucoes._processar_coleta_e_continuar` (RUNNER-11).
+Sem isso, uma falha de infraestrutura fora do caminho do grafo abortava o restante do lote em
+silêncio dentro da task desacoplada. Nenhum estado terminal novo de execução foi inventado.
 
 **Tests**: unit
 **Gate**: quick

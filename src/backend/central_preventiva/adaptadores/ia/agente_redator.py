@@ -11,6 +11,14 @@ exige persistir as métricas de uso da geração, e um `SaidaCanal` puro não as
 GERAR-09 exige que saída ausente ou malformada seja marcada inválida, não que levante exceção,
 então `saida` é anulável. A chamada usa `include_raw=True` justamente para ter as duas coisas
 em uma só ida ao modelo.
+
+SPEC_DEVIATION: o `design.md` da 3.4 diz que o redator é reusado "sem alteração de
+assinatura", com os motivos da reprovação anterior chegando "pelo contexto". Motivo: as duas
+coisas não podem ser verdadeiras ao mesmo tempo — o mesmo design (e o AD-9) exige que
+`ContextoAgente` continue sendo exatamente os cinco campos minimizados de 3.1, então os
+motivos não têm como entrar por ele. `gerar` ganhou um terceiro parâmetro opcional
+(`motivos_anteriores`, vazio por padrão): toda chamada existente continua válida sem
+alteração, e os motivos ficam sendo dado efêmero do ciclo, nunca dado do segurado (REGEN-01).
 """
 
 from dataclasses import dataclass
@@ -19,6 +27,7 @@ from typing import Any, Protocol, cast
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
 
+from central_preventiva.dominio.avaliacao_critica import MotivoCritica
 from central_preventiva.dominio.montador_contexto_agente import ContextoAgente
 from central_preventiva.dominio.validador_saida_canal import (
     Canal,
@@ -91,13 +100,29 @@ class _ModeloDeChat(Protocol):
     ) -> _Invocavel: ...
 
 
+CABECALHO_CORRECAO = (
+    "A versão anterior desta mensagem foi reprovada. Corrija exatamente os pontos abaixo e "
+    "reescreva a mensagem inteira:"
+)
+"""Abertura do bloco de correção acrescentado ao pedido em uma regeneração (REGEN-01)."""
+
+
 def montar_prompt(
-    contexto: ContextoAgente, canal: Canal, limite_corpo: int, limite_assunto: int | None
+    contexto: ContextoAgente,
+    canal: Canal,
+    limite_corpo: int,
+    limite_assunto: int | None,
+    motivos_anteriores: tuple[MotivoCritica, ...] = (),
 ) -> list[tuple[str, str]]:
     """Monta as mensagens do redator a partir dos cinco campos do contexto mínimo.
 
     Nada além do `ContextoAgente` alcança o prompt: não há caminho para documento, dado
     financeiro, dado de pagamento, credencial ou identificação direta do segurado (AD-9).
+
+    Em uma regeneração (3.4), `motivos_anteriores` acrescenta ao pedido a categoria e a
+    justificativa de cada motivo da reprovação anterior (REGEN-01). Esses motivos são dado
+    efêmero do ciclo, produzidos pelo próprio sistema: eles nunca entram no `ContextoAgente`,
+    que continua sendo exatamente os cinco campos minimizados de 3.1.
     """
 
     limites = f"O corpo deve ter no máximo {limite_corpo} caracteres."
@@ -114,6 +139,12 @@ def montar_prompt(
         f"Orientações de segurança a transmitir:\n{orientacoes}\n\n"
         f"Adapte o texto ao canal {canal.value}. {limites}"
     )
+    if motivos_anteriores:
+        correcoes = "\n".join(
+            f"- {motivo.categoria.value}: {motivo.justificativa}"
+            for motivo in motivos_anteriores
+        )
+        pedido += f"\n\n{CABECALHO_CORRECAO}\n{correcoes}"
     return [("system", INSTRUCAO_SISTEMA), ("human", pedido)]
 
 
@@ -199,11 +230,19 @@ class AgenteRedator:
             )
         return self._modelo_de_chat
 
-    async def gerar(self, contexto: ContextoAgente, canal: Canal) -> RespostaRedator:
+    async def gerar(
+        self,
+        contexto: ContextoAgente,
+        canal: Canal,
+        motivos_anteriores: tuple[MotivoCritica, ...] = (),
+    ) -> RespostaRedator:
         """Pede ao modelo o conteúdo estruturado do canal e devolve o que voltou.
 
         Uma resposta que não preenche o schema do canal volta com `saida = None` — o
         validador determinístico é quem a marca inválida (GERAR-09).
+
+        `motivos_anteriores` é vazio na primeira tentativa e carrega os motivos da
+        reprovação anterior em uma regeneração (REGEN-01).
         """
 
         estruturado = self._obter_modelo_de_chat().with_structured_output(
@@ -215,6 +254,7 @@ class AgenteRedator:
                 canal,
                 self._validador.limite_corpo(canal),
                 self._validador.limite_assunto(canal),
+                motivos_anteriores,
             )
         )
 

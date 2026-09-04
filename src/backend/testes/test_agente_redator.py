@@ -12,12 +12,14 @@ import pytest
 from pydantic import BaseModel
 
 from central_preventiva.adaptadores.ia.agente_redator import (
+    CABECALHO_CORRECAO,
     AgenteRedator,
     RespostaRedator,
     SaidaEmail,
     SaidaSMS,
     SaidaWhatsApp,
 )
+from central_preventiva.dominio.avaliacao_critica import CategoriaCritica, MotivoCritica
 from central_preventiva.dominio.montador_contexto_agente import ContextoAgente
 from central_preventiva.dominio.validador_saida_canal import (
     Canal,
@@ -202,3 +204,32 @@ def test_excecao_de_transporte_propaga_ao_chamador() -> None:
 
     with pytest.raises(TimeoutError):
         asyncio.run(redator(modelo).gerar(CONTEXTO, Canal.WHATSAPP))
+
+
+def test_regeneracao_leva_ao_prompt_os_motivos_da_reprovacao_anterior() -> None:
+    """REGEN-01: em uma regeneração, o redator recebe categoria e justificativa de cada
+    motivo da reprovação anterior, para corrigir exatamente o que foi apontado."""
+
+    modelo = ModeloDeChatFalso({"parsed": SaidaSMS(corpo="ok"), "raw": UsoFalso(1, 1)})
+    motivos = (
+        MotivoCritica(CategoriaCritica.TOM, "O texto usa tom alarmista."),
+        MotivoCritica(CategoriaCritica.PROMESSA_INDEVIDA, "Promete indenização integral."),
+    )
+
+    asyncio.run(redator(modelo).gerar(CONTEXTO, Canal.SMS, motivos))
+
+    enviado = str(modelo.invocacoes[0].entrada)
+    assert CABECALHO_CORRECAO in enviado
+    assert "tom: O texto usa tom alarmista." in enviado
+    assert "promessa_indevida: Promete indenização integral." in enviado
+
+
+def test_primeira_tentativa_nao_leva_nenhum_bloco_de_correcao_ao_prompt() -> None:
+    """REGEN-01: sem reprovação anterior não há bloco de correção — a primeira tentativa
+    continua sendo exatamente o prompt de 3.2."""
+
+    modelo = ModeloDeChatFalso({"parsed": SaidaSMS(corpo="ok"), "raw": UsoFalso(1, 1)})
+
+    asyncio.run(redator(modelo).gerar(CONTEXTO, Canal.SMS))
+
+    assert CABECALHO_CORRECAO not in str(modelo.invocacoes[0].entrada)

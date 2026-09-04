@@ -1,27 +1,30 @@
-"""Caso de uso da geração e da crítica automáticas do lote (GERAR-04..06, 10..12; CRIT-05..07).
+"""Caso de uso da geração, da crítica e da regeneração automáticas do lote.
 
-Para cada item incluído do público elegível, cria a mensagem, roda o grafo (geração e, quando
-a saída é válida, crítica) e persiste o desfecho. Nenhuma ação humana por mensagem:
-`gerar_lote` recebe a execução inteira e percorre o público (GERAR-04).
+(GERAR-04..06, 10..12; CRIT-05..07; REGEN-01..06)
 
-Três desfechos de geração por item, todos persistidos:
+Para cada item incluído do público elegível, cria a mensagem e roda o grafo, que conduz o
+ciclo completo do AD-4 — geração, crítica e, enquanto houver tentativa, regeneração. Nenhuma
+ação humana por mensagem: `gerar_lote` recebe a execução inteira e percorre o público
+(GERAR-04).
 
-- válida: versão registrada com `valida = true`, mensagem avança `gerando` → `criticando`;
-- inválida: versão registrada com `valida = false` e o motivo, mensagem **permanece** em
-  `gerando` — a política de nova tentativa é da História 3.4, não desta (GERAR-09);
-- transporte esgotado: mensagem vai a `falhou_integracao_ia` com `Exceção` operacional
-  registrada, e o restante do lote continua (AD-8).
+Este módulo implementa `CicloMensagem`, a porta que o grafo chama a cada marco durável. O
+grafo decide *quando* cada marco acontece; `CicloPersistenteMensagem` decide *como* ele é
+persistido. Os desfechos:
 
-Uma versão válida segue para a crítica, com quatro desfechos:
-
-- aprovada: avaliação persistida com `aprovada = true`, mensagem avança para
-  `aguardando_revisao` (CRIT-05);
-- reprovada: avaliação persistida com os motivos categorizados, mensagem **permanece** em
-  `criticando`, disponível para a próxima tentativa da História 3.4 (CRIT-06);
-- saída do crítico não interpretável: falha da tentativa — nenhuma avaliação persistida,
-  nenhuma transição, nunca aprovação (CRIT-07);
-- transporte esgotado: mesmo tratamento do redator, `falhou_integracao_ia` com `Exceção`
-  operacional registrada, sem terminal novo.
+- saída válida: versão com `valida = true`, mensagem avança `gerando` → `criticando`;
+- saída inválida: versão com `valida = false` e o motivo; a tentativa foi consumida e o ciclo
+  regenera ou esgota (REGEN-01, AD-4);
+- crítico aprova: avaliação persistida, mensagem avança para `aguardando_revisao` (CRIT-05) e
+  o ciclo encerra imediatamente, sem consumir tentativa extra (REGEN-03);
+- crítico reprova: avaliação persistida com os motivos categorizados; a tentativa foi
+  consumida e o ciclo regenera ou esgota (CRIT-06, REGEN-01);
+- saída do crítico não interpretável: nenhuma avaliação persistida, nunca aprovação (CRIT-07),
+  e a tentativa é consumida como qualquer outra reprovação (AD-4);
+- terceira reprovação: `falhou_conteudo` com `Exceção` correlacionada por `mensagem_id`, fora
+  do lote simulável (REGEN-04);
+- transporte esgotado (geração ou crítica, em qualquer tentativa): só a mensagem afetada vai a
+  `falhou_integracao_ia`, com `Exceção` própria, e o restante do lote continua (REGEN-05/06,
+  AD-8).
 
 Reinvocar `gerar_lote` para uma execução já processada é no-op: a `UNIQUE
 (elegibilidade_id, canal)` recusa a segunda criação, o item é pulado antes de qualquer
@@ -40,6 +43,8 @@ from central_preventiva.adaptadores.persistencia.repositorio_elegibilidade impor
 )
 from central_preventiva.adaptadores.persistencia.repositorio_mensagens import (
     MensagemJaExiste,
+    RegistroMensagem,
+    VersaoMensagem,
 )
 from central_preventiva.aplicacao.grafos.geracao_mensagem import (
     DesfechoCritica,
@@ -54,19 +59,21 @@ from central_preventiva.dominio.montador_contexto_agente import ContextoAgente
 from central_preventiva.dominio.validador_saida_canal import Canal, SaidaCanal
 
 TENTATIVA_INICIAL = 1
-"""Toda entrada em `gerando` nesta história é a primeira tentativa (AD-4; 3.4 incrementa)."""
-
-VERSAO_INICIAL_MENSAGEM = 1
-"""Versão de concorrência otimista de uma mensagem recém-criada (AD-008)."""
-
-VERSAO_APOS_CRITICANDO = 2
-"""Versão da mensagem depois da transição `gerando` → `criticando` (AD-008)."""
+"""Toda mensagem nova entra em `gerando` na primeira tentativa (AD-4)."""
 
 IMPACTO_ITEM_SEM_MENSAGEM = (
     "Este item do público elegível não recebe mensagem nesta execução; os demais seguem "
     "normalmente."
 )
 """Impacto operacional de um item que não pôde ser gerado (AD-8, exceção isolada)."""
+
+IMPACTO_ITEM_FORA_DO_LOTE = (
+    "Este item não integra o lote simulável; os demais seguem normalmente."
+)
+"""Impacto de um item que esgotou as três tentativas de conteúdo (REGEN-04)."""
+
+MOTIVO_SEM_CATEGORIA = "sem_motivo_estruturado"
+"""Usado na causa quando a reprovação final não trouxe nenhum motivo categorizado."""
 
 
 def _causa_contexto_ausente(elegibilidade_id: UUID) -> str:
@@ -93,6 +100,23 @@ def _causa_integracao_critica(elegibilidade_id: UUID, motivo: str | None) -> str
     return f"falha_integracao_ia_critica:{elegibilidade_id}:{motivo}"
 
 
+def _causa_conteudo(elegibilidade_id: UUID, motivos: tuple[MotivoCritica, ...]) -> str:
+    """Descreve o esgotamento das três tentativas citando as categorias reprovadas.
+
+    Só as categorias fechadas entram na causa, nunca o texto gerado nem a justificativa
+    livre: a `Exceção` é operacional e não carrega conteúdo (AD-10).
+    """
+
+    categorias = ",".join(motivo.categoria.value for motivo in motivos)
+    return f"falhou_conteudo:{elegibilidade_id}:{categorias or MOTIVO_SEM_CATEGORIA}"
+
+
+def _causa_falha_tecnica(elegibilidade_id: UUID, erro: BaseException) -> str:
+    """Descreve uma falha técnica não prevista de um item, nomeando o tipo do erro."""
+
+    return f"falha_tecnica_item:{elegibilidade_id}:{type(erro).__name__}: {erro}"
+
+
 class _RepositorioElegibilidades(Protocol):
     """Porta mínima do público elegível preservado pela execução (2.5)."""
 
@@ -112,6 +136,8 @@ class _RepositorioMensagens(Protocol):
 
     def criar(self, execucao_id: UUID, elegibilidade_id: UUID, canal: Canal) -> UUID: ...
 
+    def obter(self, mensagem_id: UUID) -> RegistroMensagem | None: ...
+
     def salvar_versao(
         self,
         mensagem_id: UUID,
@@ -130,6 +156,10 @@ class _RepositorioMensagens(Protocol):
         self, mensagem_id: UUID, versao_esperada: int, novo_estado: EstadoMensagem
     ) -> None: ...
 
+    def incrementar_tentativa(self, mensagem_id: UUID, versao_esperada: int) -> int: ...
+
+    def obter_versao_atual(self, mensagem_id: UUID) -> VersaoMensagem | None: ...
+
 
 class _RepositorioAvaliacoesCriticas(Protocol):
     """Porta mínima de `avaliacoes_criticas` de que este caso de uso depende."""
@@ -147,7 +177,14 @@ class _RepositorioAvaliacoesCriticas(Protocol):
 class _RepositorioExcecoesOperacionais(Protocol):
     """Porta mínima de registro de `Exceção` operacional sanitizada."""
 
-    def registrar(self, execucao_id: UUID, causa: str, tentativas: int, impacto: str) -> None: ...
+    def registrar(
+        self,
+        execucao_id: UUID,
+        causa: str,
+        tentativas: int,
+        impacto: str,
+        mensagem_id: UUID | None = None,
+    ) -> None: ...
 
 
 class _GrafoGeracao(Protocol):
@@ -169,29 +206,188 @@ class PortasGeracaoMensagens:
     versao_prompt: str
 
 
+class CicloPersistenteMensagem:
+    """Persiste cada marco durável do ciclo de uma mensagem, a pedido do grafo.
+
+    Toda operação relê o estado atual da mensagem antes de escrever, e é essa releitura que
+    fornece a `versao_esperada` da checagem otimista (AD-008). É também o que torna a
+    retomada de 3.4 correta: um marco já gravado antes do reinício continua sendo o ponto de
+    partida, sem nenhuma versão de tentativa em memória.
+    """
+
+    def __init__(self, portas: PortasGeracaoMensagens) -> None:
+        """Guarda as portas de persistência compartilhadas com o caso de uso."""
+
+        self._portas = portas
+
+    def registrar_geracao(
+        self, mensagem_id: UUID, tentativa: int, resultado: ResultadoGeracao
+    ) -> None:
+        """Persiste a versão desta tentativa, ou fecha o item em `falhou_integracao_ia`."""
+
+        registro = self._obter(mensagem_id)
+        if resultado.desfecho is DesfechoGeracao.FALHOU_INTEGRACAO_IA:
+            self._registrar_excecao(
+                registro,
+                _causa_integracao(registro.elegibilidade_id, resultado.motivo),
+                IMPACTO_ITEM_SEM_MENSAGEM,
+            )
+            self._portas.mensagens.transicionar(
+                mensagem_id, registro.versao, EstadoMensagem.FALHOU_INTEGRACAO_IA
+            )
+            return
+
+        self._portas.mensagens.salvar_versao(
+            mensagem_id=mensagem_id,
+            numero_tentativa=tentativa,
+            conteudo=resultado.saida if resultado.saida is not None else SaidaCanal(corpo=""),
+            duracao_ms=resultado.duracao_ms,
+            modelo=resultado.modelo,
+            versao_prompt=self._portas.versao_prompt,
+            tokens_entrada=resultado.tokens_entrada,
+            tokens_saida=resultado.tokens_saida,
+            valida=resultado.desfecho is DesfechoGeracao.VALIDA,
+            motivo_invalidez=resultado.motivo,
+        )
+        if resultado.desfecho is DesfechoGeracao.VALIDA:
+            self._portas.mensagens.transicionar(
+                mensagem_id, registro.versao, EstadoMensagem.CRITICANDO
+            )
+
+    def registrar_critica(
+        self, mensagem_id: UUID, tentativa: int, critica: ResultadoCritica
+    ) -> None:
+        """Persiste a avaliação desta tentativa e transiciona conforme a decisão.
+
+        Uma saída do crítico não interpretável não persiste avaliação nem transiciona nada
+        (CRIT-07). Uma reprovação persiste os motivos e também não transiciona: quem decide
+        entre regenerar e esgotar é o grafo. Só a aprovação avança para `aguardando_revisao`
+        (CRIT-05, REGEN-03).
+        """
+
+        registro = self._obter(mensagem_id)
+        if critica.desfecho is DesfechoCritica.FALHOU_INTEGRACAO_IA:
+            self._registrar_excecao(
+                registro,
+                _causa_integracao_critica(registro.elegibilidade_id, critica.causa),
+                IMPACTO_ITEM_SEM_MENSAGEM,
+            )
+            self._portas.mensagens.transicionar(
+                mensagem_id, registro.versao, EstadoMensagem.FALHOU_INTEGRACAO_IA
+            )
+            return
+
+        if critica.desfecho is DesfechoCritica.SAIDA_INVALIDA:
+            return
+
+        versao = self._portas.mensagens.obter_versao_atual(mensagem_id)
+        assert versao is not None, f"tentativa {tentativa} da mensagem {mensagem_id} sem versão"
+        self._portas.avaliacoes.salvar(
+            versao_mensagem_id=versao.id,
+            aprovada=critica.desfecho is DesfechoCritica.APROVADA,
+            motivos=critica.motivos,
+            modelo=critica.modelo,
+            duracao_ms=critica.duracao_ms,
+        )
+
+        if critica.desfecho is DesfechoCritica.APROVADA:
+            self._portas.mensagens.transicionar(
+                mensagem_id, registro.versao, EstadoMensagem.AGUARDANDO_REVISAO
+            )
+
+    def preparar_regeneracao(self, mensagem_id: UUID) -> int:
+        """Reserva a próxima tentativa e devolve a mensagem a `gerando` (REGEN-01).
+
+        O incremento vem antes da transição, e é atômico: reservar a tentativa é a
+        pré-condição de reentrar em `gerando` que o AD-4 exige.
+        """
+
+        registro = self._obter(mensagem_id)
+        proxima = self._portas.mensagens.incrementar_tentativa(mensagem_id, registro.versao)
+        reservado = self._obter(mensagem_id)
+        self._portas.mensagens.transicionar(
+            mensagem_id, reservado.versao, EstadoMensagem.GERANDO
+        )
+        return proxima
+
+    def esgotar_tentativas(
+        self, mensagem_id: UUID, tentativa: int, motivos: tuple[MotivoCritica, ...]
+    ) -> None:
+        """Fecha a mensagem em `falhou_conteudo` com a `Exceção` própria (REGEN-04)."""
+
+        registro = self._obter(mensagem_id)
+        self._registrar_excecao(
+            registro,
+            _causa_conteudo(registro.elegibilidade_id, motivos),
+            IMPACTO_ITEM_FORA_DO_LOTE,
+            tentativas=tentativa,
+        )
+        self._portas.mensagens.transicionar(
+            mensagem_id, registro.versao, EstadoMensagem.FALHOU_CONTEUDO
+        )
+
+    def _obter(self, mensagem_id: UUID) -> RegistroMensagem:
+        """Relê a mensagem persistida, fonte da versão esperada de toda transição."""
+
+        registro = self._portas.mensagens.obter(mensagem_id)
+        assert registro is not None, f"mensagem {mensagem_id} não encontrada"
+        return registro
+
+    def _registrar_excecao(
+        self,
+        registro: RegistroMensagem,
+        causa: str,
+        impacto: str,
+        tentativas: int = 1,
+    ) -> None:
+        """Registra a exceção correlacionada à execução e à mensagem específica."""
+
+        self._portas.excecoes.registrar(
+            registro.execucao_id, causa, tentativas, impacto, registro.id
+        )
+
+
 class ServicoGeracaoMensagens:
     """Gera automaticamente uma mensagem por item elegível da execução."""
 
     def __init__(self, portas: PortasGeracaoMensagens) -> None:
-        """Guarda as portas de que este caso de uso depende."""
+        """Guarda as portas e monta o ciclo persistente que o grafo vai chamar."""
 
         self._portas = portas
+        self._ciclo = CicloPersistenteMensagem(portas)
 
     async def gerar_lote(self, execucao_id: UUID) -> None:
         """Percorre o público elegível da execução e gera a mensagem de cada item.
 
         Sequencial por decisão de escopo (uma chamada à OpenAI por vez): o conjunto
         sintético da demonstração é pequeno e paralelizar não é exigido por nenhum AC.
-        Uma falha isolada de um item nunca interrompe os demais.
+        Uma falha isolada de um item nunca interrompe os demais (REGEN-06, AD-8).
         """
 
         for registro in self._portas.elegibilidades.listar_por_execucao(execucao_id):
             if not registro.elegivel:
                 continue
+            await self._gerar_item_isolado(execucao_id, registro)
+
+    async def _gerar_item_isolado(
+        self, execucao_id: UUID, registro: RegistroElegibilidade
+    ) -> None:
+        """Roda a geração de um item convertendo qualquer falha técnica em exceção dele.
+
+        Mesmo padrão de `GerenciadorExecucoes._processar_coleta_e_continuar` (RUNNER-11):
+        uma falha de infraestrutura fora do caminho do grafo (conflito de versão, falha de
+        conexão do banco) vira uma `Exceção` operacional registrada em vez de abortar o
+        restante do lote em silêncio. `gerar_lote` roda como task desacoplada, então uma
+        exceção que escapasse daqui não teria quem a observasse.
+        """
+
+        try:
             await self._gerar_item(execucao_id, registro)
+        except Exception as erro:  # noqa: BLE001 - falha técnica isolada no item (AD-8)
+            self._registrar_excecao(execucao_id, _causa_falha_tecnica(registro.id, erro))
 
     async def _gerar_item(self, execucao_id: UUID, registro: RegistroElegibilidade) -> None:
-        """Gera a mensagem de um item, isolando qualquer motivo de exceção só nele."""
+        """Cria a mensagem do item e roda o ciclo completo do grafo sobre ela."""
 
         canal = self._canal_de(execucao_id, registro)
         if canal is None:
@@ -207,100 +403,25 @@ class ServicoGeracaoMensagens:
         except MensagemJaExiste:
             return
 
-        resultado, critica = await self._executar_grafo(contexto.contexto, canal)
-
-        if resultado.desfecho is DesfechoGeracao.FALHOU_INTEGRACAO_IA:
-            self._registrar_excecao(
-                execucao_id, _causa_integracao(registro.id, resultado.motivo)
-            )
-            self._portas.mensagens.transicionar(
-                mensagem_id, VERSAO_INICIAL_MENSAGEM, EstadoMensagem.FALHOU_INTEGRACAO_IA
-            )
-            return
-
-        versao_id = self._portas.mensagens.salvar_versao(
-            mensagem_id=mensagem_id,
-            numero_tentativa=TENTATIVA_INICIAL,
-            conteudo=resultado.saida if resultado.saida is not None else SaidaCanal(corpo=""),
-            duracao_ms=resultado.duracao_ms,
-            modelo=resultado.modelo,
-            versao_prompt=self._portas.versao_prompt,
-            tokens_entrada=resultado.tokens_entrada,
-            tokens_saida=resultado.tokens_saida,
-            valida=resultado.desfecho is DesfechoGeracao.VALIDA,
-            motivo_invalidez=resultado.motivo,
-        )
-
-        if resultado.desfecho is not DesfechoGeracao.VALIDA:
-            return
-
-        self._portas.mensagens.transicionar(
-            mensagem_id, VERSAO_INICIAL_MENSAGEM, EstadoMensagem.CRITICANDO
-        )
-        if critica is not None:
-            self._concluir_critica(execucao_id, registro.id, mensagem_id, versao_id, critica)
-
-    def _concluir_critica(
-        self,
-        execucao_id: UUID,
-        elegibilidade_id: UUID,
-        mensagem_id: UUID,
-        versao_id: UUID,
-        critica: ResultadoCritica,
-    ) -> None:
-        """Persiste a avaliação e transiciona a mensagem conforme a decisão do crítico.
-
-        Uma saída do crítico não interpretável não persiste avaliação nem transiciona nada
-        (CRIT-07): a mensagem fica em `criticando`, disponível para a próxima tentativa da
-        História 3.4. Uma reprovação persiste os motivos e também não transiciona: só a
-        aprovação avança para `aguardando_revisao` (CRIT-05, CRIT-06).
-        """
-
-        if critica.desfecho is DesfechoCritica.FALHOU_INTEGRACAO_IA:
-            self._registrar_excecao(
-                execucao_id, _causa_integracao_critica(elegibilidade_id, critica.causa)
-            )
-            self._portas.mensagens.transicionar(
-                mensagem_id, VERSAO_APOS_CRITICANDO, EstadoMensagem.FALHOU_INTEGRACAO_IA
-            )
-            return
-
-        if critica.desfecho is DesfechoCritica.SAIDA_INVALIDA:
-            return
-
-        self._portas.avaliacoes.salvar(
-            versao_mensagem_id=versao_id,
-            aprovada=critica.desfecho is DesfechoCritica.APROVADA,
-            motivos=critica.motivos,
-            modelo=critica.modelo,
-            duracao_ms=critica.duracao_ms,
-        )
-
-        if critica.desfecho is DesfechoCritica.APROVADA:
-            self._portas.mensagens.transicionar(
-                mensagem_id, VERSAO_APOS_CRITICANDO, EstadoMensagem.AGUARDANDO_REVISAO
-            )
+        await self._executar_grafo(mensagem_id, contexto.contexto, canal)
 
     async def _executar_grafo(
-        self, contexto: ContextoAgente, canal: Canal
-    ) -> tuple[ResultadoGeracao, ResultadoCritica | None]:
-        """Roda o grafo de uma mensagem e devolve os resultados tipados dos seus nós.
+        self, mensagem_id: UUID, contexto: ContextoAgente, canal: Canal
+    ) -> None:
+        """Roda o grafo de uma mensagem do início do ciclo até um desfecho terminal.
 
-        O resultado da crítica é `None` quando o grafo encerrou em `gerar` — saída inválida
-        ou falha de transporte da geração nunca alcançam o nó `criticar` (CRIT-04).
+        Nada volta do grafo para ser persistido depois: cada marco já foi gravado pelo
+        `CicloPersistenteMensagem` no instante em que aconteceu (REGEN-08).
         """
 
         estado: EstadoGrafoMensagem = {
             "contexto": contexto,
             "canal": canal,
             "tentativa": TENTATIVA_INICIAL,
+            "mensagem_id": mensagem_id,
+            "ciclo": self._ciclo,
         }
-        final: Any = await self._portas.grafo.ainvoke(estado)
-        resultado = final["resultado"]
-        assert isinstance(resultado, ResultadoGeracao)
-        critica = final.get("resultado_critica")
-        assert critica is None or isinstance(critica, ResultadoCritica)
-        return resultado, critica
+        await self._portas.grafo.ainvoke(estado)
 
     def _canal_de(self, execucao_id: UUID, registro: RegistroElegibilidade) -> Canal | None:
         """Resolve o canal do snapshot, isolando um canal não suportado como exceção."""
@@ -314,6 +435,10 @@ class ServicoGeracaoMensagens:
             return None
 
     def _registrar_excecao(self, execucao_id: UUID, causa: str) -> None:
-        """Registra a exceção operacional do item, sempre com o mesmo impacto isolado."""
+        """Registra a exceção de um item que nunca chegou a ter mensagem criada.
+
+        Sem mensagem, não há `mensagem_id` a correlacionar: a exceção fica escopada só à
+        execução, como as de 2.2.
+        """
 
         self._portas.excecoes.registrar(execucao_id, causa, 1, IMPACTO_ITEM_SEM_MENSAGEM)

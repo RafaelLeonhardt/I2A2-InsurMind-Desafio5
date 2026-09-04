@@ -16,6 +16,7 @@ from central_preventiva.adaptadores.ia.agente_redator import RespostaRedator
 from central_preventiva.adaptadores.ia.verificador_disponibilidade_openai import (
     ResultadoDisponibilidade,
 )
+from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
 from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigracoes
 from central_preventiva.adaptadores.persistencia.repositorio_avaliacoes_criticas import (
     RepositorioAvaliacoesCriticas,
@@ -34,6 +35,7 @@ from central_preventiva.adaptadores.persistencia.repositorio_mensagens import (
     RepositorioMensagens,
 )
 from central_preventiva.aplicacao.geracao_mensagens import (
+    IMPACTO_ITEM_FORA_DO_LOTE,
     IMPACTO_ITEM_SEM_MENSAGEM,
     PortasGeracaoMensagens,
     ServicoGeracaoMensagens,
@@ -199,9 +201,18 @@ class ExcecoesEspias:
 
     def __init__(self) -> None:
         self.registradas: list[tuple[UUID, str, int, str]] = []
+        self.mensagens_correlacionadas: list[UUID | None] = []
 
-    def registrar(self, execucao_id: UUID, causa: str, tentativas: int, impacto: str) -> None:
+    def registrar(
+        self,
+        execucao_id: UUID,
+        causa: str,
+        tentativas: int,
+        impacto: str,
+        mensagem_id: UUID | None = None,
+    ) -> None:
         self.registradas.append((execucao_id, causa, tentativas, impacto))
+        self.mensagens_correlacionadas.append(mensagem_id)
 
 
 class RedatorFalso:
@@ -215,13 +226,20 @@ class RedatorFalso:
         self._respostas = respostas
         self._erros = erros or {}
         self.canais_chamados: list[Canal] = []
+        self.motivos_recebidos: list[tuple[MotivoCritica, ...]] = []
 
     @property
     def modelo(self) -> str:
         return "gpt-4o-mini"
 
-    async def gerar(self, contexto: ContextoAgente, canal: Canal) -> RespostaRedator:
+    async def gerar(
+        self,
+        contexto: ContextoAgente,
+        canal: Canal,
+        motivos_anteriores: tuple[MotivoCritica, ...] = (),
+    ) -> RespostaRedator:
         self.canais_chamados.append(canal)
+        self.motivos_recebidos.append(motivos_anteriores)
         erro = self._erros.get(contexto.localizacao_aproximada)
         if erro is not None:
             raise erro
@@ -416,10 +434,12 @@ def test_saida_valida_persiste_a_versao_e_avanca_ate_aguardando_revisao(tmp_path
     assert versao.duracao_ms > 0
 
 
-def test_saida_acima_do_limite_permanece_em_gerando_com_motivo_persistido(
+def test_saida_acima_do_limite_nunca_avanca_para_criticando_e_registra_o_motivo(
     tmp_path: Path,
 ) -> None:
-    """GERAR-09: saída inválida não avança para `criticando` e registra o motivo."""
+    """GERAR-09 + REGEN-01: saída inválida nunca avança para `criticando` e registra o
+    motivo. A 3.2 parava aí, deixando a política de nova tentativa para esta história: agora
+    a tentativa é consumida e, reprovada nas três, o item alcança `falhou_conteudo`."""
 
     incluido = registro(canal="sms")
     cenario = Cenario(
@@ -431,17 +451,20 @@ def test_saida_acima_do_limite_permanece_em_gerando_com_motivo_persistido(
     cenario.gerar_lote()
 
     mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
-    assert mensagem.estado is EstadoMensagem.GERANDO
+    assert mensagem.estado is EstadoMensagem.FALHOU_CONTEUDO
+    assert mensagem.estado is not EstadoMensagem.CRITICANDO
+    assert mensagem.tentativa_atual == 3
     versao = cenario.mensagens.obter_versao_atual(mensagem.id)
     assert versao is not None
     assert versao.valida is False
     assert versao.motivo_invalidez == "limite_excedido:corpo:161:160"
 
 
-def test_saida_vazia_permanece_em_gerando_com_campo_obrigatorio_ausente(
+def test_saida_vazia_e_campo_obrigatorio_ausente_e_consome_a_tentativa(
     tmp_path: Path,
 ) -> None:
-    """Edge case da spec: corpo em branco é campo obrigatório ausente, não sucesso."""
+    """Edge case da 3.2: corpo em branco é campo obrigatório ausente, não sucesso — e, pelo
+    AD-4, consome a tentativa como qualquer reprovação (REGEN-01)."""
 
     incluido = registro(canal="sms")
     cenario = Cenario(
@@ -451,7 +474,8 @@ def test_saida_vazia_permanece_em_gerando_com_campo_obrigatorio_ausente(
     cenario.gerar_lote()
 
     mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
-    assert mensagem.estado is EstadoMensagem.GERANDO
+    assert mensagem.estado is EstadoMensagem.FALHOU_CONTEUDO
+    assert mensagem.tentativa_atual == 3
     versao = cenario.mensagens.obter_versao_atual(mensagem.id)
     assert versao is not None
     assert versao.valida is False
@@ -687,6 +711,18 @@ def test_preflight_bloqueado_nao_aciona_nenhuma_geracao(tmp_path: Path) -> None:
     assert cenario.redator.canais_chamados == []
 
 
+def _versoes_persistidas(tmp_path: Path, mensagem_id: UUID) -> list[tuple[int, str, str]]:
+    """Lê todas as versões da mensagem em ordem de tentativa, direto da persistência."""
+
+    with abrir_conexao(tmp_path / "central_preventiva.duckdb") as conexao:
+        linhas = conexao.execute(
+            "SELECT numero_tentativa, conteudo, versao_prompt FROM versoes_mensagem "
+            "WHERE mensagem_id = ? ORDER BY numero_tentativa",
+            [mensagem_id],
+        ).fetchall()
+    return [(int(numero), str(conteudo), str(prompt)) for numero, conteudo, prompt in linhas]
+
+
 def _versao_id(cenario: Cenario) -> UUID:
     """Identificador da versão atual da única mensagem do cenário."""
 
@@ -718,11 +754,13 @@ def test_aprovacao_do_critico_persiste_a_avaliacao_e_avanca_para_aguardando_revi
     assert cenario.excecoes.registradas == []
 
 
-def test_reprovacao_do_critico_persiste_motivos_e_mensagem_permanece_em_criticando(
+def test_reprovacao_do_critico_persiste_motivos_da_versao_avaliada(
     tmp_path: Path,
 ) -> None:
-    """CRIT-06: os motivos ficam estruturados e associados à versão avaliada, e o item
-    permanece disponível para a próxima tentativa automática (3.4) — não avança."""
+    """CRIT-06 + REGEN-01/04: os motivos ficam estruturados e associados à versão avaliada.
+    A 3.3 parava em `criticando`, deixando a política de nova tentativa para esta história:
+    agora o item percorre as três tentativas e, reprovado em todas, alcança
+    `falhou_conteudo`."""
 
     incluido = registro(canal="sms")
     motivos = (
@@ -735,7 +773,8 @@ def test_reprovacao_do_critico_persiste_motivos_e_mensagem_permanece_em_critican
     cenario.gerar_lote()
 
     mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
-    assert mensagem.estado is EstadoMensagem.CRITICANDO
+    assert mensagem.estado is EstadoMensagem.FALHOU_CONTEUDO
+    assert mensagem.tentativa_atual == 3
     avaliacao = cenario.avaliacoes.obter_por_versao(_versao_id(cenario))
     assert avaliacao is not None
     assert avaliacao.avaliacao == AvaliacaoCritica(aprovada=False, motivos=motivos)
@@ -746,9 +785,10 @@ def test_reprovacao_do_critico_persiste_motivos_e_mensagem_permanece_em_critican
     )
 
 
-def test_saida_invalida_do_critico_nao_persiste_avaliacao_nem_avanca(tmp_path: Path) -> None:
+def test_saida_invalida_do_critico_nao_persiste_avaliacao_nem_aprova(tmp_path: Path) -> None:
     """CRIT-07: saída não interpretável é falha da tentativa — nenhuma avaliação
-    persistida, nenhuma aprovação, e a mensagem não alcança `aguardando_revisao`."""
+    persistida, nenhuma aprovação, e a mensagem nunca alcança `aguardando_revisao`. Pelo
+    AD-4 ela consome a tentativa, então três seguidas fecham o item em `falhou_conteudo`."""
 
     incluido = registro(canal="sms")
     cenario = Cenario([incluido], tmp_path, critico=CriticoFalso([None]))
@@ -756,7 +796,7 @@ def test_saida_invalida_do_critico_nao_persiste_avaliacao_nem_avanca(tmp_path: P
     cenario.gerar_lote()
 
     mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
-    assert mensagem.estado is EstadoMensagem.CRITICANDO
+    assert mensagem.estado is EstadoMensagem.FALHOU_CONTEUDO
     assert mensagem.estado is not EstadoMensagem.AGUARDANDO_REVISAO
     assert cenario.avaliacoes.obter_por_versao(_versao_id(cenario)) is None
 
@@ -790,9 +830,9 @@ def test_falha_de_transporte_do_critico_leva_a_falhou_integracao_ia_sem_terminal
 def test_mensagem_reprovada_deterministicamente_nunca_recebe_avaliacao_critica(
     tmp_path: Path,
 ) -> None:
-    """CRIT-04: a reprovação determinística de 3.2 prevalece — a mensagem não sai de
-    `gerando`, o crítico não é chamado e nenhuma avaliação é persistida, mesmo com um
-    crítico configurado para aprovar tudo."""
+    """CRIT-04: a reprovação determinística de 3.2 prevalece — o crítico não é chamado
+    nenhuma vez e nenhuma avaliação é persistida, mesmo com um crítico configurado para
+    aprovar tudo, e mesmo ao longo das três tentativas do ciclo automático (3.4)."""
 
     incluido = registro(canal="sms")
     cenario = Cenario(
@@ -805,7 +845,8 @@ def test_mensagem_reprovada_deterministicamente_nunca_recebe_avaliacao_critica(
     cenario.gerar_lote()
 
     mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
-    assert mensagem.estado is EstadoMensagem.GERANDO
+    assert mensagem.estado is EstadoMensagem.FALHOU_CONTEUDO
+    assert mensagem.estado is not EstadoMensagem.AGUARDANDO_REVISAO
     assert cenario.critico.chamadas == 0
     assert cenario.avaliacoes.obter_por_versao(_versao_id(cenario)) is None
 
@@ -828,18 +869,21 @@ def test_reinvocar_o_lote_nao_reavalia_a_versao_ja_avaliada(tmp_path: Path) -> N
 
 
 def test_reprovacao_de_um_item_nao_impede_a_aprovacao_do_seguinte(tmp_path: Path) -> None:
-    """CRIT-05, CRIT-06: cada item segue a própria decisão do crítico dentro do lote."""
+    """CRIT-05, CRIT-06 + REGEN-06: cada item segue a própria decisão do crítico dentro do
+    lote. O primeiro esgota as três tentativas e termina em `falhou_conteudo`; o segundo é
+    aprovado na primeira tentativa, sem nenhum bloqueio cruzado."""
 
     reprovado = registro(canal="sms")
     aprovado = registro(canal="email")
+    ambiguo = MotivoCritica(CategoriaCritica.CLAREZA, "Instrução ambígua.")
     cenario = Cenario(
         [reprovado, aprovado],
         tmp_path,
         critico=CriticoFalso(
             [
-                AvaliacaoCritica(
-                    False, (MotivoCritica(CategoriaCritica.CLAREZA, "Instrução ambígua."),)
-                ),
+                AvaliacaoCritica(False, (ambiguo,)),
+                AvaliacaoCritica(False, (ambiguo,)),
+                AvaliacaoCritica(False, (ambiguo,)),
                 AvaliacaoCritica(True, ()),
             ]
         ),
@@ -851,5 +895,134 @@ def test_reprovacao_de_um_item_nao_impede_a_aprovacao_do_seguinte(tmp_path: Path
         item.elegibilidade_id: item
         for item in cenario.mensagens.listar_por_execucao(EXECUCAO_ID)
     }
-    assert por_item[reprovado.id].estado is EstadoMensagem.CRITICANDO
+    assert por_item[reprovado.id].estado is EstadoMensagem.FALHOU_CONTEUDO
+    assert por_item[reprovado.id].tentativa_atual == 3
     assert por_item[aprovado.id].estado is EstadoMensagem.AGUARDANDO_REVISAO
+    assert por_item[aprovado.id].tentativa_atual == 1
+
+
+def test_regeneracao_preserva_a_versao_anterior_imutavel_e_consultavel(
+    tmp_path: Path,
+) -> None:
+    """REGEN-01: a nova versão convive com a anterior — o histórico da tentativa reprovada
+    permanece imutável e consultável, com seu conteúdo, veredito e proveniência."""
+
+    incluido = registro(canal="sms")
+    primeira = RespostaRedator(SaidaCanal(corpo=f"{CORPO_VALIDO} versao um"), 100, 30)
+    segunda = RespostaRedator(SaidaCanal(corpo=f"{CORPO_VALIDO} versao dois"), 110, 35)
+    cenario = Cenario(
+        [incluido],
+        tmp_path,
+        RedatorFalso([primeira, segunda]),
+        critico=CriticoFalso(
+            [
+                AvaliacaoCritica(
+                    False, (MotivoCritica(CategoriaCritica.TOM, "Tom alarmista."),)
+                ),
+                AvaliacaoCritica(True, ()),
+            ]
+        ),
+    )
+
+    cenario.gerar_lote()
+
+    mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
+    assert mensagem.estado is EstadoMensagem.AGUARDANDO_REVISAO
+    assert mensagem.tentativa_atual == 2
+    versoes = _versoes_persistidas(tmp_path, mensagem.id)
+    assert [numero for numero, _, _ in versoes] == [1, 2]
+    assert versoes[0][1] == f'{{"corpo": "{CORPO_VALIDO} versao um"}}'
+    assert versoes[0][2] == VERSAO_PROMPT
+    assert versoes[1][1] == f'{{"corpo": "{CORPO_VALIDO} versao dois"}}'
+
+
+def test_redator_recebe_os_motivos_da_reprovacao_anterior_na_regeneracao(
+    tmp_path: Path,
+) -> None:
+    """REGEN-01: a segunda chamada ao redator carrega exatamente os motivos categorizados da
+    reprovação anterior; a primeira não carrega nenhum."""
+
+    incluido = registro(canal="sms")
+    motivo = MotivoCritica(CategoriaCritica.PROMESSA_INDEVIDA, "Promete indenização.")
+    cenario = Cenario(
+        [incluido],
+        tmp_path,
+        critico=CriticoFalso([AvaliacaoCritica(False, (motivo,)), AvaliacaoCritica(True, ())]),
+    )
+
+    cenario.gerar_lote()
+
+    assert cenario.redator.motivos_recebidos == [(), (motivo,)]
+
+
+def test_terceira_reprovacao_registra_excecao_correlacionada_pela_mensagem(
+    tmp_path: Path,
+) -> None:
+    """REGEN-04: a mensagem alcança `falhou_conteudo` com uma `Exceção` correlacionada por
+    `mensagem_id` (não só pela execução), com o impacto de ficar fora do lote simulável."""
+
+    incluido = registro(canal="sms")
+    motivo = MotivoCritica(CategoriaCritica.SEGURANCA, "Orientação insegura.")
+    cenario = Cenario(
+        [incluido], tmp_path, critico=CriticoFalso([AvaliacaoCritica(False, (motivo,))])
+    )
+
+    cenario.gerar_lote()
+
+    mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
+    assert mensagem.estado is EstadoMensagem.FALHOU_CONTEUDO
+    assert cenario.excecoes.registradas == [
+        (
+            EXECUCAO_ID,
+            f"falhou_conteudo:{incluido.id}:seguranca",
+            3,
+            IMPACTO_ITEM_FORA_DO_LOTE,
+        )
+    ]
+    assert cenario.excecoes.mensagens_correlacionadas == [mensagem.id]
+
+
+def test_falha_de_integracao_tambem_correlaciona_a_excecao_pela_mensagem(
+    tmp_path: Path,
+) -> None:
+    """REGEN-05: a `Exceção` de `falhou_integracao_ia` também nomeia a mensagem afetada, o
+    que é o que a distingue de uma exceção da execução inteira."""
+
+    incluido = registro(canal="sms")
+    cenario = Cenario(
+        [incluido], tmp_path, critico=CriticoFalso(erro=TimeoutError("conexão expirou"))
+    )
+
+    cenario.gerar_lote()
+
+    mensagem = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)[0]
+    assert mensagem.estado is EstadoMensagem.FALHOU_INTEGRACAO_IA
+    assert cenario.excecoes.mensagens_correlacionadas == [mensagem.id]
+
+
+def test_item_com_falha_tecnica_nao_interrompe_o_restante_do_lote(tmp_path: Path) -> None:
+    """REGEN-06 (e o risco 12a herdado da 3.2): uma falha técnica fora do caminho do grafo
+    vira `Exceção` operacional do item; o lote continua e os demais alcançam seus terminais,
+    em vez de o restante ser abortado em silêncio dentro da task desacoplada."""
+
+    quebrado = registro(canal="sms")
+    seguinte = registro(canal="email")
+    cenario = Cenario([quebrado, seguinte], tmp_path)
+    original = cenario.mensagens.criar
+
+    def criar_com_falha(execucao_id: UUID, elegibilidade_id: UUID, canal: Canal) -> UUID:
+        if elegibilidade_id == quebrado.id:
+            raise RuntimeError("banco indisponível")
+        return original(execucao_id, elegibilidade_id, canal)
+
+    cenario.mensagens.criar = criar_com_falha  # type: ignore[method-assign]
+
+    cenario.gerar_lote()
+
+    mensagens = cenario.mensagens.listar_por_execucao(EXECUCAO_ID)
+    assert [item.elegibilidade_id for item in mensagens] == [seguinte.id]
+    assert mensagens[0].estado is EstadoMensagem.AGUARDANDO_REVISAO
+    causas = [causa for _, causa, _, _ in cenario.excecoes.registradas]
+    assert causas == [
+        f"falha_tecnica_item:{quebrado.id}:RuntimeError: banco indisponível"
+    ]

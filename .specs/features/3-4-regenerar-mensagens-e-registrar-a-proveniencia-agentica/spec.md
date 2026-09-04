@@ -113,12 +113,12 @@ As Histórias 3.2 e 3.3 entregam geração e crítica de uma única tentativa ca
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| REGEN-01 | P1: Regeneração automática limitada a três tentativas | Design | Pending |
-| REGEN-02 | P1: Regeneração automática limitada a três tentativas | Execute (T2) | Implementing |
-| REGEN-03 | P1: Regeneração automática limitada a três tentativas | Design | Pending |
-| REGEN-04 | P1: Regeneração automática limitada a três tentativas | Execute (T1, T2) | Implementing |
-| REGEN-05 | P1: Isolamento de falha de integração por mensagem | Design | Pending |
-| REGEN-06 | P1: Isolamento de falha de integração por mensagem | Design | Pending |
+| REGEN-01 | P1: Regeneração automática limitada a três tentativas | Execute (T3) | Implementing |
+| REGEN-02 | P1: Regeneração automática limitada a três tentativas | Execute (T2, T3) | Implementing |
+| REGEN-03 | P1: Regeneração automática limitada a três tentativas | Execute (T3) | Implementing |
+| REGEN-04 | P1: Regeneração automática limitada a três tentativas | Execute (T1, T2, T3) | Implementing |
+| REGEN-05 | P1: Isolamento de falha de integração por mensagem | Execute (T3) | Implementing |
+| REGEN-06 | P1: Isolamento de falha de integração por mensagem | Execute (T3) | Implementing |
 | REGEN-07 | P1: Proveniência completa e retomada sem repetição | Design | Pending |
 | REGEN-08 | P1: Proveniência completa e retomada sem repetição | Design | Pending |
 | REGEN-09 | P1: Proveniência completa e retomada sem repetição | Design | Pending |
