@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 42,
+  "next_id": 43,
   "lessons": [
     {
       "id": "L-001",
@@ -753,6 +753,24 @@
       ],
       "created": "2026-09-04T11:41:50Z",
       "last_seen": "2026-09-04T11:41:50Z"
+    },
+    {
+      "id": "L-042",
+      "key": "surviving_mutant::seed one resumption test per durable marker the recovery code branches on including the marker between persisting an outcome and applying its state transition",
+      "text": "Seed one resumption test per durable marker the recovery code branches on, including the marker between persisting an outcome and applying its state transition.",
+      "signal": "surviving_mutant",
+      "scope": "resume",
+      "status": "candidate",
+      "features": [
+        "3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md M8 - src/backend/central_preventiva/aplicacao/geracao_mensagens.py:480 (resume)"
+      ],
+      "created": "2026-09-04T16:58:49Z",
+      "last_seen": "2026-09-04T16:58:49Z"
     }
   ]
 }

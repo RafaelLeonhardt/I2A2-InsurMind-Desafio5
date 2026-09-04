@@ -258,6 +258,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: SPEC_DEVIATION - src/backend/central_preventiva/aplicacao/grafos/geracao_mensagem.py:38 (design)
 - last seen: 2026-09-04T11:41:50Z
 
+### L-042 - Seed one resumption test per durable marker the recovery code branches on, including the marker between persisting an outcome and applying its state transition.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `resume` · harmful: 0
+- features: 3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica
+- evidence: validation.md M8 - src/backend/central_preventiva/aplicacao/geracao_mensagens.py:480 (resume)
+- last seen: 2026-09-04T16:58:49Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

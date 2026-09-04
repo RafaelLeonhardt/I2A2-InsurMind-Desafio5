@@ -121,7 +121,7 @@ As Histórias 3.2 e 3.3 entregam geração e crítica de uma única tentativa ca
 | REGEN-06 | P1: Isolamento de falha de integração por mensagem | Execute (T3) | ✅ Verified |
 | REGEN-07 | P1: Proveniência completa e retomada sem repetição | Execute (T5) | ✅ Verified |
 | REGEN-08 | P1: Proveniência completa e retomada sem repetição | Execute (T5) | ✅ Verified |
-| REGEN-09 | P1: Proveniência completa e retomada sem repetição | Execute (T4) | ⚠️ Needs Fix (teste) |
+| REGEN-09 | P1: Proveniência completa e retomada sem repetição | Execute (T4) | ✅ Verified |
 | REGEN-10 | P1: Proveniência completa e retomada sem repetição | Execute (T2, T4) | ✅ Verified |
 | REGEN-11 | P2: Acompanhamento acessível do ciclo por item | Execute (T6) | ✅ Verified |
 | REGEN-12 | P2: Acompanhamento acessível do ciclo por item | Execute (T6) | ✅ Verified |
@@ -130,7 +130,7 @@ As Histórias 3.2 e 3.3 entregam geração e crítica de uma única tentativa ca
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 12 total, 12 mapped to tasks, 0 unmapped. Verificação independente (`validation.md`, `ce964f8..70ce8af`): 12/12 ACs com evidência `file:line` e desfecho batendo com a spec, 3/3 Edge Cases, gate verde (735 backend + 253 frontend). **REGEN-09 fica em Needs Fix**: o AC está coberto, mas o sensor de discriminação achou um mutante sobrevivente (M7 — número de tentativa reconstruído na retomada) e a correção é só de teste, sem mudança de produção.
+**Coverage:** 12 total, 12 mapped to tasks, 0 unmapped. Verificação independente em dois rounds (`validation.md`, `ce964f8..e72bbdb`): 12/12 ACs com evidência `file:line` e desfecho batendo com a spec, 3/3 Edge Cases, gate verde (737 backend + 253 frontend). O round 1 (`..70ce8af`) apontou duas lacunas **de teste**, sem defeito de produção: o mutante M7 (número de tentativa reconstruído na retomada) e um ramo de `_retomar_item` sem cobertura. As correções `c355fec` e `e72bbdb` são somente de teste (+78 linhas, 0 de produção) e o round 2 confirmou por reinjeção que M7 e M8 agora morrem — **REGEN-09 verificado**, 8/8 mutantes mortos.
 
 ---
 
