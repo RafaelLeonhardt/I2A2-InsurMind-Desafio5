@@ -216,6 +216,22 @@ def test_listar_por_execucao_traz_apenas_as_mensagens_daquela_execucao(
     assert {registro.id for registro in registros} == {primeira, segunda}
 
 
+def test_listar_por_execucao_traz_estado_e_canal_de_cada_mensagem(tmp_path: Path) -> None:
+    """RESULT-02/03: a consolidação de resultados (4.1) agrega por estado e canal reais."""
+
+    repo = repositorio(tmp_path)
+    sms_id = repo.criar(EXECUCAO_ID, uuid4(), Canal.SMS)
+    email_id = repo.criar(EXECUCAO_ID, uuid4(), Canal.EMAIL)
+    repo.transicionar(email_id, 1, EstadoMensagem.REJEITADA)
+
+    por_id = {registro.id: registro for registro in repo.listar_por_execucao(EXECUCAO_ID)}
+
+    assert por_id[sms_id].canal is Canal.SMS
+    assert por_id[sms_id].estado is EstadoMensagem.GERANDO
+    assert por_id[email_id].canal is Canal.EMAIL
+    assert por_id[email_id].estado is EstadoMensagem.REJEITADA
+
+
 def test_conteudo_de_whatsapp_e_sms_nao_carrega_assunto(tmp_path: Path) -> None:
     """O conteúdo persistido tem exatamente os campos do canal: `{corpo}` sem assunto."""
 

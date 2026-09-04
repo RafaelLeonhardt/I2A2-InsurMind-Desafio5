@@ -67,8 +67,8 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Retorna todas as mensagens da execução informada, com `estado` e `canal`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Retorna todas as mensagens da execução informada, com `estado` e `canal`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
