@@ -1,11 +1,20 @@
-"""Repositório DuckDB de `execucao_preventiva`, com concorrência otimista (AD-008)."""
+"""Repositório DuckDB de `execucao_preventiva`, com concorrência otimista (AD-008).
 
-from collections.abc import Callable
+`transicionar` aceita uma conexão já aberta pelo chamador (3.5): a decisão em lote muda o
+estado do agregado na mesma transação em que aplica as decisões das mensagens (REVISAO-08,
+REVISAO-12). Mesmo parâmetro opcional já usado por
+`RepositorioElegibilidades.copiar_para_execucao` (AD-012).
+"""
+
+from collections.abc import Callable, Generator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
+
+import duckdb
 
 from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
 from central_preventiva.dominio.estados_execucao import EstadoExecucao, eh_terminal
@@ -68,6 +77,18 @@ class RepositorioExecucaoPreventiva:
         """Vincula o repositório ao arquivo operacional do DuckDB."""
 
         self._caminho = caminho
+
+    @contextmanager
+    def _conexao(
+        self, conexao: duckdb.DuckDBPyConnection | None
+    ) -> Generator[duckdb.DuckDBPyConnection]:
+        """Usa a conexão do chamador quando há uma; senão abre e fecha a própria."""
+
+        if conexao is not None:
+            yield conexao
+            return
+        with abrir_conexao(self._caminho) as propria:
+            yield propria
 
     def criar(self, estado_inicial: EstadoExecucao) -> UUID:
         """Persiste uma nova execução preventiva na versão 1, no estado informado."""
@@ -154,7 +175,11 @@ class RepositorioExecucaoPreventiva:
         return [_snapshot_de_linha(linha) for linha in linhas]
 
     def transicionar(
-        self, execucao_id: UUID, versao_esperada: int, novo_estado: EstadoExecucao
+        self,
+        execucao_id: UUID,
+        versao_esperada: int,
+        novo_estado: EstadoExecucao,
+        conexao: duckdb.DuckDBPyConnection | None = None,
     ) -> None:
         """Transiciona a execução, incrementando a versão sob checagem otimista (AD-008).
 
@@ -163,8 +188,8 @@ class RepositorioExecucaoPreventiva:
         em nenhum dos dois casos a linha é mutada.
         """
 
-        with abrir_conexao(self._caminho) as conexao:
-            atual = conexao.execute(
+        with self._conexao(conexao) as ativa:
+            atual = ativa.execute(
                 "SELECT estado FROM execucao_preventiva WHERE id = ?", [execucao_id]
             ).fetchone()
             assert atual is not None, f"execução {execucao_id} não encontrada"
@@ -172,7 +197,7 @@ class RepositorioExecucaoPreventiva:
             if eh_terminal(estado_atual):
                 raise TransicaoInvalida(execucao_id, estado_atual)
 
-            resultado = conexao.execute(
+            resultado = ativa.execute(
                 "UPDATE execucao_preventiva SET estado = ?, versao = versao + 1, "
                 "atualizado_em = now() WHERE id = ? AND versao = ? RETURNING versao",
                 [novo_estado.value, execucao_id, versao_esperada],

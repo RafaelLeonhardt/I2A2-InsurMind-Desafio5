@@ -134,7 +134,7 @@ T6
 
 ---
 
-### T4: `ServicoRevisaoLote.decidir_lote`
+### T4: `ServicoRevisaoLote.decidir_lote` ✅
 
 **What**: Aplica decisões (aprovar/rejeitar/excluir/regenerar) numa única transação; regenerar reusa `incrementar_tentativa`+reentrada em `gerar` (3.4); após aplicar, decide `concluida`/`aguardando_confirmacao` com base no estado real das mensagens.
 **Where**: `src/backend/central_preventiva/aplicacao/revisao_lote.py` (mesmo arquivo de T3)
@@ -146,15 +146,15 @@ T6
 
 **Done when**:
 
-- [ ] Decisão sem justificativa (rejeitar/excluir/regenerar) é rejeitada antes de qualquer mutação
-- [ ] Regeneração com `tentativas < 3` transiciona atomicamente para `gerando`, incrementa uma única vez, volta o agregado a `processando_mensagens`
-- [ ] Regeneração idempotente reenviada com a mesma `Idempotency-Key` não incrementa a tentativa duas vezes
-- [ ] Mensagem com 3 tentativas: `regenerar` rejeitado com motivo específico, sem afetar as demais decisões válidas do mesmo lote
-- [ ] Lote com item de `versao_esperada` desatualizada: `409`, nenhuma decisão do lote aplicada (testado verificando que as demais também não foram persistidas)
-- [ ] Agregado retorna a `aguardando_revisao` só quando nenhuma regeneração permanecer ativa
-- [ ] Todas decididas sem nenhuma aprovada → `concluida` sem simulação
-- [ ] Ao menos uma aprovada e todas decididas → `aguardando_confirmacao`, contendo só as aprovadas por crítico e Marina
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Decisão sem justificativa (rejeitar/excluir/regenerar) é rejeitada antes de qualquer mutação
+- [x] Regeneração com `tentativas < 3` transiciona atomicamente para `gerando`, incrementa uma única vez, volta o agregado a `processando_mensagens`
+- [x] Regeneração idempotente reenviada com a mesma `Idempotency-Key` não incrementa a tentativa duas vezes
+- [x] Mensagem com 3 tentativas: `regenerar` rejeitado com motivo específico, sem afetar as demais decisões válidas do mesmo lote
+- [x] Lote com item de `versao_esperada` desatualizada: `409`, nenhuma decisão do lote aplicada (testado verificando que as demais também não foram persistidas)
+- [x] Agregado retorna a `aguardando_revisao` só quando nenhuma regeneração permanecer ativa
+- [x] Todas decididas sem nenhuma aprovada → `concluida` sem simulação
+- [x] Ao menos uma aprovada e todas decididas → `aguardando_confirmacao`, contendo só as aprovadas por crítico e Marina
+- [x] Gate check passa: `uv run --directory src/backend pytest` (812 passed)
 
 **Tests**: unit
 **Gate**: quick

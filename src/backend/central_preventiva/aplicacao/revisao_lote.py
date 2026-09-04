@@ -1,4 +1,4 @@
-"""Caso de uso da revisão humana do lote de comunicação (REVISAO-01..04).
+"""Caso de uso da revisão humana do lote de comunicação (REVISAO-01..14).
 
 Monta o lote que Marina revisa: cabeçalho da execução (evento, regra, público, distribuição
 por canal, aprovações agênticas e exceções) e um item por mensagem, com destinatário
@@ -22,11 +22,29 @@ A transição agregada que *abre* este lote (REVISAO-01: a execução entra em
 ela é disparada por `ServicoGeracaoMensagens.abrir_revisao_se_lote_completo`, o único ponto
 por onde passa todo desfecho terminal de mensagem. Veja o `SPEC_DEVIATION` no topo de
 `aplicacao/geracao_mensagens.py`.
+
+`decidir_lote` aplica as decisões de Marina (REVISAO-05..14). Duas recusas diferentes, que
+não se confundem:
+
+- item **já decidido** (fora de `aguardando_revisao`) é recusado com motivo próprio e não
+  impede as demais decisões válidas do mesmo envio (segundo Edge Case da spec) — a
+  atomicidade vale para as decisões válidas enviadas, não obriga a re-decidir terminais;
+- item com **`versao_esperada` desatualizada** é conflito real de concorrência otimista
+  (AD-008): aborta a transação inteira, `409`, nenhuma decisão do envio é aplicada
+  (REVISAO-12).
+
+Depois de aplicar, o desfecho do agregado é recomputado do estado real das mensagens dentro
+da mesma transação: alguma em `gerando`/`criticando` (regeneração humana ativa) leva a
+`processando_mensagens`; alguma ainda em `aguardando_revisao` mantém o lote aberto; nenhuma
+das duas e ao menos uma aprovada leva a `aguardando_confirmacao`; nenhuma aprovada conclui a
+execução sem simulação (REVISAO-10, REVISAO-13, REVISAO-14).
 """
 
+import json
+from collections.abc import Awaitable, Callable
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Protocol
+from typing import Any, Protocol, cast
 from uuid import UUID
 
 from central_preventiva.adaptadores.persistencia.repositorio_avaliacoes_criticas import (
@@ -46,14 +64,52 @@ from central_preventiva.adaptadores.persistencia.repositorio_execucao_preventiva
 )
 from central_preventiva.adaptadores.persistencia.repositorio_mensagens import (
     LIMITE_TENTATIVAS_MENSAGEM,
+    ConflitoVersaoMensagem,
     RegistroMensagem,
     VersaoMensagem,
 )
+from central_preventiva.aplicacao.portas_persistencia import (
+    ConflitoIdempotencia,
+    PortaIdempotencia,
+)
 from central_preventiva.dominio.avaliador_risco import Criterio
+from central_preventiva.dominio.decisao_humana import (
+    ResultadoDecisaoHumana,
+    exige_justificativa,
+)
 from central_preventiva.dominio.estados_execucao import EstadoExecucao
-from central_preventiva.dominio.estados_mensagem import EstadoMensagem
+from central_preventiva.dominio.estados_mensagem import EstadoMensagem, em_ciclo_de_conteudo
 from central_preventiva.dominio.evento_meteorologico import EventoMeteorologico
 from central_preventiva.dominio.validador_saida_canal import SaidaCanal
+
+OPERACAO_DECISAO_LOTE = "decidir_lote_revisao"
+"""Escopo da decisão em lote no armazenamento genérico de chaves idempotentes (AD-002)."""
+
+STATUS_DECISAO_ACEITA = 200
+"""Status registrado para a resposta de uma decisão em lote aplicada."""
+
+MOTIVO_MENSAGEM_INEXISTENTE = "mensagem_inexistente"
+"""Recusa de item que não existe ou não pertence a esta execução (AD-011)."""
+
+MOTIVO_MENSAGEM_JA_DECIDIDA = "mensagem_ja_decidida"
+"""Recusa de item fora de `aguardando_revisao` (segundo Edge Case da spec)."""
+
+MOTIVO_LIMITE_DE_TENTATIVAS = "limite_de_tentativas_atingido"
+"""Recusa de `regenerar` para mensagem que já consumiu as três tentativas (REVISAO-09)."""
+
+MOTIVO_SEM_VERSAO_PARA_DECIDIR = "mensagem_sem_versao_para_decidir"
+"""Recusa de item sem nenhuma versão persistida: não há o que decidir nem o que auditar."""
+
+ESTADO_POR_RESULTADO: dict[ResultadoDecisaoHumana, EstadoMensagem] = {
+    ResultadoDecisaoHumana.APROVAR: EstadoMensagem.APROVADA,
+    ResultadoDecisaoHumana.REJEITAR: EstadoMensagem.REJEITADA,
+    ResultadoDecisaoHumana.EXCLUIR: EstadoMensagem.EXCLUIDA,
+}
+"""Estado terminal de revisão de cada decisão que encerra a mensagem (AD-4, REVISAO-05).
+
+`regenerar` não está aqui: ela não encerra a mensagem, reabre o ciclo de conteúdo em
+`gerando` reusando o mesmo contador de tentativas do ciclo automático (REVISAO-08).
+"""
 
 PRIORIDADE_EXCECAO = 0
 """Item que não produziu conteúdo utilizável: exige atenção antes de todos (REVISAO-02)."""
@@ -161,18 +217,122 @@ class LoteRevisao:
     itens: tuple[ItemLoteRevisao, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class DecisaoRequisitada:
+    """Uma decisão que Marina envia sobre uma mensagem específica (REVISAO-05)."""
+
+    mensagem_id: UUID
+    versao_esperada: int
+    resultado: ResultadoDecisaoHumana
+    justificativa: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class DecisaoRecusada:
+    """Um item excluído do envio, com o motivo estável da recusa (Edge Case 2)."""
+
+    mensagem_id: UUID
+    motivo: str
+
+
+@dataclass(frozen=True, slots=True)
+class ResultadoDecisaoLote:
+    """Desfecho do envio: o que foi aplicado, o que foi recusado e onde o agregado parou."""
+
+    execucao_id: UUID
+    aplicadas: tuple[UUID, ...]
+    recusadas: tuple[DecisaoRecusada, ...]
+    estado: EstadoExecucao
+    mensagens_aprovadas: tuple[UUID, ...]
+    regeneracoes_ativas: tuple[UUID, ...]
+
+
+class ExecucaoInexistente(RuntimeError):
+    """Indica que o `execucao_id` informado não corresponde a nenhuma execução (AD-011)."""
+
+    def __init__(self, execucao_id: UUID) -> None:
+        """Identifica a execução ausente e monta a mensagem em português."""
+
+        super().__init__(f"A execução '{execucao_id}' não existe.")
+        self.execucao_id = execucao_id
+
+
+class EstadoNaoRevisavel(RuntimeError):
+    """Indica decisão enviada para uma execução fora de `aguardando_revisao`."""
+
+    def __init__(self, execucao_id: UUID, estado: EstadoExecucao) -> None:
+        """Identifica a execução e o estado que impede a decisão."""
+
+        super().__init__(
+            f"A execução '{execucao_id}' está em '{estado}' e não está em revisão."
+        )
+        self.execucao_id = execucao_id
+        self.estado = estado
+
+
+class JustificativaObrigatoria(RuntimeError):
+    """Indica rejeição, exclusão ou regeneração enviada sem justificativa (REVISAO-06)."""
+
+    def __init__(self, mensagem_id: UUID, resultado: ResultadoDecisaoHumana) -> None:
+        """Identifica o item e a decisão que exigem justificativa."""
+
+        super().__init__(
+            f"A decisão '{resultado}' sobre a mensagem '{mensagem_id}' exige justificativa."
+        )
+        self.mensagem_id = mensagem_id
+        self.resultado = resultado
+
+
+class ConflitoVersaoDecisao(RuntimeError):
+    """Indica `versao_esperada` desatualizada em ao menos um item do envio (REVISAO-12)."""
+
+    def __init__(self, mensagens: tuple[UUID, ...]) -> None:
+        """Identifica todos os itens conflitantes; nenhuma decisão do envio foi aplicada."""
+
+        identificadores = ", ".join(str(item) for item in mensagens)
+        super().__init__(
+            f"As mensagens [{identificadores}] não estão na versão esperada. Nenhuma decisão "
+            "do envio foi aplicada."
+        )
+        self.mensagens = mensagens
+
+
 class _RepositorioExecucaoPreventiva(Protocol):
     """Porta mínima do agregado da execução (2.2)."""
 
     def buscar(self, execucao_id: UUID) -> SnapshotExecucao | None: ...
 
+    def transicionar(
+        self,
+        execucao_id: UUID,
+        versao_esperada: int,
+        novo_estado: EstadoExecucao,
+        conexao: Any = None,
+    ) -> None: ...
+
 
 class _RepositorioMensagens(Protocol):
     """Porta mínima de `mensagens`/`versoes_mensagem` (3.2/3.4)."""
 
-    def listar_por_execucao(self, execucao_id: UUID) -> list[RegistroMensagem]: ...
+    def listar_por_execucao(
+        self, execucao_id: UUID, conexao: Any = None
+    ) -> list[RegistroMensagem]: ...
 
     def listar_versoes(self, mensagem_id: UUID) -> list[VersaoMensagem]: ...
+
+    def obter_versao_atual(self, mensagem_id: UUID) -> VersaoMensagem | None: ...
+
+    def transicionar(
+        self,
+        mensagem_id: UUID,
+        versao_esperada: int,
+        novo_estado: EstadoMensagem,
+        conexao: Any = None,
+    ) -> None: ...
+
+    def incrementar_tentativa(
+        self, mensagem_id: UUID, versao_esperada: int, conexao: Any = None
+    ) -> int: ...
 
 
 class _RepositorioElegibilidades(Protocol):
@@ -193,6 +353,22 @@ class _RepositorioDecisoesHumanas(Protocol):
     """Porta mínima de `decisoes_humanas` (T2)."""
 
     def obter_por_mensagem(self, mensagem_id: UUID) -> list[DecisaoHumana]: ...
+
+    def salvar(
+        self,
+        mensagem_id: UUID,
+        versao_mensagem_id: UUID,
+        perfil: str,
+        resultado: ResultadoDecisaoHumana,
+        justificativa: str | None,
+        conexao: Any = None,
+    ) -> UUID: ...
+
+
+class _Transacao(Protocol):
+    """Porta da transação única do banco operacional (REVISAO-12)."""
+
+    def executar[T](self, operacao: Callable[[Any], T]) -> T: ...
 
 
 class _RepositorioContextosAgente(Protocol):
@@ -220,6 +396,17 @@ class PortasRevisaoLote:
     decisoes: _RepositorioDecisoesHumanas
     contextos: _RepositorioContextosAgente
     eventos: _RepositorioEventos
+    idempotencia: PortaIdempotencia
+    transacao: _Transacao
+    acionar_regeneracao: Callable[[UUID], Awaitable[None]] | None = None
+    """Retomada do ciclo automático das mensagens que a decisão humana devolveu a `gerando`.
+
+    Reusa exatamente a reentrada de 3.4 (`ServicoGeracaoMensagens.retomar_mensagens_pendentes`
+    → nó `gerar` do grafo), em vez de um segundo mecanismo de regeneração: a mensagem já está
+    em `gerando` com a tentativa reservada, que é o marco durável de onde aquela retomada
+    parte. Sem esse gatilho a mensagem regenerada ficaria parada até o próximo boot, e o
+    agregado nunca voltaria a `aguardando_revisao` (REVISAO-10).
+    """
 
 
 class ServicoRevisaoLote:
@@ -262,6 +449,210 @@ class ServicoRevisaoLote:
             itens_em_excecao=sum(1 for item in itens if item.em_excecao),
             itens=itens,
         )
+
+    async def decidir_lote(
+        self,
+        execucao_id: UUID,
+        decisoes: tuple[DecisaoRequisitada, ...],
+        perfil: str,
+        chave_idempotencia: str,
+        hash_requisicao: str,
+    ) -> ResultadoDecisaoLote:
+        """Aplica as decisões válidas do envio numa única transação (REVISAO-12).
+
+        Repetir a mesma chave idempotente devolve a resposta registrada sem reaplicar nada —
+        é o que impede que um reenvio conte a tentativa de uma regeneração duas vezes
+        (REVISAO-08, AD-002).
+        """
+
+        registrada = self._portas.idempotencia.buscar(
+            chave_idempotencia, OPERACAO_DECISAO_LOTE
+        )
+        if registrada is not None:
+            if registrada.hash_requisicao != hash_requisicao:
+                raise ConflitoIdempotencia(
+                    chave=chave_idempotencia, operacao=OPERACAO_DECISAO_LOTE
+                )
+            return _desserializar_decisao(registrada.corpo)
+
+        resultado = self._decidir_agora(execucao_id, decisoes, perfil)
+        self._portas.idempotencia.registrar(
+            chave_idempotencia,
+            OPERACAO_DECISAO_LOTE,
+            hash_requisicao,
+            STATUS_DECISAO_ACEITA,
+            _serializar_decisao(resultado),
+        )
+        if resultado.regeneracoes_ativas and self._portas.acionar_regeneracao is not None:
+            await self._portas.acionar_regeneracao(execucao_id)
+        return resultado
+
+    def _decidir_agora(
+        self,
+        execucao_id: UUID,
+        decisoes: tuple[DecisaoRequisitada, ...],
+        perfil: str,
+    ) -> ResultadoDecisaoLote:
+        """Valida, aplica e recomputa o agregado, já resolvida a idempotência do comando."""
+
+        snapshot = self._portas.execucoes.buscar(execucao_id)
+        if snapshot is None:
+            raise ExecucaoInexistente(execucao_id)
+        if snapshot.estado is not EstadoExecucao.AGUARDANDO_REVISAO:
+            raise EstadoNaoRevisavel(execucao_id, snapshot.estado)
+
+        for decisao in decisoes:
+            if exige_justificativa(decisao.resultado) and not (
+                decisao.justificativa or ""
+            ).strip():
+                raise JustificativaObrigatoria(decisao.mensagem_id, decisao.resultado)
+
+        registros = {
+            registro.id: registro
+            for registro in self._portas.mensagens.listar_por_execucao(execucao_id)
+        }
+        aplicaveis: list[tuple[DecisaoRequisitada, UUID]] = []
+        recusadas: list[DecisaoRecusada] = []
+        for decisao in decisoes:
+            motivo = self._recusa_de(decisao, registros)
+            if motivo is not None:
+                recusadas.append(DecisaoRecusada(decisao.mensagem_id, motivo))
+                continue
+            versao_atual = self._portas.mensagens.obter_versao_atual(decisao.mensagem_id)
+            assert versao_atual is not None, "recusa de item sem versão já foi decidida acima"
+            aplicaveis.append((decisao, versao_atual.id))
+
+        estado_final = self._portas.transacao.executar(
+            lambda conexao: self._aplicar(
+                conexao, execucao_id, snapshot.versao, aplicaveis, perfil
+            )
+        )
+        return ResultadoDecisaoLote(
+            execucao_id=execucao_id,
+            aplicadas=tuple(decisao.mensagem_id for decisao, _ in aplicaveis),
+            recusadas=tuple(recusadas),
+            estado=estado_final,
+            mensagens_aprovadas=self._mensagens_aprovadas(execucao_id),
+            regeneracoes_ativas=tuple(
+                decisao.mensagem_id
+                for decisao, _ in aplicaveis
+                if decisao.resultado is ResultadoDecisaoHumana.REGENERAR
+            ),
+        )
+
+    def _recusa_de(
+        self, decisao: DecisaoRequisitada, registros: dict[UUID, RegistroMensagem]
+    ) -> str | None:
+        """Classifica a recusa por item, ou `None` quando a decisão é aplicável.
+
+        Nenhuma destas recusas aborta o envio: elas retiram o item específico e deixam as
+        demais decisões válidas seguirem (segundo Edge Case da spec). O conflito de
+        `versao_esperada` é outra coisa, e é decidido dentro da transação.
+        """
+
+        registro = registros.get(decisao.mensagem_id)
+        if registro is None:
+            return MOTIVO_MENSAGEM_INEXISTENTE
+        if registro.estado is not EstadoMensagem.AGUARDANDO_REVISAO:
+            return MOTIVO_MENSAGEM_JA_DECIDIDA
+        if (
+            decisao.resultado is ResultadoDecisaoHumana.REGENERAR
+            and registro.tentativa_atual >= LIMITE_TENTATIVAS_MENSAGEM
+        ):
+            return MOTIVO_LIMITE_DE_TENTATIVAS
+        if self._portas.mensagens.obter_versao_atual(decisao.mensagem_id) is None:
+            return MOTIVO_SEM_VERSAO_PARA_DECIDIR
+        return None
+
+    def _aplicar(
+        self,
+        conexao: Any,
+        execucao_id: UUID,
+        versao_execucao: int,
+        aplicaveis: list[tuple[DecisaoRequisitada, UUID]],
+        perfil: str,
+    ) -> EstadoExecucao:
+        """Grava decisões e transições na transação aberta e devolve o estado do agregado.
+
+        Um conflito de `versao_esperada` em qualquer item levanta `ConflitoVersaoDecisao`
+        depois de percorrer todos (para nomear todos os conflitantes), e a exceção faz a
+        transação inteira voltar atrás: nenhuma decisão do envio fica aplicada (REVISAO-12).
+        """
+
+        conflitos: list[UUID] = []
+        for decisao, versao_mensagem_id in aplicaveis:
+            try:
+                self._aplicar_item(conexao, decisao, versao_mensagem_id, perfil)
+            except ConflitoVersaoMensagem:
+                conflitos.append(decisao.mensagem_id)
+        if conflitos:
+            raise ConflitoVersaoDecisao(tuple(conflitos))
+
+        alvo = _estado_agregado(
+            self._portas.mensagens.listar_por_execucao(execucao_id, conexao)
+        )
+        if alvo is not EstadoExecucao.AGUARDANDO_REVISAO:
+            self._portas.execucoes.transicionar(execucao_id, versao_execucao, alvo, conexao)
+        return alvo
+
+    def _aplicar_item(
+        self,
+        conexao: Any,
+        decisao: DecisaoRequisitada,
+        versao_mensagem_id: UUID,
+        perfil: str,
+    ) -> None:
+        """Registra a decisão do item e move a mensagem para onde ela manda (REVISAO-05)."""
+
+        self._portas.decisoes.salvar(
+            decisao.mensagem_id,
+            versao_mensagem_id,
+            perfil,
+            decisao.resultado,
+            decisao.justificativa,
+            conexao,
+        )
+        if decisao.resultado is ResultadoDecisaoHumana.REGENERAR:
+            self._portas.mensagens.incrementar_tentativa(
+                decisao.mensagem_id, decisao.versao_esperada, conexao
+            )
+            self._portas.mensagens.transicionar(
+                decisao.mensagem_id,
+                decisao.versao_esperada + 1,
+                EstadoMensagem.GERANDO,
+                conexao,
+            )
+            return
+        self._portas.mensagens.transicionar(
+            decisao.mensagem_id,
+            decisao.versao_esperada,
+            ESTADO_POR_RESULTADO[decisao.resultado],
+            conexao,
+        )
+
+    def _mensagens_aprovadas(self, execucao_id: UUID) -> tuple[UUID, ...]:
+        """Lista as mensagens aprovadas pelo crítico e por Marina (REVISAO-14).
+
+        A dupla aprovação é verificada de fato, não presumida: o estado `aprovada` prova a
+        decisão de Marina (só ela leva a mensagem até lá) e a avaliação da última versão
+        prova a do crítico.
+        """
+
+        return tuple(
+            registro.id
+            for registro in self._portas.mensagens.listar_por_execucao(execucao_id)
+            if registro.estado is EstadoMensagem.APROVADA
+            and self._aprovada_pelo_critico(registro.id)
+        )
+
+    def _aprovada_pelo_critico(self, mensagem_id: UUID) -> bool:
+        """Informa se a última versão da mensagem tem avaliação crítica aprovada."""
+
+        versao = self._portas.mensagens.obter_versao_atual(mensagem_id)
+        if versao is None:
+            return False
+        avaliacao = self._portas.avaliacoes.obter_por_versao(versao.id)
+        return avaliacao is not None and avaliacao.avaliacao.aprovada
 
     def _item(
         self,
@@ -348,6 +739,68 @@ class ServicoRevisaoLote:
         if not elegibilidades:
             return None
         return self._portas.eventos.buscar_por_id(elegibilidades[0].evento_id)
+
+
+def _estado_agregado(registros: list[RegistroMensagem]) -> EstadoExecucao:
+    """Decide onde a execução para, a partir do estado real de todas as mensagens.
+
+    A ordem das perguntas é a do AD-6, e cada uma é recomputada do que está persistido,
+    nunca de um contador acumulado:
+
+    1. alguma mensagem em `gerando`/`criticando` — regeneração humana ativa — mantém a
+       execução em `processando_mensagens` e proíbe qualquer conclusão (REVISAO-10);
+    2. alguma mensagem ainda em `aguardando_revisao` mantém o lote aberto, porque nem toda
+       mensagem revisável foi decidida (REVISAO-10);
+    3. sem nenhuma das duas, o desfecho depende do resultado: ao menos uma aprovada leva a
+       `aguardando_confirmacao` (REVISAO-14), nenhuma aprovada conclui a execução sem
+       simulação (REVISAO-13).
+
+    Itens já terminais de conteúdo (`falhou_conteudo`, `falhou_integracao_ia`) nunca bloqueiam
+    a guarda: eles não são revisáveis (REVISAO-10, primeiro Edge Case da spec).
+    """
+
+    if any(em_ciclo_de_conteudo(registro.estado) for registro in registros):
+        return EstadoExecucao.PROCESSANDO_MENSAGENS
+    if any(registro.estado is EstadoMensagem.AGUARDANDO_REVISAO for registro in registros):
+        return EstadoExecucao.AGUARDANDO_REVISAO
+    if any(registro.estado is EstadoMensagem.APROVADA for registro in registros):
+        return EstadoExecucao.AGUARDANDO_CONFIRMACAO
+    return EstadoExecucao.CONCLUIDA
+
+
+def _serializar_decisao(resultado: ResultadoDecisaoLote) -> str:
+    """Serializa o desfecho do envio para o corpo guardado na chave idempotente."""
+
+    return json.dumps(
+        {
+            "execucao_id": str(resultado.execucao_id),
+            "aplicadas": [str(item) for item in resultado.aplicadas],
+            "recusadas": [
+                {"mensagem_id": str(item.mensagem_id), "motivo": item.motivo}
+                for item in resultado.recusadas
+            ],
+            "estado": str(resultado.estado),
+            "mensagens_aprovadas": [str(item) for item in resultado.mensagens_aprovadas],
+            "regeneracoes_ativas": [str(item) for item in resultado.regeneracoes_ativas],
+        }
+    )
+
+
+def _desserializar_decisao(corpo: str) -> ResultadoDecisaoLote:
+    """Reconstrói o desfecho registrado de um envio, sem reaplicar nenhuma decisão."""
+
+    dados = cast(dict[str, Any], json.loads(corpo))
+    return ResultadoDecisaoLote(
+        execucao_id=UUID(str(dados["execucao_id"])),
+        aplicadas=tuple(UUID(str(item)) for item in dados["aplicadas"]),
+        recusadas=tuple(
+            DecisaoRecusada(UUID(str(item["mensagem_id"])), str(item["motivo"]))
+            for item in dados["recusadas"]
+        ),
+        estado=EstadoExecucao(str(dados["estado"])),
+        mensagens_aprovadas=tuple(UUID(str(item)) for item in dados["mensagens_aprovadas"]),
+        regeneracoes_ativas=tuple(UUID(str(item)) for item in dados["regeneracoes_ativas"]),
+    )
 
 
 def _aprovada_pelo_critico(versoes: tuple[VersaoRevisada, ...]) -> bool:

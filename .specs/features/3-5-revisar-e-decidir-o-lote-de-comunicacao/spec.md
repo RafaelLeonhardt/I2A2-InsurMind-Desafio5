@@ -137,16 +137,16 @@ As Histórias 3.2–3.4 entregam mensagens que chegam a `aguardando_revisao` (ap
 | REVISAO-02 | P1: Lote de revisão priorizado por atenção | Execute (T3) | Implementing |
 | REVISAO-03 | P1: Detalhe do revisor com contexto separado | Execute (T3) | Implementing |
 | REVISAO-04 | P1: Detalhe do revisor com contexto separado | Execute (T3) | Implementing |
-| REVISAO-05 | P1: Decisão individual sem edição de texto | Execute (T2) | Implementing |
-| REVISAO-06 | P1: Decisão individual sem edição de texto | Execute (T1, T2) | Implementing |
-| REVISAO-07 | P1: Decisão individual sem edição de texto | Execute (T1, T2) | Implementing |
-| REVISAO-08 | P1: Regeneração humana compartilhando o limite de tentativas | Design | Pending |
-| REVISAO-09 | P1: Regeneração humana compartilhando o limite de tentativas | Design | Pending |
-| REVISAO-10 | P1: Regeneração humana compartilhando o limite de tentativas | Design | Pending |
-| REVISAO-11 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T2) | Implementing |
-| REVISAO-12 | P1: Decisão em lote atômica e conclusão do agregado | Design | Pending |
-| REVISAO-13 | P1: Decisão em lote atômica e conclusão do agregado | Design | Pending |
-| REVISAO-14 | P1: Decisão em lote atômica e conclusão do agregado | Design | Pending |
+| REVISAO-05 | P1: Decisão individual sem edição de texto | Execute (T2, T4) | Implementing |
+| REVISAO-06 | P1: Decisão individual sem edição de texto | Execute (T1, T2, T4) | Implementing |
+| REVISAO-07 | P1: Decisão individual sem edição de texto | Execute (T1, T2, T4) | Implementing |
+| REVISAO-08 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T4) | Implementing |
+| REVISAO-09 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T4) | Implementing |
+| REVISAO-10 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T4) | Implementing |
+| REVISAO-11 | P1: Regeneração humana compartilhando o limite de tentativas | Execute (T2, T4) | Implementing |
+| REVISAO-12 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4) | Implementing |
+| REVISAO-13 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4) | Implementing |
+| REVISAO-14 | P1: Decisão em lote atômica e conclusão do agregado | Execute (T4) | Implementing |
 
 **ID format:** `REVISAO-NN`
 

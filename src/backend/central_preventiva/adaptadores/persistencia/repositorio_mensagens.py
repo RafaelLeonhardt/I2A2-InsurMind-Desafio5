@@ -9,9 +9,17 @@ específico que o caso de uso trata como no-op idempotente (AD-010). Nenhuma che
 (AD-008): versão esperada, incremento na mesma instrução e recusa de sair de um terminal.
 `incrementar_tentativa` (3.4) repete o mesmo padrão para o contador de tentativas, com o
 limite de três cobrado na própria instrução de `UPDATE` (REGEN-02).
+
+Leitura e transição aceitam uma conexão já aberta pelo chamador (3.5). É o que permite à
+decisão em lote aplicar todas as decisões válidas numa única transação (REVISAO-12): uma
+segunda conexão ao mesmo arquivo não enxerga a transação aberta da primeira e sobrevive ao
+`ROLLBACK` dela. Mesmo parâmetro opcional já usado por
+`RepositorioElegibilidades.copiar_para_execucao` (AD-012).
 """
 
 import json
+from collections.abc import Generator
+from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
@@ -147,6 +155,18 @@ class RepositorioMensagens:
 
         self._caminho = caminho
 
+    @contextmanager
+    def _conexao(
+        self, conexao: duckdb.DuckDBPyConnection | None
+    ) -> Generator[duckdb.DuckDBPyConnection]:
+        """Usa a conexão do chamador quando há uma; senão abre e fecha a própria."""
+
+        if conexao is not None:
+            yield conexao
+            return
+        with abrir_conexao(self._caminho) as propria:
+            yield propria
+
     def criar(self, execucao_id: UUID, elegibilidade_id: UUID, canal: Canal) -> UUID:
         """Cria a mensagem em `gerando`, tentativa 1, versão 1.
 
@@ -218,7 +238,11 @@ class RepositorioMensagens:
         return id_versao
 
     def transicionar(
-        self, mensagem_id: UUID, versao_esperada: int, novo_estado: EstadoMensagem
+        self,
+        mensagem_id: UUID,
+        versao_esperada: int,
+        novo_estado: EstadoMensagem,
+        conexao: duckdb.DuckDBPyConnection | None = None,
     ) -> None:
         """Transiciona a mensagem incrementando a versão sob checagem otimista (AD-008).
 
@@ -227,8 +251,8 @@ class RepositorioMensagens:
         em nenhum dos dois casos a linha é mutada.
         """
 
-        with abrir_conexao(self._caminho) as conexao:
-            atual = conexao.execute(
+        with self._conexao(conexao) as ativa:
+            atual = ativa.execute(
                 "SELECT estado FROM mensagens WHERE id = ?", [mensagem_id]
             ).fetchone()
             assert atual is not None, f"mensagem {mensagem_id} não encontrada"
@@ -236,7 +260,7 @@ class RepositorioMensagens:
             if eh_terminal_mensagem(estado_atual):
                 raise TransicaoMensagemInvalida(mensagem_id, estado_atual)
 
-            resultado = conexao.execute(
+            resultado = ativa.execute(
                 "UPDATE mensagens SET estado = ?, versao = versao + 1, "
                 "atualizado_em = now() WHERE id = ? AND versao = ? RETURNING versao",
                 [novo_estado.value, mensagem_id, versao_esperada],
@@ -244,7 +268,12 @@ class RepositorioMensagens:
         if resultado is None:
             raise ConflitoVersaoMensagem(mensagem_id, versao_esperada)
 
-    def incrementar_tentativa(self, mensagem_id: UUID, versao_esperada: int) -> int:
+    def incrementar_tentativa(
+        self,
+        mensagem_id: UUID,
+        versao_esperada: int,
+        conexao: duckdb.DuckDBPyConnection | None = None,
+    ) -> int:
         """Reserva a próxima tentativa da mensagem e devolve o número reservado (REGEN-02).
 
         Pré-condição de toda reentrada em `gerando` (AD-4): o contador sobe uma vez só, na
@@ -259,8 +288,8 @@ class RepositorioMensagens:
         linha é mutada.
         """
 
-        with abrir_conexao(self._caminho) as conexao:
-            atual = conexao.execute(
+        with self._conexao(conexao) as ativa:
+            atual = ativa.execute(
                 "SELECT estado, tentativa_atual FROM mensagens WHERE id = ?", [mensagem_id]
             ).fetchone()
             assert atual is not None, f"mensagem {mensagem_id} não encontrada"
@@ -271,7 +300,7 @@ class RepositorioMensagens:
             if tentativa_atual >= LIMITE_TENTATIVAS_MENSAGEM:
                 raise LimiteTentativasExcedido(mensagem_id, tentativa_atual)
 
-            resultado = conexao.execute(
+            resultado = ativa.execute(
                 "UPDATE mensagens SET tentativa_atual = tentativa_atual + 1, "
                 "versao = versao + 1, atualizado_em = now() "
                 "WHERE id = ? AND versao = ? AND tentativa_atual < ? RETURNING tentativa_atual",
@@ -281,20 +310,24 @@ class RepositorioMensagens:
             raise ConflitoVersaoMensagem(mensagem_id, versao_esperada)
         return int(resultado[0])
 
-    def obter(self, mensagem_id: UUID) -> RegistroMensagem | None:
+    def obter(
+        self, mensagem_id: UUID, conexao: duckdb.DuckDBPyConnection | None = None
+    ) -> RegistroMensagem | None:
         """Lê uma mensagem pelo identificador, ou `None` se ela não existir."""
 
-        with abrir_conexao(self._caminho) as conexao:
-            linha = conexao.execute(f"{_SELECT_MENSAGEM} WHERE id = ?", [mensagem_id]).fetchone()
+        with self._conexao(conexao) as ativa:
+            linha = ativa.execute(f"{_SELECT_MENSAGEM} WHERE id = ?", [mensagem_id]).fetchone()
         if linha is None:
             return None
         return _mensagem_de_linha(linha)
 
-    def listar_por_execucao(self, execucao_id: UUID) -> list[RegistroMensagem]:
+    def listar_por_execucao(
+        self, execucao_id: UUID, conexao: duckdb.DuckDBPyConnection | None = None
+    ) -> list[RegistroMensagem]:
         """Lista as mensagens da execução, em ordem de criação (reidratação, GERAR-11)."""
 
-        with abrir_conexao(self._caminho) as conexao:
-            linhas = conexao.execute(
+        with self._conexao(conexao) as ativa:
+            linhas = ativa.execute(
                 f"{_SELECT_MENSAGEM} WHERE execucao_id = ? ORDER BY criado_em",
                 [execucao_id],
             ).fetchall()
