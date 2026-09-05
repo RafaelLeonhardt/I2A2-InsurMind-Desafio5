@@ -18,14 +18,20 @@ def preparar_banco(tmp_path: Path) -> Path:
     return caminho
 
 
-def inserir_segurado(caminho: Path, id: object, nome: str) -> None:
+def inserir_segurado(
+    caminho: Path,
+    id: object,
+    nome: str,
+    canal_preferido: str = "whatsapp",
+    participa_de_alertas: bool = True,
+) -> None:
     """Insere um segurado sintético mínimo para os testes do repositório."""
 
     with abrir_conexao(caminho) as conexao:
         conexao.execute(
             "INSERT INTO segurados (id, nome, codigo_ibge_area, canal_preferido, "
             "participa_de_alertas) VALUES (?, ?, ?, ?, ?)",
-            [id, nome, "9990001", "whatsapp", True],
+            [id, nome, "9990001", canal_preferido, participa_de_alertas],
         )
 
 
@@ -53,5 +59,30 @@ def test_buscar_por_id_devolve_none_com_tabela_vazia(tmp_path: Path) -> None:
     caminho = preparar_banco(tmp_path)
 
     encontrado = RepositorioSegurados(caminho).buscar_por_id(uuid4())
+
+    assert encontrado is None
+
+
+def test_buscar_preferencias_por_id_encontra_canal_e_participacao(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    identificador = uuid4()
+    inserir_segurado(
+        caminho, identificador, "Pessoa Teste", canal_preferido="sms",
+        participa_de_alertas=False,
+    )
+
+    encontrado = RepositorioSegurados(caminho).buscar_preferencias_por_id(identificador)
+
+    assert encontrado is not None
+    assert encontrado.canal_preferido == "sms"
+    assert encontrado.participa_de_alertas is False
+
+
+def test_buscar_preferencias_por_id_devolve_none_quando_o_id_nao_existe(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+
+    encontrado = RepositorioSegurados(caminho).buscar_preferencias_por_id(uuid4())
 
     assert encontrado is None

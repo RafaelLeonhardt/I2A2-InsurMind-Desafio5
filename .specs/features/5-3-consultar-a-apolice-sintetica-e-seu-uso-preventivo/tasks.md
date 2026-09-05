@@ -67,9 +67,9 @@ T3 → T4
 
 **Done when**:
 
-- [ ] `buscar_por_segurado` retorna a apólice do segurado quando existir
-- [ ] `buscar_por_id` retorna `None` para id inexistente
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `buscar_por_segurado` retorna a apólice do segurado quando existir
+- [x] `buscar_por_id` retorna `None` para id inexistente
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
