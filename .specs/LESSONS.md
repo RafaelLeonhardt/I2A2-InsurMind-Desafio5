@@ -14,6 +14,12 @@ Corroborated across multiple features. Safe to apply as guidance.
 - evidence: spec.md Edge Cases - src/backend/central_preventiva/adaptadores/http/dados_sinteticos.py:146 (adaptadores/http) (+2 more)
 - last seen: 2026-09-04T20:20:21Z
 
+### L-013 - Fold port methods discovered during implementation back into the design document instead of leaving the deviation marker as their only record.
+- signal: `spec_deviation` · recurrence: 2 feature(s) · scope: `ports` · harmful: 0
+- features: 2-1-coletar-e-normalizar-dados-do-inmet, 4-3-registrar-a-primeira-visualizacao-do-comunicado
+- evidence: aplicacao/portas_meteorologia.py:86,95,112 (ports) (+1 more)
+- last seen: 2026-09-05T11:19:46Z
+
 ### L-024 - When a requirement demands distinction by text, icon and color, assert that all three signals differ across categories.
 - signal: `spec_precision_gap` · recurrence: 2 feature(s) · scope: `frontend` · harmful: 0
 - features: 2-3-identificar-eventos-meteorologicos-relevantes, 2-4-configurar-testar-e-versionar-regras-preventivas
@@ -100,12 +106,6 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
 - features: 2-1-coletar-e-normalizar-dados-do-inmet
 - evidence: INMET-06 - SuperficieFonteMeteorologica.test.tsx:128 (frontend)
-- last seen: 2026-09-02T01:54:08Z
-
-### L-013 - Fold port methods discovered during implementation back into the design document instead of leaving the deviation marker as their only record.
-- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `ports` · harmful: 0
-- features: 2-1-coletar-e-normalizar-dados-do-inmet
-- evidence: aplicacao/portas_meteorologia.py:86,95,112 (ports)
 - last seen: 2026-09-02T01:54:08Z
 
 ### L-014 - Test the intersection where two derivation conditions hold at once, so branch priority order is pinned instead of incidental.
@@ -317,6 +317,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - features: 4-2-inspecionar-o-resultado-individual
 - evidence: src/backend/central_preventiva/aplicacao/detalhe_resultado.py:209-212 (backend-aplicacao)
 - last seen: 2026-09-05T01:20:34Z
+
+### L-052 - An INSERT ... ON CONFLICT DO NOTHING on a UNIQUE column does not by itself absorb a genuinely concurrent writer; wrap the INSERT in a catch for the driver's constraint/transaction-conflict exceptions (DuckDB: ConstraintException, TransactionException) whenever more than one caller can race on the same key, and prove it with a real multi-threaded test, not a simulated one.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `persistence,repo-layer` · harmful: 0
+- features: 4-3-registrar-a-primeira-visualizacao-do-comunicado
+- evidence: src/backend/central_preventiva/adaptadores/persistencia/repositorio_visualizacoes_comunicado.py:10-20 (SPEC_DEVIATION, verified independently with a real-thread stress test); same unguarded ON CONFLICT DO NOTHING pattern also present, unverified, in repositorio_meteorologia.py:107-124, repositorio_elegibilidade.py:~135, repositorio_avaliacoes_criticas.py:~99 (persistence,repo-layer)
+- last seen: 2026-09-05T11:19:46Z
+
+### L-053 - When a design gives one use case two independently reachable HTTP entry points (e.g. GET and POST) that both must enforce the same ownership check, declare the ownership id and an Optional-friendly return on every such method's signature, not only on the first one design.md happens to specify.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `design,application` · harmful: 0
+- features: 4-3-registrar-a-primeira-visualizacao-do-comunicado
+- evidence: src/backend/central_preventiva/aplicacao/visualizacao_comunicado.py:12-18 (SPEC_DEVIATION) (design,application)
+- last seen: 2026-09-05T11:19:46Z
 
 ## Quarantined (failed when applied - ignore)
 

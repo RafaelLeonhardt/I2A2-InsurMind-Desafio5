@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 52,
+  "next_id": 54,
   "lessons": [
     {
       "id": "L-001",
@@ -232,17 +232,19 @@
       "text": "Fold port methods discovered during implementation back into the design document instead of leaving the deviation marker as their only record.",
       "signal": "spec_deviation",
       "scope": "ports",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "2-1-coletar-e-normalizar-dados-do-inmet"
+        "2-1-coletar-e-normalizar-dados-do-inmet",
+        "4-3-registrar-a-primeira-visualizacao-do-comunicado"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "aplicacao/portas_meteorologia.py:86,95,112 (ports)"
+        "aplicacao/portas_meteorologia.py:86,95,112 (ports)",
+        "src/backend/central_preventiva/adaptadores/persistencia/repositorio_visualizacoes_comunicado.py:10-20 (SPEC_DEVIATION) (ports)"
       ],
       "created": "2026-09-02T01:54:08Z",
-      "last_seen": "2026-09-02T01:54:08Z"
+      "last_seen": "2026-09-05T11:19:46Z"
     },
     {
       "id": "L-014",
@@ -937,6 +939,42 @@
       ],
       "created": "2026-09-05T01:20:34Z",
       "last_seen": "2026-09-05T01:20:34Z"
+    },
+    {
+      "id": "L-052",
+      "key": "spec_deviation::an insert on conflict do nothing on a unique column does not by itself absorb a genuinely concurrent writer wrap the insert in a catch for the driver s constraint transaction conflict exceptions duckdb constraintexception transactionexception whenever more than one caller can race on the same key and prove it with a real multi threaded test not a simulated one",
+      "text": "An INSERT ... ON CONFLICT DO NOTHING on a UNIQUE column does not by itself absorb a genuinely concurrent writer; wrap the INSERT in a catch for the driver's constraint/transaction-conflict exceptions (DuckDB: ConstraintException, TransactionException) whenever more than one caller can race on the same key, and prove it with a real multi-threaded test, not a simulated one.",
+      "signal": "spec_deviation",
+      "scope": "persistence,repo-layer",
+      "status": "candidate",
+      "features": [
+        "4-3-registrar-a-primeira-visualizacao-do-comunicado"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "src/backend/central_preventiva/adaptadores/persistencia/repositorio_visualizacoes_comunicado.py:10-20 (SPEC_DEVIATION, verified independently with a real-thread stress test); same unguarded ON CONFLICT DO NOTHING pattern also present, unverified, in repositorio_meteorologia.py:107-124, repositorio_elegibilidade.py:~135, repositorio_avaliacoes_criticas.py:~99 (persistence,repo-layer)"
+      ],
+      "created": "2026-09-05T11:19:46Z",
+      "last_seen": "2026-09-05T11:19:46Z"
+    },
+    {
+      "id": "L-053",
+      "key": "spec_deviation::when a design gives one use case two independently reachable http entry points e g get and post that both must enforce the same ownership check declare the ownership id and an optional friendly return on every such method s signature not only on the first one design md happens to specify",
+      "text": "When a design gives one use case two independently reachable HTTP entry points (e.g. GET and POST) that both must enforce the same ownership check, declare the ownership id and an Optional-friendly return on every such method's signature, not only on the first one design.md happens to specify.",
+      "signal": "spec_deviation",
+      "scope": "design,application",
+      "status": "candidate",
+      "features": [
+        "4-3-registrar-a-primeira-visualizacao-do-comunicado"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "src/backend/central_preventiva/aplicacao/visualizacao_comunicado.py:12-18 (SPEC_DEVIATION) (design,application)"
+      ],
+      "created": "2026-09-05T11:19:46Z",
+      "last_seen": "2026-09-05T11:19:46Z"
     }
   ]
 }
