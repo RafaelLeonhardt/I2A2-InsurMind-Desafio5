@@ -114,13 +114,13 @@ As Histórias 4.1–4.3 entregam totais, detalhe individual e visualização pel
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| TIMELINE-01 | P1: Cronologia completa com marcos correlacionados | Design | Pending |
-| TIMELINE-02 | P1: Cronologia completa com marcos correlacionados | Design | Pending |
-| TIMELINE-03 | P1: Cronologia completa com marcos correlacionados | Design | Pending |
-| TIMELINE-04 | P1: Cronologia completa com marcos correlacionados | Design | Pending |
-| TIMELINE-05 | P1: Navegação entre execuções correlacionadas | Design | Pending |
-| TIMELINE-06 | P1: Marco único de visualização e ausência de duplicação | Design | Pending |
-| TIMELINE-07 | P1: Marco único de visualização e ausência de duplicação | Design | Pending |
+| TIMELINE-01 | P1: Cronologia completa com marcos correlacionados | Execute (T1) | Implementing |
+| TIMELINE-02 | P1: Cronologia completa com marcos correlacionados | Execute (T1) | Implementing |
+| TIMELINE-03 | P1: Cronologia completa com marcos correlacionados | Execute (T1) | Implementing |
+| TIMELINE-04 | P1: Cronologia completa com marcos correlacionados | Execute (T1) | Implementing |
+| TIMELINE-05 | P1: Navegação entre execuções correlacionadas | Execute (T1) | Implementing |
+| TIMELINE-06 | P1: Marco único de visualização e ausência de duplicação | Execute (T1) | Implementing |
+| TIMELINE-07 | P1: Marco único de visualização e ausência de duplicação | Execute (T1) | Implementing |
 | TIMELINE-08 | P2: Pesquisa, localização temporal e acessibilidade | Design | Pending |
 | TIMELINE-09 | P2: Pesquisa, localização temporal e acessibilidade | Design | Pending |
 | TIMELINE-10 | P2: Pesquisa, localização temporal e acessibilidade | Design | Pending |
@@ -130,7 +130,7 @@ As Histórias 4.1–4.3 entregam totais, detalhe individual e visualização pel
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 11 total, 0 mapped to tasks, 11 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 11 total, 7 mapped to tasks (T1), 4 unmapped (TIMELINE-08..11 — T2/T4)
 
 ---
 

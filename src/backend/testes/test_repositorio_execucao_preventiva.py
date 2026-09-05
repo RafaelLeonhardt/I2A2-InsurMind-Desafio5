@@ -104,6 +104,43 @@ def test_registrar_excecao_operacional_persiste_causa_tentativas_e_impacto(
     assert linha[3] == "Coleta meteorológica indisponível."
 
 
+def test_listar_por_execucao_das_excecoes_traz_proprias_e_de_mensagem(tmp_path: Path) -> None:
+    """4.4: a linha do tempo precisa das Exceções da execução e das de suas mensagens juntas."""
+
+    caminho = preparar_banco(tmp_path)
+    execucao_id = RepositorioExecucaoPreventiva(caminho).criar(EstadoExecucao.FALHOU_COLETA)
+    mensagem_id = uuid4()
+    repo = RepositorioExcecoesOperacionais(caminho)
+    repo.registrar(execucao_id, "falha_da_execucao", 3, "Impacto da execução.")
+    repo.registrar(
+        execucao_id, "falha_da_mensagem", 1, "Impacto da mensagem.", mensagem_id=mensagem_id
+    )
+
+    excecoes = repo.listar_por_execucao(execucao_id)
+
+    assert len(excecoes) == 2
+    assert {excecao.causa for excecao in excecoes} == {"falha_da_execucao", "falha_da_mensagem"}
+    excecao_da_mensagem = next(e for e in excecoes if e.mensagem_id is not None)
+    assert excecao_da_mensagem.mensagem_id == mensagem_id
+
+
+def test_listar_por_execucao_das_excecoes_nao_traz_excecao_de_outra_execucao(
+    tmp_path: Path,
+) -> None:
+    """A listagem é escopada pela execução, nunca por todo o banco."""
+
+    caminho = preparar_banco(tmp_path)
+    execucao_id = RepositorioExecucaoPreventiva(caminho).criar(EstadoExecucao.FALHOU_COLETA)
+    outra_execucao_id = RepositorioExecucaoPreventiva(caminho).criar(EstadoExecucao.FALHOU_COLETA)
+    repo = RepositorioExcecoesOperacionais(caminho)
+    repo.registrar(execucao_id, "falha_desta", 1, "Impacto.")
+    repo.registrar(outra_execucao_id, "falha_da_outra", 1, "Impacto.")
+
+    excecoes = repo.listar_por_execucao(execucao_id)
+
+    assert [excecao.causa for excecao in excecoes] == ["falha_desta"]
+
+
 def test_obter_por_mensagem_le_a_excecao_registrada_para_a_mensagem(tmp_path: Path) -> None:
     """4.2 DETALHE-01: o detalhe do resultado lê a exceção de uma mensagem específica,
     nunca a de outra mensagem nem a de execução sem `mensagem_id`."""

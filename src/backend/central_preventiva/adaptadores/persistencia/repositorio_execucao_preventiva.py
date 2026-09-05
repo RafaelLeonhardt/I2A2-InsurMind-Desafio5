@@ -349,19 +349,45 @@ class RepositorioExcecoesOperacionais:
 
         with abrir_conexao(self._caminho) as conexao:
             linha = conexao.execute(
-                "SELECT id, execucao_id, causa, tentativas, impacto, mensagem_id, criado_em "
-                "FROM excecoes_operacionais WHERE mensagem_id = ? "
-                "ORDER BY criado_em DESC LIMIT 1",
+                f"{_SELECT_EXCECAO} WHERE mensagem_id = ? ORDER BY criado_em DESC LIMIT 1",
                 [mensagem_id],
             ).fetchone()
         if linha is None:
             return None
-        return RegistroExcecaoOperacional(
-            id=UUID(str(linha[0])),
-            execucao_id=UUID(str(linha[1])),
-            causa=str(linha[2]),
-            tentativas=int(linha[3]),  # type: ignore[arg-type]
-            impacto=str(linha[4]),
-            mensagem_id=None if linha[5] is None else UUID(str(linha[5])),
-            criado_em=cast(datetime, linha[6]),
-        )
+        return _excecao_de_linha(linha)
+
+    def listar_por_execucao(self, execucao_id: UUID) -> list[RegistroExcecaoOperacional]:
+        """Lista todas as `Exceções` operacionais da execução, próprias e de mensagens (4.4).
+
+        SPEC_DEVIATION: o `design.md` da 4.4 lista este repositório como reusado sem
+        alteração; a linha do tempo precisa de toda `Exceção` da execução (`mensagem_id`
+        nulo ou não) numa única consulta, e só existia leitura por mensagem individual
+        (`obter_por_mensagem`, 4.2) — método novo.
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute(
+                f"{_SELECT_EXCECAO} WHERE execucao_id = ? ORDER BY criado_em",
+                [execucao_id],
+            ).fetchall()
+        return [_excecao_de_linha(linha) for linha in linhas]
+
+
+_SELECT_EXCECAO = (
+    "SELECT id, execucao_id, causa, tentativas, impacto, mensagem_id, criado_em "
+    "FROM excecoes_operacionais"
+)
+
+
+def _excecao_de_linha(linha: tuple[object, ...]) -> RegistroExcecaoOperacional:
+    """Traduz uma linha de `_SELECT_EXCECAO` para `RegistroExcecaoOperacional`."""
+
+    return RegistroExcecaoOperacional(
+        id=UUID(str(linha[0])),
+        execucao_id=UUID(str(linha[1])),
+        causa=str(linha[2]),
+        tentativas=int(linha[3]),  # type: ignore[arg-type]
+        impacto=str(linha[4]),
+        mensagem_id=None if linha[5] is None else UUID(str(linha[5])),
+        criado_em=cast(datetime, linha[6]),
+    )

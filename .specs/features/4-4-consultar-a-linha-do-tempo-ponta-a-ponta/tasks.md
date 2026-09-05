@@ -67,12 +67,12 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Execução completa (coleta→simulação→visualização) retorna todos os marcos na ordem cronológica correta, cada um com data/hora, ator, ação, resultado, correlação
-- [ ] Execução `sem_risco`/`sem_elegiveis` retorna só os marcos até o terminal, sem etapa de geração/crítica/simulação
-- [ ] Mensagem com 3 tentativas retorna as 3 versões/avaliações/motivos na ordem correta, ligados à mensagem e à execução
-- [ ] Execução correlacionada inclui `execucao_origem_id` e a lista de retentativas conhecidas, sem misturar marcos entre execuções
-- [ ] Comunicado reaberto 3 vezes (dado de teste com múltiplas chamadas a 4.3) resulta em exatamente um marco de visualização na linha do tempo
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Execução completa (coleta→simulação→visualização) retorna todos os marcos na ordem cronológica correta, cada um com data/hora, ator, ação, resultado, correlação
+- [x] Execução `sem_risco`/`sem_elegiveis` retorna só os marcos até o terminal, sem etapa de geração/crítica/simulação
+- [x] Mensagem com 3 tentativas retorna as 3 versões/avaliações/motivos na ordem correta, ligados à mensagem e à execução
+- [x] Execução correlacionada inclui `execucao_origem_id` e a lista de retentativas conhecidas, sem misturar marcos entre execuções
+- [x] Comunicado reaberto 3 vezes (dado de teste com múltiplas chamadas a 4.3) resulta em exatamente um marco de visualização na linha do tempo
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
