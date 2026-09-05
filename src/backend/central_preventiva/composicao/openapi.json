@@ -187,6 +187,46 @@
         "title": "ProblemaAvaliacaoRisco",
         "type": "object"
       },
+      "ProblemaComunicado": {
+        "additionalProperties": false,
+        "description": "Falha do comunicado, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaComunicado",
+        "type": "object"
+      },
       "ProblemaContexto": {
         "additionalProperties": false,
         "description": "Falha da consulta do segurado padrão, com ocorrência, impacto e próxima ação segura.",
@@ -1250,6 +1290,80 @@
           "aceito_em"
         ],
         "title": "RespostaColetaAceita",
+        "type": "object"
+      },
+      "RespostaComunicado": {
+        "additionalProperties": false,
+        "description": "O comunicado exibível ao segurado sintético: conteúdo, canal e visualização.",
+        "properties": {
+          "assunto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Assunto apresentado, só no canal de e-mail.",
+            "title": "Assunto"
+          },
+          "canal": {
+            "description": "Canal do comunicado (`whatsapp`, `email` ou `sms`).",
+            "title": "Canal",
+            "type": "string"
+          },
+          "corpo": {
+            "description": "Corpo apresentado, cópia exata do conteúdo aprovado.",
+            "title": "Corpo",
+            "type": "string"
+          },
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC de criação da entrega.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "entrega_simulada_id": {
+            "description": "Identificador da entrega simulada.",
+            "format": "uuid",
+            "title": "Entrega Simulada Id",
+            "type": "string"
+          },
+          "mensagem_id": {
+            "description": "Mensagem que originou o comunicado.",
+            "format": "uuid",
+            "title": "Mensagem Id",
+            "type": "string"
+          },
+          "rotulo": {
+            "description": "Rótulo fixo da natureza da entrega: sempre 'simulada'.",
+            "title": "Rotulo",
+            "type": "string"
+          },
+          "visualizacao": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaVisualizacaoComunicado"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Primeira visualização já registrada, ou nula se ainda não visualizado."
+          }
+        },
+        "required": [
+          "entrega_simulada_id",
+          "mensagem_id",
+          "canal",
+          "assunto",
+          "corpo",
+          "rotulo",
+          "criado_em",
+          "visualizacao"
+        ],
+        "title": "RespostaComunicado",
         "type": "object"
       },
       "RespostaCriterio": {
@@ -4398,6 +4512,30 @@
         "title": "RespostaVersaoRevisada",
         "type": "object"
       },
+      "RespostaVisualizacaoComunicado": {
+        "additionalProperties": false,
+        "description": "A primeira visualização registrada de um comunicado.",
+        "properties": {
+          "id": {
+            "description": "Identificador da visualização.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "visualizada_em": {
+            "description": "Instante RFC 3339 em UTC da primeira visualização.",
+            "format": "date-time",
+            "title": "Visualizada Em",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "visualizada_em"
+        ],
+        "title": "RespostaVisualizacaoComunicado",
+        "type": "object"
+      },
       "ResultadoDecisaoHumana": {
         "description": "As quatro decisões que Marina pode tomar sobre uma mensagem (REVISAO-05).",
         "enum": [
@@ -6470,6 +6608,140 @@
         "summary": "Consultar o segurado sintético padrão",
         "tags": [
           "Segurados"
+        ]
+      }
+    },
+    "/api/v1/segurados/{segurado_id}/comunicados/{entrega_simulada_id}": {
+      "get": {
+        "description": "Devolve conteúdo, canal e natureza simulada do comunicado, e a primeira visualização já registrada, se houver. Consulta de leitura: não registra visualização nenhuma. Uma entrega inexistente e uma entrega que pertence a outro segurado devolvem exatamente a mesma resposta `404`.",
+        "operationId": "consultar_comunicado_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "segurado_id",
+            "required": true,
+            "schema": {
+              "title": "Segurado Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "entrega_simulada_id",
+            "required": true,
+            "schema": {
+              "title": "Entrega Simulada Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaComunicado"
+                }
+              }
+            },
+            "description": "Comunicado encontrado para este segurado."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaComunicado"
+                }
+              }
+            },
+            "description": "Comunicado inexistente ou de outro segurado."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaComunicado"
+                }
+              }
+            },
+            "description": "Algum identificador não é um UUID válido."
+          }
+        },
+        "summary": "Consultar o comunicado de uma entrega simulada",
+        "tags": [
+          "Comunicado"
+        ]
+      }
+    },
+    "/api/v1/segurados/{segurado_id}/comunicados/{entrega_simulada_id}/visualizacao": {
+      "post": {
+        "description": "Registra, de forma idempotente, a primeira visualização do comunicado — chamado só depois do conteúdo já ter sido renderizado com sucesso, nunca no carregamento inicial da página. Reabrir um comunicado já visualizado devolve a mesma visualização, sem criar uma segunda. Uma mensagem de origem que ainda não foi simulada, foi rejeitada, excluída ou está em exceção é recusada com um erro de domínio explícito, sem registrar nenhum marco.",
+        "operationId": "registrar_visualizacao_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__visualizacao_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "segurado_id",
+            "required": true,
+            "schema": {
+              "title": "Segurado Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "entrega_simulada_id",
+            "required": true,
+            "schema": {
+              "title": "Entrega Simulada Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaVisualizacaoComunicado"
+                }
+              }
+            },
+            "description": "Visualização registrada (ou já existente, no replay)."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaComunicado"
+                }
+              }
+            },
+            "description": "Comunicado inexistente ou de outro segurado."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaComunicado"
+                }
+              }
+            },
+            "description": "Mensagem de origem não elegível para virar comunicado."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaComunicado"
+                }
+              }
+            },
+            "description": "Algum identificador não é um UUID válido."
+          }
+        },
+        "summary": "Registrar a primeira visualização de um comunicado",
+        "tags": [
+          "Comunicado"
         ]
       }
     }

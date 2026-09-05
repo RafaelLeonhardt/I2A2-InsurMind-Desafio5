@@ -140,10 +140,10 @@ T4 → T5
 
 **Done when**:
 
-- [ ] `GET`/`POST` de mensagem não elegível retorna erro de domínio explícito, `application/problem+json`
-- [ ] `GET`/`POST` de `entrega_simulada_id` de outro segurado retorna `404` genérico
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `GET`/`POST` de mensagem não elegível retorna erro de domínio explícito, `application/problem+json`
+- [x] `GET`/`POST` de `entrega_simulada_id` de outro segurado retorna `404` genérico
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full
