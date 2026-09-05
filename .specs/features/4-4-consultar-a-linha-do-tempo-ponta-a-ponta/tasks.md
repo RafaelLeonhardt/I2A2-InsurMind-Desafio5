@@ -137,12 +137,12 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Marcos agrupados visualmente por mensagem, mantendo a ordem cronológica geral entre grupos
-- [ ] Horário exibido localizado, com o valor UTC canônico acessível (ex.: `title`/tooltip)
-- [ ] Navegação por teclado anuncia ordem/agrupamento/estado expandido; rolagem interna com nome acessível quando presente
-- [ ] Resultado vazio de busca explicado por texto, sem paginação/filtro fora do escopo
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Marcos agrupados visualmente por mensagem, mantendo a ordem cronológica geral entre grupos
+- [x] Horário exibido localizado, com o valor UTC canônico acessível (ex.: `title`/tooltip)
+- [x] Navegação por teclado anuncia ordem/agrupamento/estado expandido; rolagem interna com nome acessível quando presente
+- [x] Resultado vazio de busca explicado por texto, sem paginação/filtro fora do escopo
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full

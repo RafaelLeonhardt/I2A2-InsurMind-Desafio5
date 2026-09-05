@@ -123,14 +123,14 @@ As Histórias 4.1–4.3 entregam totais, detalhe individual e visualização pel
 | TIMELINE-07 | P1: Marco único de visualização e ausência de duplicação | Execute (T1) | Implementing |
 | TIMELINE-08 | P2: Pesquisa, localização temporal e acessibilidade | Execute (T2, T3) | Implementing |
 | TIMELINE-09 | P2: Pesquisa, localização temporal e acessibilidade | Execute (T2, T3) | Implementing |
-| TIMELINE-10 | P2: Pesquisa, localização temporal e acessibilidade | Design | Pending |
-| TIMELINE-11 | P2: Pesquisa, localização temporal e acessibilidade | Design | Pending |
+| TIMELINE-10 | P2: Pesquisa, localização temporal e acessibilidade | Execute (T4) | Implementing |
+| TIMELINE-11 | P2: Pesquisa, localização temporal e acessibilidade | Execute (T4) | Implementing |
 
 **ID format:** `TIMELINE-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 11 total, 9 mapped to tasks (T1, T2), 2 unmapped (TIMELINE-10, TIMELINE-11 — T4)
+**Coverage:** 11 total, 11 mapped to tasks (T1, T2, T3, T4)
 
 ---
 

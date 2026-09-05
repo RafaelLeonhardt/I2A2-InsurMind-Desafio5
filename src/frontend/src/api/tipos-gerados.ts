@@ -351,7 +351,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Buscar execuções por segurado, canal ou estado
+         * @description Filtra execuções por segurado sintético (nome ou identificador), canal (`whatsapp`, `email` ou `sms`) e/ou estado (`EstadoExecucao` ou `EstadoMensagem` disponível), todos opcionais e combináveis por E. Não altera nenhum dado. Nenhum resultado correspondente devolve lista vazia, nunca erro.
+         */
+        get: operations["buscar_execucoes_api_v1_execucoes_get"];
         put?: never;
         /**
          * Iniciar uma execução preventiva
@@ -684,6 +688,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/execucoes/{execucao_id}/linha-do-tempo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar a linha do tempo ponta a ponta de uma execução
+         * @description Devolve, em ordem cronológica, todos os marcos já persistidos da execução — coleta, avaliação de risco, elegibilidade, gerações, críticas, decisões humanas, exceções, simulação e visualização —, cada um com timestamp UTC, ator, ação, resultado e correlação, além da cadeia de execuções correlacionadas (origem e retentativas).
+         */
+        get: operations["consultar_linha_do_tempo_api_v1_execucoes__execucao_id__linha_do_tempo_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -953,6 +977,37 @@ export interface components {
          * @description Falha da operação de execução, com ocorrência, impacto e próxima ação segura.
          */
         ProblemaExecucao: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
+         * ProblemaLinhaDoTempo
+         * @description Falha da linha do tempo/busca, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaLinhaDoTempo: {
             /**
              * Codigo
              * @description Código estável que identifica o tipo da falha.
@@ -1539,6 +1594,17 @@ export interface components {
              * @description Instante RFC 3339 em UTC da avaliação.
              */
             criado_em: string;
+        };
+        /**
+         * RespostaBuscaExecucoes
+         * @description Execuções correspondentes ao filtro informado, sem nenhum efeito colateral.
+         */
+        RespostaBuscaExecucoes: {
+            /**
+             * Resultados
+             * @description Execuções correspondentes; lista vazia quando nenhuma corresponde.
+             */
+            resultados: components["schemas"]["RespostaExecucaoResumo"][];
         };
         /**
          * RespostaCanalSimulacao
@@ -2540,6 +2606,23 @@ export interface components {
             execucao_id: string;
         };
         /**
+         * RespostaExecucaoResumo
+         * @description Um resultado da busca de execuções, mínimo o bastante para decidir qual abrir.
+         */
+        RespostaExecucaoResumo: {
+            /**
+             * Execucao Id
+             * Format: uuid
+             * @description Identificador da execução.
+             */
+            execucao_id: string;
+            /**
+             * Estado
+             * @description Estado agregado atual da execução.
+             */
+            estado: string;
+        };
+        /**
          * RespostaHistoricoSincronizacoes
          * @description Histórico de sincronização, com os marcos exigidos pela consulta de Marina.
          */
@@ -2643,6 +2726,38 @@ export interface components {
             prioridade: number;
         };
         /**
+         * RespostaLinhaDoTempo
+         * @description A cronologia completa de uma execução, com a cadeia de correlação.
+         */
+        RespostaLinhaDoTempo: {
+            /**
+             * Execucao Id
+             * Format: uuid
+             * @description Identificador da execução consultada.
+             */
+            execucao_id: string;
+            /**
+             * Estado
+             * @description Estado agregado atual da execução.
+             */
+            estado: string;
+            /**
+             * Marcos
+             * @description Todos os marcos da execução, em ordem cronológica.
+             */
+            marcos: components["schemas"]["RespostaMarcoLinhaDoTempo"][];
+            /**
+             * Execucao Origem Id
+             * @description Execução terminal que originou esta, ou nula se não correlacionada.
+             */
+            execucao_origem_id: string | null;
+            /**
+             * Retentativas
+             * @description Execuções criadas como nova tentativa a partir desta.
+             */
+            retentativas: string[];
+        };
+        /**
          * RespostaLoteRevisao
          * @description O lote de revisão de uma execução, com os itens de atenção primeiro (REVISAO-01).
          */
@@ -2717,6 +2832,47 @@ export interface components {
              * @description Instante RFC 3339 em UTC em que o marco foi registrado.
              */
             criado_em: string;
+        };
+        /**
+         * RespostaMarcoLinhaDoTempo
+         * @description Um evento normalizado da cronologia, de qualquer uma das fontes agregadas.
+         */
+        RespostaMarcoLinhaDoTempo: {
+            /**
+             * Timestamp
+             * @description Instante RFC 3339 em UTC do marco, canônico.
+             */
+            timestamp: string;
+            /**
+             * Ator
+             * @description Quem ou o que produziu o marco (sistema, ia, segurado...).
+             */
+            ator: string;
+            /**
+             * Acao
+             * @description A ação registrada neste marco.
+             */
+            acao: string;
+            /**
+             * Resultado
+             * @description O resultado ou desfecho da ação.
+             */
+            resultado: string;
+            /**
+             * Correlacao
+             * @description Identificador para correlacionar este marco a outro.
+             */
+            correlacao: string;
+            /**
+             * Tipo
+             * @description Categoria do marco (execucao, risco, geracao, ...).
+             */
+            tipo: string;
+            /**
+             * Mensagem Id
+             * @description Mensagem a que este marco pertence, para agrupamento visual; nulo se o marco for da execução como um todo.
+             */
+            mensagem_id: string | null;
         };
         /**
          * RespostaMensagem
@@ -4552,6 +4708,42 @@ export interface operations {
             };
         };
     };
+    buscar_execucoes_api_v1_execucoes_get: {
+        parameters: {
+            query?: {
+                /** @description Nome ou identificador do segurado sintético. */
+                segurado?: string | null;
+                /** @description Canal: `whatsapp`, `email` ou `sms`. */
+                canal?: string | null;
+                /** @description Um `EstadoExecucao` ou `EstadoMensagem` disponível. */
+                estado?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Busca realizada (pode ser lista vazia). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaBuscaExecucoes"];
+                };
+            };
+            /** @description O canal informado não pertence ao conjunto fechado. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaLinhaDoTempo"];
+                };
+            };
+        };
+    };
     iniciar_execucao_api_v1_execucoes_post: {
         parameters: {
             query?: never;
@@ -5326,6 +5518,46 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaComunicado"];
+                };
+            };
+        };
+    };
+    consultar_linha_do_tempo_api_v1_execucoes__execucao_id__linha_do_tempo_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execucao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Execução encontrada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaLinhaDoTempo"];
+                };
+            };
+            /** @description Execução inexistente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaLinhaDoTempo"];
+                };
+            };
+            /** @description O identificador da execução não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaLinhaDoTempo"];
                 };
             };
         };

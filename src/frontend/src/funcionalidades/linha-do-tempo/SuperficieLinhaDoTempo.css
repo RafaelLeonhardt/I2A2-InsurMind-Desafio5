@@ -1,0 +1,110 @@
+.campo-formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-block-end: 0.85rem;
+  max-width: 26rem;
+}
+
+.campo-formulario label {
+  font-weight: 600;
+}
+
+.campo-formulario input,
+.campo-formulario select {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font: inherit;
+}
+
+.linha-do-tempo__resultados {
+  list-style: none;
+  padding: 0;
+  margin: 0.6rem 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.linha-do-tempo__resultados button {
+  width: 100%;
+  text-align: left;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--line);
+  border-radius: 0.35rem;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.linha-do-tempo__resultados button[aria-current='true'] {
+  border-color: var(--teal);
+  font-weight: 600;
+}
+
+/* A rolagem interna tem nome acessível (aria-label) e é alcançável pelo teclado (tabIndex),
+   com indicação visível de que o conteúdo rola. */
+.linha-do-tempo__rolagem {
+  max-height: 28rem;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: 0.35rem;
+  padding: 0.6rem 0.8rem;
+}
+
+.linha-do-tempo__rolagem:focus-visible {
+  outline: 3px solid var(--amber);
+  outline-offset: 2px;
+}
+
+.linha-do-tempo__lista {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.linha-do-tempo__lista .linha-do-tempo__lista {
+  margin-block-start: 0.5rem;
+  padding-inline-start: 1rem;
+  border-left: 2px solid var(--line);
+}
+
+.linha-do-tempo__lista li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.linha-do-tempo__lista li[data-tipo='excecao'] {
+  border-left: 3px solid var(--red);
+  background: #fef2f2;
+}
+
+.linha-do-tempo__tipo {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.linha-do-tempo__acao {
+  font-weight: 600;
+}
+
+.linha-do-tempo__lista time {
+  margin-inline-start: auto;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+details summary {
+  cursor: pointer;
+  font-weight: 600;
+  padding: 0.3rem 0;
+}
