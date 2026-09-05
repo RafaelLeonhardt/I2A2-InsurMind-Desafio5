@@ -67,9 +67,9 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Retorna a elegibilidade `incluido` mais recente quando existir
-- [ ] Retorna `None` quando o segurado não tiver nenhuma elegibilidade `incluido`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Retorna a elegibilidade `incluido` mais recente quando existir
+- [x] Retorna `None` quando o segurado não tiver nenhuma elegibilidade `incluido`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick

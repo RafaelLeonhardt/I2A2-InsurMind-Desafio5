@@ -97,7 +97,7 @@
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| VISAO-01 | P1: Alerta mais relevante com origem e horário visíveis | Design | Pending |
+| VISAO-01 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T1) | Implementing |
 | VISAO-02 | P1: Alerta mais relevante com origem e horário visíveis | Design | Pending |
 | VISAO-03 | P1: Alerta mais relevante com origem e horário visíveis | Design | Pending |
 | VISAO-04 | P1: Estados vazio, degradado e de transição sem dado inventado | Design | Pending |

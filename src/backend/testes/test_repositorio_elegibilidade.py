@@ -473,3 +473,135 @@ def test_codigo_ibge_area_e_correto_mesmo_quando_area_nao_e_o_primeiro_criterio(
 
     assert registro is not None
     assert registro.codigo_ibge_area == AREA
+
+
+def test_obter_mais_recente_por_segurado_devolve_none_sem_nenhuma_elegibilidade(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    id_segurado = inserir_segurado(caminho)
+    inserir_apolice(caminho, id_segurado)
+
+    resultado = RepositorioElegibilidades(caminho).obter_mais_recente_por_segurado(
+        UUID(id_segurado)
+    )
+
+    assert resultado is None
+
+
+def test_obter_mais_recente_por_segurado_ignora_excluidos_de_outros_segurados(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    id_regra = inserir_regra(caminho)
+    id_evento = inserir_evento(caminho)
+    repo = RepositorioElegibilidades(caminho)
+
+    resultado_excluido = ResultadoElegibilidade(
+        elegivel=False,
+        criterios=(
+            Criterio(
+                operando="situação da apólice",
+                valor_observado="cancelada",
+                atende=False,
+                justificativa="Apólice não está ativa (situação: cancelada).",
+            ),
+        ),
+        canal="email",
+        motivo="apolice_inativa",
+        justificativa="Apólice não está ativa (situação: cancelada).",
+    )
+
+    id_segurado_alvo = inserir_segurado(caminho)
+    id_apolice_alvo = inserir_apolice(caminho, id_segurado_alvo)
+    repo.salvar(
+        uuid4(), id_evento, id_regra, id_segurado_alvo, id_apolice_alvo, "Alvo Excluído",
+        resultado_excluido,
+    )
+
+    id_segurado_outro = inserir_segurado(caminho)
+    id_apolice_outro = inserir_apolice(caminho, id_segurado_outro)
+    repo.salvar(
+        uuid4(), id_evento, id_regra, id_segurado_outro, id_apolice_outro, "Outro Segurado",
+        RESULTADO_INCLUIDO,
+    )
+
+    resultado = repo.obter_mais_recente_por_segurado(UUID(id_segurado_alvo))
+
+    assert resultado is None
+
+
+def test_obter_mais_recente_por_segurado_devolve_a_mais_recente_entre_varias(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    id_segurado = inserir_segurado(caminho)
+    id_apolice = inserir_apolice(caminho, id_segurado)
+    id_regra = inserir_regra(caminho)
+    id_evento_antigo = inserir_evento(caminho)
+    id_evento_novo = str(uuid4())
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO eventos_meteorologicos (id, tipo, area, periodo_inicio, "
+            "periodo_fim, intensidade, proveniencia, instante_observado) VALUES "
+            "(?, 'chuva_intensa', ?, '2026-04-10 06:00:00', '2026-04-10 18:00:00', "
+            "72.5, 'sintetico', '2026-04-09 18:00:00')",
+            [id_evento_novo, AREA],
+        )
+    repo = RepositorioElegibilidades(caminho)
+
+    id_antigo = repo.salvar(
+        uuid4(), id_evento_antigo, id_regra, id_segurado, id_apolice, "Pessoa Teste",
+        RESULTADO_INCLUIDO,
+    )
+    id_novo = repo.salvar(
+        uuid4(), id_evento_novo, id_regra, id_segurado, id_apolice, "Pessoa Teste",
+        RESULTADO_INCLUIDO,
+    )
+    assert id_antigo is not None
+    assert id_novo is not None
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "UPDATE elegibilidades_historicas SET criado_em = '2020-01-01 00:00:00' WHERE id = ?",
+            [id_antigo],
+        )
+        conexao.execute(
+            "UPDATE elegibilidades_historicas SET criado_em = '2030-01-01 00:00:00' WHERE id = ?",
+            [id_novo],
+        )
+
+    resultado = repo.obter_mais_recente_por_segurado(UUID(id_segurado))
+
+    assert resultado is not None
+    assert resultado.id == id_novo
+
+
+def test_obter_mais_recente_por_segurado_inclui_linha_semeada_sem_execucao(
+    tmp_path: Path,
+) -> None:
+    """A demonstração (segurado padrão) só tem uma linha semeada com `execucao_id NULL`
+    até uma execução real do Épico 2 rodar (5.1)."""
+
+    caminho = preparar_banco(tmp_path)
+    id_segurado = inserir_segurado(caminho)
+    id_apolice = inserir_apolice(caminho, id_segurado)
+    id_regra = inserir_regra(caminho)
+    id_evento = inserir_evento(caminho)
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO elegibilidades_historicas "
+            "(id, execucao_id, evento_id, regra_id, segurado_id, apolice_id, elegivel, "
+            "criterios, canal, nome_segurado, justificativa) "
+            "VALUES (?, NULL, ?, ?, ?, ?, true, '[]', 'whatsapp', 'Pessoa Teste', 'semeado')",
+            [str(uuid4()), id_evento, id_regra, id_segurado, id_apolice],
+        )
+
+    resultado = RepositorioElegibilidades(caminho).obter_mais_recente_por_segurado(
+        UUID(id_segurado)
+    )
+
+    assert resultado is not None
+    assert resultado.execucao_id is None
+    assert resultado.elegivel is True

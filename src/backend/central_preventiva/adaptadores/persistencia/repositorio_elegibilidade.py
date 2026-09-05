@@ -231,6 +231,26 @@ class RepositorioElegibilidades:
             return None
         return _registro_de_linha(linha)
 
+    def obter_mais_recente_por_segurado(self, segurado_id: UUID) -> RegistroElegibilidade | None:
+        """Resolve a elegibilidade `incluido` mais recente do segurado, ou `None` se não
+        houver nenhuma (VISAO-01, 5.1).
+
+        Inclui tanto linhas semeadas de demonstração (`execucao_id IS NULL`) quanto
+        linhas de execuções reais — a Visão geral do segurado precisa funcionar mesmo
+        antes de qualquer execução real do Épico 2 rodar (o segurado padrão da
+        demonstração só tem a linha semeada).
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            linha = conexao.execute(
+                f"{_SELECT_REGISTRO_ENRIQUECIDO} WHERE e.segurado_id = ? AND e.elegivel = true "
+                "ORDER BY e.criado_em DESC LIMIT 1",
+                [segurado_id],
+            ).fetchone()
+        if linha is None:
+            return None
+        return _registro_de_linha(linha)
+
 
 _SELECT_REGISTRO_ENRIQUECIDO = (
     "SELECT e.id, e.execucao_id, e.evento_id, e.regra_id, r.versao, e.segurado_id, "
