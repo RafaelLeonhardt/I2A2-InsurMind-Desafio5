@@ -89,10 +89,10 @@ T2 → T3
 
 **Done when**:
 
-- [ ] `200` com o detalhe completo quando a mensagem pertence à execução
-- [ ] `404` `application/problem+json` idêntico para inexistente e para "de outra execução"
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `200` com o detalhe completo quando a mensagem pertence à execução
+- [x] `404` `application/problem+json` idêntico para inexistente e para "de outra execução"
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full

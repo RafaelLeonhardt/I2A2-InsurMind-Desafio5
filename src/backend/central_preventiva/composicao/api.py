@@ -19,6 +19,9 @@ from central_preventiva.adaptadores.http.contexto import (
 from central_preventiva.adaptadores.http.dados_sinteticos import (
     criar_roteador as criar_roteador_dados_sinteticos,
 )
+from central_preventiva.adaptadores.http.detalhe_resultado import (
+    criar_roteador as criar_roteador_detalhe_resultado,
+)
 from central_preventiva.adaptadores.http.elegibilidade import (
     criar_roteador as criar_roteador_elegibilidade,
 )
@@ -169,6 +172,10 @@ def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
     )
     aplicacao.include_router(
         criar_roteador_resultados(configuracao_ativa),
+        prefix="/api/v1",
+    )
+    aplicacao.include_router(
+        criar_roteador_detalhe_resultado(configuracao_ativa),
         prefix="/api/v1",
     )
     return aplicacao

@@ -227,6 +227,46 @@
         "title": "ProblemaContexto",
         "type": "object"
       },
+      "ProblemaDetalheResultado": {
+        "additionalProperties": false,
+        "description": "Falha da consulta de detalhe, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaDetalheResultado",
+        "type": "object"
+      },
       "ProblemaElegibilidade": {
         "additionalProperties": false,
         "description": "Falha da consulta de elegibilidade, com ocorrência, impacto e próxima ação segura.",
@@ -715,6 +755,47 @@
         "title": "ProblemaSimulacao",
         "type": "object"
       },
+      "RespostaApresentacaoSimulada": {
+        "additionalProperties": false,
+        "description": "Como o conteúdo aprovado apareceria no canal, sempre rotulado como simulado.",
+        "properties": {
+          "assunto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Assunto apresentado, só no canal de e-mail.",
+            "title": "Assunto"
+          },
+          "canal": {
+            "description": "Canal em que a apresentação seria feita.",
+            "title": "Canal",
+            "type": "string"
+          },
+          "corpo": {
+            "description": "Corpo apresentado, cópia exata do conteúdo aprovado.",
+            "title": "Corpo",
+            "type": "string"
+          },
+          "rotulo": {
+            "description": "Rótulo fixo da natureza da entrega: sempre 'simulada'.",
+            "title": "Rotulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "canal",
+          "assunto",
+          "corpo",
+          "rotulo"
+        ],
+        "title": "RespostaApresentacaoSimulada",
+        "type": "object"
+      },
       "RespostaAvaliacaoCritica": {
         "additionalProperties": false,
         "description": "Detalhe de uma avaliação: versão, critérios, decisão, motivos e proveniência.",
@@ -803,6 +884,56 @@
           "validacao_deterministica"
         ],
         "title": "RespostaAvaliacaoCritica",
+        "type": "object"
+      },
+      "RespostaAvaliacaoCriticaDetalhe": {
+        "additionalProperties": false,
+        "description": "Avaliação crítica de uma versão da mensagem.",
+        "properties": {
+          "agente": {
+            "description": "Nome do agente que avaliou.",
+            "title": "Agente",
+            "type": "string"
+          },
+          "aprovada": {
+            "description": "Se o agente crítico aprovou esta versão.",
+            "title": "Aprovada",
+            "type": "boolean"
+          },
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC do registro.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "duracao_ms": {
+            "description": "Duração da chamada de avaliação, em milissegundos.",
+            "title": "Duracao Ms",
+            "type": "number"
+          },
+          "modelo": {
+            "description": "Modelo da OpenAI usado na avaliação.",
+            "title": "Modelo",
+            "type": "string"
+          },
+          "motivos": {
+            "description": "Categorias dos motivos de reprovação, se houver.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Motivos",
+            "type": "array"
+          }
+        },
+        "required": [
+          "aprovada",
+          "motivos",
+          "agente",
+          "modelo",
+          "duracao_ms",
+          "criado_em"
+        ],
+        "title": "RespostaAvaliacaoCriticaDetalhe",
         "type": "object"
       },
       "RespostaAvaliacaoCriticaLote": {
@@ -1257,6 +1388,48 @@
         "title": "RespostaCriterioTeste",
         "type": "object"
       },
+      "RespostaDecisaoHumanaDetalhe": {
+        "additionalProperties": false,
+        "description": "Decisão humana registrada sobre uma versão da mensagem.",
+        "properties": {
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC da decisão.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "justificativa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Justificativa da decisão, obrigatória fora de 'aprovar'.",
+            "title": "Justificativa"
+          },
+          "perfil_responsavel": {
+            "description": "Perfil de quem decidiu.",
+            "title": "Perfil Responsavel",
+            "type": "string"
+          },
+          "resultado": {
+            "description": "Resultado da decisão (`aprovar`, `rejeitar`, `excluir` ou `regenerar`).",
+            "title": "Resultado",
+            "type": "string"
+          }
+        },
+        "required": [
+          "perfil_responsavel",
+          "resultado",
+          "justificativa",
+          "criado_em"
+        ],
+        "title": "RespostaDecisaoHumanaDetalhe",
+        "type": "object"
+      },
       "RespostaDecisaoLote": {
         "additionalProperties": false,
         "description": "Desfecho do envio: o que foi aplicado, o que foi recusado e onde o agregado parou.",
@@ -1624,6 +1797,152 @@
         "title": "RespostaDetalheElegibilidade",
         "type": "object"
       },
+      "RespostaDetalheResultado": {
+        "additionalProperties": false,
+        "description": "Detalhe completo do resultado individual de uma mensagem simulada (DETALHE-01).",
+        "properties": {
+          "apolice_id": {
+            "description": "Apólice sintética de referência.",
+            "format": "uuid",
+            "title": "Apolice Id",
+            "type": "string"
+          },
+          "apresentacao_simulada": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaApresentacaoSimulada"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Apresentação simulada já registrada, ou nula se ainda não simulada."
+          },
+          "atualizado_em": {
+            "description": "Instante RFC 3339 em UTC da última mudança.",
+            "format": "date-time",
+            "title": "Atualizado Em",
+            "type": "string"
+          },
+          "canal": {
+            "description": "Canal da mensagem (`whatsapp`, `email` ou `sms`).",
+            "title": "Canal",
+            "type": "string"
+          },
+          "codigo_ibge_area": {
+            "description": "Área monitorada do segurado, no momento.",
+            "title": "Codigo Ibge Area",
+            "type": "string"
+          },
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC de criação.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "estado": {
+            "description": "Estado de conteúdo atual da mensagem.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "evento": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaEventoDetalhe"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Evento de origem da mensagem."
+          },
+          "excecao": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaExcecaoDetalhe"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Exceção técnica associada, presente só quando a mensagem falhou."
+          },
+          "execucao_id": {
+            "description": "Execução a que a mensagem pertence.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "limite_canal_assunto": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Limite de caracteres do assunto, só no canal de e-mail.",
+            "title": "Limite Canal Assunto"
+          },
+          "limite_canal_corpo": {
+            "description": "Limite de caracteres do corpo do canal.",
+            "title": "Limite Canal Corpo",
+            "type": "integer"
+          },
+          "mensagem_id": {
+            "description": "Identificador da mensagem detalhada.",
+            "format": "uuid",
+            "title": "Mensagem Id",
+            "type": "string"
+          },
+          "nome_segurado": {
+            "description": "Segurado sintético destinatário.",
+            "title": "Nome Segurado",
+            "type": "string"
+          },
+          "regra_id": {
+            "description": "Regra preventiva aplicada ao público do lote.",
+            "format": "uuid",
+            "title": "Regra Id",
+            "type": "string"
+          },
+          "regra_versao": {
+            "description": "Versão da regra aplicada.",
+            "title": "Regra Versao",
+            "type": "integer"
+          },
+          "versoes": {
+            "description": "Todas as tentativas de geração, da primeira à mais recente.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaVersaoDetalhe"
+            },
+            "title": "Versoes",
+            "type": "array"
+          }
+        },
+        "required": [
+          "mensagem_id",
+          "execucao_id",
+          "canal",
+          "estado",
+          "limite_canal_corpo",
+          "limite_canal_assunto",
+          "criado_em",
+          "atualizado_em",
+          "nome_segurado",
+          "apolice_id",
+          "codigo_ibge_area",
+          "evento",
+          "regra_id",
+          "regra_versao",
+          "apresentacao_simulada",
+          "versoes",
+          "excecao"
+        ],
+        "title": "RespostaDetalheResultado",
+        "type": "object"
+      },
       "RespostaDistribuicaoCanal": {
         "additionalProperties": false,
         "description": "Quantidade de mensagens do lote em um canal.",
@@ -1830,6 +2149,61 @@
         "title": "RespostaEvento",
         "type": "object"
       },
+      "RespostaEventoDetalhe": {
+        "additionalProperties": false,
+        "description": "Evento meteorológico que originou a mensagem detalhada.",
+        "properties": {
+          "area": {
+            "description": "Código de área monitorada afetada pelo evento.",
+            "title": "Area",
+            "type": "string"
+          },
+          "id": {
+            "description": "Identificador do evento meteorológico.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "intensidade": {
+            "description": "Intensidade observada do evento.",
+            "title": "Intensidade",
+            "type": "number"
+          },
+          "periodo_fim": {
+            "description": "Fim do período observado, em UTC.",
+            "format": "date-time",
+            "title": "Periodo Fim",
+            "type": "string"
+          },
+          "periodo_inicio": {
+            "description": "Início do período observado, em UTC.",
+            "format": "date-time",
+            "title": "Periodo Inicio",
+            "type": "string"
+          },
+          "proveniencia": {
+            "description": "Origem do evento (`real_inmet` ou `sintetico`).",
+            "title": "Proveniencia",
+            "type": "string"
+          },
+          "tipo": {
+            "description": "Tipo do evento (`chuva_intensa` ou `granizo`).",
+            "title": "Tipo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tipo",
+          "area",
+          "intensidade",
+          "proveniencia",
+          "periodo_inicio",
+          "periodo_fim"
+        ],
+        "title": "RespostaEventoDetalhe",
+        "type": "object"
+      },
       "RespostaEventoLote": {
         "additionalProperties": false,
         "description": "Evento meteorológico que originou a execução em revisão.",
@@ -1957,6 +2331,41 @@
           "eventos"
         ],
         "title": "RespostaEventos",
+        "type": "object"
+      },
+      "RespostaExcecaoDetalhe": {
+        "additionalProperties": false,
+        "description": "Exceção operacional associada à mensagem, quando ela falhou tecnicamente.",
+        "properties": {
+          "causa": {
+            "description": "Código estável e sanitizado da causa da falha.",
+            "title": "Causa",
+            "type": "string"
+          },
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC do registro.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha, em português brasileiro.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "tentativas": {
+            "description": "Tentativas realizadas antes de esgotar o limite.",
+            "title": "Tentativas",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "causa",
+          "tentativas",
+          "impacto",
+          "criado_em"
+        ],
+        "title": "RespostaExcecaoDetalhe",
         "type": "object"
       },
       "RespostaExecucao": {
@@ -3691,6 +4100,94 @@
         "title": "RespostaVerificacaoAceita",
         "type": "object"
       },
+      "RespostaVersaoDetalhe": {
+        "additionalProperties": false,
+        "description": "Uma tentativa de geração relacionada à sua avaliação crítica e decisões humanas.",
+        "properties": {
+          "assunto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Assunto gerado nesta tentativa, só em e-mail.",
+            "title": "Assunto"
+          },
+          "avaliacao_critica": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaAvaliacaoCriticaDetalhe"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Avaliação crítica desta versão, ou nula se ainda não avaliada."
+          },
+          "corpo": {
+            "description": "Corpo gerado nesta tentativa.",
+            "title": "Corpo",
+            "type": "string"
+          },
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC do registro da versão.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "decisoes_humanas": {
+            "description": "Decisões humanas registradas sobre esta versão específica.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaDecisaoHumanaDetalhe"
+            },
+            "title": "Decisoes Humanas",
+            "type": "array"
+          },
+          "modelo": {
+            "description": "Modelo da OpenAI usado na geração.",
+            "title": "Modelo",
+            "type": "string"
+          },
+          "motivo_invalidez": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Motivo estável da recusa, se houver.",
+            "title": "Motivo Invalidez"
+          },
+          "numero_tentativa": {
+            "description": "Número da tentativa de geração.",
+            "title": "Numero Tentativa",
+            "type": "integer"
+          },
+          "valida": {
+            "description": "Se a validação determinística aprovou a saída.",
+            "title": "Valida",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "numero_tentativa",
+          "valida",
+          "motivo_invalidez",
+          "assunto",
+          "corpo",
+          "modelo",
+          "criado_em",
+          "avaliacao_critica",
+          "decisoes_humanas"
+        ],
+        "title": "RespostaVersaoDetalhe",
+        "type": "object"
+      },
       "RespostaVersaoMensagem": {
         "additionalProperties": false,
         "description": "Metadados da versão atual de uma mensagem: veredito, motivo e proveniência.",
@@ -4646,6 +5143,68 @@
         "summary": "Consultar as mensagens geradas de uma execução",
         "tags": [
           "Mensagens"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_id}/mensagens/{mensagem_id}/detalhe": {
+      "get": {
+        "description": "Devolve segurado sintético, apólice, canal, conteúdo, horários, estado, evento, versão da regra e as aprovações agêntica e humana de origem de uma mensagem. Todas as tentativas de geração aparecem relacionadas à sua própria avaliação crítica e decisões humanas, na ordem cronológica. Uma mensagem inexistente e uma mensagem que existe mas pertence a outra execução devolvem exatamente a mesma resposta `404`, sem revelar a existência cruzada do registro.",
+        "operationId": "consultar_detalhe_api_v1_execucoes__execucao_id__mensagens__mensagem_id__detalhe_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "mensagem_id",
+            "required": true,
+            "schema": {
+              "title": "Mensagem Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaDetalheResultado"
+                }
+              }
+            },
+            "description": "Mensagem encontrada na execução informada."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaDetalheResultado"
+                }
+              }
+            },
+            "description": "Mensagem inexistente ou pertencente a outra execução."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaDetalheResultado"
+                }
+              }
+            },
+            "description": "Algum identificador informado não é um UUID válido."
+          }
+        },
+        "summary": "Consultar o detalhe individual de um resultado de simulação",
+        "tags": [
+          "Resultados"
         ]
       }
     },
