@@ -88,11 +88,11 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Alerta real (`real_inmet`) retorna todos os campos do AC, origem nunca rotulada como sintética
-- [ ] Alerta sintético retorna origem claramente rotulada como tal
-- [ ] Sem elegibilidade: retorna `None`
-- [ ] Fonte degradada: retorna snapshot com idade calculada e caráter informativo
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Alerta real (`real_inmet`) retorna todos os campos do AC, origem nunca rotulada como sintética
+- [x] Alerta sintético retorna origem claramente rotulada como tal
+- [x] Sem elegibilidade: retorna `None`
+- [x] Fonte degradada: retorna snapshot com idade calculada e caráter informativo
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick

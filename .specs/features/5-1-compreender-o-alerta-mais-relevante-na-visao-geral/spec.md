@@ -98,10 +98,10 @@
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
 | VISAO-01 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T1) | Implementing |
-| VISAO-02 | P1: Alerta mais relevante com origem e horário visíveis | Design | Pending |
-| VISAO-03 | P1: Alerta mais relevante com origem e horário visíveis | Design | Pending |
-| VISAO-04 | P1: Estados vazio, degradado e de transição sem dado inventado | Design | Pending |
-| VISAO-05 | P1: Estados vazio, degradado e de transição sem dado inventado | Design | Pending |
+| VISAO-02 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T2) | Implementing |
+| VISAO-03 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T2) | Implementing |
+| VISAO-04 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T1, T2) | Implementing |
+| VISAO-05 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T2) | Implementing |
 | VISAO-06 | P1: Estados vazio, degradado e de transição sem dado inventado | Design | Pending |
 | VISAO-07 | P2: Acessibilidade em teclado, zoom e largura suportada | Design | Pending |
 | VISAO-08 | P2: Acessibilidade em teclado, zoom e largura suportada | Design | Pending |
