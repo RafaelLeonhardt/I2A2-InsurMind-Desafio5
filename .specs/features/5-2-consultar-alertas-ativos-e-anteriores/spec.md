@@ -93,12 +93,12 @@ A História 5.1 entrega só o alerta mais relevante na Visão geral, mas Carlos 
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| ALERTAS-01 | P1: Lista de alertas distinguindo ativos e anteriores | Execute (T1) | Implementing |
-| ALERTAS-02 | P1: Lista de alertas distinguindo ativos e anteriores | Execute (T1) | Implementing |
-| ALERTAS-03 | P1: Detalhe do alerta com equivalência de mapa e lista | Execute (T2) | Implementing |
-| ALERTAS-04 | P1: Detalhe do alerta com equivalência de mapa e lista | Execute (T4) | Implementing |
-| ALERTAS-05 | P1: Isolamento por segurado e estados não simulados | Execute (T2) | Implementing |
-| ALERTAS-06 | P1: Isolamento por segurado e estados não simulados | Execute (T2) | Implementing |
+| ALERTAS-01 | P1: Lista de alertas distinguindo ativos e anteriores | Execute (T1) | ❌ Needs Fix — distinção por ícone sem asserção (mutante M8 sobreviveu) |
+| ALERTAS-02 | P1: Lista de alertas distinguindo ativos e anteriores | Execute (T1) | ❌ Needs Fix — cláusula "próxima ação válida" do estado vazio não implementada |
+| ALERTAS-03 | P1: Detalhe do alerta com equivalência de mapa e lista | Execute (T2) | ✅ Verified (parcial — restauração de foco não discriminada, mutante M7) |
+| ALERTAS-04 | P1: Detalhe do alerta com equivalência de mapa e lista | Execute (T4) | ✅ Verified (por construção; SPEC_DEVIATION documentada — nenhum mapa existe no projeto) |
+| ALERTAS-05 | P1: Isolamento por segurado e estados não simulados | Execute (T2) | ✅ Verified |
+| ALERTAS-06 | P1: Isolamento por segurado e estados não simulados | Execute (T2) | ✅ Verified |
 
 **ID format:** `ALERTAS-NN`
 

@@ -39,16 +39,28 @@ Corroborated across multiple features. Safe to apply as guidance.
 - last seen: 2026-09-02T14:42:34Z
 
 ### L-033 - A return type declared in design.md must carry every field the acceptance criteria require to be persisted.
-- signal: `spec_deviation` · recurrence: 2 feature(s) · scope: `design` · harmful: 0
-- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal, 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens
-- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/ia/agente_redator.py:8 (design) (+1 more)
-- last seen: 2026-09-04T10:25:44Z
+- signal: `spec_deviation` · recurrence: 3 feature(s) · scope: `design` · harmful: 0
+- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal, 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens, 5-2-consultar-alertas-ativos-e-anteriores
+- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/ia/agente_redator.py:8 (design) (+2 more)
+- last seen: 2026-09-05T23:01:41Z
 
 ### L-034 - Do not fix a migration number in design.md; assign the next number at implementation time from the migrations directory.
 - signal: `spec_deviation` · recurrence: 4 feature(s) · scope: `persistence` · harmful: 0
 - features: 3-2-gerar-mensagens-automaticamente-para-cada-canal, 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens, 3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica, 3-6-confirmar-e-executar-a-simulacao-sem-envio-real
 - evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence) (+3 more)
 - last seen: 2026-09-04T20:20:12Z
+
+### L-059 - In a route's happy-path test, assert every field of the response contract; assertions on the use case's DTO do not discriminate the route's own field mapping.
+- signal: `surviving_mutant` · recurrence: 2 feature(s) · scope: `routes` · harmful: 0
+- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral, 5-2-consultar-alertas-ativos-e-anteriores
+- evidence: M11 — src/backend/testes/test_alerta_segurado_api.py:96 (validation.md rodada 2) (routes) (+1 more)
+- last seen: 2026-09-05T23:01:02Z
+
+### L-061 - A response field whose only assertion is its happy-path value is not discriminated; add a route case where the field takes its other value (synthetic origin, degraded source, false-to-true flag).
+- signal: `surviving_mutant` · recurrence: 2 feature(s) · scope: `routes` · harmful: 0
+- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral, 5-2-consultar-alertas-ativos-e-anteriores
+- evidence: M14/M15 — src/backend/central_preventiva/adaptadores/http/alerta_segurado.py:115,117 (validation.md rodada 3) (routes) (+1 more)
+- last seen: 2026-09-05T23:01:02Z
 
 ## Candidates (under observation - do NOT load as guidance yet)
 
@@ -360,29 +372,47 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: M9 — VisaoGeralSegurado.tsx:67 (validation.md rodada 2) (frontend)
 - last seen: 2026-09-05T21:41:14Z
 
-### L-059 - In a route's happy-path test, assert every field of the response contract; assertions on the use case's DTO do not discriminate the route's own field mapping.
-- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
-- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
-- evidence: M11 — src/backend/testes/test_alerta_segurado_api.py:96 (validation.md rodada 2) (routes)
-- last seen: 2026-09-05T21:41:21Z
-
 ### L-060 - A fix that only deletes misleading copy needs an assertion that the copy stays deleted, or nothing prevents it from returning.
 - signal: `ac_gap` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
 - features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
 - evidence: VISAO-04 — src/frontend/src/funcionalidades/segurado/VisaoGeralSegurado.tsx:132 (validation.md rodada 2) (frontend)
 - last seen: 2026-09-05T21:41:21Z
 
-### L-061 - A response field whose only assertion is its happy-path value is not discriminated; add a route case where the field takes its other value (synthetic origin, degraded source, false-to-true flag).
-- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
-- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
-- evidence: M14/M15 — src/backend/central_preventiva/adaptadores/http/alerta_segurado.py:115,117 (validation.md rodada 3) (routes)
-- last seen: 2026-09-05T22:03:13Z
-
 ### L-062 - Before closing a feature, check that every scenario the Test Coverage Matrix names for each layer exists as a real test; a planned scenario can go missing without any gate failing.
 - signal: `ac_gap` · recurrence: 1 feature(s) · harmful: 0
 - features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
 - evidence: VISAO-05 — tasks.md Test Coverage Matrix (roteador HTTP: fonte degradada) sem teste correspondente (validation.md rodada 3)
 - last seen: 2026-09-05T22:03:19Z
+
+### L-063 - When a requirement demands distinction by text, icon and color, assert that all three signals differ across categories.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 5-2-consultar-alertas-ativos-e-anteriores
+- evidence: validation.md sensor M8 - SuperficieAlertas.tsx:60-68 (frontend)
+- last seen: 2026-09-05T23:01:02Z
+
+### L-064 - Test per-item selection and focus-restoration behaviour with a list of at least three items, acting on one that is not the first, so the right item is distinguishable from the first item.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 5-2-consultar-alertas-ativos-e-anteriores
+- evidence: validation.md sensor M7 - SuperficieAlertas.test.tsx:178-190 (frontend)
+- last seen: 2026-09-05T23:01:41Z
+
+### L-065 - Implement and assert each clause of a compound acceptance criterion separately; an empty state required to show both an explanation and a next action needs an assertion for each.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 5-2-consultar-alertas-ativos-e-anteriores
+- evidence: validation.md AC ALERTAS-02 - SuperficieAlertas.tsx:329-336 (frontend)
+- last seen: 2026-09-05T23:01:41Z
+
+### L-066 - Before a Tech Decision says to reuse an existing component, confirm that component actually exists in the codebase; a reuse claim about a nonexistent component becomes a deviation the implementer must discover.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `design` · harmful: 0
+- features: 5-2-consultar-alertas-ativos-e-anteriores
+- evidence: validation.md SPEC_DEVIATION ALERTAS-04 - design.md:108 vs SuperficieFonteMeteorologica.tsx:135 (design)
+- last seen: 2026-09-05T23:01:41Z
+
+### L-067 - When an acceptance criterion says a selection must be announced, assert the content of the live region, not only where the focus lands.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `frontend/accessibility` · harmful: 0
+- features: 5-2-consultar-alertas-ativos-e-anteriores
+- evidence: validation.md AC ALERTAS-03 - SuperficieAlertas.tsx:213-215 (frontend/accessibility)
+- last seen: 2026-09-05T23:01:41Z
 
 ## Quarantined (failed when applied - ignore)
 

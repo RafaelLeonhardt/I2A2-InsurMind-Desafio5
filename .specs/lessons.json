@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 63,
+  "next_id": 68,
   "lessons": [
     {
       "id": "L-001",
@@ -603,16 +603,18 @@
       "status": "confirmed",
       "features": [
         "3-2-gerar-mensagens-automaticamente-para-cada-canal",
-        "3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens"
+        "3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens",
+        "5-2-consultar-alertas-ativos-e-anteriores"
       ],
-      "recurrence": 2,
+      "recurrence": 3,
       "harmful": 0,
       "evidence": [
         "SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/ia/agente_redator.py:8 (design)",
-        "src/backend/central_preventiva/adaptadores/persistencia/repositorio_avaliacoes_criticas.py:10 (SPEC_DEVIATION: obter_por_versao devolve RegistroAvaliacaoCritica, nao AvaliacaoCritica) (repo-layer)"
+        "src/backend/central_preventiva/adaptadores/persistencia/repositorio_avaliacoes_criticas.py:10 (SPEC_DEVIATION: obter_por_versao devolve RegistroAvaliacaoCritica, nao AvaliacaoCritica) (repo-layer)",
+        "validation.md SPEC_DEVIATION - aplicacao/lista_alertas_segurado.py:9-13 vs design.md:75 (design)"
       ],
       "created": "2026-09-03T17:33:20Z",
-      "last_seen": "2026-09-04T10:25:44Z"
+      "last_seen": "2026-09-05T23:01:41Z"
     },
     {
       "id": "L-034",
@@ -1076,17 +1078,19 @@
       "text": "In a route's happy-path test, assert every field of the response contract; assertions on the use case's DTO do not discriminate the route's own field mapping.",
       "signal": "surviving_mutant",
       "scope": "routes",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "5-1-compreender-o-alerta-mais-relevante-na-visao-geral"
+        "5-1-compreender-o-alerta-mais-relevante-na-visao-geral",
+        "5-2-consultar-alertas-ativos-e-anteriores"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "M11 — src/backend/testes/test_alerta_segurado_api.py:96 (validation.md rodada 2) (routes)"
+        "M11 — src/backend/testes/test_alerta_segurado_api.py:96 (validation.md rodada 2) (routes)",
+        "validation.md sensor M5/M6b - adaptadores/http/lista_alertas_segurado.py:163-165 (adaptadores/http)"
       ],
       "created": "2026-09-05T21:41:21Z",
-      "last_seen": "2026-09-05T21:41:21Z"
+      "last_seen": "2026-09-05T23:01:02Z"
     },
     {
       "id": "L-060",
@@ -1112,17 +1116,19 @@
       "text": "A response field whose only assertion is its happy-path value is not discriminated; add a route case where the field takes its other value (synthetic origin, degraded source, false-to-true flag).",
       "signal": "surviving_mutant",
       "scope": "routes",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "5-1-compreender-o-alerta-mais-relevante-na-visao-geral"
+        "5-1-compreender-o-alerta-mais-relevante-na-visao-geral",
+        "5-2-consultar-alertas-ativos-e-anteriores"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "M14/M15 — src/backend/central_preventiva/adaptadores/http/alerta_segurado.py:115,117 (validation.md rodada 3) (routes)"
+        "M14/M15 — src/backend/central_preventiva/adaptadores/http/alerta_segurado.py:115,117 (validation.md rodada 3) (routes)",
+        "validation.md sensor M6 - adaptadores/http/lista_alertas_segurado.py:171 (adaptadores/http)"
       ],
       "created": "2026-09-05T22:03:13Z",
-      "last_seen": "2026-09-05T22:03:13Z"
+      "last_seen": "2026-09-05T23:01:02Z"
     },
     {
       "id": "L-062",
@@ -1141,6 +1147,96 @@
       ],
       "created": "2026-09-05T22:03:19Z",
       "last_seen": "2026-09-05T22:03:19Z"
+    },
+    {
+      "id": "L-063",
+      "key": "surviving_mutant::when a requirement demands distinction by text icon and color assert that all three signals differ across categories",
+      "text": "When a requirement demands distinction by text, icon and color, assert that all three signals differ across categories.",
+      "signal": "surviving_mutant",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "5-2-consultar-alertas-ativos-e-anteriores"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md sensor M8 - SuperficieAlertas.tsx:60-68 (frontend)"
+      ],
+      "created": "2026-09-05T23:01:02Z",
+      "last_seen": "2026-09-05T23:01:02Z"
+    },
+    {
+      "id": "L-064",
+      "key": "surviving_mutant::test per item selection and focus restoration behaviour with a list of at least three items acting on one that is not the first so the right item is distinguishable from the first item",
+      "text": "Test per-item selection and focus-restoration behaviour with a list of at least three items, acting on one that is not the first, so the right item is distinguishable from the first item.",
+      "signal": "surviving_mutant",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "5-2-consultar-alertas-ativos-e-anteriores"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md sensor M7 - SuperficieAlertas.test.tsx:178-190 (frontend)"
+      ],
+      "created": "2026-09-05T23:01:41Z",
+      "last_seen": "2026-09-05T23:01:41Z"
+    },
+    {
+      "id": "L-065",
+      "key": "ac_gap::implement and assert each clause of a compound acceptance criterion separately an empty state required to show both an explanation and a next action needs an assertion for each",
+      "text": "Implement and assert each clause of a compound acceptance criterion separately; an empty state required to show both an explanation and a next action needs an assertion for each.",
+      "signal": "ac_gap",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "5-2-consultar-alertas-ativos-e-anteriores"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md AC ALERTAS-02 - SuperficieAlertas.tsx:329-336 (frontend)"
+      ],
+      "created": "2026-09-05T23:01:41Z",
+      "last_seen": "2026-09-05T23:01:41Z"
+    },
+    {
+      "id": "L-066",
+      "key": "spec_deviation::before a tech decision says to reuse an existing component confirm that component actually exists in the codebase a reuse claim about a nonexistent component becomes a deviation the implementer must discover",
+      "text": "Before a Tech Decision says to reuse an existing component, confirm that component actually exists in the codebase; a reuse claim about a nonexistent component becomes a deviation the implementer must discover.",
+      "signal": "spec_deviation",
+      "scope": "design",
+      "status": "candidate",
+      "features": [
+        "5-2-consultar-alertas-ativos-e-anteriores"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md SPEC_DEVIATION ALERTAS-04 - design.md:108 vs SuperficieFonteMeteorologica.tsx:135 (design)"
+      ],
+      "created": "2026-09-05T23:01:41Z",
+      "last_seen": "2026-09-05T23:01:41Z"
+    },
+    {
+      "id": "L-067",
+      "key": "spec_precision_gap::when an acceptance criterion says a selection must be announced assert the content of the live region not only where the focus lands",
+      "text": "When an acceptance criterion says a selection must be announced, assert the content of the live region, not only where the focus lands.",
+      "signal": "spec_precision_gap",
+      "scope": "frontend/accessibility",
+      "status": "candidate",
+      "features": [
+        "5-2-consultar-alertas-ativos-e-anteriores"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md AC ALERTAS-03 - SuperficieAlertas.tsx:213-215 (frontend/accessibility)"
+      ],
+      "created": "2026-09-05T23:01:41Z",
+      "last_seen": "2026-09-05T23:01:41Z"
     }
   ]
 }
