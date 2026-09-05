@@ -231,6 +231,20 @@ class RepositorioElegibilidades:
             return None
         return _registro_de_linha(linha)
 
+    def listar_todas_por_segurado(self, segurado_id: UUID) -> list[RegistroElegibilidade]:
+        """Lista todas as elegibilidades `incluido` do segurado, mais recentes primeiro
+        (5.2). Ordenação determinística em empate de `criado_em`, por `id` decrescente
+        (Tech Decision, design.md 5.2) — evita posição instável entre carregamentos.
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute(
+                f"{_SELECT_REGISTRO_ENRIQUECIDO} WHERE e.segurado_id = ? AND e.elegivel = true "
+                "ORDER BY e.criado_em DESC, e.id DESC",
+                [segurado_id],
+            ).fetchall()
+        return [_registro_de_linha(linha) for linha in linhas]
+
     def obter_mais_recente_por_segurado(self, segurado_id: UUID) -> RegistroElegibilidade | None:
         """Resolve a elegibilidade `incluido` mais recente do segurado, ou `None` se não
         houver nenhuma (VISAO-01, 5.1).

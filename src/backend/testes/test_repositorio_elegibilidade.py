@@ -605,3 +605,101 @@ def test_obter_mais_recente_por_segurado_inclui_linha_semeada_sem_execucao(
     assert resultado is not None
     assert resultado.execucao_id is None
     assert resultado.elegivel is True
+
+
+def test_listar_todas_por_segurado_devolve_lista_vazia_sem_nenhuma_elegibilidade(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    id_segurado = inserir_segurado(caminho)
+
+    resultado = RepositorioElegibilidades(caminho).listar_todas_por_segurado(
+        UUID(id_segurado)
+    )
+
+    assert resultado == []
+
+
+def test_listar_todas_por_segurado_devolve_todas_incluidas_mais_recentes_primeiro(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    id_segurado = inserir_segurado(caminho)
+    id_apolice = inserir_apolice(caminho, id_segurado)
+    id_regra = inserir_regra(caminho)
+    id_evento_1 = inserir_evento(caminho)
+    id_evento_2 = str(uuid4())
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO eventos_meteorologicos (id, tipo, area, periodo_inicio, "
+            "periodo_fim, intensidade, proveniencia, instante_observado) VALUES "
+            "(?, 'chuva_intensa', ?, '2026-05-10 06:00:00', '2026-05-10 18:00:00', "
+            "72.5, 'sintetico', '2026-05-09 18:00:00')",
+            [id_evento_2, AREA],
+        )
+    repo = RepositorioElegibilidades(caminho)
+    id_antigo = repo.salvar(
+        uuid4(), id_evento_1, id_regra, id_segurado, id_apolice, "Pessoa Teste",
+        RESULTADO_INCLUIDO,
+    )
+    id_novo = repo.salvar(
+        uuid4(), id_evento_2, id_regra, id_segurado, id_apolice, "Pessoa Teste",
+        RESULTADO_INCLUIDO,
+    )
+    assert id_antigo is not None
+    assert id_novo is not None
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "UPDATE elegibilidades_historicas SET criado_em = '2020-01-01 00:00:00' "
+            "WHERE id = ?",
+            [id_antigo],
+        )
+        conexao.execute(
+            "UPDATE elegibilidades_historicas SET criado_em = '2030-01-01 00:00:00' "
+            "WHERE id = ?",
+            [id_novo],
+        )
+
+    resultado = repo.listar_todas_por_segurado(UUID(id_segurado))
+
+    assert [registro.id for registro in resultado] == [id_novo, id_antigo]
+
+
+def test_listar_todas_por_segurado_ignora_excluidos_e_de_outros_segurados(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    id_regra = inserir_regra(caminho)
+    id_evento = inserir_evento(caminho)
+    repo = RepositorioElegibilidades(caminho)
+
+    resultado_excluido = ResultadoElegibilidade(
+        elegivel=False,
+        criterios=(
+            Criterio(
+                operando="situação da apólice",
+                valor_observado="cancelada",
+                atende=False,
+                justificativa="Apólice não está ativa (situação: cancelada).",
+            ),
+        ),
+        canal="email",
+        motivo="apolice_inativa",
+        justificativa="Apólice não está ativa (situação: cancelada).",
+    )
+    id_segurado_alvo = inserir_segurado(caminho)
+    id_apolice_alvo = inserir_apolice(caminho, id_segurado_alvo)
+    repo.salvar(
+        uuid4(), id_evento, id_regra, id_segurado_alvo, id_apolice_alvo, "Alvo Excluído",
+        resultado_excluido,
+    )
+    id_segurado_outro = inserir_segurado(caminho)
+    id_apolice_outro = inserir_apolice(caminho, id_segurado_outro)
+    repo.salvar(
+        uuid4(), id_evento, id_regra, id_segurado_outro, id_apolice_outro, "Outro Segurado",
+        RESULTADO_INCLUIDO,
+    )
+
+    resultado = repo.listar_todas_por_segurado(UUID(id_segurado_alvo))
+
+    assert resultado == []

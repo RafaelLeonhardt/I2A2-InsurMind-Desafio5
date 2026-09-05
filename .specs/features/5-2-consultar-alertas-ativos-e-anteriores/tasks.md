@@ -67,9 +67,9 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Retorna todas as elegibilidades `incluido` do segurado, ordenadas
-- [ ] Retorna lista vazia quando não houver nenhuma
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Retorna todas as elegibilidades `incluido` do segurado, ordenadas
+- [x] Retorna lista vazia quando não houver nenhuma
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
