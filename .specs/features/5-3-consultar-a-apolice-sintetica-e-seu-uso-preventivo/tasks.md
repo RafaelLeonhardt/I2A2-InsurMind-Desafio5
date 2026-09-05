@@ -134,10 +134,10 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Todos os campos do AC exibidos, obtidos da API real
-- [ ] Estado inativo/sem cobertura exibido como texto explicativo, nunca como tela de erro
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Todos os campos do AC exibidos, obtidos da API real
+- [x] Estado inativo/sem cobertura exibido como texto explicativo, nunca como tela de erro
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full

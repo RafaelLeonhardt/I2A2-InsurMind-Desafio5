@@ -96,7 +96,7 @@ As Histórias 5.1/5.2 mostram alertas, mas Carlos não tem como consultar sua ap
 | APOLICE-03 | P1: Estados de apólice sem falha técnica e isolamento por segurado | Execute (T2) | Implementing |
 | APOLICE-04 | P1: Estados de apólice sem falha técnica e isolamento por segurado | Execute (T2) | Implementing |
 | APOLICE-05 | P2: Snapshot histórico preservado apesar de mudança atual | Execute (T2) | Implementing |
-| APOLICE-06 | P2: Snapshot histórico preservado apesar de mudança atual | Design | Pending |
+| APOLICE-06 | P2: Snapshot histórico preservado apesar de mudança atual | Execute (T4) | Implementing |
 
 **ID format:** `APOLICE-NN`
 

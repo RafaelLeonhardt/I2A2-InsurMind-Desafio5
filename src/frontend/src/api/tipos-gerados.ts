@@ -768,6 +768,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/segurados/{segurado_id}/apolice": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar a apólice do segurado ativo
+         * @description Devolve número, situação, vigência, endereço sintético do risco, coberturas, canal preferencial e participação em alertas. O estado objetivo distingue `expirada` de `cancelada`/`suspensa`, nunca como falha.
+         */
+        get: operations["consultar_apolice_api_v1_segurados__segurado_id__apolice_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/segurados/{segurado_id}/apolice/explicacao/{elegibilidade_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar a explicação de critérios de uma execução
+         * @description Devolve os critérios relevantes à apólice (área, tipo, situação, cobertura) comparados pela regra determinística numa execução específica — sempre o snapshot da execução, nunca a apólice atual. Uma elegibilidade inexistente e uma de outro segurado devolvem exatamente a mesma resposta `404`.
+         */
+        get: operations["consultar_explicacao_api_v1_segurados__segurado_id__apolice_explicacao__elegibilidade_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -851,6 +891,37 @@ export interface components {
          * @description Falha da consulta do alerta, com ocorrência, impacto e próxima ação segura.
          */
         ProblemaAlertaSegurado: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
+         * ProblemaApoliceSegurado
+         * @description Falha da apólice/explicação, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaApoliceSegurado: {
             /**
              * Codigo
              * @description Código estável que identifica o tipo da falha.
@@ -1545,6 +1616,62 @@ export interface components {
             alerta: components["schemas"]["RespostaAlerta"] | null;
         };
         /**
+         * RespostaApolice
+         * @description Os dados da apólice exibíveis ao segurado ativo.
+         */
+        RespostaApolice: {
+            /**
+             * Numero
+             * @description Número da apólice.
+             */
+            numero: string;
+            /**
+             * Tipo
+             * @description Tipo da apólice (`residencial`/`automovel`).
+             */
+            tipo: string;
+            /**
+             * Situacao
+             * @description Situação cadastral (`ativa`/`cancelada`/`suspensa`).
+             */
+            situacao: string;
+            /**
+             * Estado Objetivo
+             * @description Estado objetivo textual — inclui `expirada` quando a vigência já passou, mesmo com `situacao='ativa'`. Nunca uma falha técnica.
+             */
+            estado_objetivo: string;
+            /**
+             * Vigencia Inicio
+             * @description Data de início de vigência (ISO 8601).
+             */
+            vigencia_inicio: string;
+            /**
+             * Vigencia Fim
+             * @description Data de fim de vigência (ISO 8601).
+             */
+            vigencia_fim: string;
+            /**
+             * Endereco Risco Sintetico
+             * @description Endereço sintético do risco.
+             */
+            endereco_risco_sintetico: string;
+            /**
+             * Coberturas
+             * @description Coberturas contratadas.
+             */
+            coberturas: string[];
+            /**
+             * Canal Preferido
+             * @description Canal de comunicação preferencial.
+             */
+            canal_preferido: string;
+            /**
+             * Participa De Alertas
+             * @description Se o segurado participa de alertas.
+             */
+            participa_de_alertas: boolean;
+        };
+        /**
          * RespostaApresentacaoSimulada
          * @description Como o conteúdo aprovado apareceria no canal, sempre rotulado como simulado.
          */
@@ -1968,6 +2095,32 @@ export interface components {
             /**
              * Justificativa
              * @description Explicação em português brasileiro do resultado.
+             */
+            justificativa: string;
+        };
+        /**
+         * RespostaCriterioApolice
+         * @description Um critério comparado pela regra determinística, relevante à apólice.
+         */
+        RespostaCriterioApolice: {
+            /**
+             * Operando
+             * @description O que foi comparado.
+             */
+            operando: string;
+            /**
+             * Valor Observado
+             * @description O valor observado no momento da avaliação.
+             */
+            valor_observado: string;
+            /**
+             * Atende
+             * @description Se o critério foi atendido.
+             */
+            atende: boolean;
+            /**
+             * Justificativa
+             * @description Explicação da comparação, sem promessa de cobertura.
              */
             justificativa: string;
         };
@@ -2846,6 +2999,23 @@ export interface components {
              * @description Estado agregado atual da execução.
              */
             estado: string;
+        };
+        /**
+         * RespostaExplicacaoApolice
+         * @description A explicação de critérios relevantes à apólice, do snapshot de uma execução.
+         */
+        RespostaExplicacaoApolice: {
+            /**
+             * Elegibilidade Id
+             * Format: uuid
+             * @description Identificador da elegibilidade de origem.
+             */
+            elegibilidade_id: string;
+            /**
+             * Criterios
+             * @description Critérios relevantes à apólice (área, tipo, situação, cobertura).
+             */
+            criterios: components["schemas"]["RespostaCriterioApolice"][];
         };
         /**
          * RespostaHistoricoSincronizacoes
@@ -5910,6 +6080,87 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaListaAlertas"];
+                };
+            };
+        };
+    };
+    consultar_apolice_api_v1_segurados__segurado_id__apolice_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                segurado_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Apólice encontrada para este segurado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaApolice"];
+                };
+            };
+            /** @description Segurado sem apólice, ou apólice de outro segurado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaApoliceSegurado"];
+                };
+            };
+            /** @description O identificador do segurado não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaApoliceSegurado"];
+                };
+            };
+        };
+    };
+    consultar_explicacao_api_v1_segurados__segurado_id__apolice_explicacao__elegibilidade_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                segurado_id: string;
+                elegibilidade_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Explicação encontrada para este segurado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaExplicacaoApolice"];
+                };
+            };
+            /** @description Elegibilidade inexistente ou de outro segurado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaApoliceSegurado"];
+                };
+            };
+            /** @description Algum identificador não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaApoliceSegurado"];
                 };
             };
         };
