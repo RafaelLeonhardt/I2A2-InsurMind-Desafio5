@@ -14,11 +14,23 @@ Corroborated across multiple features. Safe to apply as guidance.
 - evidence: spec.md Edge Cases - src/backend/central_preventiva/adaptadores/http/dados_sinteticos.py:146 (adaptadores/http) (+2 more)
 - last seen: 2026-09-04T20:20:21Z
 
+### L-006 - When a spec requires a real-browser behavior jsdom cannot simulate (e.g. 200% zoom, real layout/measurement), flag it explicitly as needing manual/UAT verification in the spec or tasks file instead of leaving it silently uncovered by the automated suite.
+- signal: `spec_precision_gap` · recurrence: 2 feature(s) · scope: `frontend/accessibility` · harmful: 0
+- features: 1-3-verificar-a-prontidao-das-dependencias, 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
+- evidence: PRONT-13 (validation.md P2: Operar a superficie por teclado e em zoom 200% AC2) (frontend/accessibility) (+1 more)
+- last seen: 2026-09-05T13:39:41Z
+
 ### L-013 - Fold port methods discovered during implementation back into the design document instead of leaving the deviation marker as their only record.
 - signal: `spec_deviation` · recurrence: 2 feature(s) · scope: `ports` · harmful: 0
 - features: 2-1-coletar-e-normalizar-dados-do-inmet, 4-3-registrar-a-primeira-visualizacao-do-comunicado
 - evidence: aplicacao/portas_meteorologia.py:86,95,112 (ports) (+1 more)
 - last seen: 2026-09-05T11:19:46Z
+
+### L-014 - Test the intersection where two derivation conditions hold at once, so branch priority order is pinned instead of incidental.
+- signal: `surviving_mutant` · recurrence: 2 feature(s) · scope: `frontend` · harmful: 0
+- features: 2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas, 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
+- evidence: validation.md Sensor #3 — SuperficieFonteMeteorologica.tsx:55-58 (frontend) (+1 more)
+- last seen: 2026-09-05T13:39:40Z
 
 ### L-024 - When a requirement demands distinction by text, icon and color, assert that all three signals differ across categories.
 - signal: `spec_precision_gap` · recurrence: 2 feature(s) · scope: `frontend` · harmful: 0
@@ -66,12 +78,6 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: PRONT-03 (validation.md P1: Ver a prontidao consolidada AC3) (backend/prontidao)
 - last seen: 2026-08-29T10:32:42Z
 
-### L-006 - When a spec requires a real-browser behavior jsdom cannot simulate (e.g. 200% zoom, real layout/measurement), flag it explicitly as needing manual/UAT verification in the spec or tasks file instead of leaving it silently uncovered by the automated suite.
-- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `frontend/accessibility` · harmful: 0
-- features: 1-3-verificar-a-prontidao-das-dependencias
-- evidence: PRONT-13 (validation.md P2: Operar a superficie por teclado e em zoom 200% AC2) (frontend/accessibility)
-- last seen: 2026-08-29T10:32:47Z
-
 ### L-007 - When a spec defines a literal fixed banner/label string, assert the exact combined text in a test, not just that its component substrings are each present somewhere in the DOM.
 - signal: `ac_gap` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
 - features: 1-4-alternar-o-contexto-demonstrativo
@@ -107,12 +113,6 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - features: 2-1-coletar-e-normalizar-dados-do-inmet
 - evidence: INMET-06 - SuperficieFonteMeteorologica.test.tsx:128 (frontend)
 - last seen: 2026-09-02T01:54:08Z
-
-### L-014 - Test the intersection where two derivation conditions hold at once, so branch priority order is pinned instead of incidental.
-- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
-- features: 2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas
-- evidence: validation.md Sensor #3 — SuperficieFonteMeteorologica.tsx:55-58 (frontend)
-- last seen: 2026-09-02T03:53:01Z
 
 ### L-015 - Implement and assert every noun listed in an acceptance criterion outcome, including derived values the API does not already return.
 - signal: `ac_gap` · recurrence: 1 feature(s) · scope: `backend` · harmful: 0
@@ -329,6 +329,30 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - features: 4-3-registrar-a-primeira-visualizacao-do-comunicado
 - evidence: src/backend/central_preventiva/aplicacao/visualizacao_comunicado.py:12-18 (SPEC_DEVIATION) (design,application)
 - last seen: 2026-09-05T11:19:46Z
+
+### L-054 - In an async component test, wait with waitFor or a timer tick before asserting that a discarded stale response did not render; a single microtask tick passes even when the staleness guard is removed.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
+- evidence: validation.md sensor M6 - src/frontend/src/funcionalidades/segurado/VisaoGeralSegurado.test.tsx:207 (frontend)
+- last seen: 2026-09-05T13:39:40Z
+
+### L-055 - Assert every field an acceptance criterion says the interface must display, including dates and timestamps rendered as plain text.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
+- evidence: validation.md sensor M8 - src/frontend/src/funcionalidades/segurado/VisaoGeralSegurado.tsx:170 (frontend)
+- last seen: 2026-09-05T13:39:41Z
+
+### L-056 - Do not write UI copy that promises navigation to surfaces a later story will build; describe only what the current shell actually offers.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
+- evidence: validation.md VISAO-04 - src/frontend/src/funcionalidades/segurado/VisaoGeralSegurado.tsx:133 (frontend)
+- last seen: 2026-09-05T13:39:41Z
+
+### L-057 - When a marked deviation drops a dependency that design.md declared, add a test that exercises the real seeded state the deviation was chosen for, so the justification cannot silently rot.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `design` · harmful: 0
+- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
+- evidence: validation.md SPEC_DEVIATION - src/backend/central_preventiva/aplicacao/alerta_segurado.py:14 (design)
+- last seen: 2026-09-05T13:39:41Z
 
 ## Quarantined (failed when applied - ignore)
 

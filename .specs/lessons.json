@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 54,
+  "next_id": 58,
   "lessons": [
     {
       "id": "L-001",
@@ -106,17 +106,19 @@
       "text": "When a spec requires a real-browser behavior jsdom cannot simulate (e.g. 200% zoom, real layout/measurement), flag it explicitly as needing manual/UAT verification in the spec or tasks file instead of leaving it silently uncovered by the automated suite.",
       "signal": "spec_precision_gap",
       "scope": "frontend/accessibility",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "1-3-verificar-a-prontidao-das-dependencias"
+        "1-3-verificar-a-prontidao-das-dependencias",
+        "5-1-compreender-o-alerta-mais-relevante-na-visao-geral"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "PRONT-13 (validation.md P2: Operar a superficie por teclado e em zoom 200% AC2) (frontend/accessibility)"
+        "PRONT-13 (validation.md P2: Operar a superficie por teclado e em zoom 200% AC2) (frontend/accessibility)",
+        "validation.md VISAO-07 - src/frontend/src/funcionalidades/segurado/VisaoGeralSegurado.test.tsx:286 (frontend/accessibility)"
       ],
       "created": "2026-08-29T10:32:47Z",
-      "last_seen": "2026-08-29T10:32:47Z"
+      "last_seen": "2026-09-05T13:39:41Z"
     },
     {
       "id": "L-007",
@@ -252,17 +254,19 @@
       "text": "Test the intersection where two derivation conditions hold at once, so branch priority order is pinned instead of incidental.",
       "signal": "surviving_mutant",
       "scope": "frontend",
-      "status": "candidate",
+      "status": "confirmed",
       "features": [
-        "2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas"
+        "2-2-operar-com-seguranca-durante-indisponibilidades-meteorologicas",
+        "5-1-compreender-o-alerta-mais-relevante-na-visao-geral"
       ],
-      "recurrence": 1,
+      "recurrence": 2,
       "harmful": 0,
       "evidence": [
-        "validation.md Sensor #3 — SuperficieFonteMeteorologica.tsx:55-58 (frontend)"
+        "validation.md Sensor #3 — SuperficieFonteMeteorologica.tsx:55-58 (frontend)",
+        "validation.md sensor M7 - src/frontend/src/funcionalidades/segurado/VisaoGeralSegurado.tsx:128 (frontend)"
       ],
       "created": "2026-09-02T03:53:01Z",
-      "last_seen": "2026-09-02T03:53:01Z"
+      "last_seen": "2026-09-05T13:39:40Z"
     },
     {
       "id": "L-015",
@@ -975,6 +979,78 @@
       ],
       "created": "2026-09-05T11:19:46Z",
       "last_seen": "2026-09-05T11:19:46Z"
+    },
+    {
+      "id": "L-054",
+      "key": "surviving_mutant::in an async component test wait with waitfor or a timer tick before asserting that a discarded stale response did not render a single microtask tick passes even when the staleness guard is removed",
+      "text": "In an async component test, wait with waitFor or a timer tick before asserting that a discarded stale response did not render; a single microtask tick passes even when the staleness guard is removed.",
+      "signal": "surviving_mutant",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "5-1-compreender-o-alerta-mais-relevante-na-visao-geral"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md sensor M6 - src/frontend/src/funcionalidades/segurado/VisaoGeralSegurado.test.tsx:207 (frontend)"
+      ],
+      "created": "2026-09-05T13:39:40Z",
+      "last_seen": "2026-09-05T13:39:40Z"
+    },
+    {
+      "id": "L-055",
+      "key": "surviving_mutant::assert every field an acceptance criterion says the interface must display including dates and timestamps rendered as plain text",
+      "text": "Assert every field an acceptance criterion says the interface must display, including dates and timestamps rendered as plain text.",
+      "signal": "surviving_mutant",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "5-1-compreender-o-alerta-mais-relevante-na-visao-geral"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md sensor M8 - src/frontend/src/funcionalidades/segurado/VisaoGeralSegurado.tsx:170 (frontend)"
+      ],
+      "created": "2026-09-05T13:39:41Z",
+      "last_seen": "2026-09-05T13:39:41Z"
+    },
+    {
+      "id": "L-056",
+      "key": "ac_gap::do not write ui copy that promises navigation to surfaces a later story will build describe only what the current shell actually offers",
+      "text": "Do not write UI copy that promises navigation to surfaces a later story will build; describe only what the current shell actually offers.",
+      "signal": "ac_gap",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "5-1-compreender-o-alerta-mais-relevante-na-visao-geral"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md VISAO-04 - src/frontend/src/funcionalidades/segurado/VisaoGeralSegurado.tsx:133 (frontend)"
+      ],
+      "created": "2026-09-05T13:39:41Z",
+      "last_seen": "2026-09-05T13:39:41Z"
+    },
+    {
+      "id": "L-057",
+      "key": "spec_deviation::when a marked deviation drops a dependency that design md declared add a test that exercises the real seeded state the deviation was chosen for so the justification cannot silently rot",
+      "text": "When a marked deviation drops a dependency that design.md declared, add a test that exercises the real seeded state the deviation was chosen for, so the justification cannot silently rot.",
+      "signal": "spec_deviation",
+      "scope": "design",
+      "status": "candidate",
+      "features": [
+        "5-1-compreender-o-alerta-mais-relevante-na-visao-geral"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md SPEC_DEVIATION - src/backend/central_preventiva/aplicacao/alerta_segurado.py:14 (design)"
+      ],
+      "created": "2026-09-05T13:39:41Z",
+      "last_seen": "2026-09-05T13:39:41Z"
     }
   ]
 }

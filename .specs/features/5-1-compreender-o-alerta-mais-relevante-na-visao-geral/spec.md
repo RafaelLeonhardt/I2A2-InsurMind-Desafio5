@@ -97,20 +97,20 @@
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| VISAO-01 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T1) | Implementing |
-| VISAO-02 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T2) | Implementing |
-| VISAO-03 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T2) | Implementing |
-| VISAO-04 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T1, T2) | Implementing |
-| VISAO-05 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T2) | Implementing |
-| VISAO-06 | P1: Estados vazio, degradado e de transição sem dado inventado | Design | Pending |
-| VISAO-07 | P2: Acessibilidade em teclado, zoom e largura suportada | Execute (T4) | Implementing |
-| VISAO-08 | P2: Acessibilidade em teclado, zoom e largura suportada | Execute (T4) | Implementing |
+| VISAO-01 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T1) | Needs Fix — período sem asserção de interface (validation.md, Fix 3) |
+| VISAO-02 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T2) | Needs Fix — horário sem asserção de interface (validation.md, Fix 3) |
+| VISAO-03 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T2) | Verified |
+| VISAO-04 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T1, T2) | Needs Fix — cópia promete navegação inexistente (validation.md, Fix 4) |
+| VISAO-05 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T2) | Verified |
+| VISAO-06 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T4) | Needs Fix — estado vazio não preservado sob erro (validation.md, Fix 2) |
+| VISAO-07 | P2: Acessibilidade em teclado, zoom e largura suportada | Execute (T4) | Verified (zoom 200% registrado como spec-precision gap: jsdom não simula) |
+| VISAO-08 | P2: Acessibilidade em teclado, zoom e largura suportada | Execute (T4) | Verified |
 
 **ID format:** `VISAO-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 8 total, 0 mapped to tasks, 8 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 8 total, 8 mapped to tasks, 0 unmapped — 4 Verified, 4 Needs Fix após a verificação independente (`validation.md`, diff `7fd35ca..98af09d`)
 
 ---
 
