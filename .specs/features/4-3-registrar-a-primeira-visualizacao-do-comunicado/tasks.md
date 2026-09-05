@@ -118,10 +118,10 @@ T4 → T5
 
 **Done when**:
 
-- [ ] Mensagem em `simulada_entregue`: `registrar_visualizacao` grava com sucesso
-- [ ] Mensagem em `falhou_conteudo`/`rejeitada`/`excluida`/ainda em `gerando`: levanta `MensagemNaoElegivelParaComunicado`, sem gravar
-- [ ] `obter_comunicado` com `entrega_simulada_id` de outro segurado retorna `None` (mesmo resultado de inexistente)
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Mensagem em `simulada_entregue`: `registrar_visualizacao` grava com sucesso
+- [x] Mensagem em `falhou_conteudo`/`rejeitada`/`excluida`/ainda em `gerando`: levanta `MensagemNaoElegivelParaComunicado`, sem gravar
+- [x] `obter_comunicado` com `entrega_simulada_id` de outro segurado retorna `None` (mesmo resultado de inexistente)
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick

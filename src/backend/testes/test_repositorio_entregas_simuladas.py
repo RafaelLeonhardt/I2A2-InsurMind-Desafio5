@@ -191,3 +191,31 @@ def test_segunda_entrega_da_mesma_mensagem_e_recusada_sem_duplicar(
 
     assert capturado.value.execucao_id == EXECUCAO_ID
     assert contar(caminho) == 1
+
+
+def test_obter_por_id_le_a_entrega_isoladamente(tmp_path: Path) -> None:
+    """4.3: o comunicado se resolve por `entrega_simulada_id`, sem conhecer a execução
+    de antemão."""
+
+    caminho = preparar(tmp_path)
+    repositorio = RepositorioEntregasSimuladas(caminho)
+    mensagem_id = uuid4()
+    [entrega_id] = repositorio.criar_lote(
+        EXECUCAO_ID, [MensagemAprovada(mensagem_id, Canal.SMS, SaidaCanal(corpo=CORPO_SMS))]
+    )
+
+    entrega = repositorio.obter_por_id(entrega_id)
+
+    assert entrega is not None
+    assert entrega.id == entrega_id
+    assert entrega.mensagem_id == mensagem_id
+    assert entrega.execucao_id == EXECUCAO_ID
+
+
+def test_obter_por_id_devolve_none_para_identificador_inexistente(tmp_path: Path) -> None:
+    """`obter_por_id` nunca inventa uma entrega — devolve `None` para um id desconhecido."""
+
+    caminho = preparar(tmp_path)
+    repositorio = RepositorioEntregasSimuladas(caminho)
+
+    assert repositorio.obter_por_id(uuid4()) is None

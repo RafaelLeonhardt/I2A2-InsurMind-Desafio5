@@ -160,6 +160,24 @@ class RepositorioEntregasSimuladas:
             ).fetchall()
         return [_entrega_de_linha(linha) for linha in linhas]
 
+    def obter_por_id(self, entrega_simulada_id: UUID) -> EntregaSimulada | None:
+        """Lê uma entrega simulada pelo identificador, ou `None` se não existir (4.3).
+
+        SPEC_DEVIATION: nenhum design anterior precisou resolver uma entrega isoladamente
+        (3.6/4.1 sempre liam o lote inteiro de uma execução); a 4.3 abre um comunicado por
+        `entrega_simulada_id`, sem conhecer a execução de antemão.
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            linha = conexao.execute(
+                "SELECT id, execucao_id, mensagem_id, canal, apresentacao, criado_em "
+                "FROM entregas_simuladas WHERE id = ?",
+                [entrega_simulada_id],
+            ).fetchone()
+        if linha is None:
+            return None
+        return _entrega_de_linha(linha)
+
 
 def _entrega_de_linha(linha: tuple[object, ...]) -> EntregaSimulada:
     """Traduz uma linha de `entregas_simuladas` para `EntregaSimulada`."""

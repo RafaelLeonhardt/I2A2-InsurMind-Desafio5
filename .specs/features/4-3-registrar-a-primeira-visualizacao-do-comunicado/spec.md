@@ -99,8 +99,8 @@ As Histórias 3.6/4.1/4.2 entregam entregas simuladas consultáveis por Marina, 
 | VISU-01 | P1: Primeira visualização registrada uma única vez | Execute (T1, T2) | Implementing |
 | VISU-02 | P1: Primeira visualização registrada uma única vez | Execute (T2) | Implementing |
 | VISU-03 | P1: Primeira visualização registrada uma única vez | Execute (T2) | Implementing |
-| VISU-04 | P1: Recusa de estados não elegíveis e apresentação sem ação administrativa | Design | Pending |
-| VISU-05 | P1: Recusa de estados não elegíveis e apresentação sem ação administrativa | Design | Pending |
+| VISU-04 | P1: Recusa de estados não elegíveis e apresentação sem ação administrativa | Execute (T3) | Implementing |
+| VISU-05 | P1: Recusa de estados não elegíveis e apresentação sem ação administrativa | Execute (T3) | Implementing |
 | VISU-06 | P2: Falha local sem antecipação visual do estado | Design | Pending |
 | VISU-07 | P2: Falha local sem antecipação visual do estado | Design | Pending |
 
@@ -108,7 +108,7 @@ As Histórias 3.6/4.1/4.2 entregam entregas simuladas consultáveis por Marina, 
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 7 total, 3 mapped to tasks (T1, T2), 4 unmapped
+**Coverage:** 7 total, 5 mapped to tasks (T1, T2, T3), 2 unmapped (VISU-06, VISU-07 — T5)
 
 ---
 
