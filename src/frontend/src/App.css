@@ -37,6 +37,7 @@ h1, h2 { font-family: 'Roboto Condensed', sans-serif; color: var(--navy); }
 h1 { max-width: 760px; margin: 0; font-size: clamp(2rem, 3.6vw, 3.25rem); line-height: 1.05; }
 h2 { margin: 0 0 .7rem; }
 .introducao { max-width: 720px; color: var(--muted); font-size: 1.05rem; }
+.aviso-fonte-degradada { display: flex; align-items: center; gap: .6rem; max-width: 720px; margin: 1rem 0; padding: .6rem .9rem; border-left: 4px solid var(--amber); border-radius: .25rem; background: #fffbeb; color: #7c2d12; font-weight: 600; }
 .alerta-principal { display: grid; grid-template-columns: auto 1fr; gap: 1rem; margin: 2rem 0; padding: 1.25rem; border: 1px solid var(--line); border-left: 5px solid var(--amber); border-radius: 7px; }
 .icone-alerta { width: 50px; height: 50px; display: grid; place-items: center; border-radius: 50%; color: var(--navy); background: var(--soft); }
 .nivel-risco { color: var(--orange); font-size: .78rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }

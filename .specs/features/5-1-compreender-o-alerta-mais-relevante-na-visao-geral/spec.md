@@ -103,8 +103,8 @@
 | VISAO-04 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T1, T2) | Implementing |
 | VISAO-05 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T2) | Implementing |
 | VISAO-06 | P1: Estados vazio, degradado e de transição sem dado inventado | Design | Pending |
-| VISAO-07 | P2: Acessibilidade em teclado, zoom e largura suportada | Design | Pending |
-| VISAO-08 | P2: Acessibilidade em teclado, zoom e largura suportada | Design | Pending |
+| VISAO-07 | P2: Acessibilidade em teclado, zoom e largura suportada | Execute (T4) | Implementing |
+| VISAO-08 | P2: Acessibilidade em teclado, zoom e largura suportada | Execute (T4) | Implementing |
 
 **ID format:** `VISAO-NN`
 

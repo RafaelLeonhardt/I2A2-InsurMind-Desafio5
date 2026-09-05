@@ -9,10 +9,12 @@ const {
   getSeguradoPadraoMock,
   restaurarDadosSinteticosMock,
   verificarDocumentacaoApiMock,
+  getAlertaMaisRelevanteMock,
 } = vi.hoisted(() => ({
   getSeguradoPadraoMock: vi.fn(),
   restaurarDadosSinteticosMock: vi.fn(),
   verificarDocumentacaoApiMock: vi.fn(),
+  getAlertaMaisRelevanteMock: vi.fn(),
 }))
 
 vi.mock('./api/contexto', async () => {
@@ -20,6 +22,14 @@ vi.mock('./api/contexto', async () => {
   return {
     ...real,
     getSeguradoPadrao: getSeguradoPadraoMock,
+  }
+})
+
+vi.mock('./api/alertaSegurado', async () => {
+  const real = await vi.importActual<typeof import('./api/alertaSegurado')>('./api/alertaSegurado')
+  return {
+    ...real,
+    getAlertaMaisRelevante: getAlertaMaisRelevanteMock,
   }
 })
 
@@ -52,6 +62,19 @@ beforeEach(() => {
     estado: 'disponivel',
     enderecoSwaggerUi: 'http://127.0.0.1:8000/docs',
     enderecoOpenApi: 'http://127.0.0.1:8000/openapi.json',
+  })
+  getAlertaMaisRelevanteMock.mockResolvedValue({
+    elegibilidadeId: '22222222-2222-2222-2222-222222222222',
+    eventoTipo: 'chuva_intensa',
+    severidade: '72.5 mm — Intensidade observada atinge o limiar de 50.0 mm.',
+    periodoInicio: '2026-09-04T12:00:00',
+    periodoFim: '2026-09-04T18:00:00',
+    localizacao: '9990001',
+    impactosEsperados: ['alagamento'],
+    recomendacoes: ['Evite áreas alagadas.'],
+    origem: 'real_inmet',
+    instanteObservado: '2026-09-04T18:00:00',
+    fonteDegradada: false,
   })
   window.localStorage.clear()
 })
@@ -107,7 +130,7 @@ describe('shell do contexto demonstrativo', () => {
     expect(screen.queryByRole('button', { name: 'Prontidão' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Restaurar dados sintéticos' })).not.toBeInTheDocument()
     expect(
-      screen.getByRole('heading', { name: 'Chuva intensa e rajadas de vento' }),
+      await screen.findByRole('heading', { name: 'Alerta preventivo para sua área' }),
     ).toBeInTheDocument()
   })
 

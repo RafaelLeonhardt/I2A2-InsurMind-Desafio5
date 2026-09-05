@@ -133,11 +133,11 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Nenhum texto fixo de alerta/localização/apólice/regra permanece no componente
-- [ ] Os 5 estados renderizam corretamente, com `Erro` preservando o último contexto válido exibido
-- [ ] Teste de navegação por teclado confirma ordem/foco/nomes acessíveis; teste de zoom 200% (viewport reduzido) confirma que nenhuma informação essencial desaparece
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Nenhum texto fixo de alerta/localização/apólice/regra permanece no componente
+- [x] Os 5 estados renderizam corretamente, com `Erro` preservando o último contexto válido exibido
+- [x] Teste de navegação por teclado confirma ordem/foco/nomes acessíveis; teste de zoom 200% (viewport reduzido) confirma que nenhuma informação essencial desaparece
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full

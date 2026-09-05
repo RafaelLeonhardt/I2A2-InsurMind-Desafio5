@@ -708,6 +708,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/segurados/{segurado_id}/alerta-mais-relevante": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o alerta mais relevante do segurado ativo
+         * @description Devolve o alerta mais relevante do segurado — tipo, severidade, período, localização, impactos e recomendações — ou `alerta: null` se não houver nenhum. Ausência de alerta é um resultado válido, nunca um erro `404`.
+         */
+        get: operations["consultar_alerta_api_v1_segurados__segurado_id__alerta_mais_relevante_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -785,6 +805,37 @@ export interface components {
              * @default administrador
              */
             perfil: string;
+        };
+        /**
+         * ProblemaAlertaSegurado
+         * @description Falha da consulta do alerta, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaAlertaSegurado: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
         };
         /**
          * ProblemaAvaliacaoCritica
@@ -1348,6 +1399,79 @@ export interface components {
              * @description Próxima ação segura recomendada para contornar a falha.
              */
             proxima_acao: string;
+        };
+        /**
+         * RespostaAlerta
+         * @description O alerta mais relevante exibível ao segurado ativo.
+         */
+        RespostaAlerta: {
+            /**
+             * Elegibilidade Id
+             * Format: uuid
+             * @description Identificador da elegibilidade de origem.
+             */
+            elegibilidade_id: string;
+            /**
+             * Evento Tipo
+             * @description Tipo do evento meteorológico (`chuva_intensa`/`granizo`).
+             */
+            evento_tipo: string;
+            /**
+             * Severidade
+             * @description Critério de risco observado que tornou o evento relevante.
+             */
+            severidade: string;
+            /**
+             * Periodo Inicio
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC de início do evento.
+             */
+            periodo_inicio: string;
+            /**
+             * Periodo Fim
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC de fim do evento.
+             */
+            periodo_fim: string;
+            /**
+             * Localizacao
+             * @description Área afetada, no mesmo código usado pela apólice.
+             */
+            localizacao: string;
+            /**
+             * Impactos Esperados
+             * @description Coberturas da apólice relevantes ao evento.
+             */
+            impactos_esperados: string[];
+            /**
+             * Recomendacoes
+             * @description Recomendações preventivas curtas e práticas.
+             */
+            recomendacoes: string[];
+            /**
+             * Origem
+             * @description Procedência do evento: `real_inmet` ou `sintetico`.
+             */
+            origem: string;
+            /**
+             * Instante Observado
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC em que o dado do evento foi observado.
+             */
+            instante_observado: string;
+            /**
+             * Fonte Degradada
+             * @description Se a fonte meteorológica real está degradada no momento da consulta — o alerta é o último snapshot disponível, de caráter apenas informativo.
+             */
+            fonte_degradada: boolean;
+        };
+        /**
+         * RespostaAlertaSegurado
+         * @description O alerta mais relevante do segurado, ou nulo se não houver nenhum.
+         */
+        RespostaAlertaSegurado: {
+            /** @description O alerta mais relevante, ou nulo se o segurado não tiver nenhum. */
+            alerta: components["schemas"]["RespostaAlerta"] | null;
         };
         /**
          * RespostaApresentacaoSimulada
@@ -5558,6 +5682,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaLinhaDoTempo"];
+                };
+            };
+        };
+    };
+    consultar_alerta_api_v1_segurados__segurado_id__alerta_mais_relevante_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                segurado_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Consulta realizada, com ou sem alerta. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaAlertaSegurado"];
+                };
+            };
+            /** @description O identificador do segurado não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaAlertaSegurado"];
                 };
             };
         };
