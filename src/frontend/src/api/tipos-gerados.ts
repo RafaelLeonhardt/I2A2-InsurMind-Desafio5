@@ -624,6 +624,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/execucoes/{execucao_id}/mensagens/{mensagem_id}/detalhe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o detalhe individual de um resultado de simulação
+         * @description Devolve segurado sintético, apólice, canal, conteúdo, horários, estado, evento, versão da regra e as aprovações agêntica e humana de origem de uma mensagem. Todas as tentativas de geração aparecem relacionadas à sua própria avaliação crítica e decisões humanas, na ordem cronológica. Uma mensagem inexistente e uma mensagem que existe mas pertence a outra execução devolvem exatamente a mesma resposta `404`, sem revelar a existência cruzada do registro.
+         */
+        get: operations["consultar_detalhe_api_v1_execucoes__execucao_id__mensagens__mensagem_id__detalhe_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -769,6 +789,37 @@ export interface components {
          * @description Falha da consulta do segurado padrão, com ocorrência, impacto e próxima ação segura.
          */
         ProblemaContexto: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
+         * ProblemaDetalheResultado
+         * @description Falha da consulta de detalhe, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaDetalheResultado: {
             /**
              * Codigo
              * @description Código estável que identifica o tipo da falha.
@@ -1173,6 +1224,32 @@ export interface components {
             proxima_acao: string;
         };
         /**
+         * RespostaApresentacaoSimulada
+         * @description Como o conteúdo aprovado apareceria no canal, sempre rotulado como simulado.
+         */
+        RespostaApresentacaoSimulada: {
+            /**
+             * Canal
+             * @description Canal em que a apresentação seria feita.
+             */
+            canal: string;
+            /**
+             * Assunto
+             * @description Assunto apresentado, só no canal de e-mail.
+             */
+            assunto: string | null;
+            /**
+             * Corpo
+             * @description Corpo apresentado, cópia exata do conteúdo aprovado.
+             */
+            corpo: string;
+            /**
+             * Rotulo
+             * @description Rótulo fixo da natureza da entrega: sempre 'simulada'.
+             */
+            rotulo: string;
+        };
+        /**
          * RespostaAvaliacaoCritica
          * @description Detalhe de uma avaliação: versão, critérios, decisão, motivos e proveniência.
          */
@@ -1237,6 +1314,43 @@ export interface components {
             criado_em: string;
             /** @description Veredito estrutural de 3.2 sobre a mesma versão, mantido separado. */
             validacao_deterministica: components["schemas"]["RespostaValidacaoDeterministica"];
+        };
+        /**
+         * RespostaAvaliacaoCriticaDetalhe
+         * @description Avaliação crítica de uma versão da mensagem.
+         */
+        RespostaAvaliacaoCriticaDetalhe: {
+            /**
+             * Aprovada
+             * @description Se o agente crítico aprovou esta versão.
+             */
+            aprovada: boolean;
+            /**
+             * Motivos
+             * @description Categorias dos motivos de reprovação, se houver.
+             */
+            motivos: string[];
+            /**
+             * Agente
+             * @description Nome do agente que avaliou.
+             */
+            agente: string;
+            /**
+             * Modelo
+             * @description Modelo da OpenAI usado na avaliação.
+             */
+            modelo: string;
+            /**
+             * Duracao Ms
+             * @description Duração da chamada de avaliação, em milissegundos.
+             */
+            duracao_ms: number;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro.
+             */
+            criado_em: string;
         };
         /**
          * RespostaAvaliacaoCriticaLote
@@ -1558,6 +1672,33 @@ export interface components {
             justificativa: string;
         };
         /**
+         * RespostaDecisaoHumanaDetalhe
+         * @description Decisão humana registrada sobre uma versão da mensagem.
+         */
+        RespostaDecisaoHumanaDetalhe: {
+            /**
+             * Perfil Responsavel
+             * @description Perfil de quem decidiu.
+             */
+            perfil_responsavel: string;
+            /**
+             * Resultado
+             * @description Resultado da decisão (`aprovar`, `rejeitar`, `excluir` ou `regenerar`).
+             */
+            resultado: string;
+            /**
+             * Justificativa
+             * @description Justificativa da decisão, obrigatória fora de 'aprovar'.
+             */
+            justificativa: string | null;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC da decisão.
+             */
+            criado_em: string;
+        };
+        /**
          * RespostaDecisaoLote
          * @description Desfecho do envio: o que foi aplicado, o que foi recusado e onde o agregado parou.
          */
@@ -1814,6 +1955,94 @@ export interface components {
             criado_em: string;
         };
         /**
+         * RespostaDetalheResultado
+         * @description Detalhe completo do resultado individual de uma mensagem simulada (DETALHE-01).
+         */
+        RespostaDetalheResultado: {
+            /**
+             * Mensagem Id
+             * Format: uuid
+             * @description Identificador da mensagem detalhada.
+             */
+            mensagem_id: string;
+            /**
+             * Execucao Id
+             * Format: uuid
+             * @description Execução a que a mensagem pertence.
+             */
+            execucao_id: string;
+            /**
+             * Canal
+             * @description Canal da mensagem (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
+             * Estado
+             * @description Estado de conteúdo atual da mensagem.
+             */
+            estado: string;
+            /**
+             * Limite Canal Corpo
+             * @description Limite de caracteres do corpo do canal.
+             */
+            limite_canal_corpo: number;
+            /**
+             * Limite Canal Assunto
+             * @description Limite de caracteres do assunto, só no canal de e-mail.
+             */
+            limite_canal_assunto: number | null;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC de criação.
+             */
+            criado_em: string;
+            /**
+             * Atualizado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC da última mudança.
+             */
+            atualizado_em: string;
+            /**
+             * Nome Segurado
+             * @description Segurado sintético destinatário.
+             */
+            nome_segurado: string;
+            /**
+             * Apolice Id
+             * Format: uuid
+             * @description Apólice sintética de referência.
+             */
+            apolice_id: string;
+            /**
+             * Codigo Ibge Area
+             * @description Área monitorada do segurado, no momento.
+             */
+            codigo_ibge_area: string;
+            /** @description Evento de origem da mensagem. */
+            evento: components["schemas"]["RespostaEventoDetalhe"] | null;
+            /**
+             * Regra Id
+             * Format: uuid
+             * @description Regra preventiva aplicada ao público do lote.
+             */
+            regra_id: string;
+            /**
+             * Regra Versao
+             * @description Versão da regra aplicada.
+             */
+            regra_versao: number;
+            /** @description Apresentação simulada já registrada, ou nula se ainda não simulada. */
+            apresentacao_simulada: components["schemas"]["RespostaApresentacaoSimulada"] | null;
+            /**
+             * Versoes
+             * @description Todas as tentativas de geração, da primeira à mais recente.
+             */
+            versoes: components["schemas"]["RespostaVersaoDetalhe"][];
+            /** @description Exceção técnica associada, presente só quando a mensagem falhou. */
+            excecao: components["schemas"]["RespostaExcecaoDetalhe"] | null;
+        };
+        /**
          * RespostaDistribuicaoCanal
          * @description Quantidade de mensagens do lote em um canal.
          */
@@ -1970,6 +2199,50 @@ export interface components {
             instante_observado: string;
         };
         /**
+         * RespostaEventoDetalhe
+         * @description Evento meteorológico que originou a mensagem detalhada.
+         */
+        RespostaEventoDetalhe: {
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador do evento meteorológico.
+             */
+            id: string;
+            /**
+             * Tipo
+             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
+             */
+            tipo: string;
+            /**
+             * Area
+             * @description Código de área monitorada afetada pelo evento.
+             */
+            area: string;
+            /**
+             * Intensidade
+             * @description Intensidade observada do evento.
+             */
+            intensidade: number;
+            /**
+             * Proveniencia
+             * @description Origem do evento (`real_inmet` ou `sintetico`).
+             */
+            proveniencia: string;
+            /**
+             * Periodo Inicio
+             * Format: date-time
+             * @description Início do período observado, em UTC.
+             */
+            periodo_inicio: string;
+            /**
+             * Periodo Fim
+             * Format: date-time
+             * @description Fim do período observado, em UTC.
+             */
+            periodo_fim: string;
+        };
+        /**
          * RespostaEventoLote
          * @description Evento meteorológico que originou a execução em revisão.
          */
@@ -2067,6 +2340,33 @@ export interface components {
              * @description Eventos meteorológicos, do mais recente.
              */
             eventos: components["schemas"]["RespostaEvento"][];
+        };
+        /**
+         * RespostaExcecaoDetalhe
+         * @description Exceção operacional associada à mensagem, quando ela falhou tecnicamente.
+         */
+        RespostaExcecaoDetalhe: {
+            /**
+             * Causa
+             * @description Código estável e sanitizado da causa da falha.
+             */
+            causa: string;
+            /**
+             * Tentativas
+             * @description Tentativas realizadas antes de esgotar o limite.
+             */
+            tentativas: number;
+            /**
+             * Impacto
+             * @description Efeito prático da falha, em português brasileiro.
+             */
+            impacto: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro.
+             */
+            criado_em: string;
         };
         /**
          * RespostaExecucao
@@ -3177,6 +3477,55 @@ export interface components {
              * @description Instante RFC 3339 em UTC em que a nova verificação foi aceita.
              */
             aceito_em: string;
+        };
+        /**
+         * RespostaVersaoDetalhe
+         * @description Uma tentativa de geração relacionada à sua avaliação crítica e decisões humanas.
+         */
+        RespostaVersaoDetalhe: {
+            /**
+             * Numero Tentativa
+             * @description Número da tentativa de geração.
+             */
+            numero_tentativa: number;
+            /**
+             * Valida
+             * @description Se a validação determinística aprovou a saída.
+             */
+            valida: boolean;
+            /**
+             * Motivo Invalidez
+             * @description Motivo estável da recusa, se houver.
+             */
+            motivo_invalidez: string | null;
+            /**
+             * Assunto
+             * @description Assunto gerado nesta tentativa, só em e-mail.
+             */
+            assunto: string | null;
+            /**
+             * Corpo
+             * @description Corpo gerado nesta tentativa.
+             */
+            corpo: string;
+            /**
+             * Modelo
+             * @description Modelo da OpenAI usado na geração.
+             */
+            modelo: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro da versão.
+             */
+            criado_em: string;
+            /** @description Avaliação crítica desta versão, ou nula se ainda não avaliada. */
+            avaliacao_critica: components["schemas"]["RespostaAvaliacaoCriticaDetalhe"] | null;
+            /**
+             * Decisoes Humanas
+             * @description Decisões humanas registradas sobre esta versão específica.
+             */
+            decisoes_humanas: components["schemas"]["RespostaDecisaoHumanaDetalhe"][];
         };
         /**
          * RespostaVersaoMensagem
@@ -4710,6 +5059,47 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaResultados"];
+                };
+            };
+        };
+    };
+    consultar_detalhe_api_v1_execucoes__execucao_id__mensagens__mensagem_id__detalhe_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execucao_id: string;
+                mensagem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mensagem encontrada na execução informada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaDetalheResultado"];
+                };
+            };
+            /** @description Mensagem inexistente ou pertencente a outra execução. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaDetalheResultado"];
+                };
+            };
+            /** @description Algum identificador informado não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaDetalheResultado"];
                 };
             };
         };

@@ -95,20 +95,20 @@ A História 4.1 entrega totais consolidados, mas Marina não consegue ainda abri
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| DETALHE-01 | P1: Detalhe completo do resultado individual | Execute (T1, T2) | Implementing |
-| DETALHE-02 | P1: Detalhe completo do resultado individual | Execute (T1, T2) | Implementing |
-| DETALHE-03 | P1: Detalhe completo do resultado individual | Execute (T1, T2) | Implementing |
-| DETALHE-04 | P1: Rastreabilidade de versões e isolamento entre registros | Execute (T1, T2) | Implementing |
+| DETALHE-01 | P1: Detalhe completo do resultado individual | Execute (T1, T2, T3) | Implementing |
+| DETALHE-02 | P1: Detalhe completo do resultado individual | Execute (T1, T2, T3) | Implementing |
+| DETALHE-03 | P1: Detalhe completo do resultado individual | Execute (T1, T2, T3) | Implementing |
+| DETALHE-04 | P1: Rastreabilidade de versões e isolamento entre registros | Execute (T1, T2, T3) | Implementing |
 | DETALHE-05 | P1: Rastreabilidade de versões e isolamento entre registros | Execute (T1, T2) | Implementing |
-| DETALHE-06 | P2: Navegação acessível sem empilhamento de camadas | Design | Pending |
-| DETALHE-07 | P2: Navegação acessível sem empilhamento de camadas | Design | Pending |
-| DETALHE-08 | P2: Navegação acessível sem empilhamento de camadas | Design | Pending |
+| DETALHE-06 | P2: Navegação acessível sem empilhamento de camadas | Execute (T3) | Implementing |
+| DETALHE-07 | P2: Navegação acessível sem empilhamento de camadas | Execute (T3) | Implementing |
+| DETALHE-08 | P2: Navegação acessível sem empilhamento de camadas | Execute (T3) | Implementing |
 
 **ID format:** `DETALHE-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 8 total, 5 mapped to tasks (T1), 3 unmapped (DETALHE-06..08 — T3)
+**Coverage:** 8 total, 8 mapped to tasks (T1, T2, T3)
 
 ---
 

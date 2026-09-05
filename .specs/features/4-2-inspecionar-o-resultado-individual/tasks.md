@@ -111,11 +111,11 @@ T2 → T3
 
 **Done when**:
 
-- [ ] Prévia de e-mail mostra assunto+corpo rotulados como simulação; WhatsApp/SMS mostram corpo+limite sem telefone
-- [ ] `Tab` não sai do drawer aberto; `Esc` fecha e devolve o foco ao elemento de origem
-- [ ] Abrir o drawer a partir de duas origens diferentes nunca empilha uma segunda camada modal
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Prévia de e-mail mostra assunto+corpo rotulados como simulação; WhatsApp/SMS mostram corpo+limite sem telefone
+- [x] `Tab` não sai do drawer aberto; `Esc` fecha e devolve o foco ao elemento de origem
+- [x] Abrir o drawer a partir de duas origens diferentes nunca empilha uma segunda camada modal
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full
