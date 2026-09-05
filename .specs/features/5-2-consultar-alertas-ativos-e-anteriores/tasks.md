@@ -88,11 +88,11 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Alerta com execução ainda não terminal de simulação classifica como "ainda não simulado"
-- [ ] Alerta com execução concluída dentro do período do evento classifica como "ativo"; fora, como "anterior"
-- [ ] `obter_detalhe` de `elegibilidade_id` de outro segurado retorna `None`, mesmo resultado de inexistente
-- [ ] `obter_detalhe` de alerta válido retorna origem, período, localização, impactos, recomendações, contexto da apólice, linha do tempo
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Alerta com execução ainda não terminal de simulação classifica como "ainda não simulado"
+- [x] Alerta com execução concluída dentro do período do evento classifica como "ativo"; fora, como "anterior"
+- [x] `obter_detalhe` de `elegibilidade_id` de outro segurado retorna `None`, mesmo resultado de inexistente
+- [x] `obter_detalhe` de alerta válido retorna origem, período, localização, impactos, recomendações, contexto da apólice, linha do tempo
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick

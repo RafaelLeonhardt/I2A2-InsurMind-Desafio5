@@ -129,6 +129,12 @@ class ServicoAlertaSegurado:
         registro = self._portas.elegibilidades.obter_mais_recente_por_segurado(segurado_id)
         if registro is None:
             return None
+        return self.montar_para_registro(registro)
+
+    def montar_para_registro(self, registro: RegistroElegibilidade) -> AlertaSegurado:
+        """Monta o `AlertaSegurado` de um registro de elegibilidade já resolvido (5.2:
+        reusado por `ServicoListaAlertasSegurado` para cada item da lista/detalhe, não só
+        para o mais recente)."""
 
         evento = self._portas.eventos.buscar_por_id(registro.evento_id)
         assert evento is not None, (
