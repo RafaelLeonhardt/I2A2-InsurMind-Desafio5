@@ -66,11 +66,11 @@ T2 → T3
 
 **Done when**:
 
-- [ ] Mensagem de e-mail retorna assunto+corpo, segurado, apólice, canal, horários, estado, evento, versão da regra, aprovação agêntica e humana
-- [ ] Mensagem de WhatsApp/SMS retorna corpo+limite validado, sem nenhum campo de telefone real
-- [ ] Mensagem com 3 versões (2 reprovadas + 1 aprovada) retorna as 3 relacionadas às suas críticas/decisões, na ordem correta
-- [ ] `mensagem_id` de outra `execucao_id` retorna o mesmo resultado (`None`) que um `mensagem_id` inexistente
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Mensagem de e-mail retorna assunto+corpo, segurado, apólice, canal, horários, estado, evento, versão da regra, aprovação agêntica e humana
+- [x] Mensagem de WhatsApp/SMS retorna corpo+limite validado, sem nenhum campo de telefone real
+- [x] Mensagem com 3 versões (2 reprovadas + 1 aprovada) retorna as 3 relacionadas às suas críticas/decisões, na ordem correta
+- [x] `mensagem_id` de outra `execucao_id` retorna o mesmo resultado (`None`) que um `mensagem_id` inexistente
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick

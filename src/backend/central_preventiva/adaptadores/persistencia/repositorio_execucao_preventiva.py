@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from uuid import UUID, uuid4
 
 import duckdb
@@ -272,6 +272,19 @@ def _snapshot_de_linha(linha: tuple[object, ...]) -> SnapshotExecucao:
     )
 
 
+@dataclass(frozen=True, slots=True)
+class RegistroExcecaoOperacional:
+    """Uma `Exceção` operacional persistida, com causa, tentativas e impacto sanitizados."""
+
+    id: UUID
+    execucao_id: UUID
+    causa: str
+    tentativas: int
+    impacto: str
+    mensagem_id: UUID | None
+    criado_em: datetime
+
+
 class RepositorioExcecoesOperacionais:
     """Registra a `Exceção` operacional de uma execução ou de uma mensagem específica.
 
@@ -325,3 +338,30 @@ class RepositorioExcecoesOperacionais:
                 "VALUES (?, ?, ?, ?, ?, ?)",
                 [uuid4(), execucao_id, causa, tentativas, impacto, mensagem_id],
             )
+
+    def obter_por_mensagem(self, mensagem_id: UUID) -> RegistroExcecaoOperacional | None:
+        """Lê a `Exceção` operacional mais recente de uma mensagem (4.2, `DETALHE-01`).
+
+        Uma mensagem alcança `falhou_conteudo`/`falhou_integracao_ia` uma única vez — o
+        terminal nunca reabre (AD-7) — então nunca há mais de uma linha real por mensagem;
+        `ORDER BY criado_em DESC LIMIT 1` é só uma garantia defensiva de determinismo.
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            linha = conexao.execute(
+                "SELECT id, execucao_id, causa, tentativas, impacto, mensagem_id, criado_em "
+                "FROM excecoes_operacionais WHERE mensagem_id = ? "
+                "ORDER BY criado_em DESC LIMIT 1",
+                [mensagem_id],
+            ).fetchone()
+        if linha is None:
+            return None
+        return RegistroExcecaoOperacional(
+            id=UUID(str(linha[0])),
+            execucao_id=UUID(str(linha[1])),
+            causa=str(linha[2]),
+            tentativas=int(linha[3]),  # type: ignore[arg-type]
+            impacto=str(linha[4]),
+            mensagem_id=None if linha[5] is None else UUID(str(linha[5])),
+            criado_em=cast(datetime, linha[6]),
+        )
