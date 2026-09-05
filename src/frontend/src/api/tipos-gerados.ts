@@ -728,6 +728,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/segurados/{segurado_id}/alertas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar todos os alertas do segurado ativo
+         * @description Devolve todos os alertas `incluido` do segurado, mais recentes primeiro, cada um classificado como `ativo`, `anterior` ou `ainda_nao_simulado`. Lista vazia quando o segurado não tiver nenhum alerta.
+         */
+        get: operations["listar_alertas_api_v1_segurados__segurado_id__alertas_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/segurados/{segurado_id}/alertas/{elegibilidade_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o detalhe de um alerta do segurado ativo
+         * @description Devolve o detalhe completo de um alerta — alerta, classificação, contexto da apólice e linha do tempo da execução. Um alerta inexistente e um alerta de outro segurado devolvem exatamente a mesma resposta `404`.
+         */
+        get: operations["consultar_detalhe_alerta_api_v1_segurados__segurado_id__alertas__elegibilidade_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1059,6 +1099,37 @@ export interface components {
          * @description Falha da linha do tempo/busca, com ocorrência, impacto e próxima ação segura.
          */
         ProblemaLinhaDoTempo: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
+         * ProblemaListaAlertas
+         * @description Falha da lista/detalhe de alertas, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaListaAlertas: {
             /**
              * Codigo
              * @description Código estável que identifica o tipo da falha.
@@ -2179,6 +2250,36 @@ export interface components {
             canal: string;
         };
         /**
+         * RespostaDetalheAlerta
+         * @description O detalhe completo de um alerta: alerta, classificação, contexto da apólice e
+         *     linha do tempo da execução que o produziu.
+         */
+        RespostaDetalheAlerta: {
+            /** @description O alerta. */
+            alerta: components["schemas"]["RespostaAlerta"];
+            /**
+             * Classificacao
+             * @description `ativo`, `anterior` ou `ainda_nao_simulado`.
+             */
+            classificacao: string;
+            /**
+             * Apolice Id
+             * Format: uuid
+             * @description Apólice que originou a elegibilidade.
+             */
+            apolice_id: string;
+            /**
+             * Justificativa
+             * @description Por que o segurado é elegível a este alerta.
+             */
+            justificativa: string;
+            /**
+             * Linha Do Tempo
+             * @description Marcos da execução que produziu este alerta; vazia se a elegibilidade não tiver execução associada (linha semeada de demonstração).
+             */
+            linha_do_tempo: components["schemas"]["RespostaMarcoLinhaDoTempo"][];
+        };
+        /**
          * RespostaDetalheElegibilidade
          * @description Explicação completa de um resultado de elegibilidade (ELEG-09).
          */
@@ -2767,6 +2868,19 @@ export interface components {
             resultados_anteriores: components["schemas"]["RespostaSincronizacao"][];
         };
         /**
+         * RespostaItemAlerta
+         * @description Um item da lista de alertas: o alerta e sua classificação.
+         */
+        RespostaItemAlerta: {
+            /** @description O alerta. */
+            alerta: components["schemas"]["RespostaAlerta"];
+            /**
+             * Classificacao
+             * @description `ativo`, `anterior` ou `ainda_nao_simulado`.
+             */
+            classificacao: string;
+        };
+        /**
          * RespostaItemLote
          * @description Uma mensagem do lote, com tudo que a decisão humana precisa (REVISAO-03).
          */
@@ -2880,6 +2994,17 @@ export interface components {
              * @description Execuções criadas como nova tentativa a partir desta.
              */
             retentativas: string[];
+        };
+        /**
+         * RespostaListaAlertas
+         * @description A lista completa de alertas do segurado.
+         */
+        RespostaListaAlertas: {
+            /**
+             * Alertas
+             * @description Todos os alertas do segurado, mais recentes primeiro.
+             */
+            alertas: components["schemas"]["RespostaItemAlerta"][];
         };
         /**
          * RespostaLoteRevisao
@@ -5713,6 +5838,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaAlertaSegurado"];
+                };
+            };
+        };
+    };
+    listar_alertas_api_v1_segurados__segurado_id__alertas_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                segurado_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Consulta realizada, com ou sem alertas. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaListaAlertas"];
+                };
+            };
+            /** @description O identificador do segurado não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaListaAlertas"];
+                };
+            };
+        };
+    };
+    consultar_detalhe_alerta_api_v1_segurados__segurado_id__alertas__elegibilidade_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                segurado_id: string;
+                elegibilidade_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Alerta encontrado para este segurado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaDetalheAlerta"];
+                };
+            };
+            /** @description Alerta inexistente ou de outro segurado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaListaAlertas"];
+                };
+            };
+            /** @description Algum identificador não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaListaAlertas"];
                 };
             };
         };

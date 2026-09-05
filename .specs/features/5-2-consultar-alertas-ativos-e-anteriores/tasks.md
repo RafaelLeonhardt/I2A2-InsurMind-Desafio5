@@ -133,11 +133,11 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Ativos e anteriores distinguíveis por rótulo+ícone+texto, não só cor
-- [ ] Seleção de pino no mapa e na lista equivalente produzem o mesmo resultado
-- [ ] Estado vazio explicativo mantém navegação para as demais superfícies
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Ativos e anteriores distinguíveis por rótulo+ícone+texto, não só cor
+- [x] Seleção de pino no mapa e na lista equivalente produzem o mesmo resultado (SPEC_DEVIATION: nenhum componente de mapa existe no projeto — a lista/tabela é a única representação, satisfazendo a equivalência por construção, mesma decisão de 2.1)
+- [x] Estado vazio explicativo mantém navegação para as demais superfícies
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full

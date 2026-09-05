@@ -96,7 +96,7 @@ A História 5.1 entrega só o alerta mais relevante na Visão geral, mas Carlos 
 | ALERTAS-01 | P1: Lista de alertas distinguindo ativos e anteriores | Execute (T1) | Implementing |
 | ALERTAS-02 | P1: Lista de alertas distinguindo ativos e anteriores | Execute (T1) | Implementing |
 | ALERTAS-03 | P1: Detalhe do alerta com equivalência de mapa e lista | Execute (T2) | Implementing |
-| ALERTAS-04 | P1: Detalhe do alerta com equivalência de mapa e lista | Design | Pending |
+| ALERTAS-04 | P1: Detalhe do alerta com equivalência de mapa e lista | Execute (T4) | Implementing |
 | ALERTAS-05 | P1: Isolamento por segurado e estados não simulados | Execute (T2) | Implementing |
 | ALERTAS-06 | P1: Isolamento por segurado e estados não simulados | Execute (T2) | Implementing |
 
