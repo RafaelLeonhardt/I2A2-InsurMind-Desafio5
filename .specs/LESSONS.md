@@ -354,6 +354,36 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation.md SPEC_DEVIATION - src/backend/central_preventiva/aplicacao/alerta_segurado.py:14 (design)
 - last seen: 2026-09-05T13:39:41Z
 
+### L-058 - When a boolean state flag selects which of two mutually exclusive states renders, assert the branch where it still holds its initial value, not only the branch after it flips.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
+- evidence: M9 — VisaoGeralSegurado.tsx:67 (validation.md rodada 2) (frontend)
+- last seen: 2026-09-05T21:41:14Z
+
+### L-059 - In a route's happy-path test, assert every field of the response contract; assertions on the use case's DTO do not discriminate the route's own field mapping.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
+- evidence: M11 — src/backend/testes/test_alerta_segurado_api.py:96 (validation.md rodada 2) (routes)
+- last seen: 2026-09-05T21:41:21Z
+
+### L-060 - A fix that only deletes misleading copy needs an assertion that the copy stays deleted, or nothing prevents it from returning.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
+- evidence: VISAO-04 — src/frontend/src/funcionalidades/segurado/VisaoGeralSegurado.tsx:132 (validation.md rodada 2) (frontend)
+- last seen: 2026-09-05T21:41:21Z
+
+### L-061 - A response field whose only assertion is its happy-path value is not discriminated; add a route case where the field takes its other value (synthetic origin, degraded source, false-to-true flag).
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `routes` · harmful: 0
+- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
+- evidence: M14/M15 — src/backend/central_preventiva/adaptadores/http/alerta_segurado.py:115,117 (validation.md rodada 3) (routes)
+- last seen: 2026-09-05T22:03:13Z
+
+### L-062 - Before closing a feature, check that every scenario the Test Coverage Matrix names for each layer exists as a real test; a planned scenario can go missing without any gate failing.
+- signal: `ac_gap` · recurrence: 1 feature(s) · harmful: 0
+- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral
+- evidence: VISAO-05 — tasks.md Test Coverage Matrix (roteador HTTP: fonte degradada) sem teste correspondente (validation.md rodada 3)
+- last seen: 2026-09-05T22:03:19Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

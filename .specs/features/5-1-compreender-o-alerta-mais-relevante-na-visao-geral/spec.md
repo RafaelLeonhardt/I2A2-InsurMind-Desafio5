@@ -97,12 +97,12 @@
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| VISAO-01 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T1) | Needs Fix — período sem asserção de interface (validation.md, Fix 3) |
-| VISAO-02 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T2) | Needs Fix — horário sem asserção de interface (validation.md, Fix 3) |
-| VISAO-03 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T2) | Verified |
-| VISAO-04 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T1, T2) | Needs Fix — cópia promete navegação inexistente (validation.md, Fix 4) |
-| VISAO-05 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T2) | Verified |
-| VISAO-06 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T4) | Needs Fix — estado vazio não preservado sob erro (validation.md, Fix 2) |
+| VISAO-01 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T1) | Verified — período assertado na aplicação, na rota (`testes/test_alerta_segurado_api.py:104-105`) e na interface (`VisaoGeralSegurado.test.tsx:88-90`); mutantes M8a e M11 mortos (rodada 3) |
+| VISAO-02 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T2, T3) | Verified — procedência agora discriminada nas três camadas, incluindo a fronteira HTTP: `testes/test_alerta_segurado_api.py::test_consultar_alerta_de_evento_sintetico_devolve_origem_sintetico` mata o mutante M14 (`validation.md`, fechamento pós-escalação) |
+| VISAO-03 | P1: Alerta mais relevante com origem e horário visíveis | Execute (T2) | Verified (linguagem "não alarmista" registrada como spec-precision gap) |
+| VISAO-04 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T1, T2) | Verified (parcial) — a cópia falsa sobre navegação foi removida e agora está **protegida por regressão** (`VisaoGeralSegurado.test.tsx:198`, mutante M12 morto); a cláusula "mantendo Apólice, Comunicados e Meus Dados acessíveis" fica **deferida** para as histórias que criam essas superfícies (5.2/5.3/5.5), já que hoje a navegação do perfil Segurado tem somente "Visão geral" (`src/frontend/src/App.test.tsx:127-134`) |
+| VISAO-05 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T2, T3) | Verified — idade renderizada assertada (`VisaoGeralSegurado.test.tsx:166`, M13 morto) e o caso "fonte degradada" agora coberto na camada do roteador HTTP: `testes/test_alerta_segurado_api.py::test_consultar_alerta_com_fonte_degradada_devolve_fonte_degradada_true` mata o mutante M15 (`validation.md`, fechamento pós-escalação) |
+| VISAO-06 | P1: Estados vazio, degradado e de transição sem dado inventado | Execute (T4) | Verified — os 5 estados discriminados, incluindo `Erro` × `Sem alerta` numa primeira carga que falha (`VisaoGeralSegurado.test.tsx:263,266`, mutante M9 morto) e a preservação do último contexto válido nos casos *Alerta* e *Sem alerta* (M5, M7 mortos) |
 | VISAO-07 | P2: Acessibilidade em teclado, zoom e largura suportada | Execute (T4) | Verified (zoom 200% registrado como spec-precision gap: jsdom não simula) |
 | VISAO-08 | P2: Acessibilidade em teclado, zoom e largura suportada | Execute (T4) | Verified |
 
@@ -110,7 +110,7 @@
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 8 total, 8 mapped to tasks, 0 unmapped — 4 Verified, 4 Needs Fix após a verificação independente (`validation.md`, diff `7fd35ca..98af09d`)
+**Coverage:** 8 total, 8 mapped to tasks, 0 unmapped — 7 Verified, 1 Verified (parcial, cláusula deferida a 5.2/5.3/5.5). O laço de 3 iterações fix→re-verify do Verifier esgotou-se na rodada 3 com 2 gaps residuais (VISAO-02, VISAO-05), ambos de discriminação de teste na fronteira HTTP, não defeitos de produto; o usuário autorizou a correção pontual fora do laço (dois testes novos em `testes/test_alerta_segurado_api.py`, commit `17f9182`), confirmada empiricamente pelo orquestrador (mutantes M14/M15 mortos em worktree descartável). Ver `validation.md` — "Fechamento pós-escalação" — para o veredito final: ✅ PASS.
 
 ---
 
