@@ -114,23 +114,23 @@ As Histórias 4.1–4.3 entregam totais, detalhe individual e visualização pel
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| TIMELINE-01 | P1: Cronologia completa com marcos correlacionados | Execute (T1, T3) | Implementing |
-| TIMELINE-02 | P1: Cronologia completa com marcos correlacionados | Execute (T1) | Implementing |
-| TIMELINE-03 | P1: Cronologia completa com marcos correlacionados | Execute (T1) | Implementing |
-| TIMELINE-04 | P1: Cronologia completa com marcos correlacionados | Execute (T1) | Implementing |
-| TIMELINE-05 | P1: Navegação entre execuções correlacionadas | Execute (T1) | Implementing |
-| TIMELINE-06 | P1: Marco único de visualização e ausência de duplicação | Execute (T1) | Implementing |
-| TIMELINE-07 | P1: Marco único de visualização e ausência de duplicação | Execute (T1) | Implementing |
-| TIMELINE-08 | P2: Pesquisa, localização temporal e acessibilidade | Execute (T2, T3) | Implementing |
-| TIMELINE-09 | P2: Pesquisa, localização temporal e acessibilidade | Execute (T2, T3) | Implementing |
-| TIMELINE-10 | P2: Pesquisa, localização temporal e acessibilidade | Execute (T4) | Implementing |
-| TIMELINE-11 | P2: Pesquisa, localização temporal e acessibilidade | Execute (T4) | Implementing |
+| TIMELINE-01 | P1: Cronologia completa com marcos correlacionados | Execute (T1, T3) | Verified |
+| TIMELINE-02 | P1: Cronologia completa com marcos correlacionados | Execute (T1) | Verified |
+| TIMELINE-03 | P1: Cronologia completa com marcos correlacionados | Execute (T1) | Verified |
+| TIMELINE-04 | P1: Cronologia completa com marcos correlacionados | Execute (T1) | Verified |
+| TIMELINE-05 | P1: Navegação entre execuções correlacionadas | Execute (T1) | Verified |
+| TIMELINE-06 | P1: Marco único de visualização e ausência de duplicação | Execute (T1) | Verified |
+| TIMELINE-07 | P1: Marco único de visualização e ausência de duplicação | Execute (T1) | Verified |
+| TIMELINE-08 | P2: Pesquisa, localização temporal e acessibilidade | Execute (T2, T3) | Verified |
+| TIMELINE-09 | P2: Pesquisa, localização temporal e acessibilidade | Execute (T2, T3) | Verified |
+| TIMELINE-10 | P2: Pesquisa, localização temporal e acessibilidade | Execute (T4) | Verified |
+| TIMELINE-11 | P2: Pesquisa, localização temporal e acessibilidade | Execute (T4) | Verified |
 
 **ID format:** `TIMELINE-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 11 total, 11 mapped to tasks (T1, T2, T3, T4)
+**Coverage:** 11 total, 11 verified (T1, T2, T3, T4) — see `validation.md`
 
 ---
 
