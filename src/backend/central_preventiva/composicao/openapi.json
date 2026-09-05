@@ -467,6 +467,46 @@
         "title": "ProblemaLinhaDoTempo",
         "type": "object"
       },
+      "ProblemaListaAlertas": {
+        "additionalProperties": false,
+        "description": "Falha da lista/detalhe de alertas, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaListaAlertas",
+        "type": "object"
+      },
       "ProblemaMensagens": {
         "additionalProperties": false,
         "description": "Falha da consulta de mensagens, com ocorrência, impacto e próxima ação segura.",
@@ -2014,6 +2054,49 @@
         "title": "RespostaDestinatario",
         "type": "object"
       },
+      "RespostaDetalheAlerta": {
+        "additionalProperties": false,
+        "description": "O detalhe completo de um alerta: alerta, classificação, contexto da apólice e\nlinha do tempo da execução que o produziu.",
+        "properties": {
+          "alerta": {
+            "$ref": "#/components/schemas/RespostaAlerta",
+            "description": "O alerta."
+          },
+          "apolice_id": {
+            "description": "Apólice que originou a elegibilidade.",
+            "format": "uuid",
+            "title": "Apolice Id",
+            "type": "string"
+          },
+          "classificacao": {
+            "description": "`ativo`, `anterior` ou `ainda_nao_simulado`.",
+            "title": "Classificacao",
+            "type": "string"
+          },
+          "justificativa": {
+            "description": "Por que o segurado é elegível a este alerta.",
+            "title": "Justificativa",
+            "type": "string"
+          },
+          "linha_do_tempo": {
+            "description": "Marcos da execução que produziu este alerta; vazia se a elegibilidade não tiver execução associada (linha semeada de demonstração).",
+            "items": {
+              "$ref": "#/components/schemas/RespostaMarcoLinhaDoTempo"
+            },
+            "title": "Linha Do Tempo",
+            "type": "array"
+          }
+        },
+        "required": [
+          "alerta",
+          "classificacao",
+          "apolice_id",
+          "justificativa",
+          "linha_do_tempo"
+        ],
+        "title": "RespostaDetalheAlerta",
+        "type": "object"
+      },
       "RespostaDetalheElegibilidade": {
         "additionalProperties": false,
         "description": "Explicação completa de um resultado de elegibilidade (ELEG-09).",
@@ -2864,6 +2947,27 @@
         "title": "RespostaHistoricoSincronizacoes",
         "type": "object"
       },
+      "RespostaItemAlerta": {
+        "additionalProperties": false,
+        "description": "Um item da lista de alertas: o alerta e sua classificação.",
+        "properties": {
+          "alerta": {
+            "$ref": "#/components/schemas/RespostaAlerta",
+            "description": "O alerta."
+          },
+          "classificacao": {
+            "description": "`ativo`, `anterior` ou `ainda_nao_simulado`.",
+            "title": "Classificacao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "alerta",
+          "classificacao"
+        ],
+        "title": "RespostaItemAlerta",
+        "type": "object"
+      },
       "RespostaItemLote": {
         "additionalProperties": false,
         "description": "Uma mensagem do lote, com tudo que a decisão humana precisa (REVISAO-03).",
@@ -3041,6 +3145,25 @@
           "retentativas"
         ],
         "title": "RespostaLinhaDoTempo",
+        "type": "object"
+      },
+      "RespostaListaAlertas": {
+        "additionalProperties": false,
+        "description": "A lista completa de alertas do segurado.",
+        "properties": {
+          "alertas": {
+            "description": "Todos os alertas do segurado, mais recentes primeiro.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaItemAlerta"
+            },
+            "title": "Alertas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "alertas"
+        ],
+        "title": "RespostaListaAlertas",
         "type": "object"
       },
       "RespostaLoteRevisao": {
@@ -7136,6 +7259,111 @@
         "summary": "Consultar o alerta mais relevante do segurado ativo",
         "tags": [
           "Alerta do segurado"
+        ]
+      }
+    },
+    "/api/v1/segurados/{segurado_id}/alertas": {
+      "get": {
+        "description": "Devolve todos os alertas `incluido` do segurado, mais recentes primeiro, cada um classificado como `ativo`, `anterior` ou `ainda_nao_simulado`. Lista vazia quando o segurado não tiver nenhum alerta.",
+        "operationId": "listar_alertas_api_v1_segurados__segurado_id__alertas_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "segurado_id",
+            "required": true,
+            "schema": {
+              "title": "Segurado Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaListaAlertas"
+                }
+              }
+            },
+            "description": "Consulta realizada, com ou sem alertas."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaListaAlertas"
+                }
+              }
+            },
+            "description": "O identificador do segurado não é um UUID válido."
+          }
+        },
+        "summary": "Listar todos os alertas do segurado ativo",
+        "tags": [
+          "Alertas do segurado"
+        ]
+      }
+    },
+    "/api/v1/segurados/{segurado_id}/alertas/{elegibilidade_id}": {
+      "get": {
+        "description": "Devolve o detalhe completo de um alerta — alerta, classificação, contexto da apólice e linha do tempo da execução. Um alerta inexistente e um alerta de outro segurado devolvem exatamente a mesma resposta `404`.",
+        "operationId": "consultar_detalhe_alerta_api_v1_segurados__segurado_id__alertas__elegibilidade_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "segurado_id",
+            "required": true,
+            "schema": {
+              "title": "Segurado Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "elegibilidade_id",
+            "required": true,
+            "schema": {
+              "title": "Elegibilidade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaDetalheAlerta"
+                }
+              }
+            },
+            "description": "Alerta encontrado para este segurado."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaListaAlertas"
+                }
+              }
+            },
+            "description": "Alerta inexistente ou de outro segurado."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaListaAlertas"
+                }
+              }
+            },
+            "description": "Algum identificador não é um UUID válido."
+          }
+        },
+        "summary": "Consultar o detalhe de um alerta do segurado ativo",
+        "tags": [
+          "Alertas do segurado"
         ]
       }
     },

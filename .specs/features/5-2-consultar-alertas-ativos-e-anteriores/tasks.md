@@ -111,10 +111,10 @@ T3 → T4
 
 **Done when**:
 
-- [ ] `GET` da lista retorna `200` com todos os alertas classificados
-- [ ] `GET` do detalhe de outro segurado retorna `404` genérico idêntico ao de inexistente
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `GET` da lista retorna `200` com todos os alertas classificados
+- [x] `GET` do detalhe de outro segurado retorna `404` genérico idêntico ao de inexistente
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full
