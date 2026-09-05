@@ -457,3 +457,70 @@ def test_execucao_inexistente_devolve_none(tmp_path: Path) -> None:
     cenario = Cenario(tmp_path)
 
     assert cenario.servico.montar(uuid4()) is None
+
+
+def test_buscar_execucoes_por_canal_traz_so_as_que_tem_mensagem_nesse_canal(
+    tmp_path: Path,
+) -> None:
+    """TIMELINE-08: filtro por canal retorna só execuções com mensagem nesse canal."""
+
+    cenario = Cenario(tmp_path)
+    cenario.mensagem(canal=Canal.EMAIL)
+    outra_execucao_id = cenario.execucoes.criar(EstadoExecucao.CONCLUIDA)
+    cenario.mensagem(canal=Canal.SMS, execucao_id=outra_execucao_id)
+
+    resultado = cenario.servico.buscar_execucoes(canal=Canal.EMAIL)
+
+    assert [item.execucao_id for item in resultado] == [cenario.execucao_id]
+
+
+def test_buscar_execucoes_por_segurado_traz_so_as_que_tem_esse_segurado_elegivel(
+    tmp_path: Path,
+) -> None:
+    """TIMELINE-08: filtro por segurado retorna só execuções com esse segurado no público."""
+
+    cenario = Cenario(tmp_path)
+    cenario.elegibilidade(nome="Marina Teste")
+    outra_execucao_id = cenario.execucoes.criar(EstadoExecucao.CONCLUIDA)
+    cenario.elegibilidade(nome="Carlos Teste", execucao_id=outra_execucao_id)
+
+    resultado = cenario.servico.buscar_execucoes(segurado="Marina")
+
+    assert [item.execucao_id for item in resultado] == [cenario.execucao_id]
+
+
+def test_buscar_execucoes_nao_altera_nenhum_dado(tmp_path: Path) -> None:
+    """TIMELINE-08: a busca nunca tem efeito colateral — chamadas repetidas convergem."""
+
+    cenario = Cenario(tmp_path)
+    cenario.mensagem(canal=Canal.SMS)
+
+    primeira = cenario.servico.buscar_execucoes(canal=Canal.SMS)
+    segunda = cenario.servico.buscar_execucoes(canal=Canal.SMS)
+
+    assert primeira == segunda
+    assert len(cenario.execucoes.listar_todas()) == 1
+
+
+def test_buscar_execucoes_sem_resultado_devolve_lista_vazia(tmp_path: Path) -> None:
+    """TIMELINE-09: filtro sem nenhuma correspondência devolve lista vazia, não erro."""
+
+    cenario = Cenario(tmp_path)
+    cenario.mensagem(canal=Canal.SMS)
+
+    resultado = cenario.servico.buscar_execucoes(canal=Canal.WHATSAPP)
+
+    assert resultado == []
+
+
+def test_buscar_execucoes_por_estado_de_mensagem_encontra_a_execucao(tmp_path: Path) -> None:
+    """TIMELINE-08: o filtro de estado casa também com o estado de uma mensagem, não só o
+    estado agregado da execução."""
+
+    cenario = Cenario(tmp_path)
+    mensagem_id = cenario.mensagem()
+    cenario.mensagens.transicionar(mensagem_id, 1, EstadoMensagem.REJEITADA)
+
+    resultado = cenario.servico.buscar_execucoes(estado="rejeitada")
+
+    assert [item.execucao_id for item in resultado] == [cenario.execucao_id]

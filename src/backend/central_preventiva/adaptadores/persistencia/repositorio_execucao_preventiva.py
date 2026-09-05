@@ -160,6 +160,19 @@ class RepositorioExecucaoPreventiva:
                 raise
         return execucao_id
 
+    def listar_todas(self) -> list[SnapshotExecucao]:
+        """Lista todas as execuções, da mais recente para a mais antiga (4.4, busca).
+
+        SPEC_DEVIATION: o `design.md` da 4.4 lista este repositório como reusado "sem
+        alteração". `buscar_execucoes` (4.4) precisa enumerar toda execução para aplicar
+        filtro de segurado/canal/estado, e nenhum método existente devolve mais de uma
+        execução sem um filtro específico (correlação ou não-terminal) — método novo.
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute(f"{_SELECT_SNAPSHOT} ORDER BY criado_em DESC").fetchall()
+        return [_snapshot_de_linha(linha) for linha in linhas]
+
     def listar_correlacionadas(self, execucao_origem_id: UUID) -> list[SnapshotExecucao]:
         """Lista as execuções criadas como nova tentativa da origem informada (PREFL-10).
 

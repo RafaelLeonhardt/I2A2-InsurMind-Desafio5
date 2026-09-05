@@ -91,11 +91,11 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Filtro por canal retorna só execuções com mensagem nesse canal
-- [ ] Filtro por segurado retorna só execuções com esse segurado no público elegível
-- [ ] Nenhuma chamada de busca altera qualquer dado
-- [ ] Filtro sem resultado retorna lista vazia (não erro)
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Filtro por canal retorna só execuções com mensagem nesse canal
+- [x] Filtro por segurado retorna só execuções com esse segurado no público elegível
+- [x] Nenhuma chamada de busca altera qualquer dado
+- [x] Filtro sem resultado retorna lista vazia (não erro)
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick

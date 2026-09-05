@@ -21,9 +21,10 @@ coleta já existe em `marcos_execucao` (2.6): `GerenciadorExecucoes` registra
 timestamp. A linha do tempo usa `marcos_execucao` como a fonte real da etapa de coleta, não
 uma junção direta com `sincronizacoes_meteorologicas`.
 
-SPEC_DEVIATION: `RepositorioExcecoesOperacionais` ganhou `listar_por_execucao` (não listado
-no `design.md`) — `montar` precisa ler, numa única consulta, tanto a exceção da execução
-quanto a de cada mensagem, e só existia leitura por mensagem individual (4.2).
+SPEC_DEVIATION: `RepositorioExecucaoPreventiva` ganhou `listar_todas` e
+`RepositorioExcecoesOperacionais` ganhou `listar_por_execucao` (nenhum dos dois listado no
+`design.md`) — extensões necessárias para `buscar_execucoes` enumerar todas as execuções e
+para `montar` ler as exceções de execução e de mensagem numa única consulta.
 """
 
 from collections import defaultdict
@@ -60,6 +61,7 @@ from central_preventiva.adaptadores.persistencia.repositorio_visualizacoes_comun
     VisualizacaoComunicado,
 )
 from central_preventiva.dominio.estados_execucao import EstadoExecucao
+from central_preventiva.dominio.validador_saida_canal import Canal
 
 ATOR_SISTEMA = "sistema"
 ATOR_IA = "ia"
@@ -100,10 +102,20 @@ class LinhaDoTempo:
     retentativas: tuple[UUID, ...]
 
 
+@dataclass(frozen=True, slots=True)
+class ExecucaoResumo:
+    """Um resultado da busca de execuções, mínimo o bastante para decidir qual abrir."""
+
+    execucao_id: UUID
+    estado: EstadoExecucao
+
+
 class _RepositorioExecucaoPreventiva(Protocol):
     """Porta mínima do agregado da execução (2.2/2.6/3.1/4.4)."""
 
     def buscar(self, execucao_id: UUID) -> SnapshotExecucao | None: ...
+
+    def listar_todas(self) -> list[SnapshotExecucao]: ...
 
     def listar_marcos(self, execucao_id: UUID) -> list[Marco]: ...
 
@@ -239,6 +251,42 @@ class ServicoLinhaDoTempo:
             ),
         )
 
+    def buscar_execucoes(
+        self,
+        segurado: str | None = None,
+        canal: Canal | None = None,
+        estado: str | None = None,
+    ) -> list[ExecucaoResumo]:
+        """Busca execuções por filtro combinável, sem nenhum efeito colateral (TIMELINE-08/09).
+
+        Os três filtros são opcionais e combináveis por E: uma execução só aparece se
+        satisfizer todos os informados. `estado` casa tanto com o estado agregado da
+        execução quanto com o estado de qualquer mensagem dela, já que o MVP permite
+        pesquisar por qualquer `EstadoExecucao`/`EstadoMensagem` disponível.
+        """
+
+        resultados: list[ExecucaoResumo] = []
+        for snapshot in self._portas.execucoes.listar_todas():
+            mensagens = self._portas.mensagens.listar_por_execucao(snapshot.id)
+            if canal is not None and not any(
+                registro.canal is canal for registro in mensagens
+            ):
+                continue
+            if estado is not None and not (
+                str(snapshot.estado) == estado
+                or any(str(registro.estado) == estado for registro in mensagens)
+            ):
+                continue
+            if segurado is not None:
+                elegibilidades = self._portas.elegibilidades.listar_por_execucao(snapshot.id)
+                if not any(
+                    _corresponde_ao_segurado(registro, segurado)
+                    for registro in elegibilidades
+                ):
+                    continue
+            resultados.append(ExecucaoResumo(execucao_id=snapshot.id, estado=snapshot.estado))
+        return resultados
+
     def _marcos_execucao(self, execucao_id: UUID) -> list[MarcoLinhaDoTempo]:
         """Traduz os marcos de `marcos_execucao` (2.6) — a espinha dorsal da cronologia."""
 
@@ -370,3 +418,11 @@ class ServicoLinhaDoTempo:
                     )
                 )
         return marcos
+
+
+def _corresponde_ao_segurado(registro: RegistroElegibilidade, segurado: str) -> bool:
+    """Casa o filtro de segurado por identificador exato ou por nome (contém, sem caixa)."""
+
+    if str(registro.segurado_id) == segurado:
+        return True
+    return segurado.strip().lower() in registro.nome_segurado.lower()

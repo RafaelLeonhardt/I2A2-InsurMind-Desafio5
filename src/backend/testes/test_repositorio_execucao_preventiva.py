@@ -104,6 +104,22 @@ def test_registrar_excecao_operacional_persiste_causa_tentativas_e_impacto(
     assert linha[3] == "Coleta meteorológica indisponível."
 
 
+def test_listar_todas_traz_todas_as_execucoes_da_mais_recente_a_mais_antiga(
+    tmp_path: Path,
+) -> None:
+    """4.4: a busca de execuções precisa enumerar todas, sem filtro de correlação."""
+
+    repositorio = RepositorioExecucaoPreventiva(preparar_banco(tmp_path))
+    primeira = repositorio.criar(EstadoExecucao.CONCLUIDA)
+    segunda = repositorio.criar(EstadoExecucao.SEM_RISCO)
+
+    todas = repositorio.listar_todas()
+
+    assert {snapshot.id for snapshot in todas} == {primeira, segunda}
+    ids_em_ordem = [snapshot.id for snapshot in todas]
+    assert ids_em_ordem.index(segunda) < ids_em_ordem.index(primeira)
+
+
 def test_listar_por_execucao_das_excecoes_traz_proprias_e_de_mensagem(tmp_path: Path) -> None:
     """4.4: a linha do tempo precisa das Exceções da execução e das de suas mensagens juntas."""
 
