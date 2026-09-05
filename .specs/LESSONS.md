@@ -312,6 +312,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: src/frontend/src/funcionalidades/resultados/SuperficieResultados.tsx:122 (frontend-tables)
 - last seen: 2026-09-04T23:41:41Z
 
+### L-051 - When a guard condition is only ever true because an invariant is enforced elsewhere in the codebase, add a direct unit test for the guard branch itself instead of relying on the invariant to keep it correct.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `backend-aplicacao` · harmful: 0
+- features: 4-2-inspecionar-o-resultado-individual
+- evidence: src/backend/central_preventiva/aplicacao/detalhe_resultado.py:209-212 (backend-aplicacao)
+- last seen: 2026-09-05T01:20:34Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

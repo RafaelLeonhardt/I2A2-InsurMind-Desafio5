@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 51,
+  "next_id": 52,
   "lessons": [
     {
       "id": "L-001",
@@ -919,6 +919,24 @@
       ],
       "created": "2026-09-04T23:41:41Z",
       "last_seen": "2026-09-04T23:41:41Z"
+    },
+    {
+      "id": "L-051",
+      "key": "surviving_mutant::when a guard condition is only ever true because an invariant is enforced elsewhere in the codebase add a direct unit test for the guard branch itself instead of relying on the invariant to keep it correct",
+      "text": "When a guard condition is only ever true because an invariant is enforced elsewhere in the codebase, add a direct unit test for the guard branch itself instead of relying on the invariant to keep it correct.",
+      "signal": "surviving_mutant",
+      "scope": "backend-aplicacao",
+      "status": "candidate",
+      "features": [
+        "4-2-inspecionar-o-resultado-individual"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "src/backend/central_preventiva/aplicacao/detalhe_resultado.py:209-212 (backend-aplicacao)"
+      ],
+      "created": "2026-09-05T01:20:34Z",
+      "last_seen": "2026-09-05T01:20:34Z"
     }
   ]
 }
