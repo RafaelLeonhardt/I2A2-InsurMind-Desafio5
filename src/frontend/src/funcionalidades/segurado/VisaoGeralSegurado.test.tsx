@@ -153,14 +153,17 @@ describe('estado Alerta (VISAO-01, 02, 03)', () => {
 
 describe('fonte degradada (VISAO-05)', () => {
   it('mostra o snapshot com idade e caráter informativo, sem sugerir alerta novo', async () => {
+    // Instante fixo e distante: calcularIdade sempre devolve "N d atrás" para ele,
+    // independente da data real em que o teste roda (VISAO-05 exige a idade visível).
     getAlertaMaisRelevanteMock.mockResolvedValue(
-      alertaReal({ fonteDegradada: true, instanteObservado: new Date().toISOString() }),
+      alertaReal({ fonteDegradada: true, instanteObservado: '2020-01-01T00:00:00' }),
     )
 
     render(<VisaoGeralSegurado seguradoId={SEGURADO_ID} />)
 
     expect(await screen.findByText(/Fonte meteorológica degradada/)).toBeInTheDocument()
     expect(screen.getByText(/apenas informativo/)).toBeInTheDocument()
+    expect(screen.getByText(/\d+ d atrás/)).toBeInTheDocument()
   })
 
   it('não mostra o aviso de fonte degradada quando a fonte está operacional', async () => {
@@ -183,6 +186,17 @@ describe('estado Sem alerta (VISAO-04)', () => {
       await screen.findByRole('heading', { name: 'Nenhum alerta relevante no momento' }),
     ).toBeInTheDocument()
     expect(screen.queryByRole('heading', { level: 2, name: 'Chuva intensa' })).not.toBeInTheDocument()
+  })
+
+  it('não promete navegação para superfícies que ainda não existem no perfil Segurado', async () => {
+    getAlertaMaisRelevanteMock.mockResolvedValue(null)
+
+    render(<VisaoGeralSegurado seguradoId={SEGURADO_ID} />)
+
+    await screen.findByRole('heading', { name: 'Nenhum alerta relevante no momento' })
+    for (const superficieInexistente of ['Apólice', 'Comunicados', 'Meus Dados']) {
+      expect(screen.queryByText(new RegExp(superficieInexistente))).not.toBeInTheDocument()
+    }
   })
 })
 
@@ -231,6 +245,28 @@ describe('estado Contexto trocando', () => {
 })
 
 describe('estado Erro (VISAO-06)', () => {
+  it('uma falha na primeira carga mostra Erro, nunca o estado Sem alerta', async () => {
+    getAlertaMaisRelevanteMock.mockRejectedValueOnce(
+      new ErroAlertaSegurado({
+        codigo: 'falha_local',
+        correlacaoId: null,
+        ocorrencia: 'Falha ao consultar o alerta.',
+        impacto: 'O alerta pode estar desatualizado.',
+        proximaAcao: 'Tente novamente.',
+        status: 500,
+      }),
+    )
+
+    render(<VisaoGeralSegurado seguradoId={SEGURADO_ID} />)
+
+    expect(
+      await screen.findByRole('heading', { name: 'Não foi possível carregar seu alerta' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'Nenhum alerta relevante no momento' }),
+    ).not.toBeInTheDocument()
+  })
+
   it('informa ocorrência, impacto e próxima ação sem apagar o alerta já exibido', async () => {
     getAlertaMaisRelevanteMock.mockResolvedValueOnce(alertaReal({ localizacao: 'AREA-VALIDA' }))
     const { rerender } = render(<VisaoGeralSegurado seguradoId={SEGURADO_ID} />)

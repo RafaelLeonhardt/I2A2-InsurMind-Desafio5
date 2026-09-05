@@ -93,10 +93,20 @@ def test_consultar_alerta_devolve_200_com_alerta_quando_existir(tmp_path: Path) 
     assert resposta.status_code == 200
     corpo = resposta.json()
     assert corpo["alerta"] is not None
-    assert corpo["alerta"]["evento_tipo"] == "chuva_intensa"
-    assert corpo["alerta"]["origem"] == "real_inmet"
-    assert corpo["alerta"]["localizacao"] == AREA
-    assert corpo["alerta"]["fonte_degradada"] is False
+    alerta = corpo["alerta"]
+    assert alerta["evento_tipo"] == "chuva_intensa"
+    assert alerta["origem"] == "real_inmet"
+    assert alerta["localizacao"] == AREA
+    assert alerta["fonte_degradada"] is False
+    # Contrato completo: prova que a rota não inverte/mistura os campos temporais e de
+    # conteúdo ao traduzir o caso de uso para o corpo público (nenhum destes era lido
+    # antes desta asserção).
+    assert alerta["periodo_inicio"] == "2026-09-04T12:00:00"
+    assert alerta["periodo_fim"] == "2026-09-04T18:00:00"
+    assert alerta["instante_observado"] == "2026-09-04T18:00:00"
+    assert "62.5" in alerta["severidade"]
+    assert alerta["impactos_esperados"] == ["alagamento"]
+    assert len(alerta["recomendacoes"]) > 0
 
 
 def test_consultar_alerta_devolve_200_com_alerta_nulo_quando_nao_existir(
