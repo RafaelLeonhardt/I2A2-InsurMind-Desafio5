@@ -21,6 +21,7 @@ from central_preventiva.adaptadores.persistencia.repositorio_meteorologia import
     RepositorioTentativasColeta,
 )
 from central_preventiva.adaptadores.persistencia.repositorio_regras import RepositorioRegras
+from central_preventiva.adaptadores.persistencia.semeador import SemeadorDadosSinteticos
 from central_preventiva.aplicacao.alerta_segurado import PortasAlertaSegurado, ServicoAlertaSegurado
 from central_preventiva.aplicacao.portas_meteorologia import (
     CodigoResultadoTentativa,
@@ -34,6 +35,7 @@ from central_preventiva.dominio.evento_meteorologico import (
     ProvenienciaEvento,
     TipoEventoMeteorologico,
 )
+from central_preventiva.dominio.identificadores_demonstracao import SEGURADO_PADRAO
 from central_preventiva.dominio.montador_contexto_agente import ORIENTACOES_POR_EVENTO
 
 AREA = "9990001"
@@ -264,4 +266,61 @@ def test_fonte_nunca_degradada_sem_nenhuma_sincronizacao_registrada(tmp_path: Pa
     alerta = contexto.servico.obter_mais_relevante(SEGURADO_ID)
 
     assert alerta is not None
+    assert alerta.fonte_degradada is False
+
+
+def test_snapshot_degradado_sem_elegibilidade_do_segurado_e_tratado_como_sem_alerta(
+    tmp_path: Path,
+) -> None:
+    """Edge case da spec: sincronização em falha sem nenhuma elegibilidade do segurado
+    nunca vira "alerta degradado" — nenhum alerta de fato existe para ele."""
+
+    contexto = Contexto(tmp_path)
+    id_area = uuid4()
+    with abrir_conexao(contexto.caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO areas_monitoradas_inmet "
+            "(id, codigo_estacao_inmet, nome_estacao, codigo_ibge_area, ativa) "
+            "VALUES (?, 'A701', 'Estação de Teste', ?, true)",
+            [id_area, AREA],
+        )
+    sincronizacao = contexto.sincronizacoes.criar(
+        uuid4(), id_area, OrigemSincronizacao.AUTOMATICA, EstadoSincronizacao.COLETANDO
+    )
+    contexto.sincronizacoes.atualizar_estado(sincronizacao.id, EstadoSincronizacao.FALHA)
+
+    assert contexto.servico.obter_mais_relevante(SEGURADO_ID) is None
+
+
+def test_segurado_padrao_semeado_recebe_alerta_completo_sem_avaliacoes_risco_ou_contexto(
+    tmp_path: Path,
+) -> None:
+    """Ancora a SPEC_DEVIATION do módulo: a persona semeada da demonstração (execucao_id
+    NULO, sem avaliacoes_risco/contextos_agente) recebe um alerta completo recomputando
+    risco e reusando ORIENTACOES_POR_EVENTO — não `None` nem campos vazios."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+    SemeadorDadosSinteticos(caminho).semear()
+    servico = ServicoAlertaSegurado(
+        PortasAlertaSegurado(
+            elegibilidades=RepositorioElegibilidades(caminho),
+            eventos=RepositorioEventosMeteorologicos(caminho),
+            regras=RepositorioRegras(caminho),
+            areas_monitoradas=RepositorioAreasMonitoradas(caminho),
+            sincronizacoes=RepositorioSincronizacoes(caminho),
+            tentativas=RepositorioTentativasColeta(caminho),
+        )
+    )
+
+    alerta = servico.obter_mais_relevante(SEGURADO_PADRAO)
+
+    assert alerta is not None
+    assert alerta.evento_tipo is TipoEventoMeteorologico.CHUVA_INTENSA
+    assert alerta.severidade != ""
+    assert alerta.periodo_inicio is not None
+    assert alerta.localizacao != ""
+    assert alerta.impactos_esperados == ("alagamento",)
+    assert alerta.recomendacoes == ORIENTACOES_POR_EVENTO[TipoEventoMeteorologico.CHUVA_INTENSA]
+    assert alerta.origem is ProvenienciaEvento.SINTETICO
     assert alerta.fonte_degradada is False
