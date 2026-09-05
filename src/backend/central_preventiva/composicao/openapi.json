@@ -387,6 +387,46 @@
         "title": "ProblemaExecucao",
         "type": "object"
       },
+      "ProblemaLinhaDoTempo": {
+        "additionalProperties": false,
+        "description": "Falha da linha do tempo/busca, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaLinhaDoTempo",
+        "type": "object"
+      },
       "ProblemaMensagens": {
         "additionalProperties": false,
         "description": "Falha da consulta de mensagens, com ocorrência, impacto e próxima ação segura.",
@@ -1146,6 +1186,25 @@
           "criado_em"
         ],
         "title": "RespostaAvaliacaoRisco",
+        "type": "object"
+      },
+      "RespostaBuscaExecucoes": {
+        "additionalProperties": false,
+        "description": "Execuções correspondentes ao filtro informado, sem nenhum efeito colateral.",
+        "properties": {
+          "resultados": {
+            "description": "Execuções correspondentes; lista vazia quando nenhuma corresponde.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaExecucaoResumo"
+            },
+            "title": "Resultados",
+            "type": "array"
+          }
+        },
+        "required": [
+          "resultados"
+        ],
+        "title": "RespostaBuscaExecucoes",
         "type": "object"
       },
       "RespostaCanalSimulacao": {
@@ -2577,6 +2636,29 @@
         "title": "RespostaExecucaoAceita",
         "type": "object"
       },
+      "RespostaExecucaoResumo": {
+        "additionalProperties": false,
+        "description": "Um resultado da busca de execuções, mínimo o bastante para decidir qual abrir.",
+        "properties": {
+          "estado": {
+            "description": "Estado agregado atual da execução.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "execucao_id": {
+            "description": "Identificador da execução.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "execucao_id",
+          "estado"
+        ],
+        "title": "RespostaExecucaoResumo",
+        "type": "object"
+      },
       "RespostaHistoricoSincronizacoes": {
         "additionalProperties": false,
         "description": "Histórico de sincronização, com os marcos exigidos pela consulta de Marina.",
@@ -2757,6 +2839,62 @@
         "title": "RespostaItemLote",
         "type": "object"
       },
+      "RespostaLinhaDoTempo": {
+        "additionalProperties": false,
+        "description": "A cronologia completa de uma execução, com a cadeia de correlação.",
+        "properties": {
+          "estado": {
+            "description": "Estado agregado atual da execução.",
+            "title": "Estado",
+            "type": "string"
+          },
+          "execucao_id": {
+            "description": "Identificador da execução consultada.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "execucao_origem_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Execução terminal que originou esta, ou nula se não correlacionada.",
+            "title": "Execucao Origem Id"
+          },
+          "marcos": {
+            "description": "Todos os marcos da execução, em ordem cronológica.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaMarcoLinhaDoTempo"
+            },
+            "title": "Marcos",
+            "type": "array"
+          },
+          "retentativas": {
+            "description": "Execuções criadas como nova tentativa a partir desta.",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Retentativas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "execucao_id",
+          "estado",
+          "marcos",
+          "execucao_origem_id",
+          "retentativas"
+        ],
+        "title": "RespostaLinhaDoTempo",
+        "type": "object"
+      },
       "RespostaLoteRevisao": {
         "additionalProperties": false,
         "description": "O lote de revisão de uma execução, com os itens de atenção primeiro (REVISAO-01).",
@@ -2889,6 +3027,66 @@
           "criado_em"
         ],
         "title": "RespostaMarco",
+        "type": "object"
+      },
+      "RespostaMarcoLinhaDoTempo": {
+        "additionalProperties": false,
+        "description": "Um evento normalizado da cronologia, de qualquer uma das fontes agregadas.",
+        "properties": {
+          "acao": {
+            "description": "A ação registrada neste marco.",
+            "title": "Acao",
+            "type": "string"
+          },
+          "ator": {
+            "description": "Quem ou o que produziu o marco (sistema, ia, segurado...).",
+            "title": "Ator",
+            "type": "string"
+          },
+          "correlacao": {
+            "description": "Identificador para correlacionar este marco a outro.",
+            "title": "Correlacao",
+            "type": "string"
+          },
+          "mensagem_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Mensagem a que este marco pertence, para agrupamento visual; nulo se o marco for da execução como um todo.",
+            "title": "Mensagem Id"
+          },
+          "resultado": {
+            "description": "O resultado ou desfecho da ação.",
+            "title": "Resultado",
+            "type": "string"
+          },
+          "timestamp": {
+            "description": "Instante RFC 3339 em UTC do marco, canônico.",
+            "title": "Timestamp",
+            "type": "string"
+          },
+          "tipo": {
+            "description": "Categoria do marco (execucao, risco, geracao, ...).",
+            "title": "Tipo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "timestamp",
+          "ator",
+          "acao",
+          "resultado",
+          "correlacao",
+          "tipo",
+          "mensagem_id"
+        ],
+        "title": "RespostaMarcoLinhaDoTempo",
         "type": "object"
       },
       "RespostaMensagem": {
@@ -4789,6 +4987,92 @@
       }
     },
     "/api/v1/execucoes": {
+      "get": {
+        "description": "Filtra execuções por segurado sintético (nome ou identificador), canal (`whatsapp`, `email` ou `sms`) e/ou estado (`EstadoExecucao` ou `EstadoMensagem` disponível), todos opcionais e combináveis por E. Não altera nenhum dado. Nenhum resultado correspondente devolve lista vazia, nunca erro.",
+        "operationId": "buscar_execucoes_api_v1_execucoes_get",
+        "parameters": [
+          {
+            "description": "Nome ou identificador do segurado sintético.",
+            "in": "query",
+            "name": "segurado",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Nome ou identificador do segurado sintético.",
+              "title": "Segurado"
+            }
+          },
+          {
+            "description": "Canal: `whatsapp`, `email` ou `sms`.",
+            "in": "query",
+            "name": "canal",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Canal: `whatsapp`, `email` ou `sms`.",
+              "title": "Canal"
+            }
+          },
+          {
+            "description": "Um `EstadoExecucao` ou `EstadoMensagem` disponível.",
+            "in": "query",
+            "name": "estado",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Um `EstadoExecucao` ou `EstadoMensagem` disponível.",
+              "title": "Estado"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaBuscaExecucoes"
+                }
+              }
+            },
+            "description": "Busca realizada (pode ser lista vazia)."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaLinhaDoTempo"
+                }
+              }
+            },
+            "description": "O canal informado não pertence ao conjunto fechado."
+          }
+        },
+        "summary": "Buscar execuções por segurado, canal ou estado",
+        "tags": [
+          "Linha do tempo"
+        ]
+      },
       "post": {
         "description": "Inicia, de forma idempotente, a orquestração completa de coleta, avaliação de risco e avaliação de elegibilidade para a área informada, sem exigir nenhum clique manual intermediário (RUNNER-01). Exige o cabeçalho `Idempotency-Key` em toda requisição.",
         "operationId": "iniciar_execucao_api_v1_execucoes_post",
@@ -5228,6 +5512,59 @@
         "summary": "Consultar a explicação completa de um resultado de elegibilidade",
         "tags": [
           "Elegibilidade"
+        ]
+      }
+    },
+    "/api/v1/execucoes/{execucao_id}/linha-do-tempo": {
+      "get": {
+        "description": "Devolve, em ordem cronológica, todos os marcos já persistidos da execução — coleta, avaliação de risco, elegibilidade, gerações, críticas, decisões humanas, exceções, simulação e visualização —, cada um com timestamp UTC, ator, ação, resultado e correlação, além da cadeia de execuções correlacionadas (origem e retentativas).",
+        "operationId": "consultar_linha_do_tempo_api_v1_execucoes__execucao_id__linha_do_tempo_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "execucao_id",
+            "required": true,
+            "schema": {
+              "title": "Execucao Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaLinhaDoTempo"
+                }
+              }
+            },
+            "description": "Execução encontrada."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaLinhaDoTempo"
+                }
+              }
+            },
+            "description": "Execução inexistente."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaLinhaDoTempo"
+                }
+              }
+            },
+            "description": "O identificador da execução não é um UUID válido."
+          }
+        },
+        "summary": "Consultar a linha do tempo ponta a ponta de uma execução",
+        "tags": [
+          "Linha do tempo"
         ]
       }
     },

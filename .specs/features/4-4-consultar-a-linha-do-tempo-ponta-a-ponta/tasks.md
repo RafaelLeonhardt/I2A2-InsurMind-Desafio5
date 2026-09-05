@@ -114,11 +114,11 @@ T3 → T4
 
 **Done when**:
 
-- [ ] `200` com a linha do tempo completa para execução existente
-- [ ] `404` para execução inexistente
-- [ ] Busca filtrada retorna só os resultados correspondentes; sem filtro retorna todas
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `200` com a linha do tempo completa para execução existente
+- [x] `404` para execução inexistente
+- [x] Busca filtrada retorna só os resultados correspondentes; sem filtro retorna todas
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full
