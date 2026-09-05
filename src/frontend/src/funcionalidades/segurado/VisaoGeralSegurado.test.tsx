@@ -85,11 +85,27 @@ describe('estado Alerta (VISAO-01, 02, 03)', () => {
 
     expect(await screen.findByRole('heading', { level: 2, name: 'Chuva intensa' })).toBeInTheDocument()
     expect(screen.getByText(/72.5 mm/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Previsto entre 2026-09-04T12:00:00 e 2026-09-04T18:00:00 em/),
+    ).toBeInTheDocument()
     expect(screen.getAllByText(/9990001/).length).toBeGreaterThan(0)
     expect(screen.getByText('alagamento')).toBeInTheDocument()
     expect(
       screen.getByText('Evite áreas alagadas e não atravesse ruas com água corrente.'),
     ).toBeInTheDocument()
+  })
+
+  it('mostra o horário do dado observado no painel de contexto (VISAO-02)', async () => {
+    getAlertaMaisRelevanteMock.mockResolvedValue(
+      alertaReal({ instanteObservado: '2026-09-04T18:00:00' }),
+    )
+
+    render(<VisaoGeralSegurado seguradoId={SEGURADO_ID} />)
+
+    await screen.findByRole('heading', { level: 2, name: 'Chuva intensa' })
+    expect(screen.getByText('Horário do dado').closest('div')).toHaveTextContent(
+      '2026-09-04T18:00:00',
+    )
   })
 
   it('rotula origem real como observação real, nunca como sintética', async () => {
@@ -204,7 +220,11 @@ describe('estado Contexto trocando', () => {
 
     antiga.resolver(alertaReal({ localizacao: 'AREA-ANTIGA' }))
 
-    await Promise.resolve()
+    // Aguarda um macrotask real (não só um microtask) para que a continuação assíncrona
+    // de `carregar` (após o `await` da resposta obsoleta) tenha a chance de rodar e
+    // provar que o guard de token a descarta - um único `await Promise.resolve()` não
+    // dá tempo suficiente e deixaria este teste passar mesmo sem o guard.
+    await new Promise((resolver) => setTimeout(resolver, 50))
     expect(screen.queryAllByText(/AREA-ANTIGA/).length).toBe(0)
     expect(screen.getAllByText(/AREA-NOVA/).length).toBeGreaterThan(0)
   })
@@ -235,6 +255,29 @@ describe('estado Erro (VISAO-06)', () => {
     expect(alerta).toHaveTextContent('O alerta pode estar desatualizado.')
     expect(alerta).toHaveTextContent('Tente novamente.')
     expect((await screen.findAllByText(/AREA-VALIDA/)).length).toBeGreaterThan(0)
+  })
+
+  it('preserva o estado Sem alerta já exibido quando uma nova consulta falha', async () => {
+    getAlertaMaisRelevanteMock.mockResolvedValueOnce(null)
+    const { rerender } = render(<VisaoGeralSegurado seguradoId={SEGURADO_ID} />)
+    await screen.findByRole('heading', { name: 'Nenhum alerta relevante no momento' })
+
+    getAlertaMaisRelevanteMock.mockRejectedValueOnce(
+      new ErroAlertaSegurado({
+        codigo: 'falha_local',
+        correlacaoId: null,
+        ocorrencia: 'Falha ao consultar o alerta.',
+        impacto: 'O alerta pode estar desatualizado.',
+        proximaAcao: 'Tente novamente.',
+        status: 500,
+      }),
+    )
+    rerender(<VisaoGeralSegurado seguradoId={OUTRO_SEGURADO_ID} />)
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', { name: 'Nenhum alerta relevante no momento' }),
+    ).toBeInTheDocument()
   })
 
   it('permite nova tentativa que recupera o alerta', async () => {

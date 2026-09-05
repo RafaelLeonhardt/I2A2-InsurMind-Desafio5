@@ -131,8 +131,7 @@ export function VisaoGeralSegurado({ seguradoId }: PropriedadesVisaoGeralSegurad
             <h1>Nenhum alerta relevante no momento</h1>
             <p className="introducao">
               Não há nenhum evento meteorológico relevante associado à sua apólice no
-              momento. Apólice, Comunicados e Meus Dados continuam disponíveis pela
-              navegação.
+              momento.
             </p>
           </>
         )}
