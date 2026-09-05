@@ -162,11 +162,11 @@ T4 → T5
 
 **Done when**:
 
-- [ ] `POST` de visualização disparado só após o conteúdo renderizar com sucesso, não no `GET` inicial
-- [ ] Nenhum elemento de ação administrativa presente na tela
-- [ ] Falha local simulada mantém estado de erro visível, sem mostrar "Visualizada no portal"
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] `POST` de visualização disparado só após o conteúdo renderizar com sucesso, não no `GET` inicial
+- [x] Nenhum elemento de ação administrativa presente na tela
+- [x] Falha local simulada mantém estado de erro visível, sem mostrar "Visualizada no portal"
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full

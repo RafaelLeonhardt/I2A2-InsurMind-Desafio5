@@ -1,0 +1,53 @@
+.comunicado__aviso-simulacao {
+  margin: 0.4rem 0 1rem;
+  padding: 0.5rem 0.8rem;
+  border-left: 4px solid var(--amber);
+  border-radius: 0.25rem;
+  background: #fffbeb;
+  color: #7c2d12;
+  font-weight: 600;
+}
+
+.comunicado__assunto {
+  font-weight: 600;
+}
+
+.comunicado__linha-do-tempo {
+  display: grid;
+  gap: 0.4rem 1rem;
+  margin: 0 0 1rem;
+}
+
+.comunicado__linha-do-tempo dt {
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.comunicado__selo-visualizacao {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+
+.comunicado__selo-visualizacao[data-estado='confirmada'] {
+  color: var(--green);
+}
+
+.comunicado__selo-visualizacao[data-estado='erro'] {
+  color: var(--red);
+}
+
+.comunicado__selo-visualizacao[data-estado='pendente'] {
+  color: var(--muted);
+}
+
+.comunicado__erro-visualizacao {
+  margin: 0.4rem 0 1rem;
+  padding: 0.6rem 0.8rem;
+  border-left: 4px solid var(--red);
+  border-radius: 0.25rem;
+  background: #fef2f2;
+  color: #7f1d1d;
+}

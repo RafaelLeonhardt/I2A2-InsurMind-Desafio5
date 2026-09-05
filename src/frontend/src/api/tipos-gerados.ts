@@ -644,6 +644,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/segurados/{segurado_id}/comunicados/{entrega_simulada_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o comunicado de uma entrega simulada
+         * @description Devolve conteúdo, canal e natureza simulada do comunicado, e a primeira visualização já registrada, se houver. Consulta de leitura: não registra visualização nenhuma. Uma entrega inexistente e uma entrega que pertence a outro segurado devolvem exatamente a mesma resposta `404`.
+         */
+        get: operations["consultar_comunicado_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/segurados/{segurado_id}/comunicados/{entrega_simulada_id}/visualizacao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Registrar a primeira visualização de um comunicado
+         * @description Registra, de forma idempotente, a primeira visualização do comunicado — chamado só depois do conteúdo já ter sido renderizado com sucesso, nunca no carregamento inicial da página. Reabrir um comunicado já visualizado devolve a mesma visualização, sem criar uma segunda. Uma mensagem de origem que ainda não foi simulada, foi rejeitada, excluída ou está em exceção é recusada com um erro de domínio explícito, sem registrar nenhum marco.
+         */
+        post: operations["registrar_visualizacao_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__visualizacao_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -758,6 +798,37 @@ export interface components {
          * @description Falha da consulta de avaliação de risco, com ocorrência, impacto e próxima ação segura.
          */
         ProblemaAvaliacaoRisco: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
+         * ProblemaComunicado
+         * @description Falha do comunicado, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaComunicado: {
             /**
              * Codigo
              * @description Código estável que identifica o tipo da falha.
@@ -1566,6 +1637,52 @@ export interface components {
              * @description Instante RFC 3339 em UTC em que a solicitação foi aceita.
              */
             aceito_em: string;
+        };
+        /**
+         * RespostaComunicado
+         * @description O comunicado exibível ao segurado sintético: conteúdo, canal e visualização.
+         */
+        RespostaComunicado: {
+            /**
+             * Entrega Simulada Id
+             * Format: uuid
+             * @description Identificador da entrega simulada.
+             */
+            entrega_simulada_id: string;
+            /**
+             * Mensagem Id
+             * Format: uuid
+             * @description Mensagem que originou o comunicado.
+             */
+            mensagem_id: string;
+            /**
+             * Canal
+             * @description Canal do comunicado (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
+             * Assunto
+             * @description Assunto apresentado, só no canal de e-mail.
+             */
+            assunto: string | null;
+            /**
+             * Corpo
+             * @description Corpo apresentado, cópia exata do conteúdo aprovado.
+             */
+            corpo: string;
+            /**
+             * Rotulo
+             * @description Rótulo fixo da natureza da entrega: sempre 'simulada'.
+             */
+            rotulo: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC de criação da entrega.
+             */
+            criado_em: string;
+            /** @description Primeira visualização já registrada, ou nula se ainda não visualizado. */
+            visualizacao: components["schemas"]["RespostaVisualizacaoComunicado"] | null;
         };
         /**
          * RespostaCriterio
@@ -3650,6 +3767,24 @@ export interface components {
             avaliacao_critica: components["schemas"]["RespostaAvaliacaoCriticaLote"] | null;
         };
         /**
+         * RespostaVisualizacaoComunicado
+         * @description A primeira visualização registrada de um comunicado.
+         */
+        RespostaVisualizacaoComunicado: {
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador da visualização.
+             */
+            id: string;
+            /**
+             * Visualizada Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC da primeira visualização.
+             */
+            visualizada_em: string;
+        };
+        /**
          * ResultadoDecisaoHumana
          * @description As quatro decisões que Marina pode tomar sobre uma mensagem (REVISAO-05).
          * @enum {string}
@@ -5100,6 +5235,97 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaDetalheResultado"];
+                };
+            };
+        };
+    };
+    consultar_comunicado_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                segurado_id: string;
+                entrega_simulada_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Comunicado encontrado para este segurado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaComunicado"];
+                };
+            };
+            /** @description Comunicado inexistente ou de outro segurado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaComunicado"];
+                };
+            };
+            /** @description Algum identificador não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaComunicado"];
+                };
+            };
+        };
+    };
+    registrar_visualizacao_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__visualizacao_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                segurado_id: string;
+                entrega_simulada_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Visualização registrada (ou já existente, no replay). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaVisualizacaoComunicado"];
+                };
+            };
+            /** @description Comunicado inexistente ou de outro segurado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaComunicado"];
+                };
+            };
+            /** @description Mensagem de origem não elegível para virar comunicado. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaComunicado"];
+                };
+            };
+            /** @description Algum identificador não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaComunicado"];
                 };
             };
         };
