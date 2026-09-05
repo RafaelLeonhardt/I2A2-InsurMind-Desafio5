@@ -571,3 +571,31 @@ simulada, e uma segunda confirmação do mesmo lote é recusada pelo próprio ba
 a simulação (SIMUL-07, SIMUL-08). A `UNIQUE` fica na mensagem, que já carrega seu canal, e não no
 par `(execucao_id, mensagem_id)`: uma mensagem pertence a uma única execução, então incluir a
 execução afrouxaria a dedução sem ganho nenhum.
+
+## Tabelas da migração `0015_visualizacoes_comunicado`
+
+A migração cria a tabela da primeira visualização do comunicado localmente (História 4.3). O
+`design.md` da história numera o arquivo como `0013_visualizacoes_comunicado.sql`; `0013`/`0014`
+já haviam sido consumidos pelas Histórias 3.5/3.6, então a migração entrou como `0015` — mesma
+renumeração já registrada desde a 2.4.
+
+### `visualizacoes_comunicado`
+
+Uma linha por entrega simulada que o segurado sintético abriu efetivamente no perfil Segurado.
+
+| Coluna | Tipo | Restrições |
+| --- | --- | --- |
+| `id` | `UUID` | chave primária |
+| `entrega_simulada_id` | `UUID` | `NOT NULL`, `UNIQUE`, chave estrangeira lógica para `entregas_simuladas(id)` |
+| `segurado_id` | `UUID` | `NOT NULL`, chave estrangeira lógica para `segurados(id)` — snapshot, não recalculado |
+| `visualizada_em` | `TIMESTAMP` | `NOT NULL`, padrão `now()` |
+
+`UNIQUE (entrega_simulada_id)` é a dedução de conteúdo do AD-010: a primeira abertura grava, e
+qualquer reabertura ou duas aberturas concorrentes resolvem via `INSERT ... ON CONFLICT DO
+NOTHING` seguido de `SELECT` da linha já persistida (própria ou de um concorrente), sempre
+convergindo para a mesma `visualizada_em` (VISU-01, VISU-02, VISU-03) — nenhum lock explícito
+adicional é necessário.
+
+`segurado_id` é snapshot, não recalculado: identifica de quem foi a visualização mesmo que o
+contexto demonstrativo alterne o segurado ativo depois (História 5.7), sem misturar visualizações
+entre segurados sintéticos.

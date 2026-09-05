@@ -39,6 +39,7 @@ TABELAS_ESPERADAS = {
     "avaliacoes_criticas",
     "decisoes_humanas",
     "entregas_simuladas",
+    "visualizacoes_comunicado",
 }
 
 REGISTRO_MINIMO = (
@@ -86,8 +87,8 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14)
-    assert resultado.versao_final == 14
+    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+    assert resultado.versao_final == 15
     assert tabelas(caminho) == TABELAS_ESPERADAS
     assert registros(caminho) == [
         (1, "schema inicial"),
@@ -104,6 +105,7 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
         (12, "excecoes mensagem"),
         (13, "decisoes humanas"),
         (14, "entregas simuladas"),
+        (15, "visualizacoes comunicado"),
     ]
 
 
@@ -114,7 +116,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 14
+    assert resultado.versao_final == 15
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
@@ -130,6 +132,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
         (12, "excecoes mensagem"),
         (13, "decisoes humanas"),
         (14, "entregas simuladas"),
+        (15, "visualizacoes comunicado"),
     ]
 
 
@@ -1211,3 +1214,84 @@ def test_documentacao_versionada_descreve_a_tabela_de_entrega_simulada() -> None
     assert "entregas_simuladas" in documento
     assert "`NOT NULL`, `UNIQUE`, chave estrangeira lógica para `mensagens(id)`" in documento
     assert "`CHECK` em `whatsapp`, `email`, `sms`" in documento
+
+
+ENTREGA_SIMULADA_VISUALIZAVEL_ID = "99999999-0000-0000-0000-000000000001"
+SEGURADO_VISUALIZADOR_ID = "aaaaaaaa-0000-0000-0000-000000000001"
+
+
+def _inserir_visualizacao(
+    conexao: duckdb.DuckDBPyConnection,
+    id_visualizacao: str,
+    *,
+    entrega_simulada_id: str = ENTREGA_SIMULADA_VISUALIZAVEL_ID,
+    segurado_id: str = SEGURADO_VISUALIZADOR_ID,
+) -> None:
+    """Insere a primeira visualização de um comunicado (VISU-01)."""
+
+    conexao.execute(
+        "INSERT INTO visualizacoes_comunicado (id, entrega_simulada_id, segurado_id) "
+        "VALUES (?, ?, ?)",
+        [id_visualizacao, entrega_simulada_id, segurado_id],
+    )
+
+
+def test_migracao_visualizacoes_persiste_entrega_segurado_e_data_hora(tmp_path: Path) -> None:
+    """A migração `0015` cria `visualizacoes_comunicado` com a entrega, o segurado e a
+    data/hora UTC da primeira visualização (VISU-01)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        _inserir_visualizacao(conexao, "bbbbbbbb-0000-0000-0000-000000000001")
+        linha = conexao.execute(
+            "SELECT entrega_simulada_id, segurado_id, visualizada_em "
+            "FROM visualizacoes_comunicado WHERE id = 'bbbbbbbb-0000-0000-0000-000000000001'"
+        ).fetchone()
+
+    assert linha is not None
+    assert str(linha[0]) == ENTREGA_SIMULADA_VISUALIZAVEL_ID
+    assert str(linha[1]) == SEGURADO_VISUALIZADOR_ID
+    assert linha[2] is not None
+
+
+def test_migracao_visualizacoes_recusa_segunda_visualizacao_da_mesma_entrega(
+    tmp_path: Path,
+) -> None:
+    """VISU-02/VISU-03: a `UNIQUE (entrega_simulada_id)` (AD-010) impede uma segunda linha de
+    visualização para a mesma entrega, mesmo com um segurado diferente."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        _inserir_visualizacao(conexao, "bbbbbbbb-0000-0000-0000-000000000002")
+
+        with pytest.raises(duckdb.ConstraintException):
+            _inserir_visualizacao(
+                conexao,
+                "bbbbbbbb-0000-0000-0000-000000000003",
+                segurado_id="aaaaaaaa-0000-0000-0000-000000000002",
+            )
+        total = conexao.execute(
+            "SELECT count(*) FROM visualizacoes_comunicado WHERE entrega_simulada_id = ?",
+            [ENTREGA_SIMULADA_VISUALIZAVEL_ID],
+        ).fetchone()
+
+    assert total == (1,)
+
+
+def test_documentacao_versionada_descreve_a_tabela_de_visualizacao_comunicado() -> None:
+    """A tabela de `0015` é documentada no `README.md` versionado, não só no `.sql` (T1)."""
+
+    documento = Path("central_preventiva/adaptadores/persistencia/README.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "0015_visualizacoes_comunicado" in documento
+    assert "visualizacoes_comunicado" in documento
+    assert (
+        "`NOT NULL`, `UNIQUE`, chave estrangeira lógica para `entregas_simuladas(id)`"
+        in documento
+    )

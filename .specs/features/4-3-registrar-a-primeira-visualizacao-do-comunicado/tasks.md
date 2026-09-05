@@ -74,10 +74,10 @@ T4 → T5
 
 **Done when**:
 
-- [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] `README.md` documenta a tabela nova e a `UNIQUE`
-- [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0013`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Migração aplica em transação própria, registrada em `schema_migracoes`
+- [x] `README.md` documenta a tabela nova e a `UNIQUE`
+- [x] `testes/test_migracoes.py` cobre a aplicação da migração `0015` (renumerada de `0013`)
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
