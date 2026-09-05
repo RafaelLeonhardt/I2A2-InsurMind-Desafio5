@@ -88,12 +88,12 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Apólice ativa retorna todos os campos do AC
-- [ ] Apólice `cancelada`/`suspensa`/expirada retorna estado objetivo textual, sem exceção técnica
-- [ ] `obter`/`obter_explicacao` de outro segurado retornam `None`
-- [ ] `obter_explicacao` nunca contém frase de cobertura/indenização/sinistro (testado por ausência de palavras-chave proibidas na lista de motivos)
-- [ ] Alterar a apólice atual (dado de teste) não muda a explicação de uma execução histórica já concluída
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Apólice ativa retorna todos os campos do AC
+- [x] Apólice `cancelada`/`suspensa`/expirada retorna estado objetivo textual, sem exceção técnica
+- [x] `obter`/`obter_explicacao` de outro segurado retornam `None`
+- [x] `obter_explicacao` nunca contém frase de cobertura/indenização/sinistro (testado por ausência de palavras-chave proibidas na lista de motivos)
+- [x] Alterar a apólice atual (dado de teste) não muda a explicação de uma execução histórica já concluída
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
