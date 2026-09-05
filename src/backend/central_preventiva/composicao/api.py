@@ -10,6 +10,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from central_preventiva.adaptadores.http.alerta_segurado import (
     criar_roteador as criar_roteador_alerta_segurado,
 )
+from central_preventiva.adaptadores.http.apolice_segurado import (
+    criar_roteador as criar_roteador_apolice_segurado,
+)
 from central_preventiva.adaptadores.http.avaliacao_risco import (
     criar_roteador as criar_roteador_avaliacao_risco,
 )
@@ -204,6 +207,10 @@ def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
     )
     aplicacao.include_router(
         criar_roteador_lista_alertas_segurado(configuracao_ativa),
+        prefix="/api/v1",
+    )
+    aplicacao.include_router(
+        criar_roteador_apolice_segurado(configuracao_ativa),
         prefix="/api/v1",
     )
     return aplicacao

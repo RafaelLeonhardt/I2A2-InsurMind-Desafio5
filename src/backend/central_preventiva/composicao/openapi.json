@@ -147,6 +147,46 @@
         "title": "ProblemaAlertaSegurado",
         "type": "object"
       },
+      "ProblemaApoliceSegurado": {
+        "additionalProperties": false,
+        "description": "Falha da apólice/explicação, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaApoliceSegurado",
+        "type": "object"
+      },
       "ProblemaAvaliacaoCritica": {
         "additionalProperties": false,
         "description": "Falha da consulta do detalhe, com ocorrência, impacto e próxima ação segura.",
@@ -1023,6 +1063,79 @@
         "title": "RespostaAlertaSegurado",
         "type": "object"
       },
+      "RespostaApolice": {
+        "additionalProperties": false,
+        "description": "Os dados da apólice exibíveis ao segurado ativo.",
+        "properties": {
+          "canal_preferido": {
+            "description": "Canal de comunicação preferencial.",
+            "title": "Canal Preferido",
+            "type": "string"
+          },
+          "coberturas": {
+            "description": "Coberturas contratadas.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Coberturas",
+            "type": "array"
+          },
+          "endereco_risco_sintetico": {
+            "description": "Endereço sintético do risco.",
+            "title": "Endereco Risco Sintetico",
+            "type": "string"
+          },
+          "estado_objetivo": {
+            "description": "Estado objetivo textual — inclui `expirada` quando a vigência já passou, mesmo com `situacao='ativa'`. Nunca uma falha técnica.",
+            "title": "Estado Objetivo",
+            "type": "string"
+          },
+          "numero": {
+            "description": "Número da apólice.",
+            "title": "Numero",
+            "type": "string"
+          },
+          "participa_de_alertas": {
+            "description": "Se o segurado participa de alertas.",
+            "title": "Participa De Alertas",
+            "type": "boolean"
+          },
+          "situacao": {
+            "description": "Situação cadastral (`ativa`/`cancelada`/`suspensa`).",
+            "title": "Situacao",
+            "type": "string"
+          },
+          "tipo": {
+            "description": "Tipo da apólice (`residencial`/`automovel`).",
+            "title": "Tipo",
+            "type": "string"
+          },
+          "vigencia_fim": {
+            "description": "Data de fim de vigência (ISO 8601).",
+            "title": "Vigencia Fim",
+            "type": "string"
+          },
+          "vigencia_inicio": {
+            "description": "Data de início de vigência (ISO 8601).",
+            "title": "Vigencia Inicio",
+            "type": "string"
+          }
+        },
+        "required": [
+          "numero",
+          "tipo",
+          "situacao",
+          "estado_objetivo",
+          "vigencia_inicio",
+          "vigencia_fim",
+          "endereco_risco_sintetico",
+          "coberturas",
+          "canal_preferido",
+          "participa_de_alertas"
+        ],
+        "title": "RespostaApolice",
+        "type": "object"
+      },
       "RespostaApresentacaoSimulada": {
         "additionalProperties": false,
         "description": "Como o conteúdo aprovado apareceria no canal, sempre rotulado como simulado.",
@@ -1645,6 +1758,40 @@
           "justificativa"
         ],
         "title": "RespostaCriterio",
+        "type": "object"
+      },
+      "RespostaCriterioApolice": {
+        "additionalProperties": false,
+        "description": "Um critério comparado pela regra determinística, relevante à apólice.",
+        "properties": {
+          "atende": {
+            "description": "Se o critério foi atendido.",
+            "title": "Atende",
+            "type": "boolean"
+          },
+          "justificativa": {
+            "description": "Explicação da comparação, sem promessa de cobertura.",
+            "title": "Justificativa",
+            "type": "string"
+          },
+          "operando": {
+            "description": "O que foi comparado.",
+            "title": "Operando",
+            "type": "string"
+          },
+          "valor_observado": {
+            "description": "O valor observado no momento da avaliação.",
+            "title": "Valor Observado",
+            "type": "string"
+          }
+        },
+        "required": [
+          "operando",
+          "valor_observado",
+          "atende",
+          "justificativa"
+        ],
+        "title": "RespostaCriterioApolice",
         "type": "object"
       },
       "RespostaCriterioElegibilidade": {
@@ -2888,6 +3035,32 @@
           "estado"
         ],
         "title": "RespostaExecucaoResumo",
+        "type": "object"
+      },
+      "RespostaExplicacaoApolice": {
+        "additionalProperties": false,
+        "description": "A explicação de critérios relevantes à apólice, do snapshot de uma execução.",
+        "properties": {
+          "criterios": {
+            "description": "Critérios relevantes à apólice (área, tipo, situação, cobertura).",
+            "items": {
+              "$ref": "#/components/schemas/RespostaCriterioApolice"
+            },
+            "title": "Criterios",
+            "type": "array"
+          },
+          "elegibilidade_id": {
+            "description": "Identificador da elegibilidade de origem.",
+            "format": "uuid",
+            "title": "Elegibilidade Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "elegibilidade_id",
+          "criterios"
+        ],
+        "title": "RespostaExplicacaoApolice",
         "type": "object"
       },
       "RespostaHistoricoSincronizacoes": {
@@ -7364,6 +7537,121 @@
         "summary": "Consultar o detalhe de um alerta do segurado ativo",
         "tags": [
           "Alertas do segurado"
+        ]
+      }
+    },
+    "/api/v1/segurados/{segurado_id}/apolice": {
+      "get": {
+        "description": "Devolve número, situação, vigência, endereço sintético do risco, coberturas, canal preferencial e participação em alertas. O estado objetivo distingue `expirada` de `cancelada`/`suspensa`, nunca como falha.",
+        "operationId": "consultar_apolice_api_v1_segurados__segurado_id__apolice_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "segurado_id",
+            "required": true,
+            "schema": {
+              "title": "Segurado Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaApolice"
+                }
+              }
+            },
+            "description": "Apólice encontrada para este segurado."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaApoliceSegurado"
+                }
+              }
+            },
+            "description": "Segurado sem apólice, ou apólice de outro segurado."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaApoliceSegurado"
+                }
+              }
+            },
+            "description": "O identificador do segurado não é um UUID válido."
+          }
+        },
+        "summary": "Consultar a apólice do segurado ativo",
+        "tags": [
+          "Apólice do segurado"
+        ]
+      }
+    },
+    "/api/v1/segurados/{segurado_id}/apolice/explicacao/{elegibilidade_id}": {
+      "get": {
+        "description": "Devolve os critérios relevantes à apólice (área, tipo, situação, cobertura) comparados pela regra determinística numa execução específica — sempre o snapshot da execução, nunca a apólice atual. Uma elegibilidade inexistente e uma de outro segurado devolvem exatamente a mesma resposta `404`.",
+        "operationId": "consultar_explicacao_api_v1_segurados__segurado_id__apolice_explicacao__elegibilidade_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "segurado_id",
+            "required": true,
+            "schema": {
+              "title": "Segurado Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "elegibilidade_id",
+            "required": true,
+            "schema": {
+              "title": "Elegibilidade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaExplicacaoApolice"
+                }
+              }
+            },
+            "description": "Explicação encontrada para este segurado."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaApoliceSegurado"
+                }
+              }
+            },
+            "description": "Elegibilidade inexistente ou de outro segurado."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaApoliceSegurado"
+                }
+              }
+            },
+            "description": "Algum identificador não é um UUID válido."
+          }
+        },
+        "summary": "Consultar a explicação de critérios de uma execução",
+        "tags": [
+          "Apólice do segurado"
         ]
       }
     },
