@@ -414,6 +414,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation.md AC ALERTAS-03 - SuperficieAlertas.tsx:213-215 (frontend/accessibility)
 - last seen: 2026-09-05T23:01:41Z
 
+### L-068 - When a criterion requires visually distinct renderings, assert something derived from the rendered output itself, not only a test-only marker attribute that a wrong rendering could still carry.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 5-2-consultar-alertas-ativos-e-anteriores
+- evidence: validation.md sensor M8b - SuperficieAlertas.test.tsx:119-123 vs SuperficieAlertas.tsx:60-76 (frontend)
+- last seen: 2026-09-05T23:27:17Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

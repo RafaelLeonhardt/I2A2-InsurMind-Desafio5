@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 68,
+  "next_id": 69,
   "lessons": [
     {
       "id": "L-001",
@@ -1237,6 +1237,24 @@
       ],
       "created": "2026-09-05T23:01:41Z",
       "last_seen": "2026-09-05T23:01:41Z"
+    },
+    {
+      "id": "L-068",
+      "key": "surviving_mutant::when a criterion requires visually distinct renderings assert something derived from the rendered output itself not only a test only marker attribute that a wrong rendering could still carry",
+      "text": "When a criterion requires visually distinct renderings, assert something derived from the rendered output itself, not only a test-only marker attribute that a wrong rendering could still carry.",
+      "signal": "surviving_mutant",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "5-2-consultar-alertas-ativos-e-anteriores"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md sensor M8b - SuperficieAlertas.test.tsx:119-123 vs SuperficieAlertas.tsx:60-76 (frontend)"
+      ],
+      "created": "2026-09-05T23:27:17Z",
+      "last_seen": "2026-09-05T23:27:17Z"
     }
   ]
 }

@@ -93,12 +93,12 @@ A História 5.1 entrega só o alerta mais relevante na Visão geral, mas Carlos 
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| ALERTAS-01 | P1: Lista de alertas distinguindo ativos e anteriores | Execute (T1) | ❌ Needs Fix — distinção por ícone sem asserção (mutante M8 sobreviveu) |
-| ALERTAS-02 | P1: Lista de alertas distinguindo ativos e anteriores | Execute (T1) | ❌ Needs Fix — cláusula "próxima ação válida" do estado vazio não implementada |
-| ALERTAS-03 | P1: Detalhe do alerta com equivalência de mapa e lista | Execute (T2) | ✅ Verified (parcial — restauração de foco não discriminada, mutante M7) |
-| ALERTAS-04 | P1: Detalhe do alerta com equivalência de mapa e lista | Execute (T4) | ✅ Verified (por construção; SPEC_DEVIATION documentada — nenhum mapa existe no projeto) |
+| ALERTAS-01 | P1: Lista de alertas distinguindo ativos e anteriores | Execute (T1) | ✅ Verified (rodada 2 — rótulo, ícone e texto asseridos; mutantes M8 e M5/M6/M6b mortos) |
+| ALERTAS-02 | P1: Lista de alertas distinguindo ativos e anteriores | Execute (T1) | ✅ Verified (qualificado — o AC está cumprido pelo botão `Atualizar` funcional no estado vazio; o bullet de Success Criteria "mantém navegação para as demais superfícies" segue não satisfeito pela condição pré-existente de superfície órfã, item 9 do `STATE.md`) |
+| ALERTAS-03 | P1: Detalhe do alerta com equivalência de mapa e lista | Execute (T2) | ✅ Verified (rodada 2 — foco restaurado ao botão de origem específico numa lista de 3 itens; anúncio `aria-live` asserido; M7 e M12 mortos) |
+| ALERTAS-04 | P1: Detalhe do alerta com equivalência de mapa e lista | Execute (T4) | ✅ Verified (por construção; SPEC_DEVIATION documentada e consistente em `design.md:108`, `tasks.md:137` e no código — nenhum componente de mapa existe no projeto) |
 | ALERTAS-05 | P1: Isolamento por segurado e estados não simulados | Execute (T2) | ✅ Verified |
-| ALERTAS-06 | P1: Isolamento por segurado e estados não simulados | Execute (T2) | ✅ Verified |
+| ALERTAS-06 | P1: Isolamento por segurado e estados não simulados | Execute (T2) | ✅ Verified (rodada 2 — cobertura ampliada ao terminal técnico anterior à simulação; M11 morto) |
 
 **ID format:** `ALERTAS-NN`
 
