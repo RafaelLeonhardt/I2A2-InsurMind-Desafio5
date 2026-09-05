@@ -110,17 +110,30 @@ describe('lista de alertas (ALERTAS-01)', () => {
 
     render(<SuperficieAlertas seguradoId={SEGURADO_ID} />)
 
-    expect(await screen.findByText('Ativo')).toBeInTheDocument()
+    await screen.findByText('Ativo')
     expect(screen.getByText('Anterior')).toBeInTheDocument()
     expect(screen.getByText('Ainda não simulado')).toBeInTheDocument()
+
+    // Distinção também por ícone (ALERTAS-01 exige rótulo + ícone + texto): os três
+    // marcadores de ícone precisam ser diferentes entre si, não o mesmo ícone repetido.
+    const marcadoresDeIcone = document.querySelectorAll('[data-icone-nome]')
+    const nomesDeIcone = new Set(
+      Array.from(marcadoresDeIcone).map((elemento) => elemento.getAttribute('data-icone-nome')),
+    )
+    expect(nomesDeIcone.size).toBe(3)
   })
 
-  it('mostra estado vazio explicativo sem nenhum alerta', async () => {
+  it('mostra estado vazio explicativo com próxima ação válida, sem nenhum alerta', async () => {
     getListaAlertasMock.mockResolvedValue([])
 
     render(<SuperficieAlertas seguradoId={SEGURADO_ID} />)
 
     expect(await screen.findByRole('heading', { name: 'Nenhum alerta no momento' })).toBeInTheDocument()
+    getListaAlertasMock.mockResolvedValueOnce([item()])
+    const usuario = userEvent.setup()
+    await usuario.click(screen.getByRole('button', { name: 'Atualizar' }))
+
+    expect(await screen.findByText('Ativo')).toBeInTheDocument()
   })
 
   it('mostra ocorrência, impacto e próxima ação quando a lista falha, com nova tentativa', async () => {
@@ -164,6 +177,45 @@ describe('detalhe do alerta (ALERTAS-03, 04)', () => {
     expect(screen.getByText(/coleta_concluida/)).toBeInTheDocument()
   })
 
+  it('anuncia a seleção do alerta numa região aria-live', async () => {
+    getListaAlertasMock.mockResolvedValue([item()])
+    getDetalheAlertaMock.mockResolvedValue(detalhe())
+    const usuario = userEvent.setup()
+    render(<SuperficieAlertas seguradoId={SEGURADO_ID} />)
+
+    await usuario.click(await screen.findByRole('button', { name: 'Ver detalhe' }))
+    await screen.findByRole('heading', { name: 'Chuva intensa' })
+
+    const regiaoAnuncio = document.querySelector('[aria-live="polite"]')
+    expect(regiaoAnuncio).toHaveTextContent('Alerta selecionado. Mostrando detalhe.')
+  })
+
+  it('mostra um alerta anterior simulado com sucesso sem afirmar que foi visualizado', async () => {
+    getListaAlertasMock.mockResolvedValue([item({ classificacao: 'anterior' })])
+    getDetalheAlertaMock.mockResolvedValue(
+      detalhe({
+        classificacao: 'anterior',
+        linhaDoTempo: [
+          {
+            timestamp: '2026-08-01T12:00:00',
+            ator: 'sistema',
+            acao: 'simulacao_concluida',
+            resultado: 'sucesso',
+            correlacao: 'corr-2',
+            tipo: 'execucao',
+            mensagemId: null,
+          },
+        ],
+      }),
+    )
+    const usuario = userEvent.setup()
+    render(<SuperficieAlertas seguradoId={SEGURADO_ID} />)
+    await usuario.click(await screen.findByRole('button', { name: 'Ver detalhe' }))
+
+    expect(await screen.findByText(/simulacao_concluida/)).toBeInTheDocument()
+    expect(screen.queryByText(/[Vv]isualizad[ao]/)).not.toBeInTheDocument()
+  })
+
   it('move o foco para o título do detalhe ao selecionar, sem apagar o anúncio', async () => {
     getListaAlertasMock.mockResolvedValue([item()])
     getDetalheAlertaMock.mockResolvedValue(detalhe())
@@ -175,18 +227,27 @@ describe('detalhe do alerta (ALERTAS-03, 04)', () => {
     expect(titulo).toHaveFocus()
   })
 
-  it('devolve o foco ao botão de origem ao voltar para a lista', async () => {
-    getListaAlertasMock.mockResolvedValue([item()])
-    getDetalheAlertaMock.mockResolvedValue(detalhe())
+  it('devolve o foco ao botão de origem específico ao voltar para a lista, numa lista com vários itens', async () => {
+    const itens = [
+      item({ alerta: alertaBase({ elegibilidadeId: 'item-1' }) }),
+      item({ alerta: alertaBase({ elegibilidadeId: 'item-2' }) }),
+      item({ alerta: alertaBase({ elegibilidadeId: 'item-3' }) }),
+    ]
+    getListaAlertasMock.mockResolvedValue(itens)
+    getDetalheAlertaMock.mockResolvedValue(detalhe({ alerta: alertaBase({ elegibilidadeId: 'item-3' }) }))
     const usuario = userEvent.setup()
     render(<SuperficieAlertas seguradoId={SEGURADO_ID} />)
-    const botaoVerDetalhe = await screen.findByRole('button', { name: 'Ver detalhe' })
-    await usuario.click(botaoVerDetalhe)
+    const botoesVerDetalhe = await screen.findAllByRole('button', { name: 'Ver detalhe' })
+    expect(botoesVerDetalhe).toHaveLength(3)
+    // Seleciona o ÚLTIMO item, não o primeiro - prova que o foco restaurado é o do item
+    // que foi de fato aberto, não sempre o primeiro botão da lista.
+    await usuario.click(botoesVerDetalhe[2])
     await screen.findByRole('heading', { name: 'Chuva intensa' })
 
     await usuario.click(screen.getByRole('button', { name: 'Voltar à lista' }))
 
-    expect(await screen.findByRole('button', { name: 'Ver detalhe' })).toHaveFocus()
+    await screen.findAllByRole('button', { name: 'Ver detalhe' })
+    expect(document.getElementById('botao-detalhe-item-3')).toHaveFocus()
   })
 
   it('mostra Ainda não simulado explicitamente, sem nenhum comunicado (ALERTAS-06)', async () => {

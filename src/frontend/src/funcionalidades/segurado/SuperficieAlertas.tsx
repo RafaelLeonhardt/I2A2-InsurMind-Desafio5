@@ -59,12 +59,20 @@ function rotuloOrigem(origem: string): string {
 
 function IconeClassificacao({ classificacao }: { classificacao: ClassificacaoAlerta }) {
   if (classificacao === 'ativo') {
-    return <WarningIcon aria-hidden="true" size={16} weight="fill" />
+    return (
+      <WarningIcon aria-hidden="true" data-icone-nome="warning" size={16} weight="fill" />
+    )
   }
   if (classificacao === 'ainda_nao_simulado') {
-    return <HourglassIcon aria-hidden="true" size={16} />
+    return <HourglassIcon aria-hidden="true" data-icone-nome="hourglass" size={16} />
   }
-  return <ClockCounterClockwiseIcon aria-hidden="true" size={16} />
+  return (
+    <ClockCounterClockwiseIcon
+      aria-hidden="true"
+      data-icone-nome="clock-counter-clockwise"
+      size={16}
+    />
+  )
 }
 
 function falhaDe(causa: unknown): FalhaAlertas {
@@ -331,6 +339,9 @@ export function SuperficieAlertas({
       <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
         <h1>Nenhum alerta no momento</h1>
         <p className="introducao">Você ainda não tem nenhum alerta ativo ou anterior.</p>
+        <button onClick={() => void carregarLista()} type="button">
+          Atualizar
+        </button>
       </main>
     )
   }

@@ -665,6 +665,52 @@ def test_listar_todas_por_segurado_devolve_todas_incluidas_mais_recentes_primeir
     assert [registro.id for registro in resultado] == [id_novo, id_antigo]
 
 
+def test_listar_todas_por_segurado_desempata_criado_em_igual_por_id_decrescente(
+    tmp_path: Path,
+) -> None:
+    """Edge case da spec: dois alertas com o mesmo período (aqui, mesmo `criado_em`) têm
+    ordenação determinística — nunca posição instável entre carregamentos."""
+
+    caminho = preparar_banco(tmp_path)
+    id_segurado = inserir_segurado(caminho)
+    id_apolice = inserir_apolice(caminho, id_segurado)
+    id_regra = inserir_regra(caminho)
+    id_evento_1 = inserir_evento(caminho)
+    id_evento_2 = str(uuid4())
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO eventos_meteorologicos (id, tipo, area, periodo_inicio, "
+            "periodo_fim, intensidade, proveniencia, instante_observado) VALUES "
+            "(?, 'chuva_intensa', ?, '2026-06-10 06:00:00', '2026-06-10 18:00:00', "
+            "72.5, 'sintetico', '2026-06-09 18:00:00')",
+            [id_evento_2, AREA],
+        )
+    repo = RepositorioElegibilidades(caminho)
+    id_1 = repo.salvar(
+        uuid4(), id_evento_1, id_regra, id_segurado, id_apolice, "Pessoa Teste",
+        RESULTADO_INCLUIDO,
+    )
+    id_2 = repo.salvar(
+        uuid4(), id_evento_2, id_regra, id_segurado, id_apolice, "Pessoa Teste",
+        RESULTADO_INCLUIDO,
+    )
+    assert id_1 is not None
+    assert id_2 is not None
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "UPDATE elegibilidades_historicas SET criado_em = '2025-01-01 00:00:00' "
+            "WHERE id IN (?, ?)",
+            [id_1, id_2],
+        )
+
+    esperado = sorted([id_1, id_2], reverse=True)
+    resultado_1 = repo.listar_todas_por_segurado(UUID(id_segurado))
+    resultado_2 = repo.listar_todas_por_segurado(UUID(id_segurado))
+
+    assert [registro.id for registro in resultado_1] == esperado
+    assert [registro.id for registro in resultado_2] == esperado
+
+
 def test_listar_todas_por_segurado_ignora_excluidos_e_de_outros_segurados(
     tmp_path: Path,
 ) -> None:

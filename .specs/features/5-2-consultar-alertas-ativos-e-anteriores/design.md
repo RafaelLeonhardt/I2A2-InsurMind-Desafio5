@@ -105,8 +105,9 @@ Nenhuma migração nova.
 
 | Decision | Choice | Rationale |
 | --- | --- | --- |
-| Componente de mapa | Reusa o componente já existente da superfície de Fonte meteorológica (2.1), que já garante alternativa em lista | Já registrado como assunção confirmada; nenhum componente de mapa novo |
-| Ordenação da lista | `criado_em` da elegibilidade, decrescente (mais recente primeiro), determinística em caso de empate por `id` | Garante ordem estável entre carregamentos, evitando posição instável |
+| Componente de mapa | **Correção pós-implementação (Verifier, 5.2)**: não existe nenhum componente de mapa em 2.1 nem em nenhum outro lugar do projeto — a suposição original desta linha estava incorreta. A superfície de Fonte meteorológica (2.1) só tem uma tabela acessível. A equivalência mapa↔lista de ALERTAS-04 é satisfeita por construção: a lista/tabela é a única representação que existe, então não há seleção de mapa para tornar equivalente | Nenhum componente de mapa novo, porque nenhum existe para reusar |
+| Ordenação da lista | `criado_em` da elegibilidade, decrescente (mais recente primeiro), determinística em caso de empate por `id` decrescente | Garante ordem estável entre carregamentos, evitando posição instável |
+| Classificação `ainda_nao_simulado` | Qualquer estado de execução fora de `{concluida, falhou_simulacao}` — não só os 4 estados do diagrama do Approach (`processando_mensagens`/`aguardando_revisao`/`aguardando_confirmacao`/`simulando`) | **Correção pós-implementação (Verifier, 5.2)**: o diagrama original enumerava só 4 estados; a implementação generaliza para "qualquer estado sem desfecho de simulação definido", cobrindo também um terminal técnico anterior à simulação (ex.: `falhou_preparacao_ia`) — nenhum desses tem `ativo`/`anterior` como classificação correta, e a spec não define uma quarta categoria para eles |
 
 ---
 

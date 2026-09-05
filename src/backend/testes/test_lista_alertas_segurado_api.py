@@ -17,6 +17,11 @@ from central_preventiva.adaptadores.persistencia.repositorio_execucao_preventiva
 )
 from central_preventiva.adaptadores.persistencia.repositorio_meteorologia import (
     RepositorioEventosMeteorologicos,
+    RepositorioSincronizacoes,
+)
+from central_preventiva.aplicacao.portas_meteorologia import (
+    EstadoSincronizacao,
+    OrigemSincronizacao,
 )
 from central_preventiva.composicao.api import criar_aplicacao
 from central_preventiva.composicao.configuracao import Configuracao
@@ -71,8 +76,18 @@ def cliente_para(caminho: Path) -> TestClient:
     return TestClient(criar_aplicacao(configuracao))
 
 
-def criar_evento(caminho: Path, periodo_inicio: datetime, periodo_fim: datetime) -> UUID:
-    """Persiste um evento real com o período informado."""
+def criar_evento(
+    caminho: Path,
+    periodo_inicio: datetime,
+    periodo_fim: datetime,
+    proveniencia: ProvenienciaEvento = ProvenienciaEvento.REAL_INMET,
+) -> EventoMeteorologico:
+    """Persiste um evento real com o período informado.
+
+    `instante_observado` é distinto de `periodo_inicio`/`periodo_fim` de propósito — os
+    três campos precisam de valores diferentes entre si para que uma troca entre
+    quaisquer dois deles na resposta HTTP seja detectável por asserção.
+    """
 
     evento = EventoMeteorologico(
         id=uuid4(),
@@ -81,11 +96,11 @@ def criar_evento(caminho: Path, periodo_inicio: datetime, periodo_fim: datetime)
         periodo_inicio=periodo_inicio,
         periodo_fim=periodo_fim,
         intensidade=62.5,
-        proveniencia=ProvenienciaEvento.REAL_INMET,
-        instante_observado=periodo_inicio,
+        proveniencia=proveniencia,
+        instante_observado=periodo_inicio - timedelta(hours=1),
     )
     RepositorioEventosMeteorologicos(caminho).salvar(evento)
-    return evento.id
+    return evento
 
 
 def criar_elegibilidade(
@@ -122,13 +137,13 @@ def test_listar_devolve_alertas_com_classificacoes_distintas(tmp_path: Path) -> 
     inicio_futuro, fim_futuro = _periodo_futuro()
     evento_ativo = criar_evento(caminho, inicio_futuro, fim_futuro)
     execucao_ativa = execucoes.criar(EstadoExecucao.CONCLUIDA)
-    criar_elegibilidade(caminho, evento_ativo, execucao_ativa)
+    criar_elegibilidade(caminho, evento_ativo.id, execucao_ativa)
 
     evento_pendente = criar_evento(
         caminho, inicio_futuro + timedelta(days=1), fim_futuro + timedelta(days=1)
     )
     execucao_pendente = execucoes.criar(EstadoExecucao.SIMULANDO)
-    criar_elegibilidade(caminho, evento_pendente, execucao_pendente)
+    criar_elegibilidade(caminho, evento_pendente.id, execucao_pendente)
 
     resposta = cliente_para(caminho).get(f"/api/v1/segurados/{CARLOS_ID}/alertas")
 
@@ -144,7 +159,7 @@ def test_listar_nao_devolve_alertas_de_outro_segurado(tmp_path: Path) -> None:
     inicio, fim = _periodo_futuro()
     evento = criar_evento(caminho, inicio, fim)
     execucao_id = execucoes.criar(EstadoExecucao.CONCLUIDA)
-    criar_elegibilidade(caminho, evento, execucao_id, segurado_id=uuid4())
+    criar_elegibilidade(caminho, evento.id, execucao_id, segurado_id=uuid4())
 
     resposta = cliente_para(caminho).get(f"/api/v1/segurados/{CARLOS_ID}/alertas")
 
@@ -152,15 +167,18 @@ def test_listar_nao_devolve_alertas_de_outro_segurado(tmp_path: Path) -> None:
     assert resposta.json() == {"alertas": []}
 
 
-def test_consultar_detalhe_devolve_200_com_apolice_justificativa_e_linha_do_tempo(
+def test_consultar_detalhe_devolve_200_com_todos_os_campos_do_contrato(
     tmp_path: Path,
 ) -> None:
+    """Contrato completo: prova que a rota não inverte/mistura nenhum dos campos ao
+    traduzir `AlertaSegurado` e o detalhe para o corpo público."""
+
     caminho = preparar_banco(tmp_path)
     execucoes = RepositorioExecucaoPreventiva(caminho)
     inicio, fim = _periodo_futuro()
     evento = criar_evento(caminho, inicio, fim)
     execucao_id = execucoes.criar(EstadoExecucao.CONCLUIDA)
-    elegibilidade_id = criar_elegibilidade(caminho, evento, execucao_id)
+    elegibilidade_id = criar_elegibilidade(caminho, evento.id, execucao_id)
 
     resposta = cliente_para(caminho).get(
         f"/api/v1/segurados/{CARLOS_ID}/alertas/{elegibilidade_id}"
@@ -171,8 +189,68 @@ def test_consultar_detalhe_devolve_200_com_apolice_justificativa_e_linha_do_temp
     assert corpo["classificacao"] == "ativo"
     assert corpo["apolice_id"] == str(APOLICE_ID)
     assert corpo["justificativa"] == "Segurado e apólice atendem à regra ativa."
-    assert corpo["alerta"]["evento_tipo"] == "chuva_intensa"
+    alerta = corpo["alerta"]
+    assert alerta["evento_tipo"] == "chuva_intensa"
+    assert alerta["origem"] == "real_inmet"
+    assert alerta["localizacao"] == AREA
+    assert alerta["fonte_degradada"] is False
+    assert alerta["periodo_inicio"] == evento.periodo_inicio.isoformat()
+    assert alerta["periodo_fim"] == evento.periodo_fim.isoformat()
+    assert alerta["instante_observado"] == evento.instante_observado.isoformat()
+    assert "62.5" in alerta["severidade"]
+    assert alerta["impactos_esperados"] == ["alagamento"]
+    assert len(alerta["recomendacoes"]) > 0
     assert len(corpo["linha_do_tempo"]) > 0
+
+
+def test_consultar_detalhe_de_evento_sintetico_com_fonte_degradada(tmp_path: Path) -> None:
+    """A fronteira HTTP do detalhe nunca hardcoda `origem`/`fonte_degradada` — os demais
+    testes desta rota só usam evento real com fonte operacional, o que deixaria a rota
+    livre para fixar os dois campos sem que nenhum teste percebesse."""
+
+    caminho = preparar_banco(tmp_path)
+    execucoes = RepositorioExecucaoPreventiva(caminho)
+    inicio, fim = _periodo_futuro()
+    evento = criar_evento(caminho, inicio, fim, proveniencia=ProvenienciaEvento.SINTETICO)
+    execucao_id = execucoes.criar(EstadoExecucao.CONCLUIDA)
+    elegibilidade_id = criar_elegibilidade(caminho, evento.id, execucao_id)
+
+    resposta = cliente_para(caminho).get(
+        f"/api/v1/segurados/{CARLOS_ID}/alertas/{elegibilidade_id}"
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json()["alerta"]["origem"] == "sintetico"
+
+
+def test_consultar_lista_com_fonte_degradada_devolve_fonte_degradada_true(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    execucoes = RepositorioExecucaoPreventiva(caminho)
+    inicio, fim = _periodo_futuro()
+    evento = criar_evento(caminho, inicio, fim)
+    execucao_id = execucoes.criar(EstadoExecucao.CONCLUIDA)
+    criar_elegibilidade(caminho, evento.id, execucao_id)
+    id_area = uuid4()
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO areas_monitoradas_inmet "
+            "(id, codigo_estacao_inmet, nome_estacao, codigo_ibge_area, ativa) "
+            "VALUES (?, 'A701', 'Estação de Teste', ?, true)",
+            [id_area, AREA],
+        )
+    sincronizacoes = RepositorioSincronizacoes(caminho)
+    sincronizacao = sincronizacoes.criar(
+        uuid4(), id_area, OrigemSincronizacao.AUTOMATICA, EstadoSincronizacao.COLETANDO
+    )
+    sincronizacoes.atualizar_estado(sincronizacao.id, EstadoSincronizacao.FALHA)
+
+    resposta = cliente_para(caminho).get(f"/api/v1/segurados/{CARLOS_ID}/alertas")
+
+    assert resposta.status_code == 200
+    [item] = resposta.json()["alertas"]
+    assert item["alerta"]["fonte_degradada"] is True
 
 
 def test_consultar_detalhe_de_execucao_nao_terminal_devolve_ainda_nao_simulado(
@@ -183,7 +261,28 @@ def test_consultar_detalhe_de_execucao_nao_terminal_devolve_ainda_nao_simulado(
     inicio, fim = _periodo_futuro()
     evento = criar_evento(caminho, inicio, fim)
     execucao_id = execucoes.criar(EstadoExecucao.PROCESSANDO_MENSAGENS)
-    elegibilidade_id = criar_elegibilidade(caminho, evento, execucao_id)
+    elegibilidade_id = criar_elegibilidade(caminho, evento.id, execucao_id)
+
+    resposta = cliente_para(caminho).get(
+        f"/api/v1/segurados/{CARLOS_ID}/alertas/{elegibilidade_id}"
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json()["classificacao"] == "ainda_nao_simulado"
+
+
+def test_consultar_detalhe_de_execucao_terminal_sem_simulacao_devolve_ainda_nao_simulado(
+    tmp_path: Path,
+) -> None:
+    """A generalização da classificação (5.2, aplicacao/lista_alertas_segurado.py) cobre
+    também um terminal técnico anterior à simulação, não só os 4 estados do diagrama."""
+
+    caminho = preparar_banco(tmp_path)
+    execucoes = RepositorioExecucaoPreventiva(caminho)
+    inicio, fim = _periodo_futuro()
+    evento = criar_evento(caminho, inicio, fim)
+    execucao_id = execucoes.criar(EstadoExecucao.FALHOU_PREPARACAO_IA)
+    elegibilidade_id = criar_elegibilidade(caminho, evento.id, execucao_id)
 
     resposta = cliente_para(caminho).get(
         f"/api/v1/segurados/{CARLOS_ID}/alertas/{elegibilidade_id}"
@@ -209,7 +308,9 @@ def test_consultar_detalhe_de_outro_segurado_devolve_404_identico(tmp_path: Path
     inicio, fim = _periodo_futuro()
     evento = criar_evento(caminho, inicio, fim)
     execucao_id = execucoes.criar(EstadoExecucao.CONCLUIDA)
-    elegibilidade_de_outro = criar_elegibilidade(caminho, evento, execucao_id, segurado_id=uuid4())
+    elegibilidade_de_outro = criar_elegibilidade(
+        caminho, evento.id, execucao_id, segurado_id=uuid4()
+    )
 
     resposta_outro = cliente_para(caminho).get(
         f"/api/v1/segurados/{CARLOS_ID}/alertas/{elegibilidade_de_outro}"
