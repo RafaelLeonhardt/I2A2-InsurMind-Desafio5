@@ -96,10 +96,10 @@ T4 → T5
 
 **Done when**:
 
-- [ ] Primeira chamada cria a linha e devolve sua `visualizada_em`
-- [ ] Segunda chamada para a mesma `entrega_simulada_id` devolve a mesma `visualizada_em`, sem criar segunda linha
-- [ ] Chamadas concorrentes simuladas (duas transações abertas antes de qualquer commit) convergem para uma única linha persistida
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Primeira chamada cria a linha e devolve sua `visualizada_em`
+- [x] Segunda chamada para a mesma `entrega_simulada_id` devolve a mesma `visualizada_em`, sem criar segunda linha
+- [x] Chamadas concorrentes simuladas (duas transações abertas antes de qualquer commit) convergem para uma única linha persistida — testado com threads reais (mais rigoroso que a simulação sugerida); achado empírico documentado como SPEC_DEVIATION no repositório
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
