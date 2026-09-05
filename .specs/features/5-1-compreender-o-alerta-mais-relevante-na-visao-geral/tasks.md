@@ -111,10 +111,10 @@ T3 → T4
 
 **Done when**:
 
-- [ ] `200` com o alerta quando existir
-- [ ] `200` com corpo indicando ausência quando não existir (não `404` — ausência de alerta é um resultado válido, não um erro)
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `200` com o alerta quando existir
+- [x] `200` com corpo indicando ausência quando não existir (não `404` — ausência de alerta é um resultado válido, não um erro)
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full

@@ -107,6 +107,46 @@
         "title": "PedidoDecisaoLote",
         "type": "object"
       },
+      "ProblemaAlertaSegurado": {
+        "additionalProperties": false,
+        "description": "Falha da consulta do alerta, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaAlertaSegurado",
+        "type": "object"
+      },
       "ProblemaAvaliacaoCritica": {
         "additionalProperties": false,
         "description": "Falha da consulta do detalhe, com ocorrência, impacto e próxima ação segura.",
@@ -833,6 +873,114 @@
           "proxima_acao"
         ],
         "title": "ProblemaSimulacao",
+        "type": "object"
+      },
+      "RespostaAlerta": {
+        "additionalProperties": false,
+        "description": "O alerta mais relevante exibível ao segurado ativo.",
+        "properties": {
+          "elegibilidade_id": {
+            "description": "Identificador da elegibilidade de origem.",
+            "format": "uuid",
+            "title": "Elegibilidade Id",
+            "type": "string"
+          },
+          "evento_tipo": {
+            "description": "Tipo do evento meteorológico (`chuva_intensa`/`granizo`).",
+            "title": "Evento Tipo",
+            "type": "string"
+          },
+          "fonte_degradada": {
+            "description": "Se a fonte meteorológica real está degradada no momento da consulta — o alerta é o último snapshot disponível, de caráter apenas informativo.",
+            "title": "Fonte Degradada",
+            "type": "boolean"
+          },
+          "impactos_esperados": {
+            "description": "Coberturas da apólice relevantes ao evento.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Impactos Esperados",
+            "type": "array"
+          },
+          "instante_observado": {
+            "description": "Instante RFC 3339 em UTC em que o dado do evento foi observado.",
+            "format": "date-time",
+            "title": "Instante Observado",
+            "type": "string"
+          },
+          "localizacao": {
+            "description": "Área afetada, no mesmo código usado pela apólice.",
+            "title": "Localizacao",
+            "type": "string"
+          },
+          "origem": {
+            "description": "Procedência do evento: `real_inmet` ou `sintetico`.",
+            "title": "Origem",
+            "type": "string"
+          },
+          "periodo_fim": {
+            "description": "Instante RFC 3339 em UTC de fim do evento.",
+            "format": "date-time",
+            "title": "Periodo Fim",
+            "type": "string"
+          },
+          "periodo_inicio": {
+            "description": "Instante RFC 3339 em UTC de início do evento.",
+            "format": "date-time",
+            "title": "Periodo Inicio",
+            "type": "string"
+          },
+          "recomendacoes": {
+            "description": "Recomendações preventivas curtas e práticas.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Recomendacoes",
+            "type": "array"
+          },
+          "severidade": {
+            "description": "Critério de risco observado que tornou o evento relevante.",
+            "title": "Severidade",
+            "type": "string"
+          }
+        },
+        "required": [
+          "elegibilidade_id",
+          "evento_tipo",
+          "severidade",
+          "periodo_inicio",
+          "periodo_fim",
+          "localizacao",
+          "impactos_esperados",
+          "recomendacoes",
+          "origem",
+          "instante_observado",
+          "fonte_degradada"
+        ],
+        "title": "RespostaAlerta",
+        "type": "object"
+      },
+      "RespostaAlertaSegurado": {
+        "additionalProperties": false,
+        "description": "O alerta mais relevante do segurado, ou nulo se não houver nenhum.",
+        "properties": {
+          "alerta": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaAlerta"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "O alerta mais relevante, ou nulo se o segurado não tiver nenhum."
+          }
+        },
+        "required": [
+          "alerta"
+        ],
+        "title": "RespostaAlertaSegurado",
         "type": "object"
       },
       "RespostaApresentacaoSimulada": {
@@ -6945,6 +7093,49 @@
         "summary": "Consultar o segurado sintético padrão",
         "tags": [
           "Segurados"
+        ]
+      }
+    },
+    "/api/v1/segurados/{segurado_id}/alerta-mais-relevante": {
+      "get": {
+        "description": "Devolve o alerta mais relevante do segurado — tipo, severidade, período, localização, impactos e recomendações — ou `alerta: null` se não houver nenhum. Ausência de alerta é um resultado válido, nunca um erro `404`.",
+        "operationId": "consultar_alerta_api_v1_segurados__segurado_id__alerta_mais_relevante_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "segurado_id",
+            "required": true,
+            "schema": {
+              "title": "Segurado Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaAlertaSegurado"
+                }
+              }
+            },
+            "description": "Consulta realizada, com ou sem alerta."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaAlertaSegurado"
+                }
+              }
+            },
+            "description": "O identificador do segurado não é um UUID válido."
+          }
+        },
+        "summary": "Consultar o alerta mais relevante do segurado ativo",
+        "tags": [
+          "Alerta do segurado"
         ]
       }
     },
