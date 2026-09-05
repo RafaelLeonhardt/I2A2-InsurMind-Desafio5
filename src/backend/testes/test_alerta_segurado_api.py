@@ -13,6 +13,11 @@ from central_preventiva.adaptadores.persistencia.repositorio_elegibilidade impor
 )
 from central_preventiva.adaptadores.persistencia.repositorio_meteorologia import (
     RepositorioEventosMeteorologicos,
+    RepositorioSincronizacoes,
+)
+from central_preventiva.aplicacao.portas_meteorologia import (
+    EstadoSincronizacao,
+    OrigemSincronizacao,
 )
 from central_preventiva.composicao.api import criar_aplicacao
 from central_preventiva.composicao.configuracao import Configuracao
@@ -107,6 +112,64 @@ def test_consultar_alerta_devolve_200_com_alerta_quando_existir(tmp_path: Path) 
     assert "62.5" in alerta["severidade"]
     assert alerta["impactos_esperados"] == ["alagamento"]
     assert len(alerta["recomendacoes"]) > 0
+
+
+def test_consultar_alerta_de_evento_sintetico_devolve_origem_sintetico(
+    tmp_path: Path,
+) -> None:
+    """A fronteira HTTP nunca rotula um cenário sintético como observação real (VISAO-02) —
+    os demais testes desta rota só usam eventos `real_inmet`, o que deixaria a rota livre
+    para hardcodar a origem sem que nenhum teste percebesse."""
+
+    caminho = preparar_banco(tmp_path)
+    evento = EventoMeteorologico(
+        id=uuid4(),
+        tipo=TipoEventoMeteorologico.CHUVA_INTENSA,
+        area=AREA,
+        periodo_inicio=datetime(2026, 9, 4, 12, 0),
+        periodo_fim=datetime(2026, 9, 4, 18, 0),
+        intensidade=62.5,
+        proveniencia=ProvenienciaEvento.SINTETICO,
+        instante_observado=datetime(2026, 9, 4, 18, 0),
+    )
+    RepositorioEventosMeteorologicos(caminho).salvar(evento)
+    RepositorioElegibilidades(caminho).salvar(
+        uuid4(), evento.id, REGRA_ID, CARLOS_ID, uuid4(), "Carlos Teste", RESULTADO_INCLUIDO
+    )
+
+    resposta = cliente_para(caminho).get(f"/api/v1/segurados/{CARLOS_ID}/alerta-mais-relevante")
+
+    assert resposta.status_code == 200
+    assert resposta.json()["alerta"]["origem"] == "sintetico"
+
+
+def test_consultar_alerta_com_fonte_degradada_devolve_fonte_degradada_true(
+    tmp_path: Path,
+) -> None:
+    """A fronteira HTTP reflete a fonte degradada (VISAO-05) — os demais testes desta rota
+    só cobrem a fonte operacional, o que deixaria a rota livre para hardcodar `false` sem
+    que nenhum teste percebesse."""
+
+    caminho = preparar_banco(tmp_path)
+    criar_elegibilidade_incluida(caminho, CARLOS_ID)
+    id_area = uuid4()
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO areas_monitoradas_inmet "
+            "(id, codigo_estacao_inmet, nome_estacao, codigo_ibge_area, ativa) "
+            "VALUES (?, 'A701', 'Estação de Teste', ?, true)",
+            [id_area, AREA],
+        )
+    sincronizacoes = RepositorioSincronizacoes(caminho)
+    sincronizacao = sincronizacoes.criar(
+        uuid4(), id_area, OrigemSincronizacao.AUTOMATICA, EstadoSincronizacao.COLETANDO
+    )
+    sincronizacoes.atualizar_estado(sincronizacao.id, EstadoSincronizacao.FALHA)
+
+    resposta = cliente_para(caminho).get(f"/api/v1/segurados/{CARLOS_ID}/alerta-mais-relevante")
+
+    assert resposta.status_code == 200
+    assert resposta.json()["alerta"]["fonte_degradada"] is True
 
 
 def test_consultar_alerta_devolve_200_com_alerta_nulo_quando_nao_existir(
