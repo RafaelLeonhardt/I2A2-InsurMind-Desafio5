@@ -5,7 +5,8 @@ Os repositórios são os reais, sobre um banco temporário migrado — mesma esc
 histórias anteriores do Épico 5.
 """
 
-from datetime import date
+from dataclasses import replace
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from uuid import UUID, uuid4
 
@@ -25,8 +26,17 @@ from central_preventiva.aplicacao.apolice_segurado import (
     PortasApoliceSegurado,
     ServicoApoliceSegurado,
 )
-from central_preventiva.dominio.avaliador_elegibilidade import ResultadoElegibilidade
-from central_preventiva.dominio.avaliador_risco import Criterio
+from central_preventiva.dominio.avaliador_elegibilidade import (
+    CandidatoElegibilidade,
+    ResultadoElegibilidade,
+    avaliar,
+)
+from central_preventiva.dominio.avaliador_risco import Criterio, RegraSnapshot
+from central_preventiva.dominio.evento_meteorologico import (
+    EventoMeteorologico,
+    ProvenienciaEvento,
+    TipoEventoMeteorologico,
+)
 
 AREA = "9990001"
 SEGURADO_ID = uuid4()
@@ -181,6 +191,31 @@ def test_obter_apolice_ativa_com_vigencia_expirada_traz_estado_expirada(
     assert apolice.estado_objetivo == ESTADO_EXPIRADA
 
 
+def test_obter_apolice_com_vigencia_fim_hoje_ainda_e_ativa(tmp_path: Path) -> None:
+    """Fronteira exata: uma apólice que vence hoje ainda está dentro do período de
+    vigência (spec: "fora do período de vigência atual") — só o dia seguinte expira."""
+
+    contexto = Contexto(tmp_path)
+    hoje = date.today().isoformat()
+    contexto.criar_apolice(situacao="ativa", vigencia_fim=hoje)
+
+    apolice = contexto.servico.obter(SEGURADO_ID)
+
+    assert apolice is not None
+    assert apolice.estado_objetivo == "ativa"
+
+
+def test_obter_apolice_com_vigencia_fim_ontem_ja_expirou(tmp_path: Path) -> None:
+    contexto = Contexto(tmp_path)
+    ontem = (date.today() - timedelta(days=1)).isoformat()
+    contexto.criar_apolice(situacao="ativa", vigencia_fim=ontem)
+
+    apolice = contexto.servico.obter(SEGURADO_ID)
+
+    assert apolice is not None
+    assert apolice.estado_objetivo == ESTADO_EXPIRADA
+
+
 def test_obter_de_outro_segurado_devolve_none(tmp_path: Path) -> None:
     contexto = Contexto(tmp_path)
     contexto.criar_apolice(segurado_id=OUTRO_SEGURADO_ID)
@@ -217,18 +252,80 @@ def test_obter_explicacao_filtra_para_categorias_relevantes_a_apolice(
     assert "participação em alertas" not in operandos
 
 
-def test_obter_explicacao_nunca_contem_palavra_de_cobertura_indenizacao_ou_sinistro(
+PALAVRAS_PROIBIDAS_DE_COBERTURA = ("indeniza", "sinistro", "confirma cobertura", "garantimos")
+"""Palavras que nenhuma justificativa de critério pode conter (APOLICE-02)."""
+
+
+def test_justificativas_reais_do_avaliador_nunca_prometem_cobertura_indenizacao_ou_sinistro() -> (
+    None
+):
+    """Varre o texto de PRODUÇÃO de `dominio/avaliador_elegibilidade.py` (não uma
+    constante escrita pelo teste) nos ramos atende/não-atende dos 4 critérios relevantes
+    à apólice — `obter_explicacao` só repassa esse texto, nunca o reescreve."""
+
+    regra = RegraSnapshot(
+        id=uuid4(),
+        evento_tipo=TipoEventoMeteorologico.CHUVA_INTENSA,
+        limiar_meteorologico=50.0,
+        area_aplicavel=AREA,
+        apolice_tipo="residencial",
+        cobertura_exigida="alagamento",
+        versao=1,
+    )
+    evento = EventoMeteorologico(
+        id=uuid4(),
+        tipo=TipoEventoMeteorologico.CHUVA_INTENSA,
+        area=AREA,
+        periodo_inicio=datetime(2026, 3, 10, 6, 0),
+        periodo_fim=datetime(2026, 3, 10, 18, 0),
+        intensidade=72.5,
+        proveniencia=ProvenienciaEvento.SINTETICO,
+        instante_observado=datetime(2026, 3, 9, 18, 0),
+    )
+    candidato_base = CandidatoElegibilidade(
+        segurado_id=uuid4(),
+        apolice_id=uuid4(),
+        nome_segurado="Pessoa Segurada Sintética",
+        codigo_ibge_area=AREA,
+        canal_preferido="whatsapp",
+        participa_de_alertas=True,
+        apolice_tipo="residencial",
+        apolice_situacao="ativa",
+        coberturas=("alagamento", "incendio"),
+    )
+    variantes = (
+        candidato_base,
+        replace(candidato_base, codigo_ibge_area="9990099"),
+        replace(candidato_base, apolice_tipo="automovel"),
+        replace(candidato_base, apolice_situacao="cancelada"),
+        replace(candidato_base, coberturas=("incendio",)),
+    )
+
+    todas_justificativas: list[str] = []
+    for candidato in variantes:
+        resultado = avaliar(candidato, evento, regra)
+        todas_justificativas.extend(criterio.justificativa for criterio in resultado.criterios)
+
+    assert len(todas_justificativas) >= 20
+    texto_completo = " ".join(todas_justificativas).lower()
+    for palavra_proibida in PALAVRAS_PROIBIDAS_DE_COBERTURA:
+        assert palavra_proibida not in texto_completo
+
+
+def test_obter_explicacao_repassa_a_justificativa_de_producao_sem_reescreve_la(
     tmp_path: Path,
 ) -> None:
+    """Confirma que `obter_explicacao` não introduz nenhum texto próprio — o critério
+    devolvido é exatamente o snapshot persistido."""
+
     contexto = Contexto(tmp_path)
     id_registro = contexto.criar_elegibilidade()
 
     explicacao = contexto.servico.obter_explicacao(SEGURADO_ID, id_registro)
 
     assert explicacao is not None
-    texto_completo = " ".join(criterio.justificativa for criterio in explicacao.criterios).lower()
-    for palavra_proibida in ("indeniza", "sinistro", "confirma cobertura", "garantimos"):
-        assert palavra_proibida not in texto_completo
+    criterio_area = next(c for c in explicacao.criterios if c.operando == "área afetada")
+    assert criterio_area.justificativa == "Área da apólice corresponde à área do evento."
 
 
 def test_obter_explicacao_de_execucao_historica_ignora_alteracao_posterior_da_apolice(

@@ -148,6 +148,33 @@ def test_consultar_apolice_cancelada_devolve_estado_objetivo_textual(
     assert resposta.json()["estado_objetivo"] == "cancelada"
 
 
+def test_consultar_apolice_suspensa_devolve_estado_objetivo_textual(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    criar_segurado(caminho)
+    criar_apolice(caminho, situacao="suspensa")
+
+    resposta = cliente_para(caminho).get(f"/api/v1/segurados/{CARLOS_ID}/apolice")
+
+    assert resposta.status_code == 200
+    assert resposta.json()["estado_objetivo"] == "suspensa"
+
+
+def test_consultar_apolice_com_canal_e_participacao_nao_padrao(tmp_path: Path) -> None:
+    """L-061: `participa_de_alertas`/`canal_preferido` só apareciam com um valor em toda
+    a suíte — fixar qualquer um deles em `_resposta_apolice` não quebrava nada."""
+
+    caminho = preparar_banco(tmp_path)
+    criar_segurado(caminho, canal_preferido="whatsapp", participa_de_alertas=False)
+    criar_apolice(caminho)
+
+    resposta = cliente_para(caminho).get(f"/api/v1/segurados/{CARLOS_ID}/apolice")
+
+    assert resposta.status_code == 200
+    corpo = resposta.json()
+    assert corpo["canal_preferido"] == "whatsapp"
+    assert corpo["participa_de_alertas"] is False
+
+
 def test_consultar_apolice_ativa_expirada_devolve_estado_expirada(tmp_path: Path) -> None:
     caminho = preparar_banco(tmp_path)
     criar_segurado(caminho)
@@ -181,10 +208,18 @@ def test_consultar_apolice_de_outro_segurado_nao_vaza_para_o_segurado_consultado
     criar_segurado(caminho, segurado_id=outro_segurado)
     criar_apolice(caminho, segurado_id=outro_segurado)
 
-    resposta = cliente_para(caminho).get(f"/api/v1/segurados/{CARLOS_ID}/apolice")
+    resposta_outro = cliente_para(caminho).get(f"/api/v1/segurados/{CARLOS_ID}/apolice")
+    resposta_inexistente = cliente_para(caminho).get(
+        f"/api/v1/segurados/{uuid4()}/apolice"
+    )
 
-    assert resposta.status_code == 404
-    assert resposta.json()["codigo"] == "apolice_nao_encontrada"
+    corpo_outro = resposta_outro.json()
+    corpo_inexistente = resposta_inexistente.json()
+    assert resposta_outro.status_code == 404
+    assert resposta_inexistente.status_code == 404
+    assert corpo_outro["codigo"] == corpo_inexistente["codigo"] == "apolice_nao_encontrada"
+    assert corpo_outro["impacto"] == corpo_inexistente["impacto"]
+    assert corpo_outro["proxima_acao"] == corpo_inexistente["proxima_acao"]
 
 
 def test_consultar_apolice_com_identificador_invalido_devolve_422(tmp_path: Path) -> None:
@@ -202,6 +237,9 @@ def test_consultar_explicacao_devolve_200_com_criterios_filtrados_e_completos(
 ) -> None:
     caminho = preparar_banco(tmp_path)
     criar_segurado(caminho)
+    # A apólice tem duas coberturas ("alagamento", "vendaval") - só "alagamento" participou
+    # da regra avaliada (Edge Case da spec, ver asserção abaixo).
+    criar_apolice(caminho)
     elegibilidade_id = criar_elegibilidade(caminho)
 
     resposta = cliente_para(caminho).get(
@@ -219,6 +257,51 @@ def test_consultar_explicacao_devolve_200_com_criterios_filtrados_e_completos(
     assert criterio_area["valor_observado"] == AREA
     assert criterio_area["atende"] is True
     assert criterio_area["justificativa"] == "Área da apólice corresponde à área do evento."
+    # Edge Case da spec: a apólice tem duas coberturas ("alagamento", "vendaval"), mas só
+    # "alagamento" participou da regra — a explicação nunca cita "vendaval" como se também
+    # tivesse participado.
+    valores_observados = {c["valor_observado"] for c in corpo["criterios"]}
+    assert "vendaval" not in valores_observados
+    criterio_cobertura = next(c for c in corpo["criterios"] if c["operando"] == "cobertura exigida")
+    assert criterio_cobertura["valor_observado"] == "alagamento"
+
+
+def test_consultar_explicacao_com_criterio_nao_atendido(tmp_path: Path) -> None:
+    """L-061: `atende` só aparecia como `True` em toda a suíte HTTP — fixar
+    `atende=True` em `_resposta_criterio` não quebrava nada."""
+
+    caminho = preparar_banco(tmp_path)
+    criar_segurado(caminho)
+    criterios_com_reprovacao = (
+        Criterio("área afetada", AREA, True, "Área da apólice corresponde à área do evento."),
+        Criterio("tipo da apólice", "residencial", True, "Tipo corresponde ao exigido."),
+        Criterio("situação da apólice", "ativa", True, "Apólice está ativa."),
+        Criterio(
+            "cobertura exigida", "nenhuma", False,
+            "Apólice não possui a cobertura exigida pela regra (alagamento).",
+        ),
+    )
+    resultado = ResultadoElegibilidade(
+        elegivel=False,
+        criterios=criterios_com_reprovacao,
+        canal="whatsapp",
+        motivo="cobertura_ausente",
+        justificativa="Apólice não possui a cobertura exigida pela regra ativa.",
+    )
+    elegibilidade_id = RepositorioElegibilidades(caminho).salvar(
+        uuid4(), EVENTO_ID, REGRA_ID, CARLOS_ID, uuid4(), "Carlos Teste", resultado
+    )
+    assert elegibilidade_id is not None
+
+    resposta = cliente_para(caminho).get(
+        f"/api/v1/segurados/{CARLOS_ID}/apolice/explicacao/{elegibilidade_id}"
+    )
+
+    assert resposta.status_code == 200
+    criterio_cobertura = next(
+        c for c in resposta.json()["criterios"] if c["operando"] == "cobertura exigida"
+    )
+    assert criterio_cobertura["atende"] is False
 
 
 def test_consultar_explicacao_inexistente_devolve_404(tmp_path: Path) -> None:
@@ -252,6 +335,8 @@ def test_consultar_explicacao_de_outro_segurado_devolve_404_identico(
     corpo_outro = resposta_outro.json()
     corpo_inexistente = resposta_inexistente.json()
     assert resposta_outro.status_code == 404
+    assert resposta_inexistente.status_code == 404
+    assert corpo_outro["codigo"] == corpo_inexistente["codigo"] == "explicacao_nao_encontrada"
     assert corpo_outro["impacto"] == corpo_inexistente["impacto"]
     assert corpo_outro["proxima_acao"] == corpo_inexistente["proxima_acao"]
 

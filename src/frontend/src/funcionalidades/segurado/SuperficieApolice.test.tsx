@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -59,7 +59,7 @@ function explicacaoBase(sobrescritas: Partial<ExplicacaoApolice> = {}): Explicac
         operando: 'cobertura exigida',
         valorObservado: 'alagamento',
         atende: true,
-        justificativa: 'Apólice possui a cobertura exigida.',
+        justificativa: 'Apólice possui a cobertura exigida (alagamento).',
       },
     ],
     ...sobrescritas,
@@ -133,6 +133,17 @@ describe('estado objetivo sem falha técnica (APOLICE-03)', () => {
     expect(await screen.findByText('Expirada')).toBeInTheDocument()
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
+
+  it('mostra apólice suspensa como texto comum, sem role alert', async () => {
+    getApoliceMock.mockResolvedValue(
+      apoliceBase({ situacao: 'suspensa', estadoObjetivo: 'suspensa' }),
+    )
+
+    render(<SuperficieApolice seguradoId={SEGURADO_ID} />)
+
+    expect(await screen.findByText('Suspensa')).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
 })
 
 describe('Não encontrada (APOLICE-04)', () => {
@@ -197,7 +208,29 @@ describe('explicação de critérios (APOLICE-02)', () => {
       await screen.findByText(/não confirma cobertura, indenização nem decisão de sinistro/),
     ).toBeInTheDocument()
     expect(screen.getByText(/Área da apólice corresponde à área do evento\./)).toBeInTheDocument()
-    expect(screen.getByText(/Apólice possui a cobertura exigida\./)).toBeInTheDocument()
+    expect(screen.getByText(/Apólice possui a cobertura exigida \(alagamento\)\./)).toBeInTheDocument()
+  })
+
+  it('destaca só a cobertura avaliada, sem listar as demais coberturas da apólice (Edge Case)', async () => {
+    // A apólice tem duas coberturas ("alagamento", "vendaval"), mas o snapshot da
+    // execução só avaliou "alagamento" - a seção de explicação nunca deve citar
+    // "vendaval" como se também tivesse participado, mesmo que ele apareça em outra
+    // parte da página (a lista de Coberturas da apólice em si).
+    getApoliceMock.mockResolvedValue(apoliceBase())
+    getExplicacaoApoliceMock.mockResolvedValue(explicacaoBase())
+
+    render(
+      <SuperficieApolice
+        elegibilidadeIdExplicacao={ELEGIBILIDADE_ID}
+        seguradoId={SEGURADO_ID}
+      />,
+    )
+
+    const secaoExplicacao = await screen.findByRole('region', {
+      name: 'Como sua apólice participou desta decisão',
+    })
+    expect(within(secaoExplicacao).getByText(/alagamento/)).toBeInTheDocument()
+    expect(within(secaoExplicacao).queryByText(/vendaval/)).not.toBeInTheDocument()
   })
 
   it('não mostra nenhuma seção de explicação quando a prop não é informada', async () => {
