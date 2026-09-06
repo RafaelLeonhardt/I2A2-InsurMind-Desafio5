@@ -3760,6 +3760,25 @@
         "title": "RespostaListaComunicados",
         "type": "object"
       },
+      "RespostaListaSegurados": {
+        "additionalProperties": false,
+        "description": "A lista completa de segurados sintéticos do seed.",
+        "properties": {
+          "segurados": {
+            "description": "Todos os segurados sintéticos do seed, ordenados por nome.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaSeguradoListado"
+            },
+            "title": "Segurados",
+            "type": "array"
+          }
+        },
+        "required": [
+          "segurados"
+        ],
+        "title": "RespostaListaSegurados",
+        "type": "object"
+      },
       "RespostaLoteRevisao": {
         "additionalProperties": false,
         "description": "O lote de revisão de uma execução, com os itens de atenção primeiro (REVISAO-01).",
@@ -5010,6 +5029,29 @@
           "regra_versao"
         ],
         "title": "RespostaSecaoEvento",
+        "type": "object"
+      },
+      "RespostaSeguradoListado": {
+        "additionalProperties": false,
+        "description": "Um segurado sintético disponível para seleção.",
+        "properties": {
+          "id": {
+            "description": "Identificador do segurado sintético.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "nome": {
+            "description": "Nome do segurado sintético.",
+            "title": "Nome",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nome"
+        ],
+        "title": "RespostaSeguradoListado",
         "type": "object"
       },
       "RespostaSeguradoPadrao": {
@@ -8022,6 +8064,28 @@
         "summary": "Consultar a saúde do processo",
         "tags": [
           "Saúde"
+        ]
+      }
+    },
+    "/api/v1/segurados": {
+      "get": {
+        "description": "Devolve todos os segurados do conjunto sintético semeado, ordenados por nome, para popular o seletor demonstrativo 'Visualizar como'. Lista vazia quando os dados sintéticos ainda não foram restaurados.",
+        "operationId": "listar_segurados_api_v1_segurados_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaListaSegurados"
+                }
+              }
+            },
+            "description": "Consulta realizada, com ou sem segurados."
+          }
+        },
+        "summary": "Listar os segurados sintéticos disponíveis",
+        "tags": [
+          "Segurados"
         ]
       }
     },
