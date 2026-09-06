@@ -4,6 +4,26 @@
  */
 
 export interface paths {
+    "/api/v1/saude": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar a saúde do processo
+         * @description Confirma somente que o processo local da API está disponível.
+         */
+        get: operations["obter_saude_api_v1_saude_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/dados-sinteticos/restauracoes": {
         parameters: {
             query?: never;
@@ -18,6 +38,306 @@ export interface paths {
          * @description Repõe o conjunto sintético versionado em uma única transação. Exige o cabeçalho `Idempotency-Key` em toda requisição.
          */
         post: operations["restaurar_api_v1_dados_sinteticos_restauracoes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prontidao/dependencias": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar a prontidão das dependências
+         * @description Devolve o estado mais recente de backend, banco de dados, INMET e OpenAI. Backend e banco de dados são recomputados a cada chamada; INMET e OpenAI, na primeira consulta, disparam a verificação em segundo plano e retornam 'verificando'.
+         */
+        get: operations["consultar_api_v1_prontidao_dependencias_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/prontidao/dependencias/{nome}/verificacoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Solicitar uma nova verificação de prontidão
+         * @description Solicita, de forma assíncrona e idempotente, uma nova verificação de INMET ou OpenAI. Exige o cabeçalho `Idempotency-Key` em toda requisição. Backend e banco de dados não aceitam este recurso: já são recomputados a cada `GET`.
+         */
+        post: operations["verificar_novamente_api_v1_prontidao_dependencias__nome__verificacoes_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/segurados/padrao": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o segurado sintético padrão
+         * @description Devolve o segurado sintético padrão usado na visão de Segurado da demonstração.
+         */
+        get: operations["consultar_api_v1_segurados_padrao_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/meteorologia/coletas": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Solicitar uma coleta meteorológica manual
+         * @description Solicita, de forma idempotente, uma coleta meteorológica manual para a área informada. Exige o cabeçalho `Idempotency-Key` em toda requisição.
+         */
+        post: operations["solicitar_coleta_api_v1_meteorologia_coletas_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/meteorologia/{sincronizacao_id}/nova-tentativa": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Solicitar uma nova tentativa após indisponibilidade
+         * @description Solicita, de forma idempotente, uma nova coleta correlacionada à sincronização de origem informada, sem reabrir nem mutar a sincronização/execução anteriores. Exige o cabeçalho `Idempotency-Key` em toda requisição.
+         */
+        post: operations["solicitar_nova_tentativa_api_v1_meteorologia__sincronizacao_id__nova_tentativa_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/meteorologia/cenarios-sinteticos/{identificador}/ativar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ativar um cenário sintético de contingência
+         * @description Ativa, de forma idempotente, o cenário sintético de contingência informado para a área monitorada indicada. O evento resultante tem `proveniencia = sintetico`, nunca combinado com dados `real_inmet`. Exige o cabeçalho `Idempotency-Key` em toda requisição.
+         */
+        post: operations["ativar_cenario_sintetico_api_v1_meteorologia_cenarios_sinteticos__identificador__ativar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/meteorologia/eventos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar os eventos meteorológicos normalizados
+         * @description Devolve os eventos meteorológicos já normalizados, do mais recente.
+         */
+        get: operations["consultar_eventos_api_v1_meteorologia_eventos_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/meteorologia/sincronizacoes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o histórico de sincronizações meteorológicas
+         * @description Devolve a última tentativa, a última coleta válida, a próxima consulta estimada e o histórico completo de sincronizações, só com dados persistidos.
+         */
+        get: operations["consultar_sincronizacoes_api_v1_meteorologia_sincronizacoes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/execucoes/{execucao_id}/avaliacao-risco": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o detalhe da decisão de risco de uma execução
+         * @description Devolve o operando, o valor observado, o resultado e a justificativa de cada critério da decisão de risco já tomada para a execução, sem recalcular nada.
+         */
+        get: operations["consultar_avaliacao_risco_api_v1_execucoes__execucao_id__avaliacao_risco_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/regras": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar todas as versões de regra
+         * @description Devolve todas as versões de regra registradas, ativas e substituídas.
+         */
+        get: operations["consultar_regras_api_v1_regras_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/regras/{regra_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar uma versão específica de regra
+         * @description Devolve uma versão específica de regra pelo seu identificador.
+         */
+        get: operations["consultar_regra_api_v1_regras__regra_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/regras/{regra_id}/testar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Testar deterministicamente uma configuração de regra
+         * @description Aplica a configuração proposta a cada cenário sintético do tipo de evento, sem persistir nada. Configuração inválida é bloqueada com motivos por campo.
+         */
+        post: operations["testar_regra_api_v1_regras__regra_id__testar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/regras/{regra_id}/ativar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ativar uma nova versão de regra
+         * @description Revalida e reexecuta o teste determinístico, e ativa a configuração como nova versão da regra informada, de forma idempotente. Exige o cabeçalho `Idempotency-Key` em toda requisição.
+         */
+        post: operations["ativar_regra_api_v1_regras__regra_id__ativar_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/execucoes/{execucao_id}/elegibilidade": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o público elegível de uma execução
+         * @description Devolve as quantidades de incluídos e excluídos e a lista do público avaliado, com segurado sintético, apólice, localização, canal e resultado. Uma execução sem nenhum resultado devolve quantidades zeradas e lista vazia.
+         */
+        get: operations["consultar_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/execucoes/{execucao_id}/elegibilidade/{registro_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar a explicação completa de um resultado de elegibilidade
+         * @description Devolve regra e versão, operando, valor observado, resultado e justificativa de cada critério da decisão de elegibilidade já tomada, sem recalcular nada.
+         */
+        get: operations["consultar_registro_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade__registro_id__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -68,27 +388,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/execucoes/{execucao_id}/avaliacao-risco": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar o detalhe da decisão de risco de uma execução
-         * @description Devolve o operando, o valor observado, o resultado e a justificativa de cada critério da decisão de risco já tomada para a execução, sem recalcular nada.
-         */
-        get: operations["consultar_avaliacao_risco_api_v1_execucoes__execucao_id__avaliacao_risco_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/execucoes/{execucao_id}/confirmar-simulacao": {
+    "/api/v1/execucoes/{execucao_id}/preflight": {
         parameters: {
             query?: never;
             header?: never;
@@ -98,10 +398,30 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Confirmar e executar a simulação de uma execução
-         * @description Executa a simulação local do lote aprovado. Exige o campo `reconhecimento_simulacao` marcado: sem ele o comando é recusado, mesmo por chamada direta à API. A elegibilidade das mensagens é reverificada do estado real no momento da confirmação, e só as aprovadas pelo agente crítico e por Marina são reclamadas: rejeitada, excluída, em exceção ou de volta ao ciclo de geração fica de fora. Cada mensagem reclamada ganha uma entrega simulada e passa a 'simulada_entregue' na mesma transação; nenhum conector real de WhatsApp, e-mail ou SMS é usado. Uma falha local desfaz a transação inteira, preserva as mensagens como 'aprovada' e move a execução a 'falhou_simulacao'. Exige o cabeçalho `Idempotency-Key`; repeti-lo devolve a simulação já registrada.
+         * Preparar a etapa agêntica de uma execução preventiva
+         * @description Verifica a configuração e a disponibilidade real da OpenAI antes de gerar qualquer mensagem e, confirmada a disponibilidade, monta o contexto mínimo de cada item do público elegível e transiciona a execução para 'processando_mensagens'. Indisponibilidade que esgota as tentativas leva a 'falhou_preparacao_ia' com causa sanitizada, sem nenhuma chamada de geração e sem nenhum conteúdo substituto. Exige o cabeçalho `Idempotency-Key`.
          */
-        post: operations["confirmar_simulacao_api_v1_execucoes__execucao_id__confirmar_simulacao_post"];
+        post: operations["preparar_execucao_api_v1_execucoes__execucao_id__preflight_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/execucoes/{execucao_origem_id}/nova-tentativa-ia": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Solicitar nova tentativa de preparação agêntica
+         * @description Valida a integridade dos snapshots versionados da execução de origem e, passando, cria uma execução correlacionada nova em 'aguardando_geracao', com `execucao_origem_id` próprio e uma cópia integral do público elegível da origem. A execução de origem permanece terminal e nunca é reaberta. Exige o cabeçalho `Idempotency-Key`.
+         */
+        post: operations["solicitar_nova_tentativa_ia_api_v1_execucoes__execucao_origem_id__nova_tentativa_ia_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -120,66 +440,6 @@ export interface paths {
          * @description Devolve, para cada item do público elegível já preparado, quais categorias de dado foram usadas no contexto do agente redator e quais foram deliberadamente deixadas de fora. São nomes de categoria, nunca conteúdo: a consulta nunca expõe documento, dado financeiro, dado de pagamento ou credencial.
          */
         get: operations["consultar_proveniencia_api_v1_execucoes__execucao_id__contextos_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/execucoes/{execucao_id}/elegibilidade": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar o público elegível de uma execução
-         * @description Devolve as quantidades de incluídos e excluídos e a lista do público avaliado, com segurado sintético, apólice, localização, canal e resultado. Uma execução sem nenhum resultado devolve quantidades zeradas e lista vazia.
-         */
-        get: operations["consultar_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/execucoes/{execucao_id}/elegibilidade/{registro_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar a explicação completa de um resultado de elegibilidade
-         * @description Devolve regra e versão, operando, valor observado, resultado e justificativa de cada critério da decisão de elegibilidade já tomada, sem recalcular nada.
-         */
-        get: operations["consultar_registro_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade__registro_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/execucoes/{execucao_id}/linha-do-tempo": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar a linha do tempo ponta a ponta de uma execução
-         * @description Devolve, em ordem cronológica, todos os marcos já persistidos da execução — coleta, avaliação de risco, elegibilidade, gerações, críticas, decisões humanas, exceções, simulação e visualização —, cada um com timestamp UTC, ator, ação, resultado e correlação, além da cadeia de execuções correlacionadas (origem e retentativas).
-         */
-        get: operations["consultar_linha_do_tempo_api_v1_execucoes__execucao_id__linha_do_tempo_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -208,7 +468,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/execucoes/{execucao_id}/mensagens/{mensagem_id}/detalhe": {
+    "/api/v1/mensagens/{mensagem_id}/versoes/{versao_id}/avaliacao-critica": {
         parameters: {
             query?: never;
             header?: never;
@@ -216,10 +476,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Consultar o detalhe individual de um resultado de simulação
-         * @description Devolve segurado sintético, apólice, canal, conteúdo, horários, estado, evento, versão da regra e as aprovações agêntica e humana de origem de uma mensagem. Todas as tentativas de geração aparecem relacionadas à sua própria avaliação crítica e decisões humanas, na ordem cronológica. Uma mensagem inexistente e uma mensagem que existe mas pertence a outra execução devolvem exatamente a mesma resposta `404`, sem revelar a existência cruzada do registro.
+         * Consultar o detalhe da avaliação crítica de uma versão de mensagem
+         * @description Devolve a versão avaliada, os sete critérios considerados, a decisão do agente crítico, os motivos categorizados, o agente, o modelo e a duração da avaliação. A decisão do agente ('agente_ia') vem separada da validação determinística de campos e limite de canal ('regras_deterministicas'), que é decidida por regra e nunca pelo modelo. É uma consulta de leitura: nada é reavaliado e nenhuma chamada à OpenAI é feita.
          */
-        get: operations["consultar_detalhe_api_v1_execucoes__execucao_id__mensagens__mensagem_id__detalhe_get"];
+        get: operations["consultar_avaliacao_api_v1_mensagens__mensagem_id__versoes__versao_id__avaliacao_critica_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -228,27 +488,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/execucoes/{execucao_id}/preflight": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Preparar a etapa agêntica de uma execução preventiva
-         * @description Verifica a configuração e a disponibilidade real da OpenAI antes de gerar qualquer mensagem e, confirmada a disponibilidade, monta o contexto mínimo de cada item do público elegível e transiciona a execução para 'processando_mensagens'. Indisponibilidade que esgota as tentativas leva a 'falhou_preparacao_ia' com causa sanitizada, sem nenhuma chamada de geração e sem nenhum conteúdo substituto. Exige o cabeçalho `Idempotency-Key`.
-         */
-        post: operations["preparar_execucao_api_v1_execucoes__execucao_id__preflight_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/execucoes/{execucao_id}/resultados": {
+    "/api/v1/mensagens/{mensagem_id}/proveniencia": {
         parameters: {
             query?: never;
             header?: never;
@@ -256,10 +496,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Consultar os resultados consolidados da simulação de uma execução
-         * @description Devolve os totais por canal e por estado de todas as mensagens do lote, com as rejeitadas, excluídas e em exceção técnica separadas em `nao_simulaveis` — nunca somadas às entregas simuladas. Enquanto a simulação não chega a `concluida` ou `falhou_simulacao`, `concluido` vem falso e os totais vêm vazios, para nunca apresentar um total parcial como final. Uma divergência entre a contagem de mensagens simuladas e as entregas persistidas é reportada em `divergencia`, nunca corrigida silenciosamente.
+         * Consultar a proveniência agêntica de uma mensagem
+         * @description Devolve o histórico completo do ciclo de uma mensagem, tentativa por tentativa: agente, modelo, versão do prompt, categorias de dado usadas e não usadas no contexto, conteúdo produzido, veredito da validação determinística, avaliação do agente crítico, duração e métricas de uso. Uma tentativa reprovada continua consultável depois da regeneração: nada é sobrescrito. É uma consulta de leitura: nada é gerado nem reavaliado e nenhuma chamada à OpenAI é feita. A resposta nunca expõe chave, contato, identificação direta do segurado ou texto de prompt.
          */
-        get: operations["consultar_resultados_api_v1_execucoes__execucao_id__resultados_get"];
+        get: operations["consultar_proveniencia_api_v1_mensagens__mensagem_id__proveniencia_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -328,7 +568,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/execucoes/{execucao_origem_id}/nova-tentativa-ia": {
+    "/api/v1/execucoes/{execucao_id}/confirmar-simulacao": {
         parameters: {
             query?: never;
             header?: never;
@@ -338,10 +578,10 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Solicitar nova tentativa de preparação agêntica
-         * @description Valida a integridade dos snapshots versionados da execução de origem e, passando, cria uma execução correlacionada nova em 'aguardando_geracao', com `execucao_origem_id` próprio e uma cópia integral do público elegível da origem. A execução de origem permanece terminal e nunca é reaberta. Exige o cabeçalho `Idempotency-Key`.
+         * Confirmar e executar a simulação de uma execução
+         * @description Executa a simulação local do lote aprovado. Exige o campo `reconhecimento_simulacao` marcado: sem ele o comando é recusado, mesmo por chamada direta à API. A elegibilidade das mensagens é reverificada do estado real no momento da confirmação, e só as aprovadas pelo agente crítico e por Marina são reclamadas: rejeitada, excluída, em exceção ou de volta ao ciclo de geração fica de fora. Cada mensagem reclamada ganha uma entrega simulada e passa a 'simulada_entregue' na mesma transação; nenhum conector real de WhatsApp, e-mail ou SMS é usado. Uma falha local desfaz a transação inteira, preserva as mensagens como 'aprovada' e move a execução a 'falhou_simulacao'. Exige o cabeçalho `Idempotency-Key`; repeti-lo devolve a simulação já registrada.
          */
-        post: operations["solicitar_nova_tentativa_ia_api_v1_execucoes__execucao_origem_id__nova_tentativa_ia_post"];
+        post: operations["confirmar_simulacao_api_v1_execucoes__execucao_id__confirmar_simulacao_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -368,7 +608,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/mensagens/{mensagem_id}/proveniencia": {
+    "/api/v1/execucoes/{execucao_id}/resultados": {
         parameters: {
             query?: never;
             header?: never;
@@ -376,10 +616,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Consultar a proveniência agêntica de uma mensagem
-         * @description Devolve o histórico completo do ciclo de uma mensagem, tentativa por tentativa: agente, modelo, versão do prompt, categorias de dado usadas e não usadas no contexto, conteúdo produzido, veredito da validação determinística, avaliação do agente crítico, duração e métricas de uso. Uma tentativa reprovada continua consultável depois da regeneração: nada é sobrescrito. É uma consulta de leitura: nada é gerado nem reavaliado e nenhuma chamada à OpenAI é feita. A resposta nunca expõe chave, contato, identificação direta do segurado ou texto de prompt.
+         * Consultar os resultados consolidados da simulação de uma execução
+         * @description Devolve os totais por canal e por estado de todas as mensagens do lote, com as rejeitadas, excluídas e em exceção técnica separadas em `nao_simulaveis` — nunca somadas às entregas simuladas. Enquanto a simulação não chega a `concluida` ou `falhou_simulacao`, `concluido` vem falso e os totais vêm vazios, para nunca apresentar um total parcial como final. Uma divergência entre a contagem de mensagens simuladas e as entregas persistidas é reportada em `divergencia`, nunca corrigida silenciosamente.
          */
-        get: operations["consultar_proveniencia_api_v1_mensagens__mensagem_id__proveniencia_get"];
+        get: operations["consultar_resultados_api_v1_execucoes__execucao_id__resultados_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -388,7 +628,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/mensagens/{mensagem_id}/versoes/{versao_id}/avaliacao-critica": {
+    "/api/v1/execucoes/{execucao_id}/mensagens/{mensagem_id}/detalhe": {
         parameters: {
             query?: never;
             header?: never;
@@ -396,10 +636,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Consultar o detalhe da avaliação crítica de uma versão de mensagem
-         * @description Devolve a versão avaliada, os sete critérios considerados, a decisão do agente crítico, os motivos categorizados, o agente, o modelo e a duração da avaliação. A decisão do agente ('agente_ia') vem separada da validação determinística de campos e limite de canal ('regras_deterministicas'), que é decidida por regra e nunca pelo modelo. É uma consulta de leitura: nada é reavaliado e nenhuma chamada à OpenAI é feita.
+         * Consultar o detalhe individual de um resultado de simulação
+         * @description Devolve segurado sintético, apólice, canal, conteúdo, horários, estado, evento, versão da regra e as aprovações agêntica e humana de origem de uma mensagem. Todas as tentativas de geração aparecem relacionadas à sua própria avaliação crítica e decisões humanas, na ordem cronológica. Uma mensagem inexistente e uma mensagem que existe mas pertence a outra execução devolvem exatamente a mesma resposta `404`, sem revelar a existência cruzada do registro.
          */
-        get: operations["consultar_avaliacao_api_v1_mensagens__mensagem_id__versoes__versao_id__avaliacao_critica_get"];
+        get: operations["consultar_detalhe_api_v1_execucoes__execucao_id__mensagens__mensagem_id__detalhe_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -408,7 +648,27 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/meteorologia/cenarios-sinteticos/{identificador}/ativar": {
+    "/api/v1/segurados/{segurado_id}/comunicados/{entrega_simulada_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar o comunicado de uma entrega simulada
+         * @description Devolve conteúdo, canal e natureza simulada do comunicado, e a primeira visualização já registrada, se houver. Consulta de leitura: não registra visualização nenhuma. Uma entrega inexistente e uma entrega que pertence a outro segurado devolvem exatamente a mesma resposta `404`.
+         */
+        get: operations["consultar_comunicado_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/segurados/{segurado_id}/comunicados/{entrega_simulada_id}/visualizacao": {
         parameters: {
             query?: never;
             header?: never;
@@ -418,37 +678,17 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Ativar um cenário sintético de contingência
-         * @description Ativa, de forma idempotente, o cenário sintético de contingência informado para a área monitorada indicada. O evento resultante tem `proveniencia = sintetico`, nunca combinado com dados `real_inmet`. Exige o cabeçalho `Idempotency-Key` em toda requisição.
+         * Registrar a primeira visualização de um comunicado
+         * @description Registra, de forma idempotente, a primeira visualização do comunicado — chamado só depois do conteúdo já ter sido renderizado com sucesso, nunca no carregamento inicial da página. Reabrir um comunicado já visualizado devolve a mesma visualização, sem criar uma segunda. Uma mensagem de origem que ainda não foi simulada, foi rejeitada, excluída ou está em exceção é recusada com um erro de domínio explícito, sem registrar nenhum marco.
          */
-        post: operations["ativar_cenario_sintetico_api_v1_meteorologia_cenarios_sinteticos__identificador__ativar_post"];
+        post: operations["registrar_visualizacao_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__visualizacao_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/v1/meteorologia/coletas": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Solicitar uma coleta meteorológica manual
-         * @description Solicita, de forma idempotente, uma coleta meteorológica manual para a área informada. Exige o cabeçalho `Idempotency-Key` em toda requisição.
-         */
-        post: operations["solicitar_coleta_api_v1_meteorologia_coletas_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/meteorologia/eventos": {
+    "/api/v1/execucoes/{execucao_id}/linha-do-tempo": {
         parameters: {
             query?: never;
             header?: never;
@@ -456,210 +696,10 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Consultar os eventos meteorológicos normalizados
-         * @description Devolve os eventos meteorológicos já normalizados, do mais recente.
+         * Consultar a linha do tempo ponta a ponta de uma execução
+         * @description Devolve, em ordem cronológica, todos os marcos já persistidos da execução — coleta, avaliação de risco, elegibilidade, gerações, críticas, decisões humanas, exceções, simulação e visualização —, cada um com timestamp UTC, ator, ação, resultado e correlação, além da cadeia de execuções correlacionadas (origem e retentativas).
          */
-        get: operations["consultar_eventos_api_v1_meteorologia_eventos_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/meteorologia/sincronizacoes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar o histórico de sincronizações meteorológicas
-         * @description Devolve a última tentativa, a última coleta válida, a próxima consulta estimada e o histórico completo de sincronizações, só com dados persistidos.
-         */
-        get: operations["consultar_sincronizacoes_api_v1_meteorologia_sincronizacoes_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/meteorologia/{sincronizacao_id}/nova-tentativa": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Solicitar uma nova tentativa após indisponibilidade
-         * @description Solicita, de forma idempotente, uma nova coleta correlacionada à sincronização de origem informada, sem reabrir nem mutar a sincronização/execução anteriores. Exige o cabeçalho `Idempotency-Key` em toda requisição.
-         */
-        post: operations["solicitar_nova_tentativa_api_v1_meteorologia__sincronizacao_id__nova_tentativa_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/prontidao/dependencias": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar a prontidão das dependências
-         * @description Devolve o estado mais recente de backend, banco de dados, INMET e OpenAI. Backend e banco de dados são recomputados a cada chamada; INMET e OpenAI, na primeira consulta, disparam a verificação em segundo plano e retornam 'verificando'.
-         */
-        get: operations["consultar_api_v1_prontidao_dependencias_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/prontidao/dependencias/{nome}/verificacoes": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Solicitar uma nova verificação de prontidão
-         * @description Solicita, de forma assíncrona e idempotente, uma nova verificação de INMET ou OpenAI. Exige o cabeçalho `Idempotency-Key` em toda requisição. Backend e banco de dados não aceitam este recurso: já são recomputados a cada `GET`.
-         */
-        post: operations["verificar_novamente_api_v1_prontidao_dependencias__nome__verificacoes_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/regras": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar todas as versões de regra
-         * @description Devolve todas as versões de regra registradas, ativas e substituídas.
-         */
-        get: operations["consultar_regras_api_v1_regras_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/regras/{regra_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar uma versão específica de regra
-         * @description Devolve uma versão específica de regra pelo seu identificador.
-         */
-        get: operations["consultar_regra_api_v1_regras__regra_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/regras/{regra_id}/ativar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Ativar uma nova versão de regra
-         * @description Revalida e reexecuta o teste determinístico, e ativa a configuração como nova versão da regra informada, de forma idempotente. Exige o cabeçalho `Idempotency-Key` em toda requisição.
-         */
-        post: operations["ativar_regra_api_v1_regras__regra_id__ativar_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/regras/{regra_id}/testar": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Testar deterministicamente uma configuração de regra
-         * @description Aplica a configuração proposta a cada cenário sintético do tipo de evento, sem persistir nada. Configuração inválida é bloqueada com motivos por campo.
-         */
-        post: operations["testar_regra_api_v1_regras__regra_id__testar_post"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/saude": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar a saúde do processo
-         * @description Confirma somente que o processo local da API está disponível.
-         */
-        get: operations["obter_saude_api_v1_saude_get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/segurados/padrao": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar o segurado sintético padrão
-         * @description Devolve o segurado sintético padrão usado na visão de Segurado da demonstração.
-         */
-        get: operations["consultar_api_v1_segurados_padrao_get"];
+        get: operations["consultar_linha_do_tempo_api_v1_execucoes__execucao_id__linha_do_tempo_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -768,26 +808,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/segurados/{segurado_id}/comunicados/{entrega_simulada_id}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Consultar o comunicado de uma entrega simulada
-         * @description Devolve conteúdo, canal e natureza simulada do comunicado, e a primeira visualização já registrada, se houver. Consulta de leitura: não registra visualização nenhuma. Uma entrega inexistente e uma entrega que pertence a outro segurado devolvem exatamente a mesma resposta `404`.
-         */
-        get: operations["consultar_comunicado_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__get"];
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/segurados/{segurado_id}/comunicados/{entrega_simulada_id}/explicacao": {
         parameters: {
             query?: never;
@@ -808,20 +828,20 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/segurados/{segurado_id}/comunicados/{entrega_simulada_id}/visualizacao": {
+    "/api/v1/segurados/{segurado_id}/comunicados": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
-        put?: never;
         /**
-         * Registrar a primeira visualização de um comunicado
-         * @description Registra, de forma idempotente, a primeira visualização do comunicado — chamado só depois do conteúdo já ter sido renderizado com sucesso, nunca no carregamento inicial da página. Reabrir um comunicado já visualizado devolve a mesma visualização, sem criar uma segunda. Uma mensagem de origem que ainda não foi simulada, foi rejeitada, excluída ou está em exceção é recusada com um erro de domínio explícito, sem registrar nenhum marco.
+         * Listar todos os comunicados do segurado ativo
+         * @description Devolve todos os comunicados do segurado, mais antigos primeiro, com canal, assunto/resumo, data e a visualização já registrada, se houver. Lista vazia quando o segurado não tiver nenhum comunicado.
          */
-        post: operations["registrar_visualizacao_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__visualizacao_post"];
+        get: operations["listar_comunicados_api_v1_segurados__segurado_id__comunicados_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -854,16 +874,16 @@ export interface components {
          */
         PedidoConfirmacaoSimulacao: {
             /**
+             * Versao Esperada
+             * @description Versão de concorrência otimista lida no resumo (AD-008).
+             */
+            versao_esperada: number;
+            /**
              * Reconhecimento Simulacao
              * @description Reconhecimento explícito de que a operação é uma simulação e nenhuma comunicação real será enviada. Sem ele o comando é recusado.
              * @default false
              */
             reconhecimento_simulacao: boolean;
-            /**
-             * Versao Esperada
-             * @description Versão de concorrência otimista lida no resumo (AD-008).
-             */
-            versao_esperada: number;
         };
         /**
          * PedidoDecisao
@@ -871,23 +891,23 @@ export interface components {
          */
         PedidoDecisao: {
             /**
-             * Justificativa
-             * @description Justificativa da decisão, obrigatória fora da aprovação.
-             */
-            justificativa?: string | null;
-            /**
              * Mensagem Id
              * Format: uuid
              * @description Mensagem sobre a qual se decide.
              */
             mensagem_id: string;
-            /** @description Decisão: aprovar, rejeitar, excluir do lote ou solicitar nova geração. */
-            resultado: components["schemas"]["ResultadoDecisaoHumana"];
             /**
              * Versao Esperada
              * @description Versão de concorrência otimista lida no lote (AD-008).
              */
             versao_esperada: number;
+            /** @description Decisão: aprovar, rejeitar, excluir do lote ou solicitar nova geração. */
+            resultado: components["schemas"]["ResultadoDecisaoHumana"];
+            /**
+             * Justificativa
+             * @description Justificativa da decisão, obrigatória fora da aprovação.
+             */
+            justificativa?: string | null;
         };
         /**
          * PedidoDecisaoLote
@@ -922,15 +942,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -953,15 +973,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -984,15 +1004,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1015,15 +1035,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1046,15 +1066,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1077,15 +1097,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1108,15 +1128,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1139,15 +1159,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1170,15 +1190,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1201,15 +1221,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1232,15 +1252,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1263,15 +1283,46 @@ export interface components {
              */
             correlacao_id: string;
             /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
              * Impacto
              * @description Efeito prático da falha para quem consultou o recurso.
              */
             impacto: string;
             /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
+        };
+        /**
+         * ProblemaListaComunicados
+         * @description Falha da lista de comunicados, com ocorrência, impacto e próxima ação segura.
+         */
+        ProblemaListaComunicados: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1294,15 +1345,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1325,15 +1376,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1356,15 +1407,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem solicitou a operação.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem solicitou a operação.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1387,15 +1438,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1418,15 +1469,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1449,25 +1500,25 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Erros
-             * @description Erros por campo, quando a falha vem de uma configuração inválida.
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
              */
-            erros?: components["schemas"]["ErroCampo"][];
+            ocorrencia: string;
             /**
              * Impacto
              * @description Efeito prático da falha para quem consultou o recurso.
              */
             impacto: string;
             /**
-             * Ocorrencia
-             * @description O que aconteceu, em português brasileiro.
-             */
-            ocorrencia: string;
-            /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
              */
             proxima_acao: string;
+            /**
+             * Erros
+             * @description Erros por campo, quando a falha vem de uma configuração inválida.
+             */
+            erros?: components["schemas"]["ErroCampo"][];
         };
         /**
          * ProblemaRestauracao
@@ -1485,15 +1536,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1516,15 +1567,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem consultou o recurso.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem consultou o recurso.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1547,15 +1598,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem solicitou a operação.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem solicitou a operação.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1578,15 +1629,15 @@ export interface components {
              */
             correlacao_id: string;
             /**
-             * Impacto
-             * @description Efeito prático da falha para quem solicitou a operação.
-             */
-            impacto: string;
-            /**
              * Ocorrencia
              * @description O que aconteceu, em português brasileiro.
              */
             ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem solicitou a operação.
+             */
+            impacto: string;
             /**
              * Proxima Acao
              * @description Próxima ação segura recomendada para contornar a falha.
@@ -1610,37 +1661,10 @@ export interface components {
              */
             evento_tipo: string;
             /**
-             * Fonte Degradada
-             * @description Se a fonte meteorológica real está degradada no momento da consulta — o alerta é o último snapshot disponível, de caráter apenas informativo.
+             * Severidade
+             * @description Critério de risco observado que tornou o evento relevante.
              */
-            fonte_degradada: boolean;
-            /**
-             * Impactos Esperados
-             * @description Coberturas da apólice relevantes ao evento.
-             */
-            impactos_esperados: string[];
-            /**
-             * Instante Observado
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC em que o dado do evento foi observado.
-             */
-            instante_observado: string;
-            /**
-             * Localizacao
-             * @description Área afetada, no mesmo código usado pela apólice.
-             */
-            localizacao: string;
-            /**
-             * Origem
-             * @description Procedência do evento: `real_inmet` ou `sintetico`.
-             */
-            origem: string;
-            /**
-             * Periodo Fim
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC de fim do evento.
-             */
-            periodo_fim: string;
+            severidade: string;
             /**
              * Periodo Inicio
              * Format: date-time
@@ -1648,15 +1672,42 @@ export interface components {
              */
             periodo_inicio: string;
             /**
+             * Periodo Fim
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC de fim do evento.
+             */
+            periodo_fim: string;
+            /**
+             * Localizacao
+             * @description Área afetada, no mesmo código usado pela apólice.
+             */
+            localizacao: string;
+            /**
+             * Impactos Esperados
+             * @description Coberturas da apólice relevantes ao evento.
+             */
+            impactos_esperados: string[];
+            /**
              * Recomendacoes
              * @description Recomendações preventivas curtas e práticas.
              */
             recomendacoes: string[];
             /**
-             * Severidade
-             * @description Critério de risco observado que tornou o evento relevante.
+             * Origem
+             * @description Procedência do evento: `real_inmet` ou `sintetico`.
              */
-            severidade: string;
+            origem: string;
+            /**
+             * Instante Observado
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC em que o dado do evento foi observado.
+             */
+            instante_observado: string;
+            /**
+             * Fonte Degradada
+             * @description Se a fonte meteorológica real está degradada no momento da consulta — o alerta é o último snapshot disponível, de caráter apenas informativo.
+             */
+            fonte_degradada: boolean;
         };
         /**
          * RespostaAlertaSegurado
@@ -1672,55 +1723,55 @@ export interface components {
          */
         RespostaApolice: {
             /**
-             * Canal Preferido
-             * @description Canal de comunicação preferencial.
-             */
-            canal_preferido: string;
-            /**
-             * Coberturas
-             * @description Coberturas contratadas.
-             */
-            coberturas: string[];
-            /**
-             * Endereco Risco Sintetico
-             * @description Endereço sintético do risco.
-             */
-            endereco_risco_sintetico: string;
-            /**
-             * Estado Objetivo
-             * @description Estado objetivo textual — inclui `expirada` quando a vigência já passou, mesmo com `situacao='ativa'`. Nunca uma falha técnica.
-             */
-            estado_objetivo: string;
-            /**
              * Numero
              * @description Número da apólice.
              */
             numero: string;
-            /**
-             * Participa De Alertas
-             * @description Se o segurado participa de alertas.
-             */
-            participa_de_alertas: boolean;
-            /**
-             * Situacao
-             * @description Situação cadastral (`ativa`/`cancelada`/`suspensa`).
-             */
-            situacao: string;
             /**
              * Tipo
              * @description Tipo da apólice (`residencial`/`automovel`).
              */
             tipo: string;
             /**
-             * Vigencia Fim
-             * @description Data de fim de vigência (ISO 8601).
+             * Situacao
+             * @description Situação cadastral (`ativa`/`cancelada`/`suspensa`).
              */
-            vigencia_fim: string;
+            situacao: string;
+            /**
+             * Estado Objetivo
+             * @description Estado objetivo textual — inclui `expirada` quando a vigência já passou, mesmo com `situacao='ativa'`. Nunca uma falha técnica.
+             */
+            estado_objetivo: string;
             /**
              * Vigencia Inicio
              * @description Data de início de vigência (ISO 8601).
              */
             vigencia_inicio: string;
+            /**
+             * Vigencia Fim
+             * @description Data de fim de vigência (ISO 8601).
+             */
+            vigencia_fim: string;
+            /**
+             * Endereco Risco Sintetico
+             * @description Endereço sintético do risco.
+             */
+            endereco_risco_sintetico: string;
+            /**
+             * Coberturas
+             * @description Coberturas contratadas.
+             */
+            coberturas: string[];
+            /**
+             * Canal Preferido
+             * @description Canal de comunicação preferencial.
+             */
+            canal_preferido: string;
+            /**
+             * Participa De Alertas
+             * @description Se o segurado participa de alertas.
+             */
+            participa_de_alertas: boolean;
         };
         /**
          * RespostaApresentacaoSimulada
@@ -1728,15 +1779,15 @@ export interface components {
          */
         RespostaApresentacaoSimulada: {
             /**
-             * Assunto
-             * @description Assunto apresentado, só no canal de e-mail.
-             */
-            assunto: string | null;
-            /**
              * Canal
              * @description Canal em que a apresentação seria feita.
              */
             canal: string;
+            /**
+             * Assunto
+             * @description Assunto apresentado, só no canal de e-mail.
+             */
+            assunto: string | null;
             /**
              * Corpo
              * @description Corpo apresentado, cópia exata do conteúdo aprovado.
@@ -1754,15 +1805,15 @@ export interface components {
          */
         RespostaApresentacaoSimuladaExplicacao: {
             /**
-             * Assunto
-             * @description Assunto apresentado, só no canal de e-mail.
-             */
-            assunto: string | null;
-            /**
              * Canal
              * @description Canal em que a apresentação seria feita.
              */
             canal: string;
+            /**
+             * Assunto
+             * @description Assunto apresentado, só no canal de e-mail.
+             */
+            assunto: string | null;
             /**
              * Corpo
              * @description Corpo apresentado, cópia exata do conteúdo aprovado.
@@ -1780,47 +1831,17 @@ export interface components {
          */
         RespostaAvaliacaoCritica: {
             /**
-             * Agente
-             * @description Agente que produziu a avaliação.
-             */
-            agente: string;
-            /**
-             * Aprovada
-             * @description Decisão do crítico sobre o conteúdo; não substitui a validação de regra.
-             */
-            aprovada: boolean;
-            /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC do registro da avaliação.
-             */
-            criado_em: string;
-            /**
-             * Criterios
-             * @description Os sete critérios contra os quais a mensagem foi avaliada.
-             */
-            criterios: string[];
-            /**
-             * Duracao Ms
-             * @description Duração da chamada de avaliação, em milissegundos.
-             */
-            duracao_ms: number;
-            /**
              * Mensagem Id
              * Format: uuid
              * @description Mensagem a que a versão avaliada pertence.
              */
             mensagem_id: string;
             /**
-             * Modelo
-             * @description Modelo da OpenAI usado na avaliação.
+             * Versao Mensagem Id
+             * Format: uuid
+             * @description Versão de mensagem avaliada.
              */
-            modelo: string;
-            /**
-             * Motivos
-             * @description Motivos específicos da decisão; vazio quando o crítico aprovou.
-             */
-            motivos: components["schemas"]["RespostaMotivoCritica"][];
+            versao_mensagem_id: string;
             /**
              * Numero Tentativa
              * @description Número da tentativa de geração avaliada.
@@ -1831,14 +1852,44 @@ export interface components {
              * @description Sempre 'agente_ia': esta decisão é do agente crítico, não de uma regra.
              */
             origem: string;
+            /**
+             * Criterios
+             * @description Os sete critérios contra os quais a mensagem foi avaliada.
+             */
+            criterios: string[];
+            /**
+             * Aprovada
+             * @description Decisão do crítico sobre o conteúdo; não substitui a validação de regra.
+             */
+            aprovada: boolean;
+            /**
+             * Motivos
+             * @description Motivos específicos da decisão; vazio quando o crítico aprovou.
+             */
+            motivos: components["schemas"]["RespostaMotivoCritica"][];
+            /**
+             * Agente
+             * @description Agente que produziu a avaliação.
+             */
+            agente: string;
+            /**
+             * Modelo
+             * @description Modelo da OpenAI usado na avaliação.
+             */
+            modelo: string;
+            /**
+             * Duracao Ms
+             * @description Duração da chamada de avaliação, em milissegundos.
+             */
+            duracao_ms: number;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro da avaliação.
+             */
+            criado_em: string;
             /** @description Veredito estrutural de 3.2 sobre a mesma versão, mantido separado. */
             validacao_deterministica: components["schemas"]["RespostaValidacaoDeterministica"];
-            /**
-             * Versao Mensagem Id
-             * Format: uuid
-             * @description Versão de mensagem avaliada.
-             */
-            versao_mensagem_id: string;
         };
         /**
          * RespostaAvaliacaoCriticaDetalhe
@@ -1846,36 +1897,36 @@ export interface components {
          */
         RespostaAvaliacaoCriticaDetalhe: {
             /**
-             * Agente
-             * @description Nome do agente que avaliou.
-             */
-            agente: string;
-            /**
              * Aprovada
              * @description Se o agente crítico aprovou esta versão.
              */
             aprovada: boolean;
             /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC do registro.
+             * Motivos
+             * @description Categorias dos motivos de reprovação, se houver.
              */
-            criado_em: string;
+            motivos: string[];
             /**
-             * Duracao Ms
-             * @description Duração da chamada de avaliação, em milissegundos.
+             * Agente
+             * @description Nome do agente que avaliou.
              */
-            duracao_ms: number;
+            agente: string;
             /**
              * Modelo
              * @description Modelo da OpenAI usado na avaliação.
              */
             modelo: string;
             /**
-             * Motivos
-             * @description Categorias dos motivos de reprovação, se houver.
+             * Duracao Ms
+             * @description Duração da chamada de avaliação, em milissegundos.
              */
-            motivos: string[];
+            duracao_ms: number;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro.
+             */
+            criado_em: string;
         };
         /**
          * RespostaAvaliacaoCriticaExplicacao
@@ -1883,30 +1934,30 @@ export interface components {
          */
         RespostaAvaliacaoCriticaExplicacao: {
             /**
-             * Agente
-             * @description Nome do agente que avaliou.
-             */
-            agente: string;
-            /**
              * Aprovada
              * @description Se o agente crítico aprovou esta tentativa.
              */
             aprovada: boolean;
             /**
-             * Duracao Ms
-             * @description Duração da chamada de avaliação, em milissegundos.
+             * Motivos
+             * @description Categorias dos motivos de reprovação, se houver.
              */
-            duracao_ms: number;
+            motivos: string[];
+            /**
+             * Agente
+             * @description Nome do agente que avaliou.
+             */
+            agente: string;
             /**
              * Modelo
              * @description Modelo da OpenAI usado na avaliação.
              */
             modelo: string;
             /**
-             * Motivos
-             * @description Categorias dos motivos de reprovação, se houver.
+             * Duracao Ms
+             * @description Duração da chamada de avaliação, em milissegundos.
              */
-            motivos: string[];
+            duracao_ms: number;
         };
         /**
          * RespostaAvaliacaoCriticaLote
@@ -1914,30 +1965,30 @@ export interface components {
          */
         RespostaAvaliacaoCriticaLote: {
             /**
-             * Agente
-             * @description Agente responsável pela avaliação.
-             */
-            agente: string;
-            /**
              * Aprovada
              * @description Decisão textual do agente crítico sobre esta versão.
              */
             aprovada: boolean;
             /**
-             * Duracao Ms
-             * @description Duração da chamada de crítica, em milissegundos.
+             * Motivos
+             * @description Motivos categorizados da reprovação; vazio quando a versão foi aprovada.
              */
-            duracao_ms: number;
+            motivos: components["schemas"]["RespostaMotivoCritico"][];
+            /**
+             * Agente
+             * @description Agente responsável pela avaliação.
+             */
+            agente: string;
             /**
              * Modelo
              * @description Modelo da OpenAI usado na avaliação.
              */
             modelo: string;
             /**
-             * Motivos
-             * @description Motivos categorizados da reprovação; vazio quando a versão foi aprovada.
+             * Duracao Ms
+             * @description Duração da chamada de crítica, em milissegundos.
              */
-            motivos: components["schemas"]["RespostaMotivoCritico"][];
+            duracao_ms: number;
         };
         /**
          * RespostaAvaliacaoDaTentativa
@@ -1950,31 +2001,31 @@ export interface components {
              */
             agente: string;
             /**
+             * Modelo
+             * @description Modelo da OpenAI usado na avaliação.
+             */
+            modelo: string;
+            /**
              * Aprovada
              * @description Decisão do crítico sobre o conteúdo desta tentativa.
              */
             aprovada: boolean;
             /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC do registro da avaliação.
+             * Motivos
+             * @description Motivos categorizados da decisão; vazio quando o crítico aprovou.
              */
-            criado_em: string;
+            motivos: components["schemas"]["RespostaMotivoProveniencia"][];
             /**
              * Duracao Ms
              * @description Duração da chamada de avaliação, em milissegundos.
              */
             duracao_ms: number;
             /**
-             * Modelo
-             * @description Modelo da OpenAI usado na avaliação.
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro da avaliação.
              */
-            modelo: string;
-            /**
-             * Motivos
-             * @description Motivos categorizados da decisão; vazio quando o crítico aprovou.
-             */
-            motivos: components["schemas"]["RespostaMotivoProveniencia"][];
+            criado_em: string;
         };
         /**
          * RespostaAvaliacaoRisco
@@ -1982,33 +2033,17 @@ export interface components {
          */
         RespostaAvaliacaoRisco: {
             /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC da avaliação.
-             */
-            criado_em: string;
-            /**
-             * Criterios
-             * @description Critérios avaliados, na ordem aplicada.
-             */
-            criterios: components["schemas"]["RespostaCriterio"][];
-            /**
-             * Evento Id
-             * Format: uuid
-             * @description Identificador do evento meteorológico avaliado.
-             */
-            evento_id: string;
-            /**
              * Execucao Id
              * Format: uuid
              * @description Identificador da execução avaliada.
              */
             execucao_id: string;
             /**
-             * Motivo
-             * @description Motivo tipado do resultado.
+             * Evento Id
+             * Format: uuid
+             * @description Identificador do evento meteorológico avaliado.
              */
-            motivo: string;
+            evento_id: string;
             /**
              * Regra Id
              * @description Identificador da regra aplicada, ou nulo se não havia regra ativa.
@@ -2024,6 +2059,22 @@ export interface components {
              * @description Se o evento foi considerado relevante.
              */
             relevante: boolean;
+            /**
+             * Criterios
+             * @description Critérios avaliados, na ordem aplicada.
+             */
+            criterios: components["schemas"]["RespostaCriterio"][];
+            /**
+             * Motivo
+             * @description Motivo tipado do resultado.
+             */
+            motivo: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC da avaliação.
+             */
+            criado_em: string;
         };
         /**
          * RespostaBuscaExecucoes
@@ -2058,26 +2109,26 @@ export interface components {
          */
         RespostaCasoTeste: {
             /**
-             * Criterios
-             * @description Critérios avaliados neste caso.
-             */
-            criterios: components["schemas"]["RespostaCriterioTeste"][];
-            /**
              * Evento Id
              * Format: uuid
              * @description Identificador do evento sintético usado no teste.
              */
             evento_id: string;
             /**
-             * Motivo
-             * @description Motivo tipado do resultado deste caso.
-             */
-            motivo: string;
-            /**
              * Relevante
              * @description Se o cenário foi considerado relevante pela regra.
              */
             relevante: boolean;
+            /**
+             * Criterios
+             * @description Critérios avaliados neste caso.
+             */
+            criterios: components["schemas"]["RespostaCriterioTeste"][];
+            /**
+             * Motivo
+             * @description Motivo tipado do resultado deste caso.
+             */
+            motivo: string;
         };
         /**
          * RespostaCategoriasEntrada
@@ -2085,15 +2136,15 @@ export interface components {
          */
         RespostaCategoriasEntrada: {
             /**
-             * Nao Usadas
-             * @description Categorias deliberadamente deixadas de fora do contexto.
-             */
-            nao_usadas: string[];
-            /**
              * Usadas
              * @description Categorias de dado que chegaram ao contexto mínimo do agente (3.1).
              */
             usadas: string[];
+            /**
+             * Nao Usadas
+             * @description Categorias deliberadamente deixadas de fora do contexto.
+             */
+            nao_usadas: string[];
         };
         /**
          * RespostaColetaAceita
@@ -2101,65 +2152,44 @@ export interface components {
          */
         RespostaColetaAceita: {
             /**
-             * Aceito Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC em que a solicitação foi aceita.
-             */
-            aceito_em: string;
-            /**
-             * Estado
-             * @description Estado da sincronização no momento da resposta.
-             */
-            estado: string;
-            /**
              * Id
              * Format: uuid
              * @description Identificador da sincronização criada ou já registrada.
              */
             id: string;
             /**
-             * Motivo Falha
-             * @description Motivo tipado da falha, ou nulo se não houve.
+             * Requisicao Id
+             * Format: uuid
+             * @description Identificador de correlação da tentativa.
              */
-            motivo_falha: string | null;
+            requisicao_id: string;
+            /**
+             * Estado
+             * @description Estado da sincronização no momento da resposta.
+             */
+            estado: string;
             /**
              * Registros Validos
              * @description Quantidade de eventos válidos produzidos.
              */
             registros_validos: number;
             /**
-             * Requisicao Id
-             * Format: uuid
-             * @description Identificador de correlação da tentativa.
+             * Motivo Falha
+             * @description Motivo tipado da falha, ou nulo se não houve.
              */
-            requisicao_id: string;
+            motivo_falha: string | null;
+            /**
+             * Aceito Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC em que a solicitação foi aceita.
+             */
+            aceito_em: string;
         };
         /**
          * RespostaComunicado
          * @description O comunicado exibível ao segurado sintético: conteúdo, canal e visualização.
          */
         RespostaComunicado: {
-            /**
-             * Assunto
-             * @description Assunto apresentado, só no canal de e-mail.
-             */
-            assunto: string | null;
-            /**
-             * Canal
-             * @description Canal do comunicado (`whatsapp`, `email` ou `sms`).
-             */
-            canal: string;
-            /**
-             * Corpo
-             * @description Corpo apresentado, cópia exata do conteúdo aprovado.
-             */
-            corpo: string;
-            /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC de criação da entrega.
-             */
-            criado_em: string;
             /**
              * Entrega Simulada Id
              * Format: uuid
@@ -2173,10 +2203,31 @@ export interface components {
              */
             mensagem_id: string;
             /**
+             * Canal
+             * @description Canal do comunicado (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
+             * Assunto
+             * @description Assunto apresentado, só no canal de e-mail.
+             */
+            assunto: string | null;
+            /**
+             * Corpo
+             * @description Corpo apresentado, cópia exata do conteúdo aprovado.
+             */
+            corpo: string;
+            /**
              * Rotulo
              * @description Rótulo fixo da natureza da entrega: sempre 'simulada'.
              */
             rotulo: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC de criação da entrega.
+             */
+            criado_em: string;
             /** @description Primeira visualização já registrada, ou nula se ainda não visualizado. */
             visualizacao: components["schemas"]["RespostaVisualizacaoComunicado"] | null;
         };
@@ -2185,16 +2236,6 @@ export interface components {
          * @description Um critério avaliado: operando, valor observado, resultado e justificativa.
          */
         RespostaCriterio: {
-            /**
-             * Atende
-             * @description Se o valor observado atende ao critério.
-             */
-            atende: boolean;
-            /**
-             * Justificativa
-             * @description Explicação em português brasileiro do resultado.
-             */
-            justificativa: string;
             /**
              * Operando
              * @description O que foi comparado (ex.: área aplicável, intensidade).
@@ -2205,22 +2246,22 @@ export interface components {
              * @description Valor observado no evento para este critério.
              */
             valor_observado: string;
+            /**
+             * Atende
+             * @description Se o valor observado atende ao critério.
+             */
+            atende: boolean;
+            /**
+             * Justificativa
+             * @description Explicação em português brasileiro do resultado.
+             */
+            justificativa: string;
         };
         /**
          * RespostaCriterioApolice
          * @description Um critério comparado pela regra determinística, relevante à apólice.
          */
         RespostaCriterioApolice: {
-            /**
-             * Atende
-             * @description Se o critério foi atendido.
-             */
-            atende: boolean;
-            /**
-             * Justificativa
-             * @description Explicação da comparação, sem promessa de cobertura.
-             */
-            justificativa: string;
             /**
              * Operando
              * @description O que foi comparado.
@@ -2231,22 +2272,22 @@ export interface components {
              * @description O valor observado no momento da avaliação.
              */
             valor_observado: string;
+            /**
+             * Atende
+             * @description Se o critério foi atendido.
+             */
+            atende: boolean;
+            /**
+             * Justificativa
+             * @description Explicação da comparação, sem promessa de cobertura.
+             */
+            justificativa: string;
         };
         /**
          * RespostaCriterioElegibilidade
          * @description Um critério avaliado: operando, valor observado, resultado e justificativa.
          */
         RespostaCriterioElegibilidade: {
-            /**
-             * Atende
-             * @description Se o valor observado atende ao critério.
-             */
-            atende: boolean;
-            /**
-             * Justificativa
-             * @description Explicação em português brasileiro do resultado.
-             */
-            justificativa: string;
             /**
              * Operando
              * @description O que foi comparado (ex.: área afetada, cobertura).
@@ -2257,12 +2298,6 @@ export interface components {
              * @description Valor observado para este critério.
              */
             valor_observado: string;
-        };
-        /**
-         * RespostaCriterioLote
-         * @description Um critério avaliado da elegibilidade, com o valor observado e o veredito.
-         */
-        RespostaCriterioLote: {
             /**
              * Atende
              * @description Se o valor observado atende ao critério.
@@ -2273,6 +2308,12 @@ export interface components {
              * @description Explicação em português brasileiro do resultado.
              */
             justificativa: string;
+        };
+        /**
+         * RespostaCriterioLote
+         * @description Um critério avaliado da elegibilidade, com o valor observado e o veredito.
+         */
+        RespostaCriterioLote: {
             /**
              * Operando
              * @description O que foi comparado (ex.: área afetada, cobertura).
@@ -2283,12 +2324,6 @@ export interface components {
              * @description Valor observado no momento da avaliação.
              */
             valor_observado: string;
-        };
-        /**
-         * RespostaCriterioTeste
-         * @description Um critério avaliado no teste determinístico: operando, valor, resultado e justificativa.
-         */
-        RespostaCriterioTeste: {
             /**
              * Atende
              * @description Se o valor observado atende ao critério.
@@ -2299,6 +2334,12 @@ export interface components {
              * @description Explicação em português brasileiro do resultado.
              */
             justificativa: string;
+        };
+        /**
+         * RespostaCriterioTeste
+         * @description Um critério avaliado no teste determinístico: operando, valor, resultado e justificativa.
+         */
+        RespostaCriterioTeste: {
             /**
              * Operando
              * @description O que foi comparado (ex.: área aplicável, intensidade).
@@ -2309,6 +2350,16 @@ export interface components {
              * @description Valor observado no evento para este critério.
              */
             valor_observado: string;
+            /**
+             * Atende
+             * @description Se o valor observado atende ao critério.
+             */
+            atende: boolean;
+            /**
+             * Justificativa
+             * @description Explicação em português brasileiro do resultado.
+             */
+            justificativa: string;
         };
         /**
          * RespostaDecisaoHumana
@@ -2316,32 +2367,21 @@ export interface components {
          */
         RespostaDecisaoHumana: {
             /**
-             * Justificativa
-             * @description Justificativa da decisão, se houver.
-             */
-            justificativa: string | null;
-            /**
              * Resultado
              * @description Resultado da decisão (`aprovar`, `rejeitar`, `excluir` ou `regenerar`).
              */
             resultado: string;
+            /**
+             * Justificativa
+             * @description Justificativa da decisão, se houver.
+             */
+            justificativa: string | null;
         };
         /**
          * RespostaDecisaoHumanaDetalhe
          * @description Decisão humana registrada sobre uma versão da mensagem.
          */
         RespostaDecisaoHumanaDetalhe: {
-            /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC da decisão.
-             */
-            criado_em: string;
-            /**
-             * Justificativa
-             * @description Justificativa da decisão, obrigatória fora de 'aprovar'.
-             */
-            justificativa: string | null;
             /**
              * Perfil Responsavel
              * @description Perfil de quem decidiu.
@@ -2352,6 +2392,17 @@ export interface components {
              * @description Resultado da decisão (`aprovar`, `rejeitar`, `excluir` ou `regenerar`).
              */
             resultado: string;
+            /**
+             * Justificativa
+             * @description Justificativa da decisão, obrigatória fora de 'aprovar'.
+             */
+            justificativa: string | null;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC da decisão.
+             */
+            criado_em: string;
         };
         /**
          * RespostaDecisaoLote
@@ -2359,31 +2410,31 @@ export interface components {
          */
         RespostaDecisaoLote: {
             /**
-             * Aplicadas
-             * @description Mensagens cujas decisões foram aplicadas.
-             */
-            aplicadas: string[];
-            /**
-             * Estado
-             * @description Estado agregado da execução após o envio.
-             */
-            estado: string;
-            /**
              * Execucao Id
              * Format: uuid
              * @description Execução cujo lote foi decidido.
              */
             execucao_id: string;
             /**
-             * Mensagens Aprovadas
-             * @description Mensagens aprovadas pelo agente crítico e por Marina.
+             * Estado
+             * @description Estado agregado da execução após o envio.
              */
-            mensagens_aprovadas: string[];
+            estado: string;
+            /**
+             * Aplicadas
+             * @description Mensagens cujas decisões foram aplicadas.
+             */
+            aplicadas: string[];
             /**
              * Recusadas
              * @description Itens recusados do envio, cada um com o seu motivo.
              */
             recusadas: components["schemas"]["RespostaDecisaoRecusada"][];
+            /**
+             * Mensagens Aprovadas
+             * @description Mensagens aprovadas pelo agente crítico e por Marina.
+             */
+            mensagens_aprovadas: string[];
             /**
              * Regeneracoes Ativas
              * @description Mensagens devolvidas ao ciclo de geração por decisão humana.
@@ -2413,16 +2464,11 @@ export interface components {
          */
         RespostaDecisaoRegistrada: {
             /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC da decisão.
+             * Versao Mensagem Id
+             * Format: uuid
+             * @description Versão da mensagem sobre a qual se decidiu.
              */
-            criado_em: string;
-            /**
-             * Justificativa
-             * @description Justificativa registrada, obrigatória fora da aprovação.
-             */
-            justificativa: string | null;
+            versao_mensagem_id: string;
             /**
              * Perfil Responsavel
              * @description Perfil sintético que tomou a decisão.
@@ -2434,11 +2480,16 @@ export interface components {
              */
             resultado: string;
             /**
-             * Versao Mensagem Id
-             * Format: uuid
-             * @description Versão da mensagem sobre a qual se decidiu.
+             * Justificativa
+             * @description Justificativa registrada, obrigatória fora da aprovação.
              */
-            versao_mensagem_id: string;
+            justificativa: string | null;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC da decisão.
+             */
+            criado_em: string;
         };
         /**
          * RespostaDependencia
@@ -2446,35 +2497,35 @@ export interface components {
          */
         RespostaDependencia: {
             /**
-             * Acao Disponivel
-             * @description Ação segura disponível dado o estado atual.
+             * Nome
+             * @description Nome canônico da dependência verificada.
              */
-            acao_disponivel: string;
-            /**
-             * Causa
-             * @description Causa da indisponibilidade ou degradação, ou nula quando disponível.
-             */
-            causa: string | null;
+            nome: string;
             /**
              * Estado
              * @description Estado atual de prontidão da dependência.
              */
             estado: string;
             /**
+             * Verificado Em
+             * @description Instante RFC 3339 em UTC da última verificação, ou nulo se ainda não houve.
+             */
+            verificado_em: string | null;
+            /**
+             * Causa
+             * @description Causa da indisponibilidade ou degradação, ou nula quando disponível.
+             */
+            causa: string | null;
+            /**
              * Impacto
              * @description Efeito prático do estado atual para quem consulta.
              */
             impacto: string;
             /**
-             * Nome
-             * @description Nome canônico da dependência verificada.
+             * Acao Disponivel
+             * @description Ação segura disponível dado o estado atual.
              */
-            nome: string;
-            /**
-             * Verificado Em
-             * @description Instante RFC 3339 em UTC da última verificação, ou nulo se ainda não houve.
-             */
-            verificado_em: string | null;
+            acao_disponivel: string;
         };
         /**
          * RespostaDependencias
@@ -2493,38 +2544,38 @@ export interface components {
          */
         RespostaDestinatario: {
             /**
-             * Apolice Id
-             * Format: uuid
-             * @description Apólice sintética que sustentou a elegibilidade.
-             */
-            apolice_id: string;
-            /**
-             * Canal
-             * @description Canal preferido registrado no snapshot da elegibilidade.
-             */
-            canal: string;
-            /**
-             * Codigo Ibge Area
-             * @description Área do destinatário no momento da avaliação.
-             */
-            codigo_ibge_area: string;
-            /**
              * Elegibilidade Id
              * Format: uuid
              * @description Item do público elegível que originou a mensagem.
              */
             elegibilidade_id: string;
             /**
-             * Nome Segurado
-             * @description Nome sintético registrado no momento da avaliação.
-             */
-            nome_segurado: string;
-            /**
              * Segurado Id
              * Format: uuid
              * @description Segurado sintético destinatário.
              */
             segurado_id: string;
+            /**
+             * Nome Segurado
+             * @description Nome sintético registrado no momento da avaliação.
+             */
+            nome_segurado: string;
+            /**
+             * Apolice Id
+             * Format: uuid
+             * @description Apólice sintética que sustentou a elegibilidade.
+             */
+            apolice_id: string;
+            /**
+             * Codigo Ibge Area
+             * @description Área do destinatário no momento da avaliação.
+             */
+            codigo_ibge_area: string;
+            /**
+             * Canal
+             * @description Canal preferido registrado no snapshot da elegibilidade.
+             */
+            canal: string;
         };
         /**
          * RespostaDetalheAlerta
@@ -2535,16 +2586,16 @@ export interface components {
             /** @description O alerta. */
             alerta: components["schemas"]["RespostaAlerta"];
             /**
+             * Classificacao
+             * @description `ativo`, `anterior` ou `ainda_nao_simulado`.
+             */
+            classificacao: string;
+            /**
              * Apolice Id
              * Format: uuid
              * @description Apólice que originou a elegibilidade.
              */
             apolice_id: string;
-            /**
-             * Classificacao
-             * @description `ativo`, `anterior` ou `ainda_nao_simulado`.
-             */
-            classificacao: string;
             /**
              * Justificativa
              * @description Por que o segurado é elegível a este alerta.
@@ -2562,43 +2613,11 @@ export interface components {
          */
         RespostaDetalheElegibilidade: {
             /**
-             * Apolice Id
+             * Id
              * Format: uuid
-             * @description Identificador da apólice avaliada.
+             * @description Identificador do resultado de elegibilidade.
              */
-            apolice_id: string;
-            /**
-             * Canal
-             * @description Canal preferencial do segurado, no momento da avaliação.
-             */
-            canal: string;
-            /**
-             * Codigo Ibge Area
-             * @description Código IBGE da área da apólice avaliada.
-             */
-            codigo_ibge_area: string;
-            /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC da avaliação.
-             */
-            criado_em: string;
-            /**
-             * Criterios
-             * @description Critérios avaliados, na ordem aplicada.
-             */
-            criterios: components["schemas"]["RespostaCriterioElegibilidade"][];
-            /**
-             * Elegivel
-             * @description Se a combinação foi incluída no público elegível.
-             */
-            elegivel: boolean;
-            /**
-             * Evento Id
-             * Format: uuid
-             * @description Identificador do evento meteorológico avaliado.
-             */
-            evento_id: string;
+            id: string;
             /**
              * Execucao Id
              * Format: uuid
@@ -2606,21 +2625,11 @@ export interface components {
              */
             execucao_id: string;
             /**
-             * Id
+             * Evento Id
              * Format: uuid
-             * @description Identificador do resultado de elegibilidade.
+             * @description Identificador do evento meteorológico avaliado.
              */
-            id: string;
-            /**
-             * Justificativa
-             * @description Explicação objetiva do resultado, em português.
-             */
-            justificativa: string;
-            /**
-             * Nome Segurado
-             * @description Nome do segurado sintético avaliado.
-             */
-            nome_segurado: string;
+            evento_id: string;
             /**
              * Regra Id
              * Format: uuid
@@ -2638,6 +2647,48 @@ export interface components {
              * @description Identificador do segurado avaliado.
              */
             segurado_id: string;
+            /**
+             * Nome Segurado
+             * @description Nome do segurado sintético avaliado.
+             */
+            nome_segurado: string;
+            /**
+             * Apolice Id
+             * Format: uuid
+             * @description Identificador da apólice avaliada.
+             */
+            apolice_id: string;
+            /**
+             * Codigo Ibge Area
+             * @description Código IBGE da área da apólice avaliada.
+             */
+            codigo_ibge_area: string;
+            /**
+             * Elegivel
+             * @description Se a combinação foi incluída no público elegível.
+             */
+            elegivel: boolean;
+            /**
+             * Criterios
+             * @description Critérios avaliados, na ordem aplicada.
+             */
+            criterios: components["schemas"]["RespostaCriterioElegibilidade"][];
+            /**
+             * Canal
+             * @description Canal preferencial do segurado, no momento da avaliação.
+             */
+            canal: string;
+            /**
+             * Justificativa
+             * @description Explicação objetiva do resultado, em português.
+             */
+            justificativa: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC da avaliação.
+             */
+            criado_em: string;
         };
         /**
          * RespostaDetalheResultado
@@ -2645,44 +2696,11 @@ export interface components {
          */
         RespostaDetalheResultado: {
             /**
-             * Apolice Id
+             * Mensagem Id
              * Format: uuid
-             * @description Apólice sintética de referência.
+             * @description Identificador da mensagem detalhada.
              */
-            apolice_id: string;
-            /** @description Apresentação simulada já registrada, ou nula se ainda não simulada. */
-            apresentacao_simulada: components["schemas"]["RespostaApresentacaoSimulada"] | null;
-            /**
-             * Atualizado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC da última mudança.
-             */
-            atualizado_em: string;
-            /**
-             * Canal
-             * @description Canal da mensagem (`whatsapp`, `email` ou `sms`).
-             */
-            canal: string;
-            /**
-             * Codigo Ibge Area
-             * @description Área monitorada do segurado, no momento.
-             */
-            codigo_ibge_area: string;
-            /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC de criação.
-             */
-            criado_em: string;
-            /**
-             * Estado
-             * @description Estado de conteúdo atual da mensagem.
-             */
-            estado: string;
-            /** @description Evento de origem da mensagem. */
-            evento: components["schemas"]["RespostaEventoDetalhe"] | null;
-            /** @description Exceção técnica associada, presente só quando a mensagem falhou. */
-            excecao: components["schemas"]["RespostaExcecaoDetalhe"] | null;
+            mensagem_id: string;
             /**
              * Execucao Id
              * Format: uuid
@@ -2690,26 +2708,55 @@ export interface components {
              */
             execucao_id: string;
             /**
-             * Limite Canal Assunto
-             * @description Limite de caracteres do assunto, só no canal de e-mail.
+             * Canal
+             * @description Canal da mensagem (`whatsapp`, `email` ou `sms`).
              */
-            limite_canal_assunto: number | null;
+            canal: string;
+            /**
+             * Estado
+             * @description Estado de conteúdo atual da mensagem.
+             */
+            estado: string;
             /**
              * Limite Canal Corpo
              * @description Limite de caracteres do corpo do canal.
              */
             limite_canal_corpo: number;
             /**
-             * Mensagem Id
-             * Format: uuid
-             * @description Identificador da mensagem detalhada.
+             * Limite Canal Assunto
+             * @description Limite de caracteres do assunto, só no canal de e-mail.
              */
-            mensagem_id: string;
+            limite_canal_assunto: number | null;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC de criação.
+             */
+            criado_em: string;
+            /**
+             * Atualizado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC da última mudança.
+             */
+            atualizado_em: string;
             /**
              * Nome Segurado
              * @description Segurado sintético destinatário.
              */
             nome_segurado: string;
+            /**
+             * Apolice Id
+             * Format: uuid
+             * @description Apólice sintética de referência.
+             */
+            apolice_id: string;
+            /**
+             * Codigo Ibge Area
+             * @description Área monitorada do segurado, no momento.
+             */
+            codigo_ibge_area: string;
+            /** @description Evento de origem da mensagem. */
+            evento: components["schemas"]["RespostaEventoDetalhe"] | null;
             /**
              * Regra Id
              * Format: uuid
@@ -2721,11 +2768,15 @@ export interface components {
              * @description Versão da regra aplicada.
              */
             regra_versao: number;
+            /** @description Apresentação simulada já registrada, ou nula se ainda não simulada. */
+            apresentacao_simulada: components["schemas"]["RespostaApresentacaoSimulada"] | null;
             /**
              * Versoes
              * @description Todas as tentativas de geração, da primeira à mais recente.
              */
             versoes: components["schemas"]["RespostaVersaoDetalhe"][];
+            /** @description Exceção técnica associada, presente só quando a mensagem falhou. */
+            excecao: components["schemas"]["RespostaExcecaoDetalhe"] | null;
         };
         /**
          * RespostaDistribuicaoCanal
@@ -2752,11 +2803,6 @@ export interface components {
          */
         RespostaDivergenciaTotais: {
             /**
-             * Entregas Persistidas
-             * @description Quantidade de linhas persistidas em `entregas_simuladas`.
-             */
-            entregas_persistidas: number;
-            /**
              * Execucao Id
              * Format: uuid
              * @description Execução em que a divergência foi detectada.
@@ -2767,6 +2813,11 @@ export interface components {
              * @description Quantidade de mensagens no estado `simulada_entregue`.
              */
             mensagens_simulada_entregue: number;
+            /**
+             * Entregas Persistidas
+             * @description Quantidade de linhas persistidas em `entregas_simuladas`.
+             */
+            entregas_persistidas: number;
         };
         /**
          * RespostaElegibilidade
@@ -2774,15 +2825,15 @@ export interface components {
          */
         RespostaElegibilidade: {
             /**
-             * Excluidos
-             * @description Quantidade de resultados excluídos.
-             */
-            excluidos: number;
-            /**
              * Incluidos
              * @description Quantidade de resultados incluídos.
              */
             incluidos: number;
+            /**
+             * Excluidos
+             * @description Quantidade de resultados excluídos.
+             */
+            excluidos: number;
             /**
              * Registros
              * @description Resultados de elegibilidade, mais recentes primeiro.
@@ -2794,27 +2845,6 @@ export interface components {
          * @description Uma entrega simulada: como o conteúdo aprovado apareceria no canal (SIMUL-06).
          */
         RespostaEntregaSimulada: {
-            /**
-             * Assunto
-             * @description Assunto apresentado, presente somente no canal de e-mail.
-             */
-            assunto: string | null;
-            /**
-             * Canal
-             * @description Canal em que a apresentação seria feita.
-             */
-            canal: string;
-            /**
-             * Corpo
-             * @description Corpo apresentado, cópia exata do conteúdo aprovado.
-             */
-            corpo: string;
-            /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC do registro da entrega.
-             */
-            criado_em: string;
             /**
              * Id
              * Format: uuid
@@ -2828,10 +2858,31 @@ export interface components {
              */
             mensagem_id: string;
             /**
+             * Canal
+             * @description Canal em que a apresentação seria feita.
+             */
+            canal: string;
+            /**
              * Rotulo
              * @description Rótulo fixo da natureza da entrega: sempre 'simulada'. Nenhuma confirmação nem falha de provedor externo é registrada, porque nenhum conector real é usado.
              */
             rotulo: string;
+            /**
+             * Assunto
+             * @description Assunto apresentado, presente somente no canal de e-mail.
+             */
+            assunto: string | null;
+            /**
+             * Corpo
+             * @description Corpo apresentado, cópia exata do conteúdo aprovado.
+             */
+            corpo: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro da entrega.
+             */
+            criado_em: string;
         };
         /**
          * RespostaEvento
@@ -2839,33 +2890,21 @@ export interface components {
          */
         RespostaEvento: {
             /**
-             * Area
-             * @description Código IBGE da área onde o evento foi observado.
-             */
-            area: string;
-            /**
              * Id
              * Format: uuid
              * @description Identificador do evento meteorológico.
              */
             id: string;
             /**
-             * Instante Observado
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC em que a medida foi observada.
+             * Tipo
+             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
              */
-            instante_observado: string;
+            tipo: string;
             /**
-             * Intensidade
-             * @description Intensidade normalizada da medida observada.
+             * Area
+             * @description Código IBGE da área onde o evento foi observado.
              */
-            intensidade: number;
-            /**
-             * Periodo Fim
-             * Format: date-time
-             * @description Término RFC 3339 em UTC do período do evento.
-             */
-            periodo_fim: string;
+            area: string;
             /**
              * Periodo Inicio
              * Format: date-time
@@ -2873,15 +2912,27 @@ export interface components {
              */
             periodo_inicio: string;
             /**
+             * Periodo Fim
+             * Format: date-time
+             * @description Término RFC 3339 em UTC do período do evento.
+             */
+            periodo_fim: string;
+            /**
+             * Intensidade
+             * @description Intensidade normalizada da medida observada.
+             */
+            intensidade: number;
+            /**
              * Proveniencia
              * @description Origem do evento (`real_inmet` ou `sintetico`).
              */
             proveniencia: string;
             /**
-             * Tipo
-             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
+             * Instante Observado
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC em que a medida foi observada.
              */
-            tipo: string;
+            instante_observado: string;
         };
         /**
          * RespostaEventoDetalhe
@@ -2889,27 +2940,31 @@ export interface components {
          */
         RespostaEventoDetalhe: {
             /**
-             * Area
-             * @description Código de área monitorada afetada pelo evento.
-             */
-            area: string;
-            /**
              * Id
              * Format: uuid
              * @description Identificador do evento meteorológico.
              */
             id: string;
             /**
+             * Tipo
+             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
+             */
+            tipo: string;
+            /**
+             * Area
+             * @description Código de área monitorada afetada pelo evento.
+             */
+            area: string;
+            /**
              * Intensidade
              * @description Intensidade observada do evento.
              */
             intensidade: number;
             /**
-             * Periodo Fim
-             * Format: date-time
-             * @description Fim do período observado, em UTC.
+             * Proveniencia
+             * @description Origem do evento (`real_inmet` ou `sintetico`).
              */
-            periodo_fim: string;
+            proveniencia: string;
             /**
              * Periodo Inicio
              * Format: date-time
@@ -2917,15 +2972,11 @@ export interface components {
              */
             periodo_inicio: string;
             /**
-             * Proveniencia
-             * @description Origem do evento (`real_inmet` ou `sintetico`).
+             * Periodo Fim
+             * Format: date-time
+             * @description Fim do período observado, em UTC.
              */
-            proveniencia: string;
-            /**
-             * Tipo
-             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
-             */
-            tipo: string;
+            periodo_fim: string;
         };
         /**
          * RespostaEventoDeterministico
@@ -2933,26 +2984,26 @@ export interface components {
          */
         RespostaEventoDeterministico: {
             /**
-             * Area
-             * @description Código de área monitorada afetada pelo evento.
-             */
-            area: string;
-            /**
              * Id
              * Format: uuid
              * @description Identificador do evento meteorológico.
              */
             id: string;
             /**
-             * Proveniencia
-             * @description Origem do evento (`real_inmet` ou `sintetico`).
-             */
-            proveniencia: string;
-            /**
              * Tipo
              * @description Tipo do evento (`chuva_intensa` ou `granizo`).
              */
             tipo: string;
+            /**
+             * Area
+             * @description Código de área monitorada afetada pelo evento.
+             */
+            area: string;
+            /**
+             * Proveniencia
+             * @description Origem do evento (`real_inmet` ou `sintetico`).
+             */
+            proveniencia: string;
         };
         /**
          * RespostaEventoLote
@@ -2960,27 +3011,31 @@ export interface components {
          */
         RespostaEventoLote: {
             /**
-             * Area
-             * @description Código de área monitorada afetada pelo evento.
-             */
-            area: string;
-            /**
              * Id
              * Format: uuid
              * @description Identificador do evento meteorológico.
              */
             id: string;
             /**
+             * Tipo
+             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
+             */
+            tipo: string;
+            /**
+             * Area
+             * @description Código de área monitorada afetada pelo evento.
+             */
+            area: string;
+            /**
              * Intensidade
              * @description Intensidade observada do evento.
              */
             intensidade: number;
             /**
-             * Periodo Fim
-             * Format: date-time
-             * @description Fim do período observado, em UTC.
+             * Proveniencia
+             * @description Origem do evento (`real_inmet` ou `sintetico`).
              */
-            periodo_fim: string;
+            proveniencia: string;
             /**
              * Periodo Inicio
              * Format: date-time
@@ -2988,15 +3043,11 @@ export interface components {
              */
             periodo_inicio: string;
             /**
-             * Proveniencia
-             * @description Origem do evento (`real_inmet` ou `sintetico`).
+             * Periodo Fim
+             * Format: date-time
+             * @description Fim do período observado, em UTC.
              */
-            proveniencia: string;
-            /**
-             * Tipo
-             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
-             */
-            tipo: string;
+            periodo_fim: string;
         };
         /**
          * RespostaEventoSimulacao
@@ -3004,27 +3055,31 @@ export interface components {
          */
         RespostaEventoSimulacao: {
             /**
-             * Area
-             * @description Código de área monitorada afetada pelo evento.
-             */
-            area: string;
-            /**
              * Id
              * Format: uuid
              * @description Identificador do evento meteorológico.
              */
             id: string;
             /**
+             * Tipo
+             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
+             */
+            tipo: string;
+            /**
+             * Area
+             * @description Código de área monitorada afetada pelo evento.
+             */
+            area: string;
+            /**
              * Intensidade
              * @description Intensidade observada do evento.
              */
             intensidade: number;
             /**
-             * Periodo Fim
-             * Format: date-time
-             * @description Fim do período observado, em UTC.
+             * Proveniencia
+             * @description Origem do evento (`real_inmet` ou `sintetico`).
              */
-            periodo_fim: string;
+            proveniencia: string;
             /**
              * Periodo Inicio
              * Format: date-time
@@ -3032,15 +3087,11 @@ export interface components {
              */
             periodo_inicio: string;
             /**
-             * Proveniencia
-             * @description Origem do evento (`real_inmet` ou `sintetico`).
+             * Periodo Fim
+             * Format: date-time
+             * @description Fim do período observado, em UTC.
              */
-            proveniencia: string;
-            /**
-             * Tipo
-             * @description Tipo do evento (`chuva_intensa` ou `granizo`).
-             */
-            tipo: string;
+            periodo_fim: string;
         };
         /**
          * RespostaEventos
@@ -3064,21 +3115,21 @@ export interface components {
              */
             causa: string;
             /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC do registro.
+             * Tentativas
+             * @description Tentativas realizadas antes de esgotar o limite.
              */
-            criado_em: string;
+            tentativas: number;
             /**
              * Impacto
              * @description Efeito prático da falha, em português brasileiro.
              */
             impacto: string;
             /**
-             * Tentativas
-             * @description Tentativas realizadas antes de esgotar o limite.
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro.
              */
-            tentativas: number;
+            criado_em: string;
         };
         /**
          * RespostaExecucao
@@ -3086,36 +3137,36 @@ export interface components {
          */
         RespostaExecucao: {
             /**
-             * Estado
-             * @description Estado atual da execução.
-             */
-            estado: string;
-            /**
-             * Execucao Origem Id
-             * @description Execução terminal que originou esta nova tentativa; nula quando esta execução não é correlacionada a nenhuma outra.
-             */
-            execucao_origem_id: string | null;
-            /**
              * Id
              * Format: uuid
              * @description Identificador da execução.
              */
             id: string;
             /**
+             * Estado
+             * @description Estado atual da execução.
+             */
+            estado: string;
+            /**
              * Marcos
              * @description Marcos de transição já persistidos, na ordem em que ocorreram.
              */
             marcos: components["schemas"]["RespostaMarco"][];
+            /**
+             * Publico Elegivel Total
+             * @description Quantidade total de incluídos no público elegível; nulo fora de 'aguardando_geracao'.
+             */
+            publico_elegivel_total: number | null;
             /**
              * Publico Elegivel Previa
              * @description Amostra de até 5 incluídos no público elegível; vazia fora de 'aguardando_geracao'.
              */
             publico_elegivel_previa: components["schemas"]["RespostaPreviaPublico"][];
             /**
-             * Publico Elegivel Total
-             * @description Quantidade total de incluídos no público elegível; nulo fora de 'aguardando_geracao'.
+             * Execucao Origem Id
+             * @description Execução terminal que originou esta nova tentativa; nula quando esta execução não é correlacionada a nenhuma outra.
              */
-            publico_elegivel_total: number | null;
+            execucao_origem_id: string | null;
             /**
              * Retentativas
              * @description Execuções criadas como nova tentativa a partir desta; vazia quando não houve nenhuma. Cada execução mantém seu próprio histórico, sem mesclar marcos.
@@ -3140,16 +3191,16 @@ export interface components {
          */
         RespostaExecucaoResumo: {
             /**
-             * Estado
-             * @description Estado agregado atual da execução.
-             */
-            estado: string;
-            /**
              * Execucao Id
              * Format: uuid
              * @description Identificador da execução.
              */
             execucao_id: string;
+            /**
+             * Estado
+             * @description Estado agregado atual da execução.
+             */
+            estado: string;
         };
         /**
          * RespostaExplicacaoApolice
@@ -3157,36 +3208,34 @@ export interface components {
          */
         RespostaExplicacaoApolice: {
             /**
-             * Criterios
-             * @description Critérios relevantes à apólice (área, tipo, situação, cobertura).
-             */
-            criterios: components["schemas"]["RespostaCriterioApolice"][];
-            /**
              * Elegibilidade Id
              * Format: uuid
              * @description Identificador da elegibilidade de origem.
              */
             elegibilidade_id: string;
+            /**
+             * Criterios
+             * @description Critérios relevantes à apólice (área, tipo, situação, cobertura).
+             */
+            criterios: components["schemas"]["RespostaCriterioApolice"][];
         };
         /**
          * RespostaExplicacaoComunicado
          * @description Explicação completa de "Como esta mensagem foi criada" (EXPLICACAO-01..05).
          */
         RespostaExplicacaoComunicado: {
-            /** @description Seção agêntica. */
-            agente: components["schemas"]["RespostaSecaoAgente"];
-            /** @description Prévia da mensagem final simulada, ou nula se ainda não simulada. */
-            apresentacao_simulada: components["schemas"]["RespostaApresentacaoSimuladaExplicacao"] | null;
-            /** @description Contexto minimizado, ou nulo se ainda não montado. */
-            contexto: components["schemas"]["RespostaSecaoContexto"] | null;
             /**
              * Entrega Simulada Id
              * Format: uuid
              * @description Identificador do comunicado explicado.
              */
             entrega_simulada_id: string;
-            /** @description Seção determinística. */
-            evento_e_regra: components["schemas"]["RespostaSecaoEvento"];
+            /**
+             * Mensagem Id
+             * Format: uuid
+             * @description Mensagem de origem do comunicado.
+             */
+            mensagem_id: string;
             /**
              * Execucao Id
              * Format: uuid
@@ -3198,18 +3247,24 @@ export interface components {
              * @description Presente só quando a execução é uma retentativa correlacionada.
              */
             execucao_origem_id: string | null;
-            /**
-             * Mensagem Id
-             * Format: uuid
-             * @description Mensagem de origem do comunicado.
-             */
-            mensagem_id: string;
+            /** @description Seção determinística. */
+            evento_e_regra: components["schemas"]["RespostaSecaoEvento"];
+            /** @description Contexto minimizado, ou nulo se ainda não montado. */
+            contexto: components["schemas"]["RespostaSecaoContexto"] | null;
+            /** @description Seção agêntica. */
+            agente: components["schemas"]["RespostaSecaoAgente"];
+            /** @description Prévia da mensagem final simulada, ou nula se ainda não simulada. */
+            apresentacao_simulada: components["schemas"]["RespostaApresentacaoSimuladaExplicacao"] | null;
         };
         /**
          * RespostaHistoricoSincronizacoes
          * @description Histórico de sincronização, com os marcos exigidos pela consulta de Marina.
          */
         RespostaHistoricoSincronizacoes: {
+            /** @description Tentativa mais recente registrada, ou nula se nunca houve nenhuma. */
+            ultima_tentativa: components["schemas"]["RespostaSincronizacao"] | null;
+            /** @description Última tentativa concluída com sucesso, ou nula se nenhuma concluiu. */
+            ultima_valida: components["schemas"]["RespostaSincronizacao"] | null;
             /**
              * Proxima Consulta
              * @description Instante RFC 3339 em UTC estimado da próxima coleta automática.
@@ -3220,10 +3275,6 @@ export interface components {
              * @description Histórico completo, da tentativa mais recente para a mais antiga.
              */
             resultados_anteriores: components["schemas"]["RespostaSincronizacao"][];
-            /** @description Tentativa mais recente registrada, ou nula se nunca houve nenhuma. */
-            ultima_tentativa: components["schemas"]["RespostaSincronizacao"] | null;
-            /** @description Última tentativa concluída com sucesso, ou nula se nenhuma concluiu. */
-            ultima_valida: components["schemas"]["RespostaSincronizacao"] | null;
         };
         /**
          * RespostaItemAlerta
@@ -3239,55 +3290,113 @@ export interface components {
             classificacao: string;
         };
         /**
+         * RespostaItemComunicado
+         * @description Um item da lista de comunicados: canal, assunto/resumo, data e visualização.
+         */
+        RespostaItemComunicado: {
+            /**
+             * Entrega Simulada Id
+             * Format: uuid
+             * @description Identificador da entrega simulada.
+             */
+            entrega_simulada_id: string;
+            /**
+             * Mensagem Id
+             * Format: uuid
+             * @description Mensagem que originou o comunicado.
+             */
+            mensagem_id: string;
+            /**
+             * Canal
+             * @description Canal do comunicado (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
+             * Assunto Ou Resumo
+             * @description Assunto real (e-mail) ou resumo truncado do corpo (WhatsApp/SMS).
+             */
+            assunto_ou_resumo: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC de criação da entrega.
+             */
+            criado_em: string;
+            /** @description Primeira visualização já registrada, ou nula se ainda não visualizado. */
+            visualizacao: components["schemas"]["RespostaVisualizacaoComunicado"] | null;
+        };
+        /**
          * RespostaItemLote
          * @description Uma mensagem do lote, com tudo que a decisão humana precisa (REVISAO-03).
          */
         RespostaItemLote: {
-            /**
-             * Aprovada Pelo Critico
-             * @description Se a última tentativa foi aprovada pelo agente crítico.
-             */
-            aprovada_pelo_critico: boolean;
-            /**
-             * Canal
-             * @description Canal da mensagem (`whatsapp`, `email` ou `sms`).
-             */
-            canal: string;
-            /**
-             * Decidivel
-             * @description Se a mensagem aguarda decisão humana agora.
-             */
-            decidivel: boolean;
-            /**
-             * Decisoes
-             * @description Decisões humanas já registradas sobre esta mensagem.
-             */
-            decisoes: components["schemas"]["RespostaDecisaoRegistrada"][];
-            /** @description Destinatário sintético da mensagem. */
-            destinatario: components["schemas"]["RespostaDestinatario"];
-            /**
-             * Em Excecao
-             * @description Se a mensagem terminou em exceção de conteúdo ou de integração.
-             */
-            em_excecao: boolean;
-            /**
-             * Estado
-             * @description Estado de conteúdo da mensagem, conforme o AD-4.
-             */
-            estado: string;
-            /**
-             * Limite Tentativas
-             * @description Máximo de tentativas de conteúdo permitidas por mensagem.
-             */
-            limite_tentativas: number;
             /**
              * Mensagem Id
              * Format: uuid
              * @description Identificador da mensagem.
              */
             mensagem_id: string;
+            /**
+             * Canal
+             * @description Canal da mensagem (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
+             * Estado
+             * @description Estado de conteúdo da mensagem, conforme o AD-4.
+             */
+            estado: string;
+            /**
+             * Tentativa Atual
+             * @description Tentativa de geração em curso ou concluída.
+             */
+            tentativa_atual: number;
+            /**
+             * Limite Tentativas
+             * @description Máximo de tentativas de conteúdo permitidas por mensagem.
+             */
+            limite_tentativas: number;
+            /**
+             * Versao
+             * @description Versão de concorrência otimista a reenviar como `versao_esperada`.
+             */
+            versao: number;
+            /** @description Destinatário sintético da mensagem. */
+            destinatario: components["schemas"]["RespostaDestinatario"];
             /** @description Dados de origem que produziram a mensagem. */
             origem: components["schemas"]["RespostaOrigem"];
+            /** @description Proveniência do contexto do agente, ou nula se ele não foi montado. */
+            proveniencia: components["schemas"]["RespostaProveniencia"] | null;
+            /**
+             * Versoes
+             * @description Tentativas registradas, da primeira à última.
+             */
+            versoes: components["schemas"]["RespostaVersaoRevisada"][];
+            /**
+             * Decisoes
+             * @description Decisões humanas já registradas sobre esta mensagem.
+             */
+            decisoes: components["schemas"]["RespostaDecisaoRegistrada"][];
+            /**
+             * Aprovada Pelo Critico
+             * @description Se a última tentativa foi aprovada pelo agente crítico.
+             */
+            aprovada_pelo_critico: boolean;
+            /**
+             * Reprovacao Historica
+             * @description Se alguma tentativa foi reprovada, ainda que a final tenha sido aprovada.
+             */
+            reprovacao_historica: boolean;
+            /**
+             * Em Excecao
+             * @description Se a mensagem terminou em exceção de conteúdo ou de integração.
+             */
+            em_excecao: boolean;
+            /**
+             * Decidivel
+             * @description Se a mensagem aguarda decisão humana agora.
+             */
+            decidivel: boolean;
             /**
              * Pode Regenerar
              * @description Se ainda há tentativa disponível para solicitar nova geração.
@@ -3298,28 +3407,6 @@ export interface components {
              * @description Ordem de atenção do item: menor valor exige atenção antes.
              */
             prioridade: number;
-            /** @description Proveniência do contexto do agente, ou nula se ele não foi montado. */
-            proveniencia: components["schemas"]["RespostaProveniencia"] | null;
-            /**
-             * Reprovacao Historica
-             * @description Se alguma tentativa foi reprovada, ainda que a final tenha sido aprovada.
-             */
-            reprovacao_historica: boolean;
-            /**
-             * Tentativa Atual
-             * @description Tentativa de geração em curso ou concluída.
-             */
-            tentativa_atual: number;
-            /**
-             * Versao
-             * @description Versão de concorrência otimista a reenviar como `versao_esperada`.
-             */
-            versao: number;
-            /**
-             * Versoes
-             * @description Tentativas registradas, da primeira à última.
-             */
-            versoes: components["schemas"]["RespostaVersaoRevisada"][];
         };
         /**
          * RespostaLinhaDoTempo
@@ -3327,26 +3414,26 @@ export interface components {
          */
         RespostaLinhaDoTempo: {
             /**
-             * Estado
-             * @description Estado agregado atual da execução.
-             */
-            estado: string;
-            /**
              * Execucao Id
              * Format: uuid
              * @description Identificador da execução consultada.
              */
             execucao_id: string;
             /**
-             * Execucao Origem Id
-             * @description Execução terminal que originou esta, ou nula se não correlacionada.
+             * Estado
+             * @description Estado agregado atual da execução.
              */
-            execucao_origem_id: string | null;
+            estado: string;
             /**
              * Marcos
              * @description Todos os marcos da execução, em ordem cronológica.
              */
             marcos: components["schemas"]["RespostaMarcoLinhaDoTempo"][];
+            /**
+             * Execucao Origem Id
+             * @description Execução terminal que originou esta, ou nula se não correlacionada.
+             */
+            execucao_origem_id: string | null;
             /**
              * Retentativas
              * @description Execuções criadas como nova tentativa a partir desta.
@@ -3365,27 +3452,21 @@ export interface components {
             alertas: components["schemas"]["RespostaItemAlerta"][];
         };
         /**
+         * RespostaListaComunicados
+         * @description A lista completa de comunicados do segurado.
+         */
+        RespostaListaComunicados: {
+            /**
+             * Comunicados
+             * @description Todos os comunicados do segurado, mais antigos primeiro.
+             */
+            comunicados: components["schemas"]["RespostaItemComunicado"][];
+        };
+        /**
          * RespostaLoteRevisao
          * @description O lote de revisão de uma execução, com os itens de atenção primeiro (REVISAO-01).
          */
         RespostaLoteRevisao: {
-            /**
-             * Aprovacoes Agenticas
-             * @description Mensagens cuja última tentativa foi aprovada pelo agente crítico.
-             */
-            aprovacoes_agenticas: number;
-            /**
-             * Distribuicao Por Canal
-             * @description Quantidade de mensagens do lote por canal.
-             */
-            distribuicao_por_canal: components["schemas"]["RespostaDistribuicaoCanal"][];
-            /**
-             * Estado
-             * @description Estado agregado atual da execução.
-             */
-            estado: string;
-            /** @description Evento meteorológico de origem, ou nulo se o lote ainda está vazio. */
-            evento: components["schemas"]["RespostaEventoLote"] | null;
             /**
              * Execucao Id
              * Format: uuid
@@ -3393,15 +3474,12 @@ export interface components {
              */
             execucao_id: string;
             /**
-             * Itens
-             * @description Mensagens do lote, com os itens que exigem atenção primeiro.
+             * Estado
+             * @description Estado agregado atual da execução.
              */
-            itens: components["schemas"]["RespostaItemLote"][];
-            /**
-             * Itens Em Excecao
-             * @description Mensagens que terminaram em exceção de conteúdo ou de integração.
-             */
-            itens_em_excecao: number;
+            estado: string;
+            /** @description Evento meteorológico de origem, ou nulo se o lote ainda está vazio. */
+            evento: components["schemas"]["RespostaEventoLote"] | null;
             /**
              * Regra Id
              * @description Regra preventiva aplicada ao público do lote.
@@ -3417,12 +3495,37 @@ export interface components {
              * @description Itens incluídos do público elegível desta execução.
              */
             total_publico_incluido: number;
+            /**
+             * Distribuicao Por Canal
+             * @description Quantidade de mensagens do lote por canal.
+             */
+            distribuicao_por_canal: components["schemas"]["RespostaDistribuicaoCanal"][];
+            /**
+             * Aprovacoes Agenticas
+             * @description Mensagens cuja última tentativa foi aprovada pelo agente crítico.
+             */
+            aprovacoes_agenticas: number;
+            /**
+             * Itens Em Excecao
+             * @description Mensagens que terminaram em exceção de conteúdo ou de integração.
+             */
+            itens_em_excecao: number;
+            /**
+             * Itens
+             * @description Mensagens do lote, com os itens que exigem atenção primeiro.
+             */
+            itens: components["schemas"]["RespostaItemLote"][];
         };
         /**
          * RespostaMarco
          * @description Um marco de transição já persistido da execução.
          */
         RespostaMarco: {
+            /**
+             * Marco
+             * @description Nome do marco de transição.
+             */
+            marco: string;
             /**
              * Causa
              * @description Causa registrada, ou nula quando não houve falha.
@@ -3434,11 +3537,6 @@ export interface components {
              * @description Instante RFC 3339 em UTC em que o marco foi registrado.
              */
             criado_em: string;
-            /**
-             * Marco
-             * @description Nome do marco de transição.
-             */
-            marco: string;
         };
         /**
          * RespostaMarcoLinhaDoTempo
@@ -3446,40 +3544,40 @@ export interface components {
          */
         RespostaMarcoLinhaDoTempo: {
             /**
-             * Acao
-             * @description A ação registrada neste marco.
+             * Timestamp
+             * @description Instante RFC 3339 em UTC do marco, canônico.
              */
-            acao: string;
+            timestamp: string;
             /**
              * Ator
              * @description Quem ou o que produziu o marco (sistema, ia, segurado...).
              */
             ator: string;
             /**
-             * Correlacao
-             * @description Identificador para correlacionar este marco a outro.
+             * Acao
+             * @description A ação registrada neste marco.
              */
-            correlacao: string;
-            /**
-             * Mensagem Id
-             * @description Mensagem a que este marco pertence, para agrupamento visual; nulo se o marco for da execução como um todo.
-             */
-            mensagem_id: string | null;
+            acao: string;
             /**
              * Resultado
              * @description O resultado ou desfecho da ação.
              */
             resultado: string;
             /**
-             * Timestamp
-             * @description Instante RFC 3339 em UTC do marco, canônico.
+             * Correlacao
+             * @description Identificador para correlacionar este marco a outro.
              */
-            timestamp: string;
+            correlacao: string;
             /**
              * Tipo
              * @description Categoria do marco (execucao, risco, geracao, ...).
              */
             tipo: string;
+            /**
+             * Mensagem Id
+             * @description Mensagem a que este marco pertence, para agrupamento visual; nulo se o marco for da execução como um todo.
+             */
+            mensagem_id: string | null;
         };
         /**
          * RespostaMensagem
@@ -3487,10 +3585,11 @@ export interface components {
          */
         RespostaMensagem: {
             /**
-             * Canal
-             * @description Canal da mensagem (`whatsapp`, `email` ou `sms`).
+             * Id
+             * Format: uuid
+             * @description Identificador da mensagem.
              */
-            canal: string;
+            id: string;
             /**
              * Elegibilidade Id
              * Format: uuid
@@ -3498,26 +3597,25 @@ export interface components {
              */
             elegibilidade_id: string;
             /**
+             * Canal
+             * @description Canal da mensagem (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
              * Estado
              * @description Estado de conteúdo da mensagem, conforme o AD-4.
              */
             estado: string;
             /**
-             * Id
-             * Format: uuid
-             * @description Identificador da mensagem.
+             * Tentativa Atual
+             * @description Tentativa de geração em curso ou concluída.
              */
-            id: string;
+            tentativa_atual: number;
             /**
              * Limite Tentativas
              * @description Máximo de tentativas de conteúdo permitidas por mensagem.
              */
             limite_tentativas: number;
-            /**
-             * Tentativa Atual
-             * @description Tentativa de geração em curso ou concluída.
-             */
-            tentativa_atual: number;
             /**
              * Versao
              * @description Versão de concorrência otimista da mensagem.
@@ -3532,6 +3630,12 @@ export interface components {
          */
         RespostaMensagemNaoSimulavel: {
             /**
+             * Mensagem Id
+             * Format: uuid
+             * @description Identificador da mensagem.
+             */
+            mensagem_id: string;
+            /**
              * Canal
              * @description Canal da mensagem.
              */
@@ -3541,12 +3645,6 @@ export interface components {
              * @description Estado terminal da mensagem que a excluiu da simulação.
              */
             estado: string;
-            /**
-             * Mensagem Id
-             * Format: uuid
-             * @description Identificador da mensagem.
-             */
-            mensagem_id: string;
             /**
              * Motivo
              * @description Motivo legível pelo qual a mensagem não foi simulada.
@@ -3660,21 +3758,11 @@ export interface components {
          */
         RespostaOrigem: {
             /**
-             * Criterios
-             * @description Critérios avaliados, com o valor observado e o veredito de cada um.
-             */
-            criterios: components["schemas"]["RespostaCriterioLote"][];
-            /**
              * Evento Id
              * Format: uuid
              * @description Evento meteorológico de origem.
              */
             evento_id: string;
-            /**
-             * Justificativa
-             * @description Justificativa da inclusão no público elegível.
-             */
-            justificativa: string;
             /**
              * Regra Id
              * Format: uuid
@@ -3686,6 +3774,16 @@ export interface components {
              * @description Versão da regra aplicada no momento da avaliação.
              */
             regra_versao: number;
+            /**
+             * Justificativa
+             * @description Justificativa da inclusão no público elegível.
+             */
+            justificativa: string;
+            /**
+             * Criterios
+             * @description Critérios avaliados, com o valor observado e o veredito de cada um.
+             */
+            criterios: components["schemas"]["RespostaCriterioLote"][];
         };
         /**
          * RespostaPreflight
@@ -3693,31 +3791,31 @@ export interface components {
          */
         RespostaPreflight: {
             /**
-             * Causa
-             * @description Causa sanitizada do bloqueio, ou nula quando o preflight foi bem-sucedido.
-             */
-            causa: string | null;
-            /**
-             * Contextos Montados
-             * @description Quantidade de itens do público elegível com contexto mínimo montado.
-             */
-            contextos_montados: number;
-            /**
-             * Estado
-             * @description Estado alcançado pela execução após o preflight.
-             */
-            estado: string;
-            /**
              * Execucao Id
              * Format: uuid
              * @description Identificador da execução preparada.
              */
             execucao_id: string;
             /**
+             * Estado
+             * @description Estado alcançado pela execução após o preflight.
+             */
+            estado: string;
+            /**
+             * Contextos Montados
+             * @description Quantidade de itens do público elegível com contexto mínimo montado.
+             */
+            contextos_montados: number;
+            /**
              * Itens Em Excecao
              * @description Itens cujo contexto não pôde ser montado; os demais seguem normalmente.
              */
             itens_em_excecao: string[];
+            /**
+             * Causa
+             * @description Causa sanitizada do bloqueio, ou nula quando o preflight foi bem-sucedido.
+             */
+            causa: string | null;
         };
         /**
          * RespostaPreviaPublico
@@ -3725,15 +3823,15 @@ export interface components {
          */
         RespostaPreviaPublico: {
             /**
-             * Canal
-             * @description Canal preferencial do segurado, no momento da avaliação.
-             */
-            canal: string;
-            /**
              * Nome Segurado
              * @description Nome do segurado sintético incluído.
              */
             nome_segurado: string;
+            /**
+             * Canal
+             * @description Canal preferencial do segurado, no momento da avaliação.
+             */
+            canal: string;
         };
         /**
          * RespostaProveniencia
@@ -3741,15 +3839,15 @@ export interface components {
          */
         RespostaProveniencia: {
             /**
-             * Categorias Nao Usadas
-             * @description Categorias deliberadamente deixadas de fora do contexto.
-             */
-            categorias_nao_usadas: string[];
-            /**
              * Categorias Usadas
              * @description Categorias de dado que chegaram ao contexto do agente redator.
              */
             categorias_usadas: string[];
+            /**
+             * Categorias Nao Usadas
+             * @description Categorias deliberadamente deixadas de fora do contexto.
+             */
+            categorias_nao_usadas: string[];
         };
         /**
          * RespostaProvenienciaContexto
@@ -3757,21 +3855,21 @@ export interface components {
          */
         RespostaProvenienciaContexto: {
             /**
-             * Categorias Nao Usadas
-             * @description Categorias deliberadamente deixadas de fora do contexto.
+             * Elegibilidade Id
+             * Format: uuid
+             * @description Item do público elegível preparado.
              */
-            categorias_nao_usadas: string[];
+            elegibilidade_id: string;
             /**
              * Categorias Usadas
              * @description Categorias de dado que chegaram ao contexto do agente redator.
              */
             categorias_usadas: string[];
             /**
-             * Elegibilidade Id
-             * Format: uuid
-             * @description Item do público elegível preparado.
+             * Categorias Nao Usadas
+             * @description Categorias deliberadamente deixadas de fora do contexto.
              */
-            elegibilidade_id: string;
+            categorias_nao_usadas: string[];
         };
         /**
          * RespostaProvenienciaMensagem
@@ -3779,23 +3877,11 @@ export interface components {
          */
         RespostaProvenienciaMensagem: {
             /**
-             * Canal
-             * @description Canal da mensagem (`whatsapp`, `email` ou `sms`).
-             */
-            canal: string;
-            /** @description Categorias de dado usadas e não usadas no contexto do agente. */
-            categorias_entrada: components["schemas"]["RespostaCategoriasEntrada"];
-            /**
-             * Elegibilidade Id
+             * Mensagem Id
              * Format: uuid
-             * @description Item do público elegível que originou a mensagem.
+             * @description Identificador da mensagem consultada.
              */
-            elegibilidade_id: string;
-            /**
-             * Estado
-             * @description Estado de conteúdo da mensagem, conforme o AD-4.
-             */
-            estado: string;
+            mensagem_id: string;
             /**
              * Execucao Id
              * Format: uuid
@@ -3803,21 +3889,33 @@ export interface components {
              */
             execucao_id: string;
             /**
-             * Limite Tentativas
-             * @description Máximo de tentativas de conteúdo permitidas por mensagem.
-             */
-            limite_tentativas: number;
-            /**
-             * Mensagem Id
+             * Elegibilidade Id
              * Format: uuid
-             * @description Identificador da mensagem consultada.
+             * @description Item do público elegível que originou a mensagem.
              */
-            mensagem_id: string;
+            elegibilidade_id: string;
+            /**
+             * Canal
+             * @description Canal da mensagem (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
+             * Estado
+             * @description Estado de conteúdo da mensagem, conforme o AD-4.
+             */
+            estado: string;
             /**
              * Tentativa Atual
              * @description Tentativa de geração em curso ou concluída.
              */
             tentativa_atual: number;
+            /**
+             * Limite Tentativas
+             * @description Máximo de tentativas de conteúdo permitidas por mensagem.
+             */
+            limite_tentativas: number;
+            /** @description Categorias de dado usadas e não usadas no contexto do agente. */
+            categorias_entrada: components["schemas"]["RespostaCategoriasEntrada"];
             /**
              * Tentativas
              * @description Histórico imutável das tentativas, da primeira à mais recente.
@@ -3841,56 +3939,56 @@ export interface components {
          */
         RespostaRegra: {
             /**
-             * Antecedencia Horas
-             * @description Antecedência do alerta preventivo, em horas.
-             */
-            antecedencia_horas: number;
-            /**
-             * Apolice Tipo
-             * @description Tipo de apólice (`residencial` ou `automovel`).
-             */
-            apolice_tipo: string;
-            /**
-             * Area Aplicavel
-             * @description Código IBGE da área a que a regra se aplica.
-             */
-            area_aplicavel: string;
-            /**
-             * Canal
-             * @description Canal de comunicação (`whatsapp`, `email` ou `sms`).
-             */
-            canal: string;
-            /**
-             * Cobertura Exigida
-             * @description Cobertura que a apólice precisa ter.
-             */
-            cobertura_exigida: string;
-            /**
-             * Estado
-             * @description Estado da versão (`ativa` ou `substituida`).
-             */
-            estado: string;
-            /**
-             * Evento Tipo
-             * @description Tipo de evento (`chuva_intensa` ou `granizo`).
-             */
-            evento_tipo: string;
-            /**
              * Id
              * Format: uuid
              * @description Identificador desta versão de regra.
              */
             id: string;
             /**
+             * Evento Tipo
+             * @description Tipo de evento (`chuva_intensa` ou `granizo`).
+             */
+            evento_tipo: string;
+            /**
              * Limiar Meteorologico
              * @description Limiar numérico usado pela regra.
              */
             limiar_meteorologico: number;
             /**
+             * Area Aplicavel
+             * @description Código IBGE da área a que a regra se aplica.
+             */
+            area_aplicavel: string;
+            /**
+             * Apolice Tipo
+             * @description Tipo de apólice (`residencial` ou `automovel`).
+             */
+            apolice_tipo: string;
+            /**
+             * Cobertura Exigida
+             * @description Cobertura que a apólice precisa ter.
+             */
+            cobertura_exigida: string;
+            /**
+             * Antecedencia Horas
+             * @description Antecedência do alerta preventivo, em horas.
+             */
+            antecedencia_horas: number;
+            /**
+             * Canal
+             * @description Canal de comunicação (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
+            /**
              * Versao
              * @description Número sequencial desta versão da regra.
              */
             versao: number;
+            /**
+             * Estado
+             * @description Estado da versão (`ativa` ou `substituida`).
+             */
+            estado: string;
         };
         /**
          * RespostaRegras
@@ -3909,17 +4007,17 @@ export interface components {
          */
         RespostaRestauracao: {
             /**
-             * Restaurado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC em que a restauração foi concluída.
-             */
-            restaurado_em: string;
-            /**
              * Status
              * @description Resultado da restauração concluída.
              * @constant
              */
             status: "restaurado";
+            /**
+             * Restaurado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC em que a restauração foi concluída.
+             */
+            restaurado_em: string;
         };
         /**
          * RespostaResultadosConsolidados
@@ -3927,28 +4025,21 @@ export interface components {
          */
         RespostaResultadosConsolidados: {
             /**
-             * Concluido
-             * @description Se a simulação já terminou (`concluida` ou `falhou_simulacao`). Enquanto falso, os totais abaixo vêm vazios — não representam um resultado final.
-             */
-            concluido: boolean;
-            /** @description Preenchida somente se a contagem de mensagens simuladas divergir da contagem de entregas persistidas; nula em operação normal. */
-            divergencia: components["schemas"]["RespostaDivergenciaTotais"] | null;
-            /**
-             * Estado
-             * @description Estado agregado atual da execução.
-             */
-            estado: string;
-            /**
              * Execucao Id
              * Format: uuid
              * @description Identificador da execução consultada.
              */
             execucao_id: string;
             /**
-             * Nao Simulaveis
-             * @description Mensagens rejeitadas, excluídas ou em exceção técnica, com o motivo; nunca somadas às entregas simuladas.
+             * Estado
+             * @description Estado agregado atual da execução.
              */
-            nao_simulaveis: components["schemas"]["RespostaMensagemNaoSimulavel"][];
+            estado: string;
+            /**
+             * Concluido
+             * @description Se a simulação já terminou (`concluida` ou `falhou_simulacao`). Enquanto falso, os totais abaixo vêm vazios — não representam um resultado final.
+             */
+            concluido: boolean;
             /**
              * Totais Por Canal
              * @description Totais de todas as mensagens do lote, por canal.
@@ -3959,33 +4050,19 @@ export interface components {
              * @description Totais de todas as mensagens do lote, por estado.
              */
             totais_por_estado: components["schemas"]["RespostaTotalPorChave"][];
+            /**
+             * Nao Simulaveis
+             * @description Mensagens rejeitadas, excluídas ou em exceção técnica, com o motivo; nunca somadas às entregas simuladas.
+             */
+            nao_simulaveis: components["schemas"]["RespostaMensagemNaoSimulavel"][];
+            /** @description Preenchida somente se a contagem de mensagens simuladas divergir da contagem de entregas persistidas; nula em operação normal. */
+            divergencia: components["schemas"]["RespostaDivergenciaTotais"] | null;
         };
         /**
          * RespostaResumoElegibilidade
          * @description Um resultado de elegibilidade na listagem: segurado, apólice, localização, canal.
          */
         RespostaResumoElegibilidade: {
-            /**
-             * Apolice Id
-             * Format: uuid
-             * @description Identificador da apólice avaliada.
-             */
-            apolice_id: string;
-            /**
-             * Canal
-             * @description Canal preferencial do segurado, no momento da avaliação.
-             */
-            canal: string;
-            /**
-             * Codigo Ibge Area
-             * @description Código IBGE da área da apólice avaliada.
-             */
-            codigo_ibge_area: string;
-            /**
-             * Elegivel
-             * @description Se a combinação foi incluída no público elegível.
-             */
-            elegivel: boolean;
             /**
              * Id
              * Format: uuid
@@ -3997,6 +4074,27 @@ export interface components {
              * @description Nome do segurado sintético avaliado.
              */
             nome_segurado: string;
+            /**
+             * Apolice Id
+             * Format: uuid
+             * @description Identificador da apólice avaliada.
+             */
+            apolice_id: string;
+            /**
+             * Codigo Ibge Area
+             * @description Código IBGE da área da apólice avaliada.
+             */
+            codigo_ibge_area: string;
+            /**
+             * Canal
+             * @description Canal preferencial do segurado, no momento da avaliação.
+             */
+            canal: string;
+            /**
+             * Elegivel
+             * @description Se a combinação foi incluída no público elegível.
+             */
+            elegivel: boolean;
         };
         /**
          * RespostaResumoSimulacao
@@ -4004,33 +4102,23 @@ export interface components {
          */
         RespostaResumoSimulacao: {
             /**
-             * Distribuicao Por Canal
-             * @description Distribuição do lote simulável entre WhatsApp, e-mail e SMS.
-             */
-            distribuicao_por_canal: components["schemas"]["RespostaCanalSimulacao"][];
-            /**
-             * Entregas
-             * @description Entregas simuladas já registradas, vazias antes da confirmação.
-             */
-            entregas: components["schemas"]["RespostaEntregaSimulada"][];
-            /**
-             * Estado
-             * @description Estado agregado atual da execução.
-             */
-            estado: string;
-            /** @description Evento de origem, ou nulo quando a execução não tem público preservado. */
-            evento: components["schemas"]["RespostaEventoSimulacao"] | null;
-            /**
              * Execucao Id
              * Format: uuid
              * @description Identificador da execução.
              */
             execucao_id: string;
             /**
-             * Execucao Origem Id
-             * @description Execução terminal que originou esta nova tentativa; nula quando esta execução não é correlacionada a nenhuma outra.
+             * Estado
+             * @description Estado agregado atual da execução.
              */
-            execucao_origem_id: string | null;
+            estado: string;
+            /**
+             * Versao
+             * @description Versão de concorrência otimista a reenviar como `versao_esperada`.
+             */
+            versao: number;
+            /** @description Evento de origem, ou nulo quando a execução não tem público preservado. */
+            evento: components["schemas"]["RespostaEventoSimulacao"] | null;
             /**
              * Regra Id
              * @description Regra preventiva aplicada ao público do lote.
@@ -4042,20 +4130,30 @@ export interface components {
              */
             regra_versao: number | null;
             /**
-             * Retentativas
-             * @description Execuções criadas como nova tentativa a partir desta; cada uma mantém seu próprio histórico, sem mesclar marcos.
-             */
-            retentativas: string[];
-            /**
              * Total Destinatarios
              * @description Destinatários do lote simulável: aprovados e já simulados.
              */
             total_destinatarios: number;
             /**
-             * Versao
-             * @description Versão de concorrência otimista a reenviar como `versao_esperada`.
+             * Distribuicao Por Canal
+             * @description Distribuição do lote simulável entre WhatsApp, e-mail e SMS.
              */
-            versao: number;
+            distribuicao_por_canal: components["schemas"]["RespostaCanalSimulacao"][];
+            /**
+             * Entregas
+             * @description Entregas simuladas já registradas, vazias antes da confirmação.
+             */
+            entregas: components["schemas"]["RespostaEntregaSimulada"][];
+            /**
+             * Execucao Origem Id
+             * @description Execução terminal que originou esta nova tentativa; nula quando esta execução não é correlacionada a nenhuma outra.
+             */
+            execucao_origem_id: string | null;
+            /**
+             * Retentativas
+             * @description Execuções criadas como nova tentativa a partir desta; cada uma mantém seu próprio histórico, sem mesclar marcos.
+             */
+            retentativas: string[];
         };
         /**
          * RespostaSaidaGerada
@@ -4079,28 +4177,23 @@ export interface components {
          */
         RespostaSaude: {
             /**
-             * Ambiente
-             * @description Ambiente de execução do processo.
-             * @constant
-             */
-            ambiente: "educacional";
-            /**
              * Status
              * @description Disponibilidade do processo backend.
              * @constant
              */
             status: "disponivel";
+            /**
+             * Ambiente
+             * @description Ambiente de execução do processo.
+             * @constant
+             */
+            ambiente: "educacional";
         };
         /**
          * RespostaSecaoAgente
          * @description Os papéis do agente redator e do agente crítico — sempre `agente` (EXPLICACAO-02).
          */
         RespostaSecaoAgente: {
-            /**
-             * Causa Excecao
-             * @description Causa sanitizada da exceção, presente só quando `status='excecao'`.
-             */
-            causa_excecao: string | null;
             /**
              * Origem
              * @description Sempre `agente`: nunca uma decisão determinística.
@@ -4111,6 +4204,11 @@ export interface components {
              * @description `completa`, `parcial` (lacuna de dado) ou `excecao` (falha técnica).
              */
             status: string;
+            /**
+             * Causa Excecao
+             * @description Causa sanitizada da exceção, presente só quando `status='excecao'`.
+             */
+            causa_excecao: string | null;
             /**
              * Tentativas
              * @description Todas as tentativas de geração, da primeira à mais recente.
@@ -4123,28 +4221,28 @@ export interface components {
          */
         RespostaSecaoContexto: {
             /**
-             * Categorias Nao Usadas
-             * @description Categorias deliberadamente deixadas de fora.
-             */
-            categorias_nao_usadas: string[];
-            /**
              * Categorias Usadas
              * @description Categorias de dado que chegaram à IA.
              */
             categorias_usadas: string[];
+            /**
+             * Categorias Nao Usadas
+             * @description Categorias deliberadamente deixadas de fora.
+             */
+            categorias_nao_usadas: string[];
         };
         /**
          * RespostaSecaoEvento
          * @description Evento e regra que originaram a mensagem — sempre `deterministica` (EXPLICACAO-01).
          */
         RespostaSecaoEvento: {
-            /** @description Evento de origem, ou nulo se não houver evento associado. */
-            evento: components["schemas"]["RespostaEventoDeterministico"] | null;
             /**
              * Origem
              * @description Sempre `deterministica`: nunca produzido por IA.
              */
             origem: string;
+            /** @description Evento de origem, ou nulo se não houver evento associado. */
+            evento: components["schemas"]["RespostaEventoDeterministico"] | null;
             /**
              * Regra Id
              * Format: uuid
@@ -4179,21 +4277,21 @@ export interface components {
          */
         RespostaSimulacaoConfirmada: {
             /**
-             * Entregas Criadas
-             * @description Entregas simuladas criadas nesta confirmação.
+             * Execucao Id
+             * Format: uuid
+             * @description Execução cuja simulação foi executada.
              */
-            entregas_criadas: string[];
+            execucao_id: string;
             /**
              * Estado
              * @description Estado agregado da execução após a simulação.
              */
             estado: string;
             /**
-             * Execucao Id
-             * Format: uuid
-             * @description Execução cuja simulação foi executada.
+             * Entregas Criadas
+             * @description Entregas simuladas criadas nesta confirmação.
              */
-            execucao_id: string;
+            entregas_criadas: string[];
             /**
              * Mensagens Simuladas
              * @description Mensagens que passaram a `simulada_entregue` nesta confirmação.
@@ -4206,53 +4304,11 @@ export interface components {
          */
         RespostaSincronizacao: {
             /**
-             * Area Monitorada Id
-             * Format: uuid
-             * @description Identificador da área monitorada desta sincronização.
-             */
-            area_monitorada_id: string;
-            /**
-             * Estado
-             * @description Estado atual da sincronização.
-             */
-            estado: string;
-            /**
-             * Finalizado Em
-             * @description Instante RFC 3339 em UTC de término, ou nulo se em andamento.
-             */
-            finalizado_em: string | null;
-            /**
              * Id
              * Format: uuid
              * @description Identificador da sincronização.
              */
             id: string;
-            /**
-             * Iniciado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC de início da tentativa.
-             */
-            iniciado_em: string;
-            /**
-             * Limite Tentativas
-             * @description Número máximo de tentativas totais de uma coleta (RESIL-01).
-             */
-            limite_tentativas: number;
-            /**
-             * Motivo Falha
-             * @description Motivo tipado da falha, ou nulo se não houve.
-             */
-            motivo_falha: string | null;
-            /**
-             * Origem
-             * @description Origem da tentativa (`automatica` ou `manual`).
-             */
-            origem: string;
-            /**
-             * Registros Validos
-             * @description Quantidade de eventos válidos produzidos.
-             */
-            registros_validos: number;
             /**
              * Requisicao Id
              * Format: uuid
@@ -4260,27 +4316,31 @@ export interface components {
              */
             requisicao_id: string;
             /**
-             * Tentativas
-             * @description Tentativas individuais desta sincronização, em ordem crescente de número.
+             * Area Monitorada Id
+             * Format: uuid
+             * @description Identificador da área monitorada desta sincronização.
              */
-            tentativas: components["schemas"]["RespostaTentativa"][];
-        };
-        /**
-         * RespostaTentativa
-         * @description Tentativa individual de coleta dentro de uma sincronização com retry (RESIL-02).
-         */
-        RespostaTentativa: {
+            area_monitorada_id: string;
             /**
-             * Codigo Resultado
-             * @description Resultado da tentativa (`sucesso`, `timeout`, `erro_transporte`, `status_erro`).
+             * Origem
+             * @description Origem da tentativa (`automatica` ou `manual`).
              */
-            codigo_resultado: string;
+            origem: string;
             /**
-             * Finalizado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC de término da tentativa.
+             * Estado
+             * @description Estado atual da sincronização.
              */
-            finalizado_em: string;
+            estado: string;
+            /**
+             * Registros Validos
+             * @description Quantidade de eventos válidos produzidos.
+             */
+            registros_validos: number;
+            /**
+             * Motivo Falha
+             * @description Motivo tipado da falha, ou nulo se não houve.
+             */
+            motivo_falha: string | null;
             /**
              * Iniciado Em
              * Format: date-time
@@ -4288,38 +4348,54 @@ export interface components {
              */
             iniciado_em: string;
             /**
+             * Finalizado Em
+             * @description Instante RFC 3339 em UTC de término, ou nulo se em andamento.
+             */
+            finalizado_em: string | null;
+            /**
+             * Tentativas
+             * @description Tentativas individuais desta sincronização, em ordem crescente de número.
+             */
+            tentativas: components["schemas"]["RespostaTentativa"][];
+            /**
+             * Limite Tentativas
+             * @description Número máximo de tentativas totais de uma coleta (RESIL-01).
+             */
+            limite_tentativas: number;
+        };
+        /**
+         * RespostaTentativa
+         * @description Tentativa individual de coleta dentro de uma sincronização com retry (RESIL-02).
+         */
+        RespostaTentativa: {
+            /**
              * Numero Tentativa
              * @description Número sequencial da tentativa (1 a 3).
              */
             numero_tentativa: number;
+            /**
+             * Codigo Resultado
+             * @description Resultado da tentativa (`sucesso`, `timeout`, `erro_transporte`, `status_erro`).
+             */
+            codigo_resultado: string;
+            /**
+             * Iniciado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC de início da tentativa.
+             */
+            iniciado_em: string;
+            /**
+             * Finalizado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC de término da tentativa.
+             */
+            finalizado_em: string;
         };
         /**
          * RespostaTentativaExplicacao
          * @description Uma tentativa de geração: redator, crítico e decisões humanas — sempre `agente`.
          */
         RespostaTentativaExplicacao: {
-            /**
-             * Assunto
-             * @description Assunto gerado nesta tentativa, só em e-mail.
-             */
-            assunto: string | null;
-            /** @description Avaliação do agente crítico, ou nula se ainda não avaliada. */
-            avaliacao_critica: components["schemas"]["RespostaAvaliacaoCriticaExplicacao"] | null;
-            /**
-             * Corpo
-             * @description Corpo gerado nesta tentativa.
-             */
-            corpo: string;
-            /**
-             * Decisoes Humanas
-             * @description Decisões humanas registradas sobre esta tentativa.
-             */
-            decisoes_humanas: components["schemas"]["RespostaDecisaoHumana"][];
-            /**
-             * Modelo Redator
-             * @description Modelo da OpenAI usado pelo agente redator.
-             */
-            modelo_redator: string;
             /**
              * Numero Tentativa
              * @description Número da tentativa de geração.
@@ -4330,6 +4406,28 @@ export interface components {
              * @description Por que esta tentativa existe: `primeira_tentativa`, `automatica` (ciclo automático de crítica) ou `humana` (decisão humana de regenerar).
              */
             origem_regeneracao: string;
+            /**
+             * Corpo
+             * @description Corpo gerado nesta tentativa.
+             */
+            corpo: string;
+            /**
+             * Assunto
+             * @description Assunto gerado nesta tentativa, só em e-mail.
+             */
+            assunto: string | null;
+            /**
+             * Modelo Redator
+             * @description Modelo da OpenAI usado pelo agente redator.
+             */
+            modelo_redator: string;
+            /** @description Avaliação do agente crítico, ou nula se ainda não avaliada. */
+            avaliacao_critica: components["schemas"]["RespostaAvaliacaoCriticaExplicacao"] | null;
+            /**
+             * Decisoes Humanas
+             * @description Decisões humanas registradas sobre esta tentativa.
+             */
+            decisoes_humanas: components["schemas"]["RespostaDecisaoHumana"][];
         };
         /**
          * RespostaTentativaProveniencia
@@ -4337,40 +4435,42 @@ export interface components {
          */
         RespostaTentativaProveniencia: {
             /**
+             * Numero Tentativa
+             * @description Número da tentativa, de 1 até o limite.
+             */
+            numero_tentativa: number;
+            /**
              * Agente
              * @description Agente que gerou o conteúdo desta tentativa.
              */
             agente: string;
-            /** @description Avaliação crítica desta tentativa, ou nula se ela ainda não foi avaliada. */
-            avaliacao: components["schemas"]["RespostaAvaliacaoDaTentativa"] | null;
-            /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC do registro da versão.
-             */
-            criado_em: string;
-            /**
-             * Duracao Ms
-             * @description Duração da chamada de geração, em milissegundos.
-             */
-            duracao_ms: number;
             /**
              * Modelo
              * @description Modelo da OpenAI usado nesta tentativa de geração.
              */
             modelo: string;
             /**
+             * Versao Prompt
+             * @description Versão do prompt usada nesta tentativa.
+             */
+            versao_prompt: string;
+            /** @description Conteúdo produzido nesta tentativa. */
+            saida: components["schemas"]["RespostaSaidaGerada"];
+            /**
+             * Valida
+             * @description Se a validação determinística aprovou a saída desta tentativa.
+             */
+            valida: boolean;
+            /**
              * Motivo Invalidez
              * @description Código estável do motivo da recusa estrutural, ou nulo quando válida.
              */
             motivo_invalidez: string | null;
             /**
-             * Numero Tentativa
-             * @description Número da tentativa, de 1 até o limite.
+             * Duracao Ms
+             * @description Duração da chamada de geração, em milissegundos.
              */
-            numero_tentativa: number;
-            /** @description Conteúdo produzido nesta tentativa. */
-            saida: components["schemas"]["RespostaSaidaGerada"];
+            duracao_ms: number;
             /**
              * Tokens Entrada
              * @description Tokens de entrada consumidos, ou nulo quando a chamada não os reportou.
@@ -4382,15 +4482,13 @@ export interface components {
              */
             tokens_saida: number | null;
             /**
-             * Valida
-             * @description Se a validação determinística aprovou a saída desta tentativa.
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro da versão.
              */
-            valida: boolean;
-            /**
-             * Versao Prompt
-             * @description Versão do prompt usada nesta tentativa.
-             */
-            versao_prompt: string;
+            criado_em: string;
+            /** @description Avaliação crítica desta tentativa, ou nula se ela ainda não foi avaliada. */
+            avaliacao: components["schemas"]["RespostaAvaliacaoDaTentativa"] | null;
         };
         /**
          * RespostaTeste
@@ -4425,11 +4523,6 @@ export interface components {
          */
         RespostaValidacaoDeterministica: {
             /**
-             * Motivo Invalidez
-             * @description Código estável do motivo da recusa estrutural, ou nulo quando válida.
-             */
-            motivo_invalidez: string | null;
-            /**
              * Origem
              * @description Sempre 'regras_deterministicas': decidido por regra, nunca pelo modelo.
              */
@@ -4439,6 +4532,11 @@ export interface components {
              * @description Se campos obrigatórios e limite de canal foram atendidos (3.2).
              */
             valida: boolean;
+            /**
+             * Motivo Invalidez
+             * @description Código estável do motivo da recusa estrutural, ou nulo quando válida.
+             */
+            motivo_invalidez: string | null;
         };
         /**
          * RespostaVerificacaoAceita
@@ -4446,60 +4544,27 @@ export interface components {
          */
         RespostaVerificacaoAceita: {
             /**
-             * Aceito Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC em que a nova verificação foi aceita.
+             * Nome
+             * @description Nome canônico da dependência cuja verificação foi aceita.
              */
-            aceito_em: string;
+            nome: string;
             /**
              * Estado
              * @description Estado da dependência no momento em que a verificação foi aceita.
              */
             estado: string;
             /**
-             * Nome
-             * @description Nome canônico da dependência cuja verificação foi aceita.
+             * Aceito Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC em que a nova verificação foi aceita.
              */
-            nome: string;
+            aceito_em: string;
         };
         /**
          * RespostaVersaoDetalhe
          * @description Uma tentativa de geração relacionada à sua avaliação crítica e decisões humanas.
          */
         RespostaVersaoDetalhe: {
-            /**
-             * Assunto
-             * @description Assunto gerado nesta tentativa, só em e-mail.
-             */
-            assunto: string | null;
-            /** @description Avaliação crítica desta versão, ou nula se ainda não avaliada. */
-            avaliacao_critica: components["schemas"]["RespostaAvaliacaoCriticaDetalhe"] | null;
-            /**
-             * Corpo
-             * @description Corpo gerado nesta tentativa.
-             */
-            corpo: string;
-            /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC do registro da versão.
-             */
-            criado_em: string;
-            /**
-             * Decisoes Humanas
-             * @description Decisões humanas registradas sobre esta versão específica.
-             */
-            decisoes_humanas: components["schemas"]["RespostaDecisaoHumanaDetalhe"][];
-            /**
-             * Modelo
-             * @description Modelo da OpenAI usado na geração.
-             */
-            modelo: string;
-            /**
-             * Motivo Invalidez
-             * @description Motivo estável da recusa, se houver.
-             */
-            motivo_invalidez: string | null;
             /**
              * Numero Tentativa
              * @description Número da tentativa de geração.
@@ -4510,6 +4575,39 @@ export interface components {
              * @description Se a validação determinística aprovou a saída.
              */
             valida: boolean;
+            /**
+             * Motivo Invalidez
+             * @description Motivo estável da recusa, se houver.
+             */
+            motivo_invalidez: string | null;
+            /**
+             * Assunto
+             * @description Assunto gerado nesta tentativa, só em e-mail.
+             */
+            assunto: string | null;
+            /**
+             * Corpo
+             * @description Corpo gerado nesta tentativa.
+             */
+            corpo: string;
+            /**
+             * Modelo
+             * @description Modelo da OpenAI usado na geração.
+             */
+            modelo: string;
+            /**
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro da versão.
+             */
+            criado_em: string;
+            /** @description Avaliação crítica desta versão, ou nula se ainda não avaliada. */
+            avaliacao_critica: components["schemas"]["RespostaAvaliacaoCriticaDetalhe"] | null;
+            /**
+             * Decisoes Humanas
+             * @description Decisões humanas registradas sobre esta versão específica.
+             */
+            decisoes_humanas: components["schemas"]["RespostaDecisaoHumanaDetalhe"][];
         };
         /**
          * RespostaVersaoMensagem
@@ -4517,31 +4615,35 @@ export interface components {
          */
         RespostaVersaoMensagem: {
             /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC do registro da versão.
+             * Numero Tentativa
+             * @description Número da tentativa de geração registrada.
              */
-            criado_em: string;
+            numero_tentativa: number;
             /**
-             * Duracao Ms
-             * @description Duração da chamada de geração, em milissegundos.
+             * Valida
+             * @description Se a validação determinística aprovou a saída desta tentativa.
              */
-            duracao_ms: number;
-            /**
-             * Modelo
-             * @description Modelo da OpenAI usado nesta tentativa de geração.
-             */
-            modelo: string;
+            valida: boolean;
             /**
              * Motivo Invalidez
              * @description Código estável do motivo da recusa, ou nulo quando a saída é válida.
              */
             motivo_invalidez: string | null;
             /**
-             * Numero Tentativa
-             * @description Número da tentativa de geração registrada.
+             * Modelo
+             * @description Modelo da OpenAI usado nesta tentativa de geração.
              */
-            numero_tentativa: number;
+            modelo: string;
+            /**
+             * Versao Prompt
+             * @description Versão do prompt usada nesta tentativa.
+             */
+            versao_prompt: string;
+            /**
+             * Duracao Ms
+             * @description Duração da chamada de geração, em milissegundos.
+             */
+            duracao_ms: number;
             /**
              * Tokens Entrada
              * @description Tokens de entrada consumidos, ou nulo quando a chamada não os reportou.
@@ -4553,15 +4655,11 @@ export interface components {
              */
             tokens_saida: number | null;
             /**
-             * Valida
-             * @description Se a validação determinística aprovou a saída desta tentativa.
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro da versão.
              */
-            valida: boolean;
-            /**
-             * Versao Prompt
-             * @description Versão do prompt usada nesta tentativa.
-             */
-            versao_prompt: string;
+            criado_em: string;
         };
         /**
          * RespostaVersaoRevisada
@@ -4569,49 +4667,51 @@ export interface components {
          */
         RespostaVersaoRevisada: {
             /**
-             * Assunto
-             * @description Assunto gerado, presente somente no canal de e-mail.
-             */
-            assunto: string | null;
-            /** @description Avaliação do crítico sobre esta versão, ou nula se ela não foi avaliada. */
-            avaliacao_critica: components["schemas"]["RespostaAvaliacaoCriticaLote"] | null;
-            /**
-             * Corpo
-             * @description Texto gerado desta tentativa, exibido sem edição possível.
-             */
-            corpo: string;
-            /**
-             * Criado Em
-             * Format: date-time
-             * @description Instante RFC 3339 em UTC do registro da versão.
-             */
-            criado_em: string;
-            /**
-             * Duracao Ms
-             * @description Duração da chamada de geração, em milissegundos.
-             */
-            duracao_ms: number;
-            /**
              * Id
              * Format: uuid
              * @description Identificador da versão da mensagem.
              */
             id: string;
             /**
-             * Modelo
-             * @description Modelo da OpenAI usado nesta tentativa.
+             * Numero Tentativa
+             * @description Número da tentativa de geração registrada.
              */
-            modelo: string;
+            numero_tentativa: number;
+            /**
+             * Assunto
+             * @description Assunto gerado, presente somente no canal de e-mail.
+             */
+            assunto: string | null;
+            /**
+             * Corpo
+             * @description Texto gerado desta tentativa, exibido sem edição possível.
+             */
+            corpo: string;
+            /**
+             * Valida
+             * @description Veredito da verificação determinística de canal sobre esta tentativa.
+             */
+            valida: boolean;
             /**
              * Motivo Invalidez
              * @description Motivo da recusa determinística, ou nulo quando a saída é válida.
              */
             motivo_invalidez: string | null;
             /**
-             * Numero Tentativa
-             * @description Número da tentativa de geração registrada.
+             * Modelo
+             * @description Modelo da OpenAI usado nesta tentativa.
              */
-            numero_tentativa: number;
+            modelo: string;
+            /**
+             * Versao Prompt
+             * @description Versão do prompt usada nesta tentativa.
+             */
+            versao_prompt: string;
+            /**
+             * Duracao Ms
+             * @description Duração da chamada de geração, em milissegundos.
+             */
+            duracao_ms: number;
             /**
              * Tokens Entrada
              * @description Tokens de entrada consumidos, ou nulo quando não reportados.
@@ -4623,15 +4723,13 @@ export interface components {
              */
             tokens_saida: number | null;
             /**
-             * Valida
-             * @description Veredito da verificação determinística de canal sobre esta tentativa.
+             * Criado Em
+             * Format: date-time
+             * @description Instante RFC 3339 em UTC do registro da versão.
              */
-            valida: boolean;
-            /**
-             * Versao Prompt
-             * @description Versão do prompt usada nesta tentativa.
-             */
-            versao_prompt: string;
+            criado_em: string;
+            /** @description Avaliação do crítico sobre esta versão, ou nula se ela não foi avaliada. */
+            avaliacao_critica: components["schemas"]["RespostaAvaliacaoCriticaLote"] | null;
         };
         /**
          * RespostaVisualizacaoComunicado
@@ -4675,31 +4773,6 @@ export interface components {
          */
         SolicitacaoAtivarRegra: {
             /**
-             * Antecedencia Horas
-             * @description Antecedência do alerta preventivo, em horas.
-             */
-            antecedencia_horas: number;
-            /**
-             * Apolice Tipo
-             * @description Tipo de apólice (`residencial` ou `automovel`).
-             */
-            apolice_tipo: string;
-            /**
-             * Area Aplicavel
-             * @description Código IBGE da área a que a regra se aplica.
-             */
-            area_aplicavel: string;
-            /**
-             * Canal
-             * @description Canal de comunicação (`whatsapp`, `email` ou `sms`).
-             */
-            canal: string;
-            /**
-             * Cobertura Exigida
-             * @description Cobertura que a apólice precisa ter.
-             */
-            cobertura_exigida: string;
-            /**
              * Evento Tipo
              * @description Tipo de evento (`chuva_intensa` ou `granizo`).
              */
@@ -4709,6 +4782,31 @@ export interface components {
              * @description Limiar numérico usado pela regra.
              */
             limiar_meteorologico: number;
+            /**
+             * Area Aplicavel
+             * @description Código IBGE da área a que a regra se aplica.
+             */
+            area_aplicavel: string;
+            /**
+             * Apolice Tipo
+             * @description Tipo de apólice (`residencial` ou `automovel`).
+             */
+            apolice_tipo: string;
+            /**
+             * Cobertura Exigida
+             * @description Cobertura que a apólice precisa ter.
+             */
+            cobertura_exigida: string;
+            /**
+             * Antecedencia Horas
+             * @description Antecedência do alerta preventivo, em horas.
+             */
+            antecedencia_horas: number;
+            /**
+             * Canal
+             * @description Canal de comunicação (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
             /**
              * Versao Esperada
              * @description Versão ativa esperada da regra anterior (concorrência otimista, AD-008).
@@ -4745,31 +4843,6 @@ export interface components {
          */
         SolicitacaoRegra: {
             /**
-             * Antecedencia Horas
-             * @description Antecedência do alerta preventivo, em horas.
-             */
-            antecedencia_horas: number;
-            /**
-             * Apolice Tipo
-             * @description Tipo de apólice (`residencial` ou `automovel`).
-             */
-            apolice_tipo: string;
-            /**
-             * Area Aplicavel
-             * @description Código IBGE da área a que a regra se aplica.
-             */
-            area_aplicavel: string;
-            /**
-             * Canal
-             * @description Canal de comunicação (`whatsapp`, `email` ou `sms`).
-             */
-            canal: string;
-            /**
-             * Cobertura Exigida
-             * @description Cobertura que a apólice precisa ter.
-             */
-            cobertura_exigida: string;
-            /**
              * Evento Tipo
              * @description Tipo de evento (`chuva_intensa` ou `granizo`).
              */
@@ -4779,6 +4852,31 @@ export interface components {
              * @description Limiar numérico usado pela regra.
              */
             limiar_meteorologico: number;
+            /**
+             * Area Aplicavel
+             * @description Código IBGE da área a que a regra se aplica.
+             */
+            area_aplicavel: string;
+            /**
+             * Apolice Tipo
+             * @description Tipo de apólice (`residencial` ou `automovel`).
+             */
+            apolice_tipo: string;
+            /**
+             * Cobertura Exigida
+             * @description Cobertura que a apólice precisa ter.
+             */
+            cobertura_exigida: string;
+            /**
+             * Antecedencia Horas
+             * @description Antecedência do alerta preventivo, em horas.
+             */
+            antecedencia_horas: number;
+            /**
+             * Canal
+             * @description Canal de comunicação (`whatsapp`, `email` ou `sms`).
+             */
+            canal: string;
         };
     };
     responses: never;
@@ -4789,6 +4887,26 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    obter_saude_api_v1_saude_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Saúde do processo confirmada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaSaude"];
+                };
+            };
+        };
+    };
     restaurar_api_v1_dados_sinteticos_restauracoes_post: {
         parameters: {
             query?: never;
@@ -4834,6 +4952,567 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaRestauracao"];
+                };
+            };
+        };
+    };
+    consultar_api_v1_prontidao_dependencias_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Estado de prontidão das 4 dependências. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaDependencias"];
+                };
+            };
+        };
+    };
+    verificar_novamente_api_v1_prontidao_dependencias__nome__verificacoes_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                nome: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nova verificação aceita e em andamento. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaVerificacaoAceita"];
+                };
+            };
+            /** @description Dependência desconhecida. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaProntidao"];
+                };
+            };
+            /** @description Conflito de idempotência ou verificação já em andamento. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaProntidao"];
+                };
+            };
+            /** @description Cabeçalho ausente ou dependência local sem re-verificação. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaProntidao"];
+                };
+            };
+        };
+    };
+    consultar_api_v1_segurados_padrao_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Segurado sintético padrão encontrado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaSeguradoPadrao"];
+                };
+            };
+            /** @description Dados sintéticos ainda não restaurados. */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaContexto"];
+                };
+            };
+        };
+    };
+    solicitar_coleta_api_v1_meteorologia_coletas_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitacaoColeta"];
+            };
+        };
+        responses: {
+            /** @description Coleta manual aceita e concluída. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaColetaAceita"];
+                };
+            };
+            /** @description Área monitorada desconhecida. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+            /** @description Conflito de idempotência. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+            /** @description Requisição sem o cabeçalho `Idempotency-Key`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+        };
+    };
+    solicitar_nova_tentativa_api_v1_meteorologia__sincronizacao_id__nova_tentativa_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                sincronizacao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Nova tentativa aceita e concluída. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaColetaAceita"];
+                };
+            };
+            /** @description Sincronização de origem ou área monitorada desconhecida. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+            /** @description Conflito de idempotência. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+            /** @description Requisição sem o cabeçalho `Idempotency-Key`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+        };
+    };
+    ativar_cenario_sintetico_api_v1_meteorologia_cenarios_sinteticos__identificador__ativar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                identificador: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitacaoAtivarCenarioSintetico"];
+            };
+        };
+        responses: {
+            /** @description Cenário sintético ativado. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaColetaAceita"];
+                };
+            };
+            /** @description Área monitorada desconhecida. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+            /** @description Conflito de idempotência. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+            /** @description Requisição sem o cabeçalho `Idempotency-Key`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                };
+            };
+        };
+    };
+    consultar_eventos_api_v1_meteorologia_eventos_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Eventos meteorológicos normalizados. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaEventos"];
+                };
+            };
+        };
+    };
+    consultar_sincronizacoes_api_v1_meteorologia_sincronizacoes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Histórico de sincronizações meteorológicas. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaHistoricoSincronizacoes"];
+                };
+            };
+        };
+    };
+    consultar_avaliacao_risco_api_v1_execucoes__execucao_id__avaliacao_risco_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execucao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Avaliação de risco encontrada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaAvaliacaoRisco"];
+                };
+            };
+            /** @description A execução ainda não tem avaliação de risco. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaAvaliacaoRisco"];
+                };
+            };
+            /** @description O identificador da execução não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaAvaliacaoRisco"];
+                };
+            };
+        };
+    };
+    consultar_regras_api_v1_regras_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Versões de regra. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaRegras"];
+                };
+            };
+        };
+    };
+    consultar_regra_api_v1_regras__regra_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                regra_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Versão de regra encontrada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaRegra"];
+                };
+            };
+            /** @description Regra não encontrada. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRegras"];
+                };
+            };
+            /** @description O identificador da regra não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRegras"];
+                };
+            };
+        };
+    };
+    testar_regra_api_v1_regras__regra_id__testar_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                regra_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitacaoRegra"];
+            };
+        };
+        responses: {
+            /** @description Resultado do teste determinístico (pode ser vazio). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaTeste"];
+                };
+            };
+            /** @description Identificador inválido ou configuração de regra inválida. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRegras"];
+                };
+            };
+        };
+    };
+    ativar_regra_api_v1_regras__regra_id__ativar_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                regra_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitacaoAtivarRegra"];
+            };
+        };
+        responses: {
+            /** @description Nova versão ativada, ou resposta idempotente repetida. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaRegra"];
+                };
+            };
+            /** @description Regra anterior não encontrada. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRegras"];
+                };
+            };
+            /** @description Conflito de versão ou de idempotência. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRegras"];
+                };
+            };
+            /** @description Identificador inválido, configuração inválida, cabeçalho `Idempotency-Key` ausente ou nenhum cenário sintético aplicável. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaRegras"];
+                };
+            };
+        };
+    };
+    consultar_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execucao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Público elegível encontrado (pode ser vazio). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaElegibilidade"];
+                };
+            };
+            /** @description O identificador da execução não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaElegibilidade"];
+                };
+            };
+        };
+    };
+    consultar_registro_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade__registro_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execucao_id: string;
+                registro_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Resultado de elegibilidade encontrado. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaDetalheElegibilidade"];
+                };
+            };
+            /** @description Resultado inexistente ou de outra execução. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaElegibilidade"];
+                };
+            };
+            /** @description Algum identificador informado não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaElegibilidade"];
                 };
             };
         };
@@ -4967,343 +5646,6 @@ export interface operations {
             };
         };
     };
-    consultar_avaliacao_risco_api_v1_execucoes__execucao_id__avaliacao_risco_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                execucao_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Avaliação de risco encontrada. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaAvaliacaoRisco"];
-                };
-            };
-            /** @description A execução ainda não tem avaliação de risco. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaAvaliacaoRisco"];
-                };
-            };
-            /** @description O identificador da execução não é um UUID válido. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaAvaliacaoRisco"];
-                };
-            };
-        };
-    };
-    confirmar_simulacao_api_v1_execucoes__execucao_id__confirmar_simulacao_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
-            };
-            path: {
-                execucao_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["PedidoConfirmacaoSimulacao"];
-            };
-        };
-        responses: {
-            /** @description Simulação executada (ou já registrada, no replay). */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaSimulacaoConfirmada"];
-                };
-            };
-            /** @description Execução inexistente. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaSimulacao"];
-                };
-            };
-            /** @description Execução fora de 'aguardando_confirmacao', `versao_esperada` desatualizada ou chave de idempotência reusada com outro conteúdo. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaSimulacao"];
-                };
-            };
-            /** @description Requisição sem `Idempotency-Key`, identificador inválido, reconhecimento não marcado ou lote sem nenhuma mensagem aprovada. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaSimulacao"];
-                };
-            };
-            /** @description Falha local durante a simulação, já revertida. */
-            500: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaSimulacao"];
-                };
-            };
-        };
-    };
-    consultar_proveniencia_api_v1_execucoes__execucao_id__contextos_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                execucao_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Proveniência encontrada (pode ser vazia). */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaProveniencias"];
-                };
-            };
-            /** @description Execução inexistente. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaPreflight"];
-                };
-            };
-            /** @description O identificador da execução não é um UUID válido. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaPreflight"];
-                };
-            };
-        };
-    };
-    consultar_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                execucao_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Público elegível encontrado (pode ser vazio). */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaElegibilidade"];
-                };
-            };
-            /** @description O identificador da execução não é um UUID válido. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaElegibilidade"];
-                };
-            };
-        };
-    };
-    consultar_registro_elegibilidade_api_v1_execucoes__execucao_id__elegibilidade__registro_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                execucao_id: string;
-                registro_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Resultado de elegibilidade encontrado. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaDetalheElegibilidade"];
-                };
-            };
-            /** @description Resultado inexistente ou de outra execução. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaElegibilidade"];
-                };
-            };
-            /** @description Algum identificador informado não é um UUID válido. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaElegibilidade"];
-                };
-            };
-        };
-    };
-    consultar_linha_do_tempo_api_v1_execucoes__execucao_id__linha_do_tempo_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                execucao_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Execução encontrada. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaLinhaDoTempo"];
-                };
-            };
-            /** @description Execução inexistente. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaLinhaDoTempo"];
-                };
-            };
-            /** @description O identificador da execução não é um UUID válido. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaLinhaDoTempo"];
-                };
-            };
-        };
-    };
-    consultar_mensagens_api_v1_execucoes__execucao_id__mensagens_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                execucao_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Mensagens encontradas (pode ser lista vazia). */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaMensagens"];
-                };
-            };
-            /** @description Execução inexistente. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaMensagens"];
-                };
-            };
-            /** @description O identificador da execução não é um UUID válido. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaMensagens"];
-                };
-            };
-        };
-    };
-    consultar_detalhe_api_v1_execucoes__execucao_id__mensagens__mensagem_id__detalhe_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                execucao_id: string;
-                mensagem_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Mensagem encontrada na execução informada. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaDetalheResultado"];
-                };
-            };
-            /** @description Mensagem inexistente ou pertencente a outra execução. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaDetalheResultado"];
-                };
-            };
-            /** @description Algum identificador informado não é um UUID válido. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaDetalheResultado"];
-                };
-            };
-        };
-    };
     preparar_execucao_api_v1_execucoes__execucao_id__preflight_post: {
         parameters: {
             query?: never;
@@ -5355,7 +5697,58 @@ export interface operations {
             };
         };
     };
-    consultar_resultados_api_v1_execucoes__execucao_id__resultados_get: {
+    solicitar_nova_tentativa_ia_api_v1_execucoes__execucao_origem_id__nova_tentativa_ia_post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                execucao_origem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Execução correlacionada criada. */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaNovaTentativaIA"];
+                };
+            };
+            /** @description Execução de origem inexistente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaPreflight"];
+                };
+            };
+            /** @description Origem fora de 'falhou_preparacao_ia' ou conflito de chave. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaPreflight"];
+                };
+            };
+            /** @description Requisição sem `Idempotency-Key`, identificador inválido ou snapshot da origem incompleto. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaPreflight"];
+                };
+            };
+        };
+    };
+    consultar_proveniencia_api_v1_execucoes__execucao_id__contextos_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -5366,13 +5759,13 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Execução encontrada. */
+            /** @description Proveniência encontrada (pode ser vazia). */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RespostaResultadosConsolidados"];
+                    "application/json": components["schemas"]["RespostaProveniencias"];
                 };
             };
             /** @description Execução inexistente. */
@@ -5381,7 +5774,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaResultados"];
+                    "application/json": components["schemas"]["ProblemaPreflight"];
                 };
             };
             /** @description O identificador da execução não é um UUID válido. */
@@ -5390,7 +5783,128 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaResultados"];
+                    "application/json": components["schemas"]["ProblemaPreflight"];
+                };
+            };
+        };
+    };
+    consultar_mensagens_api_v1_execucoes__execucao_id__mensagens_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execucao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Mensagens encontradas (pode ser lista vazia). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaMensagens"];
+                };
+            };
+            /** @description Execução inexistente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMensagens"];
+                };
+            };
+            /** @description O identificador da execução não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaMensagens"];
+                };
+            };
+        };
+    };
+    consultar_avaliacao_api_v1_mensagens__mensagem_id__versoes__versao_id__avaliacao_critica_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mensagem_id: string;
+                versao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Avaliação encontrada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaAvaliacaoCritica"];
+                };
+            };
+            /** @description Mensagem inexistente, versão inexistente ou versão ainda não avaliada. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaAvaliacaoCritica"];
+                };
+            };
+            /** @description Identificador de mensagem ou de versão inválido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaAvaliacaoCritica"];
+                };
+            };
+        };
+    };
+    consultar_proveniencia_api_v1_mensagens__mensagem_id__proveniencia_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                mensagem_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Proveniência encontrada (pode ter zero tentativas). */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaProvenienciaMensagem"];
+                };
+            };
+            /** @description Mensagem inexistente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaProveniencia"];
+                };
+            };
+            /** @description O identificador da mensagem não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaProveniencia"];
                 };
             };
         };
@@ -5530,53 +6044,66 @@ export interface operations {
             };
         };
     };
-    solicitar_nova_tentativa_ia_api_v1_execucoes__execucao_origem_id__nova_tentativa_ia_post: {
+    confirmar_simulacao_api_v1_execucoes__execucao_id__confirmar_simulacao_post: {
         parameters: {
             query?: never;
             header?: {
                 "Idempotency-Key"?: string | null;
             };
             path: {
-                execucao_origem_id: string;
+                execucao_id: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PedidoConfirmacaoSimulacao"];
+            };
+        };
         responses: {
-            /** @description Execução correlacionada criada. */
-            202: {
+            /** @description Simulação executada (ou já registrada, no replay). */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RespostaNovaTentativaIA"];
+                    "application/json": components["schemas"]["RespostaSimulacaoConfirmada"];
                 };
             };
-            /** @description Execução de origem inexistente. */
+            /** @description Execução inexistente. */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaPreflight"];
+                    "application/json": components["schemas"]["ProblemaSimulacao"];
                 };
             };
-            /** @description Origem fora de 'falhou_preparacao_ia' ou conflito de chave. */
+            /** @description Execução fora de 'aguardando_confirmacao', `versao_esperada` desatualizada ou chave de idempotência reusada com outro conteúdo. */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaPreflight"];
+                    "application/json": components["schemas"]["ProblemaSimulacao"];
                 };
             };
-            /** @description Requisição sem `Idempotency-Key`, identificador inválido ou snapshot da origem incompleto. */
+            /** @description Requisição sem `Idempotency-Key`, identificador inválido, reconhecimento não marcado ou lote sem nenhuma mensagem aprovada. */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaPreflight"];
+                    "application/json": components["schemas"]["ProblemaSimulacao"];
+                };
+            };
+            /** @description Falha local durante a simulação, já revertida. */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaSimulacao"];
                 };
             };
         };
@@ -5632,552 +6159,214 @@ export interface operations {
             };
         };
     };
-    consultar_proveniencia_api_v1_mensagens__mensagem_id__proveniencia_get: {
+    consultar_resultados_api_v1_execucoes__execucao_id__resultados_get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
+                execucao_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Execução encontrada. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaResultadosConsolidados"];
+                };
+            };
+            /** @description Execução inexistente. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaResultados"];
+                };
+            };
+            /** @description O identificador da execução não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProblemaResultados"];
+                };
+            };
+        };
+    };
+    consultar_detalhe_api_v1_execucoes__execucao_id__mensagens__mensagem_id__detalhe_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                execucao_id: string;
                 mensagem_id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Proveniência encontrada (pode ter zero tentativas). */
+            /** @description Mensagem encontrada na execução informada. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RespostaProvenienciaMensagem"];
+                    "application/json": components["schemas"]["RespostaDetalheResultado"];
                 };
             };
-            /** @description Mensagem inexistente. */
+            /** @description Mensagem inexistente ou pertencente a outra execução. */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaProveniencia"];
+                    "application/json": components["schemas"]["ProblemaDetalheResultado"];
                 };
             };
-            /** @description O identificador da mensagem não é um UUID válido. */
+            /** @description Algum identificador informado não é um UUID válido. */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaProveniencia"];
+                    "application/json": components["schemas"]["ProblemaDetalheResultado"];
                 };
             };
         };
     };
-    consultar_avaliacao_api_v1_mensagens__mensagem_id__versoes__versao_id__avaliacao_critica_get: {
+    consultar_comunicado_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                mensagem_id: string;
-                versao_id: string;
+                segurado_id: string;
+                entrega_simulada_id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Avaliação encontrada. */
+            /** @description Comunicado encontrado para este segurado. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RespostaAvaliacaoCritica"];
+                    "application/json": components["schemas"]["RespostaComunicado"];
                 };
             };
-            /** @description Mensagem inexistente, versão inexistente ou versão ainda não avaliada. */
+            /** @description Comunicado inexistente ou de outro segurado. */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaAvaliacaoCritica"];
+                    "application/json": components["schemas"]["ProblemaComunicado"];
                 };
             };
-            /** @description Identificador de mensagem ou de versão inválido. */
+            /** @description Algum identificador não é um UUID válido. */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaAvaliacaoCritica"];
+                    "application/json": components["schemas"]["ProblemaComunicado"];
                 };
             };
         };
     };
-    ativar_cenario_sintetico_api_v1_meteorologia_cenarios_sinteticos__identificador__ativar_post: {
+    registrar_visualizacao_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__visualizacao_post: {
         parameters: {
             query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
-            };
+            header?: never;
             path: {
-                identificador: string;
+                segurado_id: string;
+                entrega_simulada_id: string;
             };
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SolicitacaoAtivarCenarioSintetico"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            /** @description Cenário sintético ativado. */
-            202: {
+            /** @description Visualização registrada (ou já existente, no replay). */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RespostaColetaAceita"];
+                    "application/json": components["schemas"]["RespostaVisualizacaoComunicado"];
                 };
             };
-            /** @description Área monitorada desconhecida. */
+            /** @description Comunicado inexistente ou de outro segurado. */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                    "application/json": components["schemas"]["ProblemaComunicado"];
                 };
             };
-            /** @description Conflito de idempotência. */
+            /** @description Mensagem de origem não elegível para virar comunicado. */
             409: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                    "application/json": components["schemas"]["ProblemaComunicado"];
                 };
             };
-            /** @description Requisição sem o cabeçalho `Idempotency-Key`. */
+            /** @description Algum identificador não é um UUID válido. */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                    "application/json": components["schemas"]["ProblemaComunicado"];
                 };
             };
         };
     };
-    solicitar_coleta_api_v1_meteorologia_coletas_post: {
+    consultar_linha_do_tempo_api_v1_execucoes__execucao_id__linha_do_tempo_get: {
         parameters: {
             query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
+            header?: never;
+            path: {
+                execucao_id: string;
             };
-            path?: never;
             cookie?: never;
         };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SolicitacaoColeta"];
-            };
-        };
+        requestBody?: never;
         responses: {
-            /** @description Coleta manual aceita e concluída. */
-            202: {
+            /** @description Execução encontrada. */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RespostaColetaAceita"];
+                    "application/json": components["schemas"]["RespostaLinhaDoTempo"];
                 };
             };
-            /** @description Área monitorada desconhecida. */
+            /** @description Execução inexistente. */
             404: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaMeteorologia"];
+                    "application/json": components["schemas"]["ProblemaLinhaDoTempo"];
                 };
             };
-            /** @description Conflito de idempotência. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaMeteorologia"];
-                };
-            };
-            /** @description Requisição sem o cabeçalho `Idempotency-Key`. */
+            /** @description O identificador da execução não é um UUID válido. */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaMeteorologia"];
-                };
-            };
-        };
-    };
-    consultar_eventos_api_v1_meteorologia_eventos_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Eventos meteorológicos normalizados. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaEventos"];
-                };
-            };
-        };
-    };
-    consultar_sincronizacoes_api_v1_meteorologia_sincronizacoes_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Histórico de sincronizações meteorológicas. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaHistoricoSincronizacoes"];
-                };
-            };
-        };
-    };
-    solicitar_nova_tentativa_api_v1_meteorologia__sincronizacao_id__nova_tentativa_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
-            };
-            path: {
-                sincronizacao_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Nova tentativa aceita e concluída. */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaColetaAceita"];
-                };
-            };
-            /** @description Sincronização de origem ou área monitorada desconhecida. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaMeteorologia"];
-                };
-            };
-            /** @description Conflito de idempotência. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaMeteorologia"];
-                };
-            };
-            /** @description Requisição sem o cabeçalho `Idempotency-Key`. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaMeteorologia"];
-                };
-            };
-        };
-    };
-    consultar_api_v1_prontidao_dependencias_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Estado de prontidão das 4 dependências. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaDependencias"];
-                };
-            };
-        };
-    };
-    verificar_novamente_api_v1_prontidao_dependencias__nome__verificacoes_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
-            };
-            path: {
-                nome: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Nova verificação aceita e em andamento. */
-            202: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaVerificacaoAceita"];
-                };
-            };
-            /** @description Dependência desconhecida. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaProntidao"];
-                };
-            };
-            /** @description Conflito de idempotência ou verificação já em andamento. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaProntidao"];
-                };
-            };
-            /** @description Cabeçalho ausente ou dependência local sem re-verificação. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaProntidao"];
-                };
-            };
-        };
-    };
-    consultar_regras_api_v1_regras_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Versões de regra. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaRegras"];
-                };
-            };
-        };
-    };
-    consultar_regra_api_v1_regras__regra_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                regra_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Versão de regra encontrada. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaRegra"];
-                };
-            };
-            /** @description Regra não encontrada. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaRegras"];
-                };
-            };
-            /** @description O identificador da regra não é um UUID válido. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaRegras"];
-                };
-            };
-        };
-    };
-    ativar_regra_api_v1_regras__regra_id__ativar_post: {
-        parameters: {
-            query?: never;
-            header?: {
-                "Idempotency-Key"?: string | null;
-            };
-            path: {
-                regra_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SolicitacaoAtivarRegra"];
-            };
-        };
-        responses: {
-            /** @description Nova versão ativada, ou resposta idempotente repetida. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaRegra"];
-                };
-            };
-            /** @description Regra anterior não encontrada. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaRegras"];
-                };
-            };
-            /** @description Conflito de versão ou de idempotência. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaRegras"];
-                };
-            };
-            /** @description Identificador inválido, configuração inválida, cabeçalho `Idempotency-Key` ausente ou nenhum cenário sintético aplicável. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaRegras"];
-                };
-            };
-        };
-    };
-    testar_regra_api_v1_regras__regra_id__testar_post: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                regra_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["SolicitacaoRegra"];
-            };
-        };
-        responses: {
-            /** @description Resultado do teste determinístico (pode ser vazio). */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaTeste"];
-                };
-            };
-            /** @description Identificador inválido ou configuração de regra inválida. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaRegras"];
-                };
-            };
-        };
-    };
-    obter_saude_api_v1_saude_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Saúde do processo confirmada. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaSaude"];
-                };
-            };
-        };
-    };
-    consultar_api_v1_segurados_padrao_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Segurado sintético padrão encontrado. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaSeguradoPadrao"];
-                };
-            };
-            /** @description Dados sintéticos ainda não restaurados. */
-            503: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaContexto"];
+                    "application/json": components["schemas"]["ProblemaLinhaDoTempo"];
                 };
             };
         };
@@ -6366,47 +6555,6 @@ export interface operations {
             };
         };
     };
-    consultar_comunicado_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                segurado_id: string;
-                entrega_simulada_id: string;
-            };
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Comunicado encontrado para este segurado. */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["RespostaComunicado"];
-                };
-            };
-            /** @description Comunicado inexistente ou de outro segurado. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaComunicado"];
-                };
-            };
-            /** @description Algum identificador não é um UUID válido. */
-            422: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaComunicado"];
-                };
-            };
-        };
-    };
     consultar_explicacao_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__explicacao_get: {
         parameters: {
             query?: never;
@@ -6448,52 +6596,33 @@ export interface operations {
             };
         };
     };
-    registrar_visualizacao_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__visualizacao_post: {
+    listar_comunicados_api_v1_segurados__segurado_id__comunicados_get: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 segurado_id: string;
-                entrega_simulada_id: string;
             };
             cookie?: never;
         };
         requestBody?: never;
         responses: {
-            /** @description Visualização registrada (ou já existente, no replay). */
+            /** @description Consulta realizada, com ou sem comunicados. */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["RespostaVisualizacaoComunicado"];
+                    "application/json": components["schemas"]["RespostaListaComunicados"];
                 };
             };
-            /** @description Comunicado inexistente ou de outro segurado. */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaComunicado"];
-                };
-            };
-            /** @description Mensagem de origem não elegível para virar comunicado. */
-            409: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["ProblemaComunicado"];
-                };
-            };
-            /** @description Algum identificador não é um UUID válido. */
+            /** @description O identificador do segurado não é um UUID válido. */
             422: {
                 headers: {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ProblemaComunicado"];
+                    "application/json": components["schemas"]["ProblemaListaComunicados"];
                 };
             };
         };

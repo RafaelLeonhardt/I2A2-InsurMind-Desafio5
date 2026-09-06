@@ -95,10 +95,10 @@ A História 4.3 entrega o registro de primeira visualização de um comunicado i
 | --- | --- | --- | --- |
 | COMUNICADOS-01 | P1: Lista de comunicados isolada por segurado | T1/T2/T3/T4 | Implementing |
 | COMUNICADOS-02 | P1: Lista de comunicados isolada por segurado | T2/T4 | Implementing |
-| COMUNICADOS-03 | P1: Detalhe com visualização idempotente e sem regressão de estado | T4 | In Tasks |
-| COMUNICADOS-04 | P1: Detalhe com visualização idempotente e sem regressão de estado | T4 | In Tasks |
-| COMUNICADOS-05 | P2: Erro visível sem conteúdo fixo e navegação acessível | T4 | In Tasks |
-| COMUNICADOS-06 | P2: Erro visível sem conteúdo fixo e navegação acessível | T4 | In Tasks |
+| COMUNICADOS-03 | P1: Detalhe com visualização idempotente e sem regressão de estado | T4 | Implementing |
+| COMUNICADOS-04 | P1: Detalhe com visualização idempotente e sem regressão de estado | T4 | Implementing |
+| COMUNICADOS-05 | P2: Erro visível sem conteúdo fixo e navegação acessível | T4 | Implementing |
+| COMUNICADOS-06 | P2: Erro visível sem conteúdo fixo e navegação acessível | T4 | Implementing |
 
 **ID format:** `COMUNICADOS-NN`
 

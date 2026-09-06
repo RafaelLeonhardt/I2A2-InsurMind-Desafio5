@@ -130,11 +130,11 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Lista nunca mostra dado de outro segurado (testado com dois segurados)
-- [ ] Reabrir um comunicado já visualizado não altera a data exibida
-- [ ] Erro de carregamento nunca mostra lista de exemplo
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Lista nunca mostra dado de outro segurado (testado com dois segurados)
+- [x] Reabrir um comunicado já visualizado não altera a data exibida
+- [x] Erro de carregamento nunca mostra lista de exemplo
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full
