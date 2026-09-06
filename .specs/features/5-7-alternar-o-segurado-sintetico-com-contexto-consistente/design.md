@@ -73,6 +73,7 @@ graph TD
 - **Location**: `VisaoGeralSegurado.tsx`, `SuperficieAlertas.tsx`, `SuperficieApolice.tsx`, `SuperficieComunicados.tsx`, `SuperficieMeusDados.tsx` (5.1–5.6, extensão pontual em cada)
 - **Dependencies**: `SeguradoContexto`.
 - **Reuses**: componentes já existentes — mudança de fonte do `segurado_id`, não reescrita.
+- **Implementado como (T5, dobrado de volta do código)**: as cinco superfícies em si não foram alteradas — cada uma já expunha a prop opcional `seguradoId` construída em 5.1–5.6 exatamente como o seam desta história. Um novo componente, `PainelSegurado.tsx` (`src/frontend/src/funcionalidades/segurado/`), é o único ponto que chama `useSeguradoContexto()` e injeta `seguradoAtivoId` como essa prop em cada uma das cinco, mais o `SeletorSegurado`. Isso evita reescrever as cinco suítes de teste existentes (hoje renderizadas isoladamente, sem `SeguradoProvider`) só para acomodar uma dependência de contexto nova — "mudança de fonte do segurado_id" acontece na composição, não em cada arquivo.
 
 ---
 

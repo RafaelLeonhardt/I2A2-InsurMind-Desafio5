@@ -150,20 +150,22 @@ T5
 ### T5: Integrar `SeguradoContexto` às 5 superfícies existentes (5.1–5.6)
 
 **What**: `VisaoGeralSegurado.tsx`, `SuperficieAlertas.tsx`, `SuperficieApolice.tsx`, `SuperficieComunicados.tsx`, `SuperficieMeusDados.tsx` passam a ler `seguradoAtivoId` de `useSeguradoContexto()` em vez de um valor fixo, com descarte de resposta tardia e ausência total de ação administrativa confirmada.
-**Where**: `src/frontend/src/funcionalidades/segurado/VisaoGeralSegurado.tsx`, `SuperficieAlertas.tsx`, `SuperficieApolice.tsx`, `SuperficieComunicados.tsx`, `SuperficieMeusDados.tsx` (extensão pontual de 5.1–5.6)
+**Where**: `src/frontend/src/funcionalidades/segurado/PainelSegurado.tsx` (novo — ver SPEC_DEVIATION), `VisaoGeralSegurado.tsx`, `SuperficieAlertas.tsx`, `SuperficieApolice.tsx`, `SuperficieComunicados.tsx`, `SuperficieMeusDados.tsx` (nenhum destes cinco alterado — ver SPEC_DEVIATION)
 **Depends on**: T4
-**Reuses**: `SeguradoContexto` (T3), componentes já existentes de 5.1–5.6
+**Reuses**: `SeguradoContexto` (T3), `SeletorSegurado` (T4), componentes já existentes de 5.1–5.6
 **Requirement**: SELETOR-02, SELETOR-03, SELETOR-05, SELETOR-06
+
+**SPEC_DEVIATION**: em vez de cada uma das cinco superfícies chamar `useSeguradoContexto()` internamente (o que exigiria envolver toda suíte de teste existente de cada uma em `SeguradoProvider`, reescrevendo ~5 suítes só para acomodar a dependência), um novo componente `PainelSegurado.tsx` é o único ponto que lê o contexto e injeta `seguradoAtivoId` como a prop `seguradoId` já existente em cada superfície (o seam construído desde 5.1–5.6). Nenhum dos cinco arquivos originais ou seus testes foi alterado — dobrado de volta para `design.md` (Components) para não deixar essa decisão só no código-fonte.
 
 **Tools**: MCP: NONE — Skill: NONE
 
 **Done when**:
 
-- [ ] Trocar de segurado atualiza as 5 superfícies em conjunto, sem mistura de dado (testado disparando a troca com requisições em voo)
-- [ ] Nenhuma das 5 superfícies expõe qualquer ação administrativa (editar regra, gerar mensagem, aprovar lote, iniciar simulação)
-- [ ] Voltar ao perfil Administrador reconstrói as superfícies administrativas sem alteração de autoridade no backend
-- [ ] Testes existentes de cada uma das 5 superfícies (5.1–5.6) continuam passando após a extensão, sem contagem de teste reduzida
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Trocar de segurado atualiza as 5 superfícies em conjunto, sem mistura de dado (testado disparando a troca com requisições em voo)
+- [x] Nenhuma das 5 superfícies expõe qualquer ação administrativa (editar regra, gerar mensagem, aprovar lote, iniciar simulação)
+- [x] Voltar ao perfil Administrador reconstrói as superfícies administrativas sem alteração de autoridade no backend (reuso não alterado de `SUPERFICIES_POR_PERFIL`, 1.4 — sem teste dedicado nesta história, garantia herdada de 1.4)
+- [x] Testes existentes de cada uma das 5 superfícies (5.1–5.6) continuam passando após a extensão, sem contagem de teste reduzida (nenhum arquivo tocado)
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full
