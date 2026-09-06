@@ -66,12 +66,12 @@ T2 → T3
 
 **Done when**:
 
-- [ ] Explicação de mensagem com 2 tentativas retorna evento/regra rotulados `DETERMINISTICA` e redator/crítico/tentativas/decisão humana rotulados `AGENTE`
-- [ ] Categorias usadas/não usadas retornadas sem documentos/dados financeiros/pagamentos/credenciais/prompt completo
-- [ ] Prévia da mensagem final é cópia exata de `entregas_simuladas.apresentacao` (3.6), não recalculada de `versoes_mensagem`
-- [ ] Lacuna de dado (avaliação crítica intermediária ausente, dado de teste) retorna `Procedência parcial`, sem inferência preenchida
-- [ ] `obter` de comunicado de outro segurado retorna `None`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Explicação de mensagem com 2 tentativas retorna evento/regra rotulados `DETERMINISTICA` e redator/crítico/tentativas/decisão humana rotulados `AGENTE`
+- [x] Categorias usadas/não usadas retornadas sem documentos/dados financeiros/pagamentos/credenciais/prompt completo
+- [x] Prévia da mensagem final é cópia exata de `entregas_simuladas.apresentacao` (3.6), não recalculada de `versoes_mensagem`
+- [x] Lacuna de dado (avaliação crítica intermediária ausente, dado de teste) retorna `Procedência parcial`, sem inferência preenchida
+- [x] `obter` de comunicado de outro segurado retorna `None`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
