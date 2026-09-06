@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 69,
+  "next_id": 73,
   "lessons": [
     {
       "id": "L-001",
@@ -1119,16 +1119,18 @@
       "status": "confirmed",
       "features": [
         "5-1-compreender-o-alerta-mais-relevante-na-visao-geral",
-        "5-2-consultar-alertas-ativos-e-anteriores"
+        "5-2-consultar-alertas-ativos-e-anteriores",
+        "5-3-consultar-a-apolice-sintetica-e-seu-uso-preventivo"
       ],
-      "recurrence": 2,
+      "recurrence": 3,
       "harmful": 0,
       "evidence": [
         "M14/M15 — src/backend/central_preventiva/adaptadores/http/alerta_segurado.py:115,117 (validation.md rodada 3) (routes)",
-        "validation.md sensor M6 - adaptadores/http/lista_alertas_segurado.py:171 (adaptadores/http)"
+        "validation.md sensor M6 - adaptadores/http/lista_alertas_segurado.py:171 (adaptadores/http)",
+        "M5/M6/M7 - src/backend/central_preventiva/adaptadores/http/apolice_segurado.py:157,168 (validation.md Sensor) (routes)"
       ],
       "created": "2026-09-05T22:03:13Z",
-      "last_seen": "2026-09-05T23:01:02Z"
+      "last_seen": "2026-09-06T00:00:30Z"
     },
     {
       "id": "L-062",
@@ -1255,6 +1257,78 @@
       ],
       "created": "2026-09-05T23:27:17Z",
       "last_seen": "2026-09-05T23:27:17Z"
+    },
+    {
+      "id": "L-069",
+      "key": "surviving_mutant::test a date comparison at its boundary a value exactly equal to the reference date not only values far in the past and far in the future",
+      "text": "Test a date comparison at its boundary - a value exactly equal to the reference date - not only values far in the past and far in the future.",
+      "signal": "surviving_mutant",
+      "scope": "dominio",
+      "status": "candidate",
+      "features": [
+        "5-3-consultar-a-apolice-sintetica-e-seu-uso-preventivo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M1 - src/backend/central_preventiva/aplicacao/apolice_segurado.py:90 (validation.md Sensor) (dominio)"
+      ],
+      "created": "2026-09-06T00:00:30Z",
+      "last_seen": "2026-09-06T00:00:30Z"
+    },
+    {
+      "id": "L-070",
+      "key": "surviving_mutant::a frontend api client module needs its own test asserting every translated field component tests that mock the module whole do not discriminate its field mapping",
+      "text": "A frontend API client module needs its own test asserting every translated field; component tests that mock the module whole do not discriminate its field mapping.",
+      "signal": "surviving_mutant",
+      "scope": "frontend/api",
+      "status": "candidate",
+      "features": [
+        "5-3-consultar-a-apolice-sintetica-e-seu-uso-preventivo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "MF6/MF7 - src/frontend/src/api/apoliceSegurado.ts:92,113 (validation.md Sensor) (frontend/api)"
+      ],
+      "created": "2026-09-06T00:00:30Z",
+      "last_seen": "2026-09-06T00:00:30Z"
+    },
+    {
+      "id": "L-071",
+      "key": "surviving_mutant::an edge case that forbids showing unrelated items needs a negative assertion that the extra item is absent scoped to the section under test asserting the expected item is present proves nothing",
+      "text": "An edge case that forbids showing unrelated items needs a negative assertion that the extra item is absent, scoped to the section under test - asserting the expected item is present proves nothing.",
+      "signal": "surviving_mutant",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "5-3-consultar-a-apolice-sintetica-e-seu-uso-preventivo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "MF5 - src/frontend/src/funcionalidades/segurado/SuperficieApolice.tsx:259 (validation.md Sensor) (frontend)"
+      ],
+      "created": "2026-09-06T00:00:30Z",
+      "last_seen": "2026-09-06T00:00:30Z"
+    },
+    {
+      "id": "L-072",
+      "key": "spec_precision_gap::assert a forbidden vocabulary rule against text produced by production code not against strings the test itself authored",
+      "text": "Assert a forbidden-vocabulary rule against text produced by production code, not against strings the test itself authored.",
+      "signal": "spec_precision_gap",
+      "scope": "testes",
+      "status": "candidate",
+      "features": [
+        "5-3-consultar-a-apolice-sintetica-e-seu-uso-preventivo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "APOLICE-02 - src/backend/testes/test_apolice_segurado.py:229-231 (validation.md nota A) (testes)"
+      ],
+      "created": "2026-09-06T00:00:30Z",
+      "last_seen": "2026-09-06T00:00:30Z"
     }
   ]
 }

@@ -57,10 +57,10 @@ Corroborated across multiple features. Safe to apply as guidance.
 - last seen: 2026-09-05T23:01:02Z
 
 ### L-061 - A response field whose only assertion is its happy-path value is not discriminated; add a route case where the field takes its other value (synthetic origin, degraded source, false-to-true flag).
-- signal: `surviving_mutant` · recurrence: 2 feature(s) · scope: `routes` · harmful: 0
-- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral, 5-2-consultar-alertas-ativos-e-anteriores
-- evidence: M14/M15 — src/backend/central_preventiva/adaptadores/http/alerta_segurado.py:115,117 (validation.md rodada 3) (routes) (+1 more)
-- last seen: 2026-09-05T23:01:02Z
+- signal: `surviving_mutant` · recurrence: 3 feature(s) · scope: `routes` · harmful: 0
+- features: 5-1-compreender-o-alerta-mais-relevante-na-visao-geral, 5-2-consultar-alertas-ativos-e-anteriores, 5-3-consultar-a-apolice-sintetica-e-seu-uso-preventivo
+- evidence: M14/M15 — src/backend/central_preventiva/adaptadores/http/alerta_segurado.py:115,117 (validation.md rodada 3) (routes) (+2 more)
+- last seen: 2026-09-06T00:00:30Z
 
 ## Candidates (under observation - do NOT load as guidance yet)
 
@@ -419,6 +419,30 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - features: 5-2-consultar-alertas-ativos-e-anteriores
 - evidence: validation.md sensor M8b - SuperficieAlertas.test.tsx:119-123 vs SuperficieAlertas.tsx:60-76 (frontend)
 - last seen: 2026-09-05T23:27:17Z
+
+### L-069 - Test a date comparison at its boundary - a value exactly equal to the reference date - not only values far in the past and far in the future.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `dominio` · harmful: 0
+- features: 5-3-consultar-a-apolice-sintetica-e-seu-uso-preventivo
+- evidence: M1 - src/backend/central_preventiva/aplicacao/apolice_segurado.py:90 (validation.md Sensor) (dominio)
+- last seen: 2026-09-06T00:00:30Z
+
+### L-070 - A frontend API client module needs its own test asserting every translated field; component tests that mock the module whole do not discriminate its field mapping.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend/api` · harmful: 0
+- features: 5-3-consultar-a-apolice-sintetica-e-seu-uso-preventivo
+- evidence: MF6/MF7 - src/frontend/src/api/apoliceSegurado.ts:92,113 (validation.md Sensor) (frontend/api)
+- last seen: 2026-09-06T00:00:30Z
+
+### L-071 - An edge case that forbids showing unrelated items needs a negative assertion that the extra item is absent, scoped to the section under test - asserting the expected item is present proves nothing.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 5-3-consultar-a-apolice-sintetica-e-seu-uso-preventivo
+- evidence: MF5 - src/frontend/src/funcionalidades/segurado/SuperficieApolice.tsx:259 (validation.md Sensor) (frontend)
+- last seen: 2026-09-06T00:00:30Z
+
+### L-072 - Assert a forbidden-vocabulary rule against text produced by production code, not against strings the test itself authored.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `testes` · harmful: 0
+- features: 5-3-consultar-a-apolice-sintetica-e-seu-uso-preventivo
+- evidence: APOLICE-02 - src/backend/testes/test_apolice_segurado.py:229-231 (validation.md nota A) (testes)
+- last seen: 2026-09-06T00:00:30Z
 
 ## Quarantined (failed when applied - ignore)
 

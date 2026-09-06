@@ -91,12 +91,12 @@ As Histórias 5.1/5.2 mostram alertas, mas Carlos não tem como consultar sua ap
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| APOLICE-01 | P1: Dados da apólice e explicação de critérios sem promessa de cobertura | Execute (T1) | Implementing |
-| APOLICE-02 | P1: Dados da apólice e explicação de critérios sem promessa de cobertura | Execute (T2) | Implementing |
-| APOLICE-03 | P1: Estados de apólice sem falha técnica e isolamento por segurado | Execute (T2) | Implementing |
-| APOLICE-04 | P1: Estados de apólice sem falha técnica e isolamento por segurado | Execute (T2) | Implementing |
-| APOLICE-05 | P2: Snapshot histórico preservado apesar de mudança atual | Execute (T2) | Implementing |
-| APOLICE-06 | P2: Snapshot histórico preservado apesar de mudança atual | Execute (T4) | Implementing |
+| APOLICE-01 | P1: Dados da apólice e explicação de critérios sem promessa de cobertura | Execute (T1) | Needs Fix (validation.md rodada 1 — Fix 2, Fix 3, Fix 6) |
+| APOLICE-02 | P1: Dados da apólice e explicação de critérios sem promessa de cobertura | Execute (T2) | Needs Fix (validation.md rodada 1 — Fix 4, Fix 5) |
+| APOLICE-03 | P1: Estados de apólice sem falha técnica e isolamento por segurado | Execute (T2) | Needs Fix (validation.md rodada 1 — Fix 1, Fix 6) |
+| APOLICE-04 | P1: Estados de apólice sem falha técnica e isolamento por segurado | Execute (T2) | Verified |
+| APOLICE-05 | P2: Snapshot histórico preservado apesar de mudança atual | Execute (T2) | Verified |
+| APOLICE-06 | P2: Snapshot histórico preservado apesar de mudança atual | Execute (T4) | Verified |
 
 **ID format:** `APOLICE-NN`
 
