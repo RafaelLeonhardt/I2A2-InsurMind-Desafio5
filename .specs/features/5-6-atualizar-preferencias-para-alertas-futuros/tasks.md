@@ -121,14 +121,16 @@ T4 → T5
 
 **Done when**:
 
-- [ ] Alteração válida persiste e retorna o segurado atualizado
-- [ ] Repetir com a mesma chave e conteúdo idêntico devolve a resposta registrada, sem nova versão
-- [ ] Repetir com a mesma chave e conteúdo diferente retorna `409`
-- [ ] `versao_esperada` desatualizada retorna `409`, sem mutar
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Alteração válida persiste e retorna o segurado atualizado
+- [x] Repetir com a mesma chave e conteúdo idêntico devolve a resposta registrada, sem nova versão
+- [x] Repetir com a mesma chave e conteúdo diferente retorna `409`
+- [x] `versao_esperada` desatualizada retorna `409`, sem mutar
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
+
+**Status**: ✅ Complete — `409` é responsabilidade do roteador HTTP (T4); aqui o caso de uso propaga `ConflitoVersao`/`ConflitoIdempotencia`, mesmo padrão de `ServicoGestaoRegras.ativar` (2.4).
 
 ---
 
