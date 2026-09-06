@@ -2,14 +2,29 @@
 
 **Date**: 2026-09-05
 **Spec**: `.specs/features/5-3-consultar-a-apolice-sintetica-e-seu-uso-preventivo/spec.md`
-**Diff range**: `d7285ae..HEAD` (`083dc5b`, `c56a654`, `3d76e73`, `39491c8`)
+**Diff range (ponta a ponta)**: `d7285ae..HEAD` (`083dc5b`, `c56a654`, `3d76e73`, `39491c8`, `4d1c522`, `352aee8`)
+**Diff dos fixes desta rodada**: `39491c8..HEAD`
 **Verifier**: sub-agente independente (autor ≠ verificador), somente leitura sobre a árvore real
-**Rodada**: 1 de no máximo 3
+**Rodada**: **2 de no máximo 3** — re-verificação dos 7 achados da rodada 1
 
-**Veredito**: ❌ **FAIL** — os dois gates de Build saem com código 0 e todos os ACs têm
-citação `file:line`, mas **7 de 20 injeções de falha de comportamento sobreviveram**. Quatro
-delas são recorrências diretas de lições já confirmadas (L-061 ×3, L-059 ×2) e uma é um
-off-by-one real na fronteira de vigência (`_estado_objetivo`) que nenhum teste detecta.
+**Veredito**: ✅ **PASS** — os dois gates de Build saem com código 0, os 6 ACs têm citação
+`file:line` com valor asserido igual ao definido pela spec, os 3 edge cases estão cobertos e
+**12 de 12 injeções de falha de comportamento foram mortas**, incluindo os **7 mutantes que
+sobreviveram na rodada 1**. Uma observação menor não bloqueante fica registrada (nota A).
+
+Este relatório é **auto-contido**: substitui integralmente o da rodada 1 e não exige lê-lo.
+
+---
+
+## O que mudou entre a rodada 1 e a rodada 2
+
+O commit `4d1c522` **não alterou nenhuma linha de código de produção** — verificado em
+`git diff 39491c8..HEAD --stat`: os únicos arquivos de `src/` tocados são
+`testes/test_apolice_segurado.py`, `testes/test_apolice_segurado_api.py`,
+`src/frontend/src/api/apoliceSegurado.test.ts` (novo) e
+`src/frontend/src/funcionalidades/segurado/SuperficieApolice.test.tsx`. Os 7 achados eram
+todos de **poder de discriminação dos testes**, não de comportamento incorreto, e foram
+corrigidos exatamente onde deviam ser: nos testes.
 
 ---
 
@@ -17,13 +32,13 @@ off-by-one real na fronteira de vigência (`_estado_objetivo`) que nenhum teste 
 
 | Task | Status | Notes |
 | --- | --- | --- |
-| T1 `RepositorioApolices` | ✅ Done | `083dc5b`; desempate `criado_em DESC` exercitado com timestamps distintos (M4b morto) |
-| T2 `ServicoApoliceSegurado` | ⚠️ Partial | `c56a654`; fronteira `vigencia_fim == hoje` nunca testada (M1 sobrevive) |
-| T3 Endpoints HTTP | ⚠️ Partial | `3d76e73`; `_resposta_apolice`/`_resposta_criterio` com 3 campos sem valor discriminante (M5/M6/M7 sobrevivem) |
-| T4 Superfície de Apólice | ⚠️ Partial | `39491c8`; `apoliceSegurado.ts` (178 linhas novas) é 100 % mockado — nenhum teste exercita o mapeamento (MF6/MF7 sobrevivem) |
+| T1 `RepositorioApolices` | ✅ Done | `083dc5b`; desempate `criado_em DESC` exercitado com timestamps distintos e invertidos em relação à ordem de inserção (`test_repositorio_apolices.py:93-106`) |
+| T2 `ServicoApoliceSegurado` | ✅ Done | `c56a654` + `4d1c522`; fronteira `vigencia_fim == hoje` agora testada nos dois lados (`test_apolice_segurado.py:194-216`) |
+| T3 Endpoints HTTP | ✅ Done | `3d76e73` + `4d1c522`; `participa_de_alertas`, `canal_preferido` e `atende` agora exercitados nos dois valores |
+| T4 Superfície de Apólice | ✅ Done | `39491c8` + `4d1c522`; `api/apoliceSegurado.ts` deixou de ser 100 % mockado — `apoliceSegurado.test.ts` exercita a tradução real |
 
-Nenhuma task está bloqueada; os quatro commits landaram o que prometem (verificado lendo o
-código, não a mensagem do commit).
+Nenhuma task bloqueada ou parcial. Todos os "Done when" de `tasks.md` verificados lendo o
+código e os testes, não a mensagem de commit.
 
 ---
 
@@ -33,118 +48,118 @@ código, não a mensagem do commit).
 
 | Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- |
-| **APOLICE-01** — abrir Apólice exibe número, situação, vigência, endereço sintético, coberturas, canal preferencial e participação em alertas | Os 7 grupos de campos, vindos de dado real | Serviço: `src/backend/testes/test_apolice_segurado.py:138-147` — `assert apolice.numero == "RES-0001"`, `... tipo == "residencial"`, `... situacao == "ativa"`, `... estado_objetivo == "ativa"`, `... vigencia_inicio == date(2026,1,1)`, `... vigencia_fim == date(2030,12,31)`, `... endereco_risco_sintetico == "Rua Sintética, 123"`, `... coberturas == ("alagamento",)`, `... canal_preferido == "sms"`, `... participa_de_alertas is True` | ✅ PASS |
-| **APOLICE-01** — contrato HTTP não mistura campos | Cada campo de `RespostaApolice` com o seu próprio valor | `src/backend/testes/test_apolice_segurado_api.py:126-135` — 10 asserções campo a campo (`corpo["coberturas"] == ["alagamento","vendaval"]`, `corpo["vigencia_inicio"] == "2026-01-01"`, `corpo["vigencia_fim"] == "2030-12-31"`, …) | ⚠️ **PASS parcial** — M13/M10 mortos, mas M5/M6/M7 sobrevivem (ver Sensor) |
-| **APOLICE-01** — mesmos campos na interface | Visíveis na superfície | `src/frontend/src/funcionalidades/segurado/SuperficieApolice.test.tsx:84-91` — `findByText('RES-0001')`, `getByText('Residencial')`, `getByText('2026-01-01 a 2030-12-31')`, `getByText('Rua Sintética, 123')`, `getByText('alagamento')`, `getByText('vendaval')`, `getByText('SMS')`, `getByText('Participando')` | ✅ PASS |
-| **APOLICE-01** — participação em alertas nos dois valores | `Participando` / `Não participando` | `SuperficieApolice.test.tsx:99-100` — `findByText('Não participando')`, `queryByText('Participando')).not.toBeInTheDocument()` | ✅ PASS (frontend); ❌ **sem par no backend** (M5) |
-| **APOLICE-02** — explicação mostra como a categoria foi comparada, sem afirmação de cobertura/indenização/sinistro | Critérios comparados; nenhuma promessa | Filtro + conteúdo: `test_apolice_segurado_api.py:215-221` — `operandos == {"área afetada","tipo da apólice","situação da apólice","cobertura exigida"}`, `criterio_area["valor_observado"] == AREA`, `... ["atende"] is True`, `... ["justificativa"] == "Área da apólice corresponde à área do evento."`; aviso na UI: `SuperficieApolice.test.tsx:196-198` — `findByText(/não confirma cobertura, indenização nem decisão de sinistro/)` | ⚠️ **Spec-precision gap** — ver nota A |
+| **APOLICE-01** — abrir Apólice exibe número, situação, vigência, endereço sintético, coberturas, canal preferencial e participação em alertas, de dado real | Os 7 grupos de campos, vindos do registro persistido | Serviço: `src/backend/testes/test_apolice_segurado.py:148-157` — `numero == "RES-0001"`, `tipo == "residencial"`, `situacao == "ativa"`, `estado_objetivo == "ativa"`, `vigencia_inicio == date(2026,1,1)`, `vigencia_fim == date(2030,12,31)`, `endereco_risco_sintetico == "Rua Sintética, 123"`, `coberturas == ("alagamento",)`, `canal_preferido == "sms"`, `participa_de_alertas is True` | ✅ PASS |
+| **APOLICE-01** — contrato HTTP não mistura campos entre si | Cada campo de `RespostaApolice` com o seu próprio valor | `src/backend/testes/test_apolice_segurado_api.py:126-135` (10 asserções campo a campo) **+** `:174-175` — `corpo["canal_preferido"] == "whatsapp"` e `corpo["participa_de_alertas"] is False` (segundo valor, novo nesta rodada) | ✅ PASS — M5/M6/M7 agora mortos |
+| **APOLICE-01** — tradução HTTP→UI (`snake_case`→`camelCase`) sem troca de campos | Objeto traduzido campo a campo | `src/frontend/src/api/apoliceSegurado.test.ts:50-61` — `expect(apolice).toEqual({...})` com **todos** os 10 campos em valores mutuamente distintos (`situacao:'ativa'` × `estadoObjetivo:'expirada'`; `participaDeAlertas:false`) | ✅ PASS — MF6/MF7 agora mortos |
+| **APOLICE-01** — mesmos campos visíveis na interface | Visíveis na superfície | `SuperficieApolice.test.tsx:84-91` — `findByText('RES-0001')`, `getByText('Residencial')`, `getByText('2026-01-01 a 2030-12-31')`, `getByText('Rua Sintética, 123')`, `getByText('alagamento')`, `getByText('vendaval')`, `getByText('SMS')`, `getByText('Participando')`; segundo valor em `:99-100` — `findByText('Não participando')` + `queryByText('Participando')` ausente | ✅ PASS |
+| **APOLICE-02** — explicação mostra como a categoria foi comparada, sem afirmação de cobertura/indenização/sinistro | Critérios comparados; nenhuma promessa | **Filtro + conteúdo**: `test_apolice_segurado_api.py:253-266` — `operandos == {"área afetada","tipo da apólice","situação da apólice","cobertura exigida"}`, `criterio_area["valor_observado"] == AREA`, `["atende"] is True`, `["justificativa"] == "Área da apólice corresponde à área do evento."`; `:304` — `criterio_cobertura["atende"] is False` (ramo negativo, novo). **Ausência de promessa sobre texto de PRODUÇÃO**: `test_apolice_segurado.py:259-312` — constrói ≥20 justificativas chamando `avaliar()` de verdade nos 5 candidatos (ramo positivo + os 4 ramos negativos) e assere `palavra_proibida not in texto_completo` para `("indeniza","sinistro","confirma cobertura","garantimos")`. **Aviso na UI**: `SuperficieApolice.test.tsx:207-209` — `findByText(/não confirma cobertura, indenização nem decisão de sinistro/)` | ✅ PASS — o gap de precisão da rodada 1 foi fechado (N2 morto) |
 
 ### P1: Estados de apólice sem falha técnica e isolamento por segurado
 
 | Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- |
-| **APOLICE-03** — apólice inativa/sem cobertura explicada objetivamente, sem virar falha técnica | Estado textual de domínio, sem indicador de erro | Serviço: `test_apolice_segurado.py:157-158` — `assert apolice.situacao == "cancelada"`, `... estado_objetivo == "cancelada"`; `:168` — `... estado_objetivo == "suspensa"`. HTTP: `test_apolice_segurado_api.py:148` — `resposta.json()["estado_objetivo"] == "cancelada"`. UI sem `role="alert"`: `SuperficieApolice.test.tsx:122-123` e `:133-134` — `findByText('Cancelada')` / `findByText('Expirada')` + `queryByRole('alert')).not.toBeInTheDocument()` | ✅ PASS (MF1 morto) — `suspensa` só coberta na camada de serviço |
-| **APOLICE-04** — apólice inexistente ou de outro segurado: API impede, interface mostra `Não encontrada` sem expor outro registro | `None` no caso de uso; `404` idêntico nos dois casos; `Não encontrada` na UI | Serviço: `test_apolice_segurado.py:188` — `assert contexto.servico.obter(SEGURADO_ID) is None` (apólice existe, mas é de `OUTRO_SEGURADO_ID`); `:194` e `:201` — `obter_explicacao` devolve `None` nos dois casos. HTTP: `test_apolice_segurado_api.py:186-187` — `status_code == 404` e `codigo == "apolice_nao_encontrada"` para a apólice de outro segurado, idêntico ao `:170-172` do caso inexistente; `:254-256` — `corpo_outro["impacto"] == corpo_inexistente["impacto"]` e `... ["proxima_acao"] == ...`. UI: `SuperficieApolice.test.tsx:153-156` — `findByRole('heading',{name:'Não encontrada'})` + `getByText('Esta apólice não existe ou não pertence a você.')` | ✅ PASS (M15 morto) — ver nota B sobre a comparação campo a campo |
+| **APOLICE-03** — apólice inativa/sem cobertura explicada objetivamente, sem virar falha técnica | Estado textual de domínio, sem indicador de erro | **Serviço (4/4 estados)**: `test_apolice_segurado.py:167-168` (`cancelada`), `:178` (`suspensa`), `:190-191` (`expirada` com `situacao == "ativa"`), `:151` (`ativa`). **HTTP (4/4)**: `test_apolice_segurado_api.py:148` (`cancelada`), `:159` (`suspensa`, novo), `:187-188` (`expirada`), `:129` (`ativa`). **UI sem `role="alert"` (3 estados)**: `SuperficieApolice.test.tsx:122-123` (`Cancelada`), `:133-134` (`Expirada`), `:144-145` (`Suspensa`, novo) | ✅ PASS |
+| **APOLICE-04** — apólice inexistente ou de outro segurado: API impede, interface mostra `Não encontrada` sem expor outro registro | `None` no caso de uso; `404` **idêntico** nos dois casos; `Não encontrada` na UI | **Serviço**: `test_apolice_segurado.py:223` — `obter(SEGURADO_ID) is None` (a apólice existe, mas é de `OUTRO_SEGURADO_ID`); `:229` e `:236` — `obter_explicacao` devolve `None` nos dois casos. **HTTP, rota da apólice**: `test_apolice_segurado_api.py:218-222` — `resposta_outro.status_code == 404`, `resposta_inexistente.status_code == 404`, `corpo_outro["codigo"] == corpo_inexistente["codigo"] == "apolice_nao_encontrada"`, `impacto` e `proxima_acao` iguais. **HTTP, rota da explicação**: `:337-341` — mesmo quarteto com `"explicacao_nao_encontrada"`. **Cliente**: `apoliceSegurado.test.ts:72-74` e `:143-145` — `ErroApoliceSegurado` com `status === 404` e `codigo` correto nas duas rotas. **UI**: `SuperficieApolice.test.tsx:164-166` — `findByRole('heading',{name:'Não encontrada'})` + `getByText('Esta apólice não existe ou não pertence a você.')` | ✅ PASS — comparação agora campo a campo nas duas rotas (N6 morto) |
 
 ### P2: Snapshot histórico preservado apesar de mudança atual
 
 | Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + assertion | Result |
 | --- | --- | --- | --- |
-| **APOLICE-05** — explicação de comunicação histórica usa o snapshot da execução | Valor do snapshot, não o atual divergente | Serviço: `test_apolice_segurado.py:265-267` — após `UPDATE apolices SET situacao = 'cancelada'`, `assert situacao_no_snapshot_depois == situacao_no_snapshot_antes == "ativa"` **e** `assert apolice_atual.situacao == "cancelada"` (as duas metades, provando divergência real). HTTP: `test_apolice_segurado_api.py:278-282` — mesmo `UPDATE`, depois `criterio_situacao["valor_observado"] == "ativa"` com `status_code == 200` | ✅ PASS (M8 morto nas duas camadas) |
-| **APOLICE-06** — a superfície atual indica que alterações afetam só decisões futuras | Aviso explícito na superfície | `SuperficieApolice.test.tsx:108-110` — `findByText(/afetam apenas decisões futuras/)`; produção em `SuperficieApolice.tsx:226-229` | ✅ PASS (MF4 morto) |
+| **APOLICE-05** — explicação de comunicação histórica usa o snapshot da execução | Valor do snapshot, não o atual divergente | Serviço: `test_apolice_segurado.py:362-364` — após `UPDATE apolices SET situacao = 'cancelada'`, `situacao_no_snapshot_depois == situacao_no_snapshot_antes == "ativa"` **e** `apolice_atual.situacao == "cancelada"` (as duas metades, provando divergência real). HTTP: `test_apolice_segurado_api.py:363-367` — mesmo `UPDATE`, depois `criterio_situacao["valor_observado"] == "ativa"` com `status_code == 200`. Por construção: `obter_explicacao` (`aplicacao/apolice_segurado.py:155-172`) não referencia `self._portas.apolices` | ✅ PASS |
+| **APOLICE-06** — a superfície atual indica que alterações afetam só decisões futuras | Aviso explícito na superfície | `SuperficieApolice.test.tsx:103-110` — `findByText(/afetam apenas decisões futuras/)`; produção em `SuperficieApolice.tsx:226-229` | ✅ PASS |
 
-**Status**: ⚠️ 6/6 ACs com citação `file:line` e valor asserido igual ao definido pela spec;
-**1 spec-precision gap** (APOLICE-02, nota A) e **1 PASS parcial** (APOLICE-01 HTTP, campos
-não discriminados).
+**Status**: ✅ **6/6 ACs** com citação `file:line` e valor asserido igual ao definido pela
+spec. Nenhum spec-precision gap aberto; nenhum PASS parcial.
 
-### Nota A — APOLICE-02: o teste backend de "sem promessa de cobertura" é vacuous
+### Nota A (menor, não bloqueante) — a asserção backend do Edge Case 1 é presa à fixture
 
-`test_apolice_segurado.py:229-231` monta `texto_completo` a partir de
-`criterio.justificativa` e assere a ausência de `"indeniza"`, `"sinistro"`,
-`"confirma cobertura"`, `"garantimos"`. Mas os `Criterio` vêm de `CRITERIOS_COMPLETOS`
-(`:37-43`), **constantes escritas pelo próprio teste** — o teste prova que o autor do teste
-não escreveu essas palavras, não que a produção não as escreve. `obter_explicacao` só repassa
-`registro.criterios`; o texto real é produzido por `dominio/avaliador_elegibilidade.py`.
+`test_apolice_segurado_api.py:264` assere `"vendaval" not in valores_observados` sobre a
+constante `CRITERIOS` (`:26-32`), que o próprio teste escreve com
+`Criterio("cobertura exigida", "alagamento", ...)`. Executei o avaliador **real** com uma
+apólice de duas coberturas e o critério de produção é:
 
-Verifiquei por inspeção as 10 strings de produção (`avaliador_elegibilidade.py:59-130`,
-ramos positivo **e** negativo dos 5 critérios): nenhuma contém cobertura confirmada,
-indenização ou decisão de sinistro. **A propriedade é verdadeira de fato**, mas não é
-protegida por nenhum teste — qualquer futura redação de justificativa pode violá-la sem que
-a suíte reaja. O único guarda-corpo real é o aviso da UI
-(`SuperficieApolice.test.tsx:196-198`, MF3 morto), que cobre a metade "disclaimer" do AC,
-não a metade "o texto do critério não promete".
+```
+'cobertura exigida' | 'alagamento, vendaval' | 'Apólice possui a cobertura exigida (alagamento).'
+```
 
-### Nota B — APOLICE-04: a comparação de `404` não é campo a campo
+(`dominio/avaliador_elegibilidade.py`: `valor_observado=", ".join(candidato.coberturas)`).
+Ou seja: **com snapshot real, essa asserção falharia** — a fixture diverge da produção nesse
+campo. Consequências:
 
-`test_apolice_segurado_api.py:254-256` compara `impacto` e `proxima_acao` entre "não existe" e
-"é de outro segurado", mas **não** compara `codigo` nem assere
-`resposta_inexistente.status_code == 404`. `ocorrencia` difere legitimamente (ecoa o
-`elegibilidade_id` pedido, que o solicitante já conhece) e `correlacao_id` é `uuid4()` por
-ocorrência, por construção. Confirmei por leitura de `http/apolice_segurado.py:133-142` que
-existe **um único** construtor de `404` para a explicação — não-enumeração garantida por
-construção. Item menor, não bloqueante.
+- **Não é violação da spec.** O edge case pede que a explicação "destaque especificamente a
+  cobertura avaliada, sem listar as demais como se também tivessem participado". A superfície
+  renderiza apenas `operando` + `justificativa` (`SuperficieApolice.tsx:260-264`) — nunca
+  `valor_observado` — e a justificativa **de produção** nomeia só a cobertura avaliada
+  (`(alagamento)`). A metade visível ao segurado está correta e **protegida por teste**
+  (MF5 morto, ver Sensor).
+- **É uma asserção enganosa.** `valor_observado` é documentado como "o valor observado no
+  momento da avaliação" (o que a apólice tem), não "o que participou" — a asserção pede dele
+  uma propriedade que ele não tem contrato de cumprir, e quebrará se alguém construir a
+  fixture a partir de `avaliar()`.
+- **Severidade**: Minor. Registrada como lição, não como fix bloqueante.
 
 ---
 
 ## Discrimination Sensor
 
-Scratch isolado: `git worktree add /tmp/verify-5-3-scratch HEAD`; nenhum `git stash` usado.
-`git status --porcelain` da árvore real: **vazio antes e vazio depois** (idêntico).
-`git worktree list` após a limpeza mostra **apenas** a árvore principal em `39491c8 [main]`;
-`/tmp/verify-5-3-scratch` não existe mais. Cada mutação foi verificada com
-`assert src.count(old) == 1` antes de aplicar (uma primeira tentativa de mutar
-`ORDER BY ... DESC` atingiu apenas a **docstring** por `count=1` e produziu um falso
-"sobreviveu" — refeita como M4b, sobre o literal SQL, e morre).
+Scratch isolado: `git worktree add /tmp/verify-5-3-round2-scratch HEAD`; **nenhum `git stash`**.
+`node_modules` entrou no scratch por symlink (não versionado); baseline do scratch verde
+(374 testes) antes de qualquer mutação. Cada mutação foi aplicada por script com
+`assert src.count(old) == 1` e revertida com `git checkout --` logo após a medição.
 
-| # | File:line | Description | Killed? |
+**Isolamento verificado**: `git status --porcelain` da árvore real **vazio antes e vazio
+depois** (idêntico); `git worktree list` após `remove --force` + `prune` mostra **apenas** a
+árvore principal em `352aee8 [main]`; `/tmp/verify-5-3-round2-scratch` não existe mais.
+
+### Re-injeção dos 7 mutantes que sobreviveram na rodada 1
+
+| # | File | Description | Rodada 1 | Rodada 2 |
+| --- | --- | --- | --- | --- |
+| M1 | `aplicacao/apolice_segurado.py:90` | `vigencia_fim < hoje` → `<= hoje` (apólice que vence **hoje** vira "expirada") | ❌ Survived | ✅ **Killed** — `test_apolice_segurado.py:205` (`test_obter_apolice_com_vigencia_fim_hoje_ainda_e_ativa`) |
+| M5 | `http/apolice_segurado.py:158` | `participa_de_alertas=True` fixo | ❌ Survived | ✅ **Killed** — `test_apolice_segurado_api.py:175` |
+| M6 | `http/apolice_segurado.py:168` | `atende=True` fixo | ❌ Survived | ✅ **Killed** — `test_apolice_segurado_api.py:304` |
+| M7 | `http/apolice_segurado.py:157` | `canal_preferido="sms"` fixo | ❌ Survived | ✅ **Killed** — `test_apolice_segurado_api.py:174` |
+| MF5 | `SuperficieApolice.tsx:259` | A seção de explicação passa a listar **também** todas as coberturas da apólice (viola o Edge Case 1) | ❌ Survived | ✅ **Killed** — `SuperficieApolice.test.tsx:233` (`within(região).queryByText(/vendaval/)`) |
+| MF6 | `api/apoliceSegurado.ts:92-93` | `paraApolice`: `numero`/`tipo` trocados | ❌ Survived | ✅ **Killed** — `apoliceSegurado.test.ts:50` |
+| MF7 | `api/apoliceSegurado.ts:113` | `paraCriterio`: `justificativa: corpo.operando` | ❌ Survived | ✅ **Killed** — `apoliceSegurado.test.ts:114` |
+
+### Mutações novas desta rodada (código tocado nesta rodada, não estressado na rodada 1)
+
+| # | File | Description | Killed? |
 | --- | --- | --- | --- |
-| M1 | `aplicacao/apolice_segurado.py:90` | `vigencia_fim < hoje` → `<= hoje` (apólice que vence **hoje** passa a "expirada") | ❌ **Survived** |
-| M2 | `aplicacao/apolice_segurado.py:90-91` | Ramo `expirada` desativado (`if False`) | ✅ Killed — `test_apolice_segurado_api.py:161` |
-| M3 | `aplicacao/apolice_segurado.py:40-47` | `"participação em alertas"` acrescentado a `_OPERANDOS_RELEVANTES_A_APOLICE` | ✅ Killed — `test_apolice_segurado_api.py:215` |
-| M4b | `persistencia/repositorio_apolices.py:68` | SQL `ORDER BY criado_em DESC` → `ASC` | ✅ Killed — `test_repositorio_apolices.py:106` |
-| M5 | `http/apolice_segurado.py:157` | `participa_de_alertas=True` fixo | ❌ **Survived** |
-| M6 | `http/apolice_segurado.py:168` | `atende=True` fixo | ❌ **Survived** |
-| M7 | `http/apolice_segurado.py:157` | `canal_preferido="sms"` fixo | ❌ **Survived** |
-| M8 | `aplicacao/apolice_segurado.py:167-172` | `obter_explicacao` sobrescreve `valor_observado` do critério "situação da apólice" com a situação **atual** da apólice | ✅ Killed — `test_apolice_segurado.py:265` **e** `test_apolice_segurado_api.py:282` (as duas camadas) |
-| M9 | `http/apolice_segurado.py:151` | `situacao=apolice.estado_objetivo` | ✅ Killed — `test_apolice_segurado_api.py:160` |
-| M10 | `http/apolice_segurado.py:153-154` | `vigencia_inicio`/`vigencia_fim` trocados | ✅ Killed — `test_apolice_segurado_api.py:130` |
-| M13 | `http/apolice_segurado.py:149-150` | `numero`/`tipo` trocados | ✅ Killed — `test_apolice_segurado_api.py:126` |
-| M14 | `http/apolice_segurado.py:169` | `justificativa=criterio.operando` | ✅ Killed — `test_apolice_segurado_api.py:221` |
-| M15 | `aplicacao/apolice_segurado.py:164` | `obter_explicacao` deixa de checar `registro.segurado_id != segurado_id` | ✅ Killed — `test_apolice_segurado.py:201` **e** `test_apolice_segurado_api.py:254` |
-| MF1 | `SuperficieApolice.tsx:180-182` | `role="alert"` no parágrafo do estado objetivo | ✅ Killed — `SuperficieApolice.test.tsx:123` e `:134` (2 testes) |
-| MF2 | `SuperficieApolice.tsx:38` | Rótulo `expirada: 'Expirada'` removido (cai no fallback bruto) | ✅ Killed — `SuperficieApolice.test.tsx:133` |
-| MF3 | `SuperficieApolice.tsx:255-258` | Aviso "não confirma cobertura, indenização nem decisão de sinistro" removido | ✅ Killed — `SuperficieApolice.test.tsx:197` |
-| MF4 | `SuperficieApolice.tsx:226-229` | Aviso "afetam apenas decisões futuras" removido | ✅ Killed — `SuperficieApolice.test.tsx:109` |
-| MF5 | `SuperficieApolice.tsx:259` | A lista da explicação passa a listar **todas** as coberturas da apólice, não só as avaliadas (viola o Edge Case 1) | ❌ **Survived** |
-| MF6 | `api/apoliceSegurado.ts:92-93` | `paraApolice`: `numero`/`tipo` trocados | ❌ **Survived** (reconfirmado em 3 execuções) |
-| MF7 | `api/apoliceSegurado.ts:113` | `paraCriterio`: `justificativa: corpo.operando` | ❌ **Survived** |
+| N1 | `aplicacao/apolice_segurado.py:88-89` | `_estado_objetivo` colapsa qualquer situação não-`ativa` em `"cancelada"` (apaga a distinção `suspensa`) | ✅ **Killed** — `test_apolice_segurado.py::…suspensa…` **e** `test_apolice_segurado_api.py:159` (as duas camadas) |
+| N2 | `dominio/avaliador_elegibilidade.py` | Justificativa de produção `"Apólice está ativa."` → `"Apólice está ativa e garantimos a indenização."` | ✅ **Killed** — `test_apolice_segurado.py:312` — prova que o guarda-corpo de APOLICE-02 agora alcança o texto de produção, não a fixture |
+| N3 | `api/apoliceSegurado.ts:101` | `participaDeAlertas: true` fixo (L-061 na camada do cliente) | ✅ **Killed** — `apoliceSegurado.test.ts:50` |
+| N4 | `api/apoliceSegurado.ts:94-95` | `situacao`/`estadoObjetivo` trocados | ✅ **Killed** — `apoliceSegurado.test.ts:50` |
+| N5 | `SuperficieApolice.tsx:37` | Rótulo `suspensa: 'Suspensa'` removido (cai no fallback bruto) | ✅ **Killed** — `SuperficieApolice.test.tsx:144` |
+| N6 | `http/apolice_segurado.py:126` | `codigo` do `404` da apólice → `"apolice_ausente"` | ✅ **Killed** — `test_apolice_segurado_api.py:220` **e** `:199` (a comparação de não-enumeração fixa o código, não só a igualdade) |
 
-**Sensor depth**: expandido (20 injeções; piso do tier padrão: 1-3, do tier P0: 5)
-**Result**: **13/20 killed, 7 survived** — ❌ **FAIL**
+**Sensor depth**: expandido (12 injeções nesta rodada; piso do tier padrão: 1-3, do tier P0: 5).
+Somado à rodada 1, a história acumula **26 injeções distintas**, todas hoje mortas.
+**Result**: **12/12 killed, 0 survived** — ✅ **PASS**
 
-### Observação de robustez (fora do placar)
+### Observação de robustez
 
-Durante a primeira execução de MF6 a suíte frontend acusou `1 failed | 365 passed` sem
-apontar nome de teste; três reexecuções da mesma mutação deram `366 passed` (rc=0). O
-resultado registrado é **SURVIVED** (o valor reprodutível). O falso negativo isolado indica
-um teste **flaky** em algum ponto da suíte frontend — não identificado, não atribuído a esta
-história, registrado aqui para quem investigar depois.
+A suíte frontend rodou 8 vezes nesta rodada (1 baseline + 6 mutações + 1 confirmação) sem
+nenhum falso negativo. O teste flaky suspeitado na rodada 1 (`1 failed | 365 passed` sem nome
+de teste, em uma execução isolada) **não se reproduziu**. Mantida a nota para quem investigar
+depois; não atribuído a esta história.
 
 ---
 
-## Verificação das alegações específicas do autor
+## Verificação das alegações do autor sobre os fixes
 
-| Alegação | Veredito | Evidência independente |
+| Alegação (commit `4d1c522`) | Veredito | Evidência independente |
 | --- | --- | --- |
-| "Fixtures com valores distintos **desde o início**, não como correção posterior" | ✅ **Verdadeira, e funcionou — parcialmente** | `git show c56a654` / `3d76e73`: `CRITERIOS_COMPLETOS` já nasce com 5 operandos e justificativas distintas; `criar_apolice` já nasce parametrizada por `situacao`/`vigencia_fim`; `criar_apolice` do teste HTTP já nasce com `coberturas=("alagamento","vendaval")` (duas, distintas) e `vigencia_inicio`/`vigencia_fim` distintas. Resultado empírico: **M9, M10, M13, M14 morrem** — exatamente a classe de mutante que sobreviveu em 5.1/5.2 (L-059). O caso `expirada` (`situacao="ativa"` + `estado_objetivo="expirada"`) é o que torna esses dois campos irmãos discrimináveis, e foi escrito na primeira passada. **Mas a disciplina parou nos campos `str`**: os três campos que só existem num valor (`participa_de_alertas`, `atende`, `canal_preferido`) continuam indiscriminados — L-061, não L-059 |
-| `_estado_objetivo` testado nos 4 valores nas duas camadas | ❌ **Parcialmente falsa** | Serviço: 4/4 (`ativa` `:141`, `cancelada` `:158`, `suspensa` `:168`, `expirada` `:181`). HTTP: **3/4** — `suspensa` não tem teste HTTP. Frontend: 2/4 (`cancelada`, `expirada`); `suspensa` tem rótulo em `SuperficieApolice.tsx:37` sem nenhum teste. Fronteira `vigencia_fim == hoje`: **não testada em nenhuma camada** — M1 sobrevive |
-| `obter_explicacao` nunca toca dado atual, testado nas duas camadas | ✅ **Verdadeira** | Os dois testes existem e **ambos** alteram a apólice no banco *depois* de criar o snapshot (`test_apolice_segurado.py:250-254`, `test_apolice_segurado_api.py:269-272`). M8 (vazamento deliberado do dado atual) morre nas duas. Além disso, por construção: `obter_explicacao` (`:155-172`) não referencia `self._portas.apolices` |
-| Filtro exclui "participação em alertas" com prova positiva | ✅ **Verdadeira** | `test_apolice_segurado.py:213-217`: o critério **está** no snapshot bruto (`CRITERIOS_COMPLETOS:42`) e o teste assere igualdade de conjunto exata **mais** `"participação em alertas" not in operandos`. M3 morre |
-| `404` idêntico entre "não existe" e "de outro segurado" | ⚠️ **Verdadeira na prática, testada em parte** | Ver nota B |
-| Desempate "apólice mais recente" com `criado_em` distinguíveis | ✅ **Verdadeira** | `test_repositorio_apolices.py:93-99`: `criado_em` forçado a `2020-01-01` e `2030-01-01` (distintos, e invertidos em relação à ordem de inserção — o teste não passa por acidente de ordem física). M4b morre |
-| Extensão de `RepositorioSegurados` é aditiva e não afeta 5.1 | ✅ **Verdadeira** | `git diff` de `repositorio_segurados.py`: `Segurado`, `buscar_por_id` e o `SELECT` original **inalterados byte a byte**; só há adição de `PreferenciasSegurado` e `buscar_preferencias_por_id`. Em `test_repositorio_segurados.py` a única mudança nos testes existentes é o `inserir_segurado` ganhar dois parâmetros **com default idêntico ao valor antigo** (`"whatsapp"`, `True`). `consultar_segurado_padrao` e `/segurados/padrao` não foram tocados; os 3 testes de 5.1 seguem verdes |
-| Ausência de promessa de cobertura verificada sistematicamente | ❌ **Falsa** | Ver nota A — é spot-check sobre a fixture do próprio teste |
-| Estado objetivo nunca renderizado como erro | ✅ **Verdadeira** | Verificado no DOM renderizado, não no comentário: `queryByRole('alert')` ausente em `cancelada` e `expirada`; MF1 (injeção de `role="alert"`) mata 2 testes |
+| Fix 1 — fronteira testada com data **relativa**, não literal | ✅ **Verdadeira** | `test_apolice_segurado.py:196` usa `date.today().isoformat()` e `:210` usa `(date.today() - timedelta(days=1)).isoformat()` — nenhum literal de calendário; os testes não expiram com o tempo. M1 morre |
+| Fix 2 — `apoliceSegurado.ts` deixou de ser 100 % mockado | ✅ **Verdadeira** | `apoliceSegurado.test.ts` (158 linhas, 6 testes) chama `getApolice`/`getExplicacaoApolice` **reais** com `fetch` stubado, cobrindo `200` (mapeamento completo), `404` (`problem+json` → `ErroApoliceSegurado`) e falha de rede. Os 10 campos têm valores mutuamente distintos e a asserção é `toEqual` do objeto inteiro — qualquer troca ou constante fixa morre (MF6, MF7, N3, N4) |
+| Fix 3 — os 3 campos agora aparecem nos dois valores | ✅ **Verdadeira** | `criar_segurado` (`:62-73`) passou a ser chamado com `canal_preferido="whatsapp", participa_de_alertas=False` em `:169`, e há um snapshot com `atende=False` em `:280-283`. M5/M6/M7 morrem |
+| Fix 4 — o teste frontend delimita a região, não varre a página | ✅ **Verdadeira** | `SuperficieApolice.test.tsx:229-233`: `findByRole('region',{name:'Como sua apólice participou desta decisão'})` + `within(...)`. Necessário porque `vendaval` **aparece legitimamente** na lista de Coberturas da apólice (`SuperficieApolice.tsx:205-212`) — uma busca de página inteira daria falso negativo. MF5 morre |
+| Fix 4 (metade backend) | ⚠️ **Parcialmente verdadeira** | A asserção existe (`:264`) mas é presa à fixture — ver **nota A**. Não bloqueia: a metade visível ao segurado está protegida |
+| Fix 5 — varredura sobre texto de produção, não constante do teste | ✅ **Verdadeira** | `test_apolice_segurado.py:259-312` chama `avaliar()` de verdade em 5 candidatos (base + 4 variantes via `dataclasses.replace`), cobrindo o ramo **negativo** de todos os 4 critérios relevantes à apólice, e assere `len(...) >= 20` para impedir que o teste esvazie silenciosamente. N2 (injeção de `"garantimos a indenização"` na produção) morre. Ressalva menor: o ramo negativo de `participação em alertas` não é varrido — mas esse critério é justamente o **filtrado para fora** da explicação da apólice, então não pertence a APOLICE-02 |
+| Fix 6 — `suspensa` coberta em HTTP e frontend | ✅ **Verdadeira** | `test_apolice_segurado_api.py:151-159` e `SuperficieApolice.test.tsx:137-145`. N1 e N5 morrem |
+| Fix 7 — `404` compara `codigo` e os dois status | ✅ **Verdadeira** | Rota da apólice: `:218-222` (era 2 asserções, agora 5). Rota da explicação: `:337-341`. `ocorrencia` fica de fora com razão (ecoa o `elegibilidade_id` que o solicitante já conhece) e `correlacao_id` é `uuid4()` por ocorrência, por construção. Confirmado por leitura que há **um único** construtor de `404` por rota (`http/apolice_segurado.py:121-142`) — não-enumeração garantida por construção, e agora também por asserção |
+| "Nenhum código de produção foi alterado" | ✅ **Verdadeira** | `git diff 39491c8..HEAD --stat`: em `src/`, só arquivos de teste. Os 7 achados eram de discriminação de teste, não de comportamento — a correção certa era exatamente essa |
 
 ---
 
@@ -152,204 +167,150 @@ história, registrado aqui para quem investigar depois.
 
 | Principle | Status |
 | --- | --- |
-| No features beyond what was asked | ✅ `buscar_por_id` em `RepositorioApolices` não é usado em produção, mas está explicitamente na interface do `design.md:61` e no Done-when de T1 |
+| No features beyond what was asked | ✅ `buscar_por_id` em `RepositorioApolices` não é usado em produção, mas está na interface do `design.md:61` e no Done-when de T1 |
 | No abstractions for single-use code | ✅ `PortasApoliceSegurado` + 3 `Protocol` seguem o padrão de 5.1/5.2 |
 | No unnecessary "flexibility" added | ✅ |
-| Only touched files required for task | ✅ 17 arquivos, todos no escopo declarado |
-| Didn't "improve" unrelated code | ✅ A extensão de `repositorio_segurados.py` é estritamente aditiva (verificado no diff) |
-| Matches existing patterns/style | ✅ Roteador com `problem+json`, `422` para UUID inválido, docstrings em pt-BR, `RespostaX` com `extra="forbid"` |
-| Would senior engineer approve? | ⚠️ Sim quanto à estrutura; não quanto à cobertura do cliente HTTP frontend (178 linhas novas, 0 exercitadas) |
-| Tests map to ACs and are non-shallow | ⚠️ Spot-check em APOLICE-02: o teste backend é raso (nota A) |
-| Spec-anchored outcome check | ⚠️ 6/6 com citação, 1 spec-precision gap |
-| Per-layer Coverage Expectation | ⚠️ Domínio 1:1 com os ACs (10 testes); rotas cobrem feliz + `cancelada` + `expirada` + 404 (duas origens) + 422 + snapshot divergente — mas **falta o caminho `False`/`suspensa`** exigido por L-061 |
-| Every test maps to a spec requirement | ✅ Os 29 testes backend e 12 frontend novos rastreiam a um AC ou edge case |
-| Documented guidelines followed | ✅ `AGENTS.md`, `README.md`, Test Coverage Matrix de `tasks.md:20-26` — exceto a linha "Superfície de Apólice" da matriz, cujo item "ausência de promessa de cobertura" é atendido só pelo aviso da UI |
+| Only touched files required for task | ✅ 17 arquivos na feature; nesta rodada, só 4 arquivos de teste |
+| Didn't "improve" unrelated code | ✅ A extensão de `repositorio_segurados.py` é estritamente aditiva (`Segurado`, `buscar_por_id` e o `SELECT` original inalterados byte a byte; `inserir_segurado` ganhou 2 parâmetros com default idêntico ao valor antigo) |
+| Matches existing patterns/style | ✅ Roteador com `problem+json`, `422` para UUID inválido, docstrings em pt-BR, `RespostaX` com `extra="forbid"`; `apoliceSegurado.test.ts` segue o padrão de `contexto.test.ts`/`elegibilidade.test.ts` |
+| Would senior engineer approve? | ✅ Sim — a lacuna estrutural da rodada 1 (178 linhas de cliente HTTP sem nenhum teste) está fechada |
+| Tests map to ACs and are non-shallow | ✅ Spot-check em APOLICE-02: o teste agora executa o avaliador de produção nos dois ramos de cada critério |
+| Spec-anchored outcome check | ✅ 6/6 com citação e valor igual ao da spec |
+| Per-layer Coverage Expectation | ✅ Domínio 1:1 com os ACs; rotas cobrem feliz + `cancelada`/`suspensa`/`expirada` + 404 (duas origens, duas rotas) + 422 + snapshot divergente + **caminhos `False`** (L-061 atendida nas 3 camadas) |
+| Every test maps to a spec requirement | ✅ Os 35 testes backend e 20 frontend da feature rastreiam a um AC, edge case ou Done-when |
+| Documented guidelines followed | ✅ `AGENTS.md`, `README.md`, Test Coverage Matrix de `tasks.md:20-26` — a linha "Superfície de Apólice" agora tem a coluna "ausência de promessa de cobertura" atendida em **duas** frentes (aviso da UI + texto de produção do avaliador) |
 
 **Nota de escopo (pré-existente, não regressão)**: `SuperficieApolice` não está ligada a
 `App.tsx` nem a `PerfilContexto.tsx` — a superfície é inalcançável no shell, condição já
 registrada como item (9) do `STATE.md` e comum a 5.1/5.2.
 
-**Nota de lint**: `npm run lint` sai com código 0, mas a superfície nova acrescenta **1
-warning** ao conjunto pré-existente (`SuperficieApolice.tsx:133`,
-`react(set-state-in-effect)`) — mesmo padrão das superfícies anteriores, não bloqueante.
+**Nota de lint**: `npm run lint` sai com código 0; a superfície nova acrescenta **1 warning**
+ao conjunto pré-existente (`react(set-state-in-effect)`), mesmo padrão das superfícies
+anteriores. Não bloqueante.
 
 ---
 
 ## Edge Cases
 
-- [ ] **Múltiplas coberturas, só uma relevante → a explicação destaca a avaliada, sem listar
-  as demais** — ❌ **NÃO coberto por asserção**. A fixture HTTP tem duas coberturas
-  (`test_apolice_segurado_api.py:83`) e o snapshot só cita `alagamento`, mas **nenhum teste
-  assere a ausência de `vendaval` na explicação**. MF5 (fazer a explicação listar todas as
-  coberturas da apólice) **sobrevive**. A propriedade vale hoje por construção, não por teste.
+- [x] **Múltiplas coberturas, só uma relevante → a explicação destaca a avaliada, sem listar
+  as demais** — ✅ **Coberto**. Frontend (o que o segurado vê):
+  `SuperficieApolice.test.tsx:214-234` — a asserção é **delimitada à região** da explicação
+  (`within(findByRole('region',{name:'Como sua apólice participou desta decisão'}))`),
+  necessário porque `vendaval` aparece legitimamente na lista de Coberturas da apólice; a
+  mutação MF5 (a seção passar a listar as coberturas da apólice) **morre**. Backend:
+  `test_apolice_segurado_api.py:264-266`, com a ressalva da **nota A** (asserção presa à
+  fixture). A propriedade visível ao segurado é verdadeira **e** protegida.
 - [x] **Sem nenhuma execução histórica → dados cadastrais normais, sem seção de "uso
-  preventivo" vazia** — coberto: `SuperficieApolice.test.tsx:208-212` — `findByText('RES-0001')`
+  preventivo" vazia** — ✅ **Coberto**: `SuperficieApolice.test.tsx:236-245` — `findByText('RES-0001')`
   presente, `queryByRole('heading',{name:'Como sua apólice participou desta decisão'})` ausente
   **e** `expect(getExplicacaoApoliceMock).not.toHaveBeenCalled()` (não há nem chamada de rede).
-- [x] **`vigencia_fim` passado → `expirada`, distinto de `cancelada`/`suspensa`** — coberto nas
-  três camadas: `test_apolice_segurado.py:180-181`, `test_apolice_segurado_api.py:160-161`,
-  `SuperficieApolice.test.tsx:133`. ⚠️ **Mas a fronteira do "passado" não é**: nenhum teste usa
-  `vigencia_fim == date.today()`, e M1 (`<` → `<=`) sobrevive.
+- [x] **`vigencia_fim` passado → `expirada`, distinto de `cancelada`/`suspensa`** — ✅
+  **Coberto nas três camadas** (`test_apolice_segurado.py:190-191`,
+  `test_apolice_segurado_api.py:187-188`, `SuperficieApolice.test.tsx:133`) **e agora também
+  na fronteira exata**: `vigencia_fim == date.today()` → `ativa` (`test_apolice_segurado.py:205`)
+  e `vigencia_fim == date.today() - 1 dia` → `expirada` (`:216`), ambos com data relativa.
+  A distinção de `suspensa` é verificada por N1.
 
 ---
 
 ## Gate Check
 
 - **Gate command (backend)**: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
-- **Result**: **1037 passed**, 0 failed, 0 skipped; ruff `All checks passed!`;
+- **Result**: **1043 passed**, 0 failed, 0 skipped; ruff `All checks passed!`;
   pyright `0 errors, 0 warnings, 0 informations` — **exit 0**
 - **Gate command (frontend)**: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
-- **Result**: **366 passed** (36 arquivos), 0 failed, 0 skipped; lint exit 0 (warnings
-  pré-existentes + 1 novo, ver acima); `vite build` ✓ — **exit 0**
-- **Test count before feature**: 1008 (backend) / 354 (frontend)
-- **Test count after feature**: 1037 (backend) / 366 (frontend)
-- **Delta**: **+29 backend** (5 repositório de apólices, 10 caso de uso, 12 rotas, 2
-  preferências de segurado) / **+12 frontend** — nenhum teste removido, nenhuma asserção
-  existente enfraquecida (verificado no diff de `test_repositorio_segurados.py`: só defaults
-  aditivos)
+- **Result**: **374 passed** (37 arquivos), 0 failed, 0 skipped; lint exit 0 (warnings
+  pré-existentes + 1 novo); `vite build ✓ built in 229ms` — **exit 0**
+- **Test count antes da feature**: 1008 (backend) / 354 (frontend)
+- **Test count após a rodada 1**: 1037 / 366
+- **Test count após a rodada 2**: **1043 / 374**
+- **Delta da feature**: **+35 backend / +20 frontend**
+- **Delta desta rodada**: **+6 backend** (2 de fronteira de vigência, `suspensa` HTTP,
+  canal/participação não-padrão, `atende=False`, justificativas reais do avaliador) /
+  **+8 frontend** (6 no novo `apoliceSegurado.test.ts`, `suspensa`, Edge Case 1)
+- **Test Integrity**: nenhum teste removido. O antigo
+  `test_obter_explicacao_nunca_contem_palavra_de_cobertura…` **não foi apagado** — foi
+  dividido em dois (`test_justificativas_reais_do_avaliador_…` sobre texto de produção +
+  `test_obter_explicacao_repassa_a_justificativa_de_producao_sem_reescreve_la` sobre
+  pass-through), ambos **mais fortes** que o original. Nenhuma asserção existente foi
+  enfraquecida (verificado no diff completo `39491c8..HEAD`).
 - **Skipped tests**: nenhum
 - **Failures**: nenhuma
 
-Ambos os gates passam. O FAIL vem do sensor, não do gate.
+Ambos os gates passam, e desta vez o sensor também.
 
 ---
 
 ## Fix Plans
 
-### Fix 1 (Blocker): fronteira de vigência não discriminada — M1
+Nenhum fix bloqueante. Um item registrado como dívida menor, sem task de correção:
 
-- **Root cause**: `_estado_objetivo` (`aplicacao/apolice_segurado.py:90`) usa
-  `vigencia_fim < hoje`, e os testes só usam datas muito no passado (`2020-01-01`) ou muito no
-  futuro (`2030-12-31`). Trocar `<` por `<=` — que passaria a marcar como `expirada` uma
-  apólice que **vence hoje**, ainda dentro da vigência pela definição da spec ("fora do período
-  de vigência atual") — não quebra nenhum teste.
-- **Fix task**: em `test_apolice_segurado.py`, acrescentar dois casos com data relativa:
-  `vigencia_fim = date.today()` → `estado_objetivo == "ativa"`; e
-  `vigencia_fim = date.today() - timedelta(days=1)` → `estado_objetivo == ESTADO_EXPIRADA`.
-  Usar `date.today()` calculado no teste (não literal), para não expirar com o calendário.
-- **Verify**: reaplicar M1 (`<` → `<=`) e confirmar que a suíte falha.
-- **Priority**: Blocker (é a única regra de negócio nova com aritmética de data).
+### Observação 1 (Minor, sem fix task): asserção backend do Edge Case 1 presa à fixture
 
-### Fix 2 (Blocker): mapeamento de campos do cliente HTTP frontend sem nenhuma cobertura — MF6/MF7
-
-- **Root cause**: `src/frontend/src/api/apoliceSegurado.ts` (178 linhas novas:
-  `paraApolice`, `paraCriterio`, `paraExplicacao`, `erroDeResultado`, `FALHA_DE_REDE`) é
-  importado por um único teste, que o **mocka inteiro** (`SuperficieApolice.test.tsx:18-22`).
-  Nenhum caminho de teste executa a tradução `snake_case → camelCase`. Trocar `numero` por
-  `tipo` ou `justificativa` por `operando` no mapeamento não quebra nada.
-- **Fix task**: criar `src/frontend/src/api/apoliceSegurado.test.ts` no padrão já existente de
-  `contexto.test.ts` / `elegibilidade.test.ts` (9 dos módulos de `api/` têm esse teste; os de
-  5.1/5.2 são a exceção): resposta `200` com **todos** os campos em valores mutuamente
-  distintos, asserindo cada campo do objeto traduzido; `404` com corpo `problem+json`
-  produzindo `ErroApoliceSegurado` com `status === 404` e `codigo` correto; e falha de rede
-  (`fetch` lançando) produzindo `FALHA_DE_REDE`.
-- **Verify**: reaplicar MF6 e MF7 e confirmar que a suíte falha.
-- **Priority**: Blocker (L-059 recorrendo numa terceira camada).
-
-### Fix 3 (Major): campos de valor único no contrato HTTP — M5/M6/M7
-
-- **Root cause**: `participa_de_alertas`, `atende` e `canal_preferido` só aparecem com **um**
-  valor em toda a suíte backend (`True`, `True`, `"sms"`). Fixá-los como constante em
-  `_resposta_apolice`/`_resposta_criterio` não quebra nada. Exatamente L-061.
-- **Fix task**: em `test_apolice_segurado_api.py`, acrescentar um caso com
-  `criar_segurado(..., canal_preferido="whatsapp", participa_de_alertas=False)` (o helper
-  `:62-73` **já aceita** os dois parâmetros — nenhum teste os usa) asserindo
-  `corpo["participa_de_alertas"] is False` e `corpo["canal_preferido"] == "whatsapp"`; e um
-  caso de explicação com um `Criterio(..., atende=False, ...)` no snapshot, asserindo
-  `criterio["atende"] is False`. Espelhar o caso `atende=False` também em
-  `test_apolice_segurado.py`.
-- **Verify**: reaplicar M5, M6 e M7 e confirmar que a suíte falha nos três.
-- **Priority**: Major.
-
-### Fix 4 (Major): Edge Case 1 sem asserção negativa — MF5
-
-- **Root cause**: nenhum teste assere que a explicação **não** lista as coberturas que não
-  participaram da regra. A fixture já tem o material (`apoliceBase` com
-  `['alagamento','vendaval']` e `explicacaoBase` citando só `alagamento`), mas falta a asserção.
-- **Fix task**: em `SuperficieApolice.test.tsx`, no teste da explicação, delimitar a seção
-  (`within(screen.getByRole('region',{name:'Como sua apólice participou desta decisão'}))`) e
-  asserir `queryByText('vendaval')` **ausente** dentro dela, com `getByText('alagamento')`
-  presente. Espelhar no backend: `test_apolice_segurado_api.py` já cria a apólice com duas
-  coberturas — asserir que os `criterios` da explicação não mencionam `vendaval`.
-- **Verify**: reaplicar MF5 e confirmar que a suíte falha.
-- **Priority**: Major (é um edge case explicitamente listado na spec).
-
-### Fix 5 (Minor): teste de "sem promessa de cobertura" é vacuous — nota A
-
-- **Root cause**: `test_apolice_segurado.py:220-231` varre justificativas escritas pelo próprio
-  teste; não toca no texto de produção.
-- **Fix task**: mover a varredura de palavras proibidas para um teste sobre as justificativas
-  **reais** — construir os `Criterio` via `avaliador_elegibilidade`, cobrindo os ramos
-  atende/não-atende dos 4 operandos relevantes, e asserir a ausência das palavras no texto
-  produzido. Manter a lista de palavras proibidas num único lugar.
-- **Verify**: mutar uma justificativa de `avaliador_elegibilidade.py` para conter
-  `"garantimos a indenização"` e confirmar que a suíte falha.
-- **Priority**: Minor (a propriedade é verdadeira hoje; falta o guarda-corpo).
-
-### Fix 6 (Minor): `suspensa` sem cobertura HTTP e frontend
-
-- **Root cause**: `situacao='suspensa'` só é exercitada no caso de uso
-  (`test_apolice_segurado.py:168`); o rótulo `suspensa: 'Suspensa'`
-  (`SuperficieApolice.tsx:37`) não tem teste.
-- **Fix task**: um caso HTTP com `situacao="suspensa"` asserindo
-  `estado_objetivo == "suspensa"`, e um caso frontend asserindo `findByText('Suspensa')` +
-  `queryByRole('alert')` ausente.
-- **Verify**: remover a entrada `suspensa` do mapa de rótulos e confirmar falha.
-- **Priority**: Minor.
-
-### Fix 7 (Minor): comparação de `404` incompleta — nota B
-
-- **Root cause**: `test_apolice_segurado_api.py:254-256` não compara `codigo` nem assere o
-  status da segunda resposta.
-- **Fix task**: acrescentar `assert resposta_inexistente.status_code == 404` e
-  `assert corpo_outro["codigo"] == corpo_inexistente["codigo"] == "explicacao_nao_encontrada"`;
-  fazer o mesmo par explícito para a rota da apólice.
-- **Priority**: Minor.
+- **O quê**: `test_apolice_segurado_api.py:264` (`"vendaval" not in valores_observados`) vale
+  para a fixture escrita à mão, mas não para o `valor_observado` produzido por
+  `avaliar()` (`"alagamento, vendaval"`).
+- **Por que não é fix agora**: a propriedade da spec (a explicação destacar só a cobertura
+  avaliada) é verdadeira e **testada** na superfície visível ao segurado, que renderiza apenas
+  `operando` + `justificativa`; a justificativa de produção nomeia só a cobertura exigida.
+- **Se alguém tocar nisso**: ou construir a fixture a partir de `avaliar()` e ajustar a
+  asserção ao contrato real de `valor_observado`, ou trocá-la por uma asserção sobre a
+  `justificativa` (que é o campo com essa garantia). Registrado como lição.
 
 ---
 
 ## Requirement Traceability Update
 
-| Requirement | Previous Status | New Status |
+| Requirement | Rodada 1 | Rodada 2 |
 | --- | --- | --- |
-| APOLICE-01 | Implementing | ⚠️ Needs Fix (Fix 2, Fix 3, Fix 6) |
-| APOLICE-02 | Implementing | ⚠️ Needs Fix (Fix 4, Fix 5) |
-| APOLICE-03 | Implementing | ⚠️ Needs Fix (Fix 1, Fix 6) |
-| APOLICE-04 | Implementing | ✅ Verified (Fix 7 opcional, menor) |
-| APOLICE-05 | Implementing | ✅ Verified |
-| APOLICE-06 | Implementing | ✅ Verified |
+| APOLICE-01 | ⚠️ Needs Fix (Fix 2, 3, 6) | ✅ **Verified** |
+| APOLICE-02 | ⚠️ Needs Fix (Fix 4, 5) | ✅ **Verified** |
+| APOLICE-03 | ⚠️ Needs Fix (Fix 1, 6) | ✅ **Verified** |
+| APOLICE-04 | ✅ Verified | ✅ **Verified** (reforçado por Fix 7) |
+| APOLICE-05 | ✅ Verified | ✅ **Verified** |
+| APOLICE-06 | ✅ Verified | ✅ **Verified** |
 
 ---
 
 ## Summary
 
-**Overall**: ❌ Not Ready
+**Overall**: ✅ **Ready**
 
-**Spec-anchored check**: 6/6 ACs com `file:line` e valor asserido igual ao da spec;
-1 spec-precision gap (APOLICE-02), 1 PASS parcial (APOLICE-01 no contrato HTTP)
-**Sensor**: **13/20 mutations killed, 7 survived**
-**Gate**: backend 1037 passed / ruff 0 / pyright 0 (exit 0); frontend 366 passed / lint 0 /
+**Spec-anchored check**: **6/6 ACs** com `file:line` e valor asserido igual ao da spec;
+0 spec-precision gaps; 0 PASS parciais
+**Sensor**: **12/12 mutações mortas** nesta rodada (7 re-injeções da rodada 1 + 6 novas —
+uma delas, N1, contada uma vez mas morta em duas camadas); 26 injeções distintas acumuladas
+na história, todas hoje mortas
+**Gate**: backend 1043 passed / ruff 0 / pyright 0 (exit 0); frontend 374 passed / lint 0 /
 build ok (exit 0)
 
-**What works**:
-- A propriedade mais delicada da história — **APOLICE-05, o isolamento snapshot × dado atual**
-  — está genuinamente coberta nas **duas** camadas, com os testes alterando a apólice no banco
-  *depois* de criar o snapshot; a injeção de vazamento (M8) morre nos dois lugares.
-- O filtro de critérios prova a **exclusão** de "participação em alertas", não só a presença
-  dos quatro incluídos (M3 morto).
-- A alegação do autor sobre valores de fixture distintos **desde o início** é verdadeira e
-  matou a classe de mutante que sobreviveu em 5.1 e 5.2 (M9/M10/M13/M14) — L-059 não recorreu
-  nos campos `str` do backend.
-- A extensão de `RepositorioSegurados` é comprovadamente aditiva; nada de 5.1 mudou.
-- O desempate de "apólice mais recente" é exercitado com `criado_em` distintos e invertidos em
-  relação à ordem de inserção (M4b morto).
-- `role="alert"` ausente para `cancelada`/`expirada` verificado no DOM renderizado (MF1 morto).
+**O que funciona**:
+- **A fronteira de vigência** (`vigencia_fim == hoje` ainda é `ativa`; ontem já é `expirada`)
+  agora é testada com data **relativa**, nos dois lados do `<`. O off-by-one real da rodada 1
+  está fechado (M1 morto).
+- **O cliente HTTP frontend** (`api/apoliceSegurado.ts`, 178 linhas) deixou de ser inteiramente
+  mockado: 6 testes exercitam a tradução real com 10 campos em valores mutuamente distintos.
+  Quatro mutações independentes de mapeamento morrem (MF6, MF7, N3, N4).
+- **APOLICE-02 passou de garantia por inspeção a garantia por teste**: a varredura de palavras
+  proibidas roda sobre ≥20 justificativas produzidas pelo `avaliador_elegibilidade` real,
+  cobrindo o ramo negativo dos 4 critérios relevantes. Injetar `"garantimos a indenização"` na
+  produção agora quebra a suíte (N2 morto).
+- **L-061 atendida nas três camadas**: `participa_de_alertas`, `canal_preferido` e `atende`
+  aparecem nos dois valores no serviço, no HTTP e no cliente. Fixar qualquer um deles como
+  constante mata a suíte.
+- **O Edge Case 1** ganhou asserção negativa **delimitada por região** — a escolha certa, já
+  que `vendaval` aparece legitimamente na lista de Coberturas da apólice e uma busca de página
+  inteira daria falso negativo.
+- **A não-enumeração do `404`** agora fixa `codigo` e os dois status nas **duas** rotas, além
+  de ser garantida por construção (um único construtor de `404` por rota).
+- **APOLICE-05, a propriedade mais delicada da história**, segue coberta nas duas camadas com
+  os testes alterando a apólice no banco *depois* de criar o snapshot.
+- **Nenhum código de produção precisou mudar** — confirmação independente de que os 7 achados
+  eram lacunas de discriminação de teste, não defeitos de comportamento.
 
-**Issues found** (ranqueadas): Fix 1 (fronteira `vigencia_fim == hoje`, Blocker) · Fix 2
-(cliente HTTP frontend sem nenhuma cobertura, Blocker) · Fix 3 (3 campos de valor único no
-contrato HTTP, Major) · Fix 4 (Edge Case 1 sem asserção negativa, Major) · Fix 5 (teste de
-"sem promessa de cobertura" vacuous, Minor) · Fix 6 (`suspensa` sem cobertura HTTP/frontend,
-Minor) · Fix 7 (comparação de `404` incompleta, Minor).
+**Issues found**: nenhum bloqueante. Uma observação menor (nota A): a asserção backend do
+Edge Case 1 é presa à fixture e divergiria de dado real; a metade que o segurado vê está
+correta e protegida.
 
-**Next steps**: rotear os 7 fixes a um implementador (Fix 1 e Fix 2 são bloqueantes) e
-re-verificar — esta é a rodada 1 de no máximo 3.
+**Next steps**: história pronta para fechamento. Atualizar a Requirement Traceability de
+`spec.md` para `Verified` nos 6 requisitos e fechar a 5.3 no `STATE.md`.
