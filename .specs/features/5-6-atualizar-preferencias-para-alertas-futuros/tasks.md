@@ -98,12 +98,14 @@ T4 → T5
 
 **Done when**:
 
-- [ ] `versao_esperada` correta atualiza e incrementa a versão
-- [ ] `versao_esperada` incorreta levanta `ConflitoVersao`, sem mutar a linha
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `versao_esperada` correta atualiza e incrementa a versão
+- [x] `versao_esperada` incorreta levanta `ConflitoVersao`, sem mutar a linha
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
+
+**Status**: ✅ Complete — `PreferenciasSegurado` ganhou `versao` (extensão retrocompatível: `apolice_segurado.py` só lê `canal_preferido`/`participa_de_alertas`, não constrói o dataclass).
 
 ---
 

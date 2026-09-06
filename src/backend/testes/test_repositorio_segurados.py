@@ -3,11 +3,15 @@
 from pathlib import Path
 from uuid import uuid4
 
+import pytest
+
 from central_preventiva.adaptadores.persistencia.conexao import abrir_conexao
 from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigracoes
 from central_preventiva.adaptadores.persistencia.repositorio_segurados import (
+    ConflitoVersao,
     RepositorioSegurados,
 )
+from central_preventiva.dominio.validador_saida_canal import Canal
 
 
 def preparar_banco(tmp_path: Path) -> Path:
@@ -76,6 +80,7 @@ def test_buscar_preferencias_por_id_encontra_canal_e_participacao(tmp_path: Path
     assert encontrado is not None
     assert encontrado.canal_preferido == "sms"
     assert encontrado.participa_de_alertas is False
+    assert encontrado.versao == 1
 
 
 def test_buscar_preferencias_por_id_devolve_none_quando_o_id_nao_existe(
@@ -86,3 +91,53 @@ def test_buscar_preferencias_por_id_devolve_none_quando_o_id_nao_existe(
     encontrado = RepositorioSegurados(caminho).buscar_preferencias_por_id(uuid4())
 
     assert encontrado is None
+
+
+def test_atualizar_preferencias_com_versao_correta_persiste_e_incrementa(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    identificador = uuid4()
+    inserir_segurado(
+        caminho, identificador, "Pessoa Teste", canal_preferido="whatsapp",
+        participa_de_alertas=True,
+    )
+
+    atualizado = RepositorioSegurados(caminho).atualizar_preferencias(
+        identificador,
+        versao_esperada=1,
+        canal_preferido=Canal.SMS,
+        participa_de_alertas=False,
+    )
+
+    assert atualizado.canal_preferido == "sms"
+    assert atualizado.participa_de_alertas is False
+    assert atualizado.versao == 2
+
+    persistido = RepositorioSegurados(caminho).buscar_preferencias_por_id(identificador)
+    assert persistido == atualizado
+
+
+def test_atualizar_preferencias_com_versao_incorreta_levanta_conflito_sem_mutar(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    identificador = uuid4()
+    inserir_segurado(
+        caminho, identificador, "Pessoa Teste", canal_preferido="whatsapp",
+        participa_de_alertas=True,
+    )
+
+    with pytest.raises(ConflitoVersao):
+        RepositorioSegurados(caminho).atualizar_preferencias(
+            identificador,
+            versao_esperada=99,
+            canal_preferido=Canal.SMS,
+            participa_de_alertas=False,
+        )
+
+    inalterado = RepositorioSegurados(caminho).buscar_preferencias_por_id(identificador)
+    assert inalterado is not None
+    assert inalterado.canal_preferido == "whatsapp"
+    assert inalterado.participa_de_alertas is True
+    assert inalterado.versao == 1
