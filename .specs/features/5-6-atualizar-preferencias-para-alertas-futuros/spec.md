@@ -94,13 +94,13 @@ Carlos hoje não tem nenhuma forma de alterar seu canal preferencial ou sua part
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| PREFS-01 | P1: Editar canal e participação com concorrência e idempotência | T4/T5 | Implementing |
-| PREFS-02 | P1: Editar canal e participação com concorrência e idempotência | T1/T2/T3/T5 | Implementing |
-| PREFS-03 | P1: Editar canal e participação com concorrência e idempotência | T3/T4 | Implementing |
-| PREFS-04 | P1: Efeito só futuro e preservação de histórico | T2 | Implementing |
-| PREFS-05 | P1: Efeito só futuro e preservação de histórico | T5 | Implementing |
-| PREFS-06 | P2: Falha honesta e formulário acessível | T3/T5 | Implementing |
-| PREFS-07 | P2: Falha honesta e formulário acessível | T5 | Implementing |
+| PREFS-01 | P1: Editar canal e participação com concorrência e idempotência | T4/T5 | Verified |
+| PREFS-02 | P1: Editar canal e participação com concorrência e idempotência | T1/T2/T3/T5 | Verified |
+| PREFS-03 | P1: Editar canal e participação com concorrência e idempotência | T3/T4 | Verified |
+| PREFS-04 | P1: Efeito só futuro e preservação de histórico | T2 | Verified (spec-precision gap — ver validation.md: efeito ponta a ponta na próxima execução herda a garantia estrutural de 2.5, sem teste dedicado nesta história) |
+| PREFS-05 | P1: Efeito só futuro e preservação de histórico | T5 | Verified |
+| PREFS-06 | P2: Falha honesta e formulário acessível | T3/T5 | Verified |
+| PREFS-07 | P2: Falha honesta e formulário acessível | T5 | Verified |
 
 **ID format:** `PREFS-NN`
 

@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 77,
+  "next_id": 79,
   "lessons": [
     {
       "id": "L-001",
@@ -604,17 +604,19 @@
       "features": [
         "3-2-gerar-mensagens-automaticamente-para-cada-canal",
         "3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens",
-        "5-2-consultar-alertas-ativos-e-anteriores"
+        "5-2-consultar-alertas-ativos-e-anteriores",
+        "5-6-atualizar-preferencias-para-alertas-futuros"
       ],
-      "recurrence": 3,
+      "recurrence": 4,
       "harmful": 0,
       "evidence": [
         "SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/ia/agente_redator.py:8 (design)",
         "src/backend/central_preventiva/adaptadores/persistencia/repositorio_avaliacoes_criticas.py:10 (SPEC_DEVIATION: obter_por_versao devolve RegistroAvaliacaoCritica, nao AvaliacaoCritica) (repo-layer)",
-        "validation.md SPEC_DEVIATION - aplicacao/lista_alertas_segurado.py:9-13 vs design.md:75 (design)"
+        "validation.md SPEC_DEVIATION - aplicacao/lista_alertas_segurado.py:9-13 vs design.md:75 (design)",
+        "tasks.md T2 SPEC_DEVIATION - src/backend/central_preventiva/adaptadores/persistencia/repositorio_segurados.py:12-21 (design)"
       ],
       "created": "2026-09-03T17:33:20Z",
-      "last_seen": "2026-09-05T23:01:41Z"
+      "last_seen": "2026-09-06T23:04:54Z"
     },
     {
       "id": "L-034",
@@ -627,18 +629,20 @@
         "3-2-gerar-mensagens-automaticamente-para-cada-canal",
         "3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens",
         "3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica",
-        "3-6-confirmar-e-executar-a-simulacao-sem-envio-real"
+        "3-6-confirmar-e-executar-a-simulacao-sem-envio-real",
+        "5-6-atualizar-preferencias-para-alertas-futuros"
       ],
-      "recurrence": 4,
+      "recurrence": 5,
       "harmful": 0,
       "evidence": [
         "SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence)",
         "src/backend/central_preventiva/adaptadores/persistencia/migracoes/0011_avaliacoes_criticas.sql:3 (SPEC_DEVIATION: design.md nomeia 0009) (persistencia)",
         "SPEC_DEVIATION - src/backend/central_preventiva/adaptadores/persistencia/migracoes/0012_excecoes_mensagem.sql:3 (persistence)",
-        "migracoes/0014_entregas_simuladas.sql:3-5 (SPEC_DEVIATION) — design.md:84 fixa 0012 (persistence)"
+        "migracoes/0014_entregas_simuladas.sql:3-5 (SPEC_DEVIATION) — design.md:84 fixa 0012 (persistence)",
+        "tasks.md T1 SPEC_DEVIATION - src/backend/central_preventiva/adaptadores/persistencia/migracoes/0016_versao_segurados.sql:1-7 (persistence)"
       ],
       "created": "2026-09-03T17:33:20Z",
-      "last_seen": "2026-09-04T20:20:12Z"
+      "last_seen": "2026-09-06T23:04:54Z"
     },
     {
       "id": "L-035",
@@ -1401,6 +1405,42 @@
       ],
       "created": "2026-09-06T21:31:49Z",
       "last_seen": "2026-09-06T21:31:49Z"
+    },
+    {
+      "id": "L-077",
+      "key": "spec_deviation::when a design gives a put optimistic concurrency via versao esperada it must also specify the paired get the client needs to read the current version before the first edit",
+      "text": "When a design gives a PUT optimistic concurrency via versao_esperada, it must also specify the paired GET the client needs to read the current version before the first edit.",
+      "signal": "spec_deviation",
+      "scope": "adaptadores/http",
+      "status": "candidate",
+      "features": [
+        "5-6-atualizar-preferencias-para-alertas-futuros"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tasks.md T4 SPEC_DEVIATION - src/backend/central_preventiva/adaptadores/http/preferencias_segurado.py:8-12 (adaptadores/http)"
+      ],
+      "created": "2026-09-06T23:05:02Z",
+      "last_seen": "2026-09-06T23:05:02Z"
+    },
+    {
+      "id": "L-078",
+      "key": "spec_precision_gap::when design md argues an ac is already guaranteed by an earlier story s architecture add at least one integration test in the current feature that exercises the new write against that guarantee instead of relying only on the earlier story s own tests",
+      "text": "When design.md argues an AC is already guaranteed by an earlier story's architecture, add at least one integration test in the current feature that exercises the new write against that guarantee instead of relying only on the earlier story's own tests.",
+      "signal": "spec_precision_gap",
+      "scope": "aplicacao",
+      "status": "candidate",
+      "features": [
+        "5-6-atualizar-preferencias-para-alertas-futuros"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md P1: Efeito so futuro e preservacao de historico AC1 - PREFS-04 (aplicacao)"
+      ],
+      "created": "2026-09-06T23:05:03Z",
+      "last_seen": "2026-09-06T23:05:03Z"
     }
   ]
 }

@@ -39,16 +39,16 @@ Corroborated across multiple features. Safe to apply as guidance.
 - last seen: 2026-09-02T14:42:34Z
 
 ### L-033 - A return type declared in design.md must carry every field the acceptance criteria require to be persisted.
-- signal: `spec_deviation` · recurrence: 3 feature(s) · scope: `design` · harmful: 0
-- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal, 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens, 5-2-consultar-alertas-ativos-e-anteriores
-- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/ia/agente_redator.py:8 (design) (+2 more)
-- last seen: 2026-09-05T23:01:41Z
+- signal: `spec_deviation` · recurrence: 4 feature(s) · scope: `design` · harmful: 0
+- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal, 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens, 5-2-consultar-alertas-ativos-e-anteriores, 5-6-atualizar-preferencias-para-alertas-futuros
+- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/ia/agente_redator.py:8 (design) (+3 more)
+- last seen: 2026-09-06T23:04:54Z
 
 ### L-034 - Do not fix a migration number in design.md; assign the next number at implementation time from the migrations directory.
-- signal: `spec_deviation` · recurrence: 4 feature(s) · scope: `persistence` · harmful: 0
-- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal, 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens, 3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica, 3-6-confirmar-e-executar-a-simulacao-sem-envio-real
-- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence) (+3 more)
-- last seen: 2026-09-04T20:20:12Z
+- signal: `spec_deviation` · recurrence: 5 feature(s) · scope: `persistence` · harmful: 0
+- features: 3-2-gerar-mensagens-automaticamente-para-cada-canal, 3-3-avaliar-a-qualidade-e-a-seguranca-das-mensagens, 3-4-regenerar-mensagens-e-registrar-a-proveniencia-agentica, 3-6-confirmar-e-executar-a-simulacao-sem-envio-real, 5-6-atualizar-preferencias-para-alertas-futuros
+- evidence: SPEC_DEVIATION em src/backend/central_preventiva/adaptadores/persistencia/migracoes/0010_mensagens.sql:3 (persistence) (+4 more)
+- last seen: 2026-09-06T23:04:54Z
 
 ### L-059 - In a route's happy-path test, assert every field of the response contract; assertions on the use case's DTO do not discriminate the route's own field mapping.
 - signal: `surviving_mutant` · recurrence: 2 feature(s) · scope: `routes` · harmful: 0
@@ -467,6 +467,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - features: 5-5-consultar-o-historico-de-comunicados
 - evidence: adaptadores/persistencia/repositorio_entregas_simuladas.py:21-26 (backend-persistencia)
 - last seen: 2026-09-06T21:31:49Z
+
+### L-077 - When a design gives a PUT optimistic concurrency via versao_esperada, it must also specify the paired GET the client needs to read the current version before the first edit.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `adaptadores/http` · harmful: 0
+- features: 5-6-atualizar-preferencias-para-alertas-futuros
+- evidence: tasks.md T4 SPEC_DEVIATION - src/backend/central_preventiva/adaptadores/http/preferencias_segurado.py:8-12 (adaptadores/http)
+- last seen: 2026-09-06T23:05:02Z
+
+### L-078 - When design.md argues an AC is already guaranteed by an earlier story's architecture, add at least one integration test in the current feature that exercises the new write against that guarantee instead of relying only on the earlier story's own tests.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `aplicacao` · harmful: 0
+- features: 5-6-atualizar-preferencias-para-alertas-futuros
+- evidence: validation.md P1: Efeito so futuro e preservacao de historico AC1 - PREFS-04 (aplicacao)
+- last seen: 2026-09-06T23:05:03Z
 
 ## Quarantined (failed when applied - ignore)
 
