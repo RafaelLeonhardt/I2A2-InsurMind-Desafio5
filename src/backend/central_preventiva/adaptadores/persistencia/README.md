@@ -61,6 +61,7 @@ Pessoas seguradas sintéticas da demonstração.
 | `codigo_ibge_area` | `VARCHAR` | `NOT NULL` |
 | `canal_preferido` | `VARCHAR` | `NOT NULL`, `CHECK` em `whatsapp`, `email`, `sms` |
 | `participa_de_alertas` | `BOOLEAN` | `NOT NULL`, padrão `true` |
+| `versao` | `INTEGER` | `NOT NULL`, padrão `1` — concorrência otimista (migração `0016`, História 5.6) |
 | `criado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
 | `atualizado_em` | `TIMESTAMP` | `NOT NULL`, timestamp, padrão `now()` |
 
@@ -599,3 +600,14 @@ adicional é necessário.
 `segurado_id` é snapshot, não recalculado: identifica de quem foi a visualização mesmo que o
 contexto demonstrativo alterne o segurado ativo depois (História 5.7), sem misturar visualizações
 entre segurados sintéticos.
+
+## Coluna nova na migração `0016_versao_segurados`
+
+Adiciona `versao` a `segurados` (História 5.6, PREFS-02): a primeira escrita legítima nessa
+tabela (edição de canal preferencial/participação em alertas pelo próprio segurado) precisa de
+concorrência otimista, mesmo padrão já usado em `regras.versao`/`execucao_preventiva.versao`. O
+`design.md` da história numera o arquivo `0014_versao_segurados.sql`; `0014`/`0015` já haviam
+sido consumidos pelas Histórias 3.1–3.5/4.3, então a migração entrou como `0016` — mesma
+renumeração já registrada desde a 2.4. Recreate-and-copy (AD-015), já que DuckDB não suporta
+`ALTER TABLE ADD COLUMN ... NOT NULL` sobre uma tabela com linhas existentes; todo segurado já
+semeado recebe `versao = 1`.

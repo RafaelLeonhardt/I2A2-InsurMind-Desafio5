@@ -94,19 +94,19 @@ Carlos hoje não tem nenhuma forma de alterar seu canal preferencial ou sua part
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| PREFS-01 | P1: Editar canal e participação com concorrência e idempotência | Design | Pending |
-| PREFS-02 | P1: Editar canal e participação com concorrência e idempotência | Design | Pending |
-| PREFS-03 | P1: Editar canal e participação com concorrência e idempotência | Design | Pending |
-| PREFS-04 | P1: Efeito só futuro e preservação de histórico | Design | Pending |
-| PREFS-05 | P1: Efeito só futuro e preservação de histórico | Design | Pending |
-| PREFS-06 | P2: Falha honesta e formulário acessível | Design | Pending |
-| PREFS-07 | P2: Falha honesta e formulário acessível | Design | Pending |
+| PREFS-01 | P1: Editar canal e participação com concorrência e idempotência | T4/T5 | Pending |
+| PREFS-02 | P1: Editar canal e participação com concorrência e idempotência | T1/T2/T3/T5 | Implementing |
+| PREFS-03 | P1: Editar canal e participação com concorrência e idempotência | T3/T4 | Pending |
+| PREFS-04 | P1: Efeito só futuro e preservação de histórico | T2 | Pending |
+| PREFS-05 | P1: Efeito só futuro e preservação de histórico | T5 | Pending |
+| PREFS-06 | P2: Falha honesta e formulário acessível | T3/T5 | Pending |
+| PREFS-07 | P2: Falha honesta e formulário acessível | T5 | Pending |
 
 **ID format:** `PREFS-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 7 total, 0 mapped to tasks, 7 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped
 
 ---
 

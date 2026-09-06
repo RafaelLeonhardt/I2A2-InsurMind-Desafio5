@@ -87,8 +87,8 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
 
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
-    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
-    assert resultado.versao_final == 15
+    assert resultado.versoes_aplicadas == (1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)
+    assert resultado.versao_final == 16
     assert tabelas(caminho) == TABELAS_ESPERADAS
     assert registros(caminho) == [
         (1, "schema inicial"),
@@ -106,6 +106,7 @@ def test_aplica_migracao_inicial_criando_todas_as_tabelas(tmp_path: Path) -> Non
         (13, "decisoes humanas"),
         (14, "entregas simuladas"),
         (15, "visualizacoes comunicado"),
+        (16, "versao segurados"),
     ]
 
 
@@ -116,7 +117,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
     resultado = ExecutorMigracoes(caminho).aplicar_pendentes()
 
     assert resultado.versoes_aplicadas == ()
-    assert resultado.versao_final == 15
+    assert resultado.versao_final == 16
     assert registros(caminho) == [
         (1, "schema inicial"),
         (2, "meteorologia"),
@@ -133,6 +134,7 @@ def test_reexecucao_sobre_banco_atual_nao_aplica_nada(tmp_path: Path) -> None:
         (13, "decisoes humanas"),
         (14, "entregas simuladas"),
         (15, "visualizacoes comunicado"),
+        (16, "versao segurados"),
     ]
 
 
@@ -1295,3 +1297,64 @@ def test_documentacao_versionada_descreve_a_tabela_de_visualizacao_comunicado() 
         "`NOT NULL`, `UNIQUE`, chave estrangeira lógica para `entregas_simuladas(id)`"
         in documento
     )
+
+
+def test_migracao_versao_segurados_recria_tabela_com_backfill_um(tmp_path: Path) -> None:
+    """A migração `0016` acrescenta `versao` a `segurados` (AD-015, recreate-and-copy):
+    uma linha semeada antes da migração ganha `versao = 1` (História 5.6, PREFS-02)."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho, list(MIGRACOES[:15])).aplicar_pendentes()
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO segurados (id, nome, codigo_ibge_area, canal_preferido, "
+            "participa_de_alertas) VALUES "
+            "('99999999-9999-9999-9999-999999999999', 'Teste', '9990001', 'sms', true)"
+        )
+
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        linha = conexao.execute(
+            "SELECT canal_preferido, participa_de_alertas, versao FROM segurados "
+            "WHERE id = '99999999-9999-9999-9999-999999999999'"
+        ).fetchone()
+    assert linha == ("sms", True, 1)
+
+
+def test_migracao_versao_segurados_coluna_e_not_null(tmp_path: Path) -> None:
+    """`versao` é `NOT NULL` na tabela recriada: inserir sem informá-la usa o padrão `1`,
+    e uma tentativa explícita de `NULL` é recusada."""
+
+    caminho = tmp_path / "central_preventiva.duckdb"
+    ExecutorMigracoes(caminho).aplicar_pendentes()
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO segurados (id, nome, codigo_ibge_area, canal_preferido, "
+            "participa_de_alertas) VALUES "
+            "('88888888-8888-8888-8888-888888888888', 'Teste', '9990001', 'email', true)"
+        )
+        linha = conexao.execute(
+            "SELECT versao FROM segurados WHERE id = '88888888-8888-8888-8888-888888888888'"
+        ).fetchone()
+        assert linha == (1,)
+
+        with pytest.raises(duckdb.ConstraintException):
+            conexao.execute(
+                "INSERT INTO segurados "
+                "(id, nome, codigo_ibge_area, canal_preferido, participa_de_alertas, versao) "
+                "VALUES ('77777777-7777-7777-7777-777777777777', 'Teste', '9990001', "
+                "'email', true, NULL)"
+            )
+
+
+def test_documentacao_versionada_descreve_a_coluna_versao_em_segurados() -> None:
+    """A coluna nova de `0016` é documentada no `README.md` versionado (T1)."""
+
+    documento = Path("central_preventiva/adaptadores/persistencia/README.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "0016_versao_segurados" in documento
+    assert "concorrência otimista (migração `0016`, História 5.6)" in documento

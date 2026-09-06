@@ -74,13 +74,15 @@ T4 → T5
 
 **Done when**:
 
-- [ ] Migração aplica em transação própria, registrada em `schema_migracoes`
-- [ ] `README.md` documenta a coluna nova
-- [ ] `testes/test_migracoes.py` cobre a aplicação da migração `0014`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Migração aplica em transação própria, registrada em `schema_migracoes`
+- [x] `README.md` documenta a coluna nova
+- [x] `testes/test_migracoes.py` cobre a aplicação da migração `0014`
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick
+
+**Status**: ✅ Complete — migração entrou como `0016` (`0014`/`0015` já consumidos pelas Histórias 3.1–3.5/4.3), mesma renumeração já registrada desde a 2.4.
 
 ---
 
