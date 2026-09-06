@@ -88,9 +88,9 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Lista com comunicados visualizados e não visualizados retorna o estado correto de cada um
-- [ ] Segurado sem comunicados retorna lista vazia
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Lista com comunicados visualizados e não visualizados retorna o estado correto de cada um
+- [x] Segurado sem comunicados retorna lista vazia
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: unit
 **Gate**: quick
