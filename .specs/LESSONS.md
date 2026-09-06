@@ -450,6 +450,24 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: src/backend/testes/test_saude.py:30 (backend/api)
 - last seen: 2026-09-06T16:22:55Z
 
+### L-074 - Quando um critério exige manter caminhos de navegação, defina na spec a afordância verificável (link, item de menu) e asserte o papel navegável, não a presença do rótulo em prosa.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `frontend-superficies` · harmful: 0
+- features: 5-5-consultar-o-historico-de-comunicados
+- evidence: SuperficieComunicados.test.tsx:122-124 (AC2, P1 lista) (frontend-superficies)
+- last seen: 2026-09-06T21:31:41Z
+
+### L-075 - Monte a região aria-live sempre presente e vazia, trocando só o texto depois, porque uma região viva inserida ja preenchida nao e anunciada e toHaveTextContent nao distingue os dois casos.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `frontend-superficies` · harmful: 0
+- features: 5-5-consultar-o-historico-de-comunicados
+- evidence: SuperficieComunicados.test.tsx:191-192 (AC2, P2 acessibilidade) (frontend-superficies)
+- last seen: 2026-09-06T21:31:49Z
+
+### L-076 - Quando o design exige um campo derivado que o dataclass de retorno declarado nao possui, declare no proprio design o tipo de retorno novo em vez de reusar o existente.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `backend-persistencia` · harmful: 0
+- features: 5-5-consultar-o-historico-de-comunicados
+- evidence: adaptadores/persistencia/repositorio_entregas_simuladas.py:21-26 (backend-persistencia)
+- last seen: 2026-09-06T21:31:49Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

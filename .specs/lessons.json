@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 74,
+  "next_id": 77,
   "lessons": [
     {
       "id": "L-001",
@@ -1347,6 +1347,60 @@
       ],
       "created": "2026-09-06T16:22:55Z",
       "last_seen": "2026-09-06T16:22:55Z"
+    },
+    {
+      "id": "L-074",
+      "key": "spec_precision_gap::quando um criterio exige manter caminhos de navegacao defina na spec a afordancia verificavel link item de menu e asserte o papel navegavel nao a presenca do rotulo em prosa",
+      "text": "Quando um critério exige manter caminhos de navegação, defina na spec a afordância verificável (link, item de menu) e asserte o papel navegável, não a presença do rótulo em prosa.",
+      "signal": "spec_precision_gap",
+      "scope": "frontend-superficies",
+      "status": "candidate",
+      "features": [
+        "5-5-consultar-o-historico-de-comunicados"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "SuperficieComunicados.test.tsx:122-124 (AC2, P1 lista) (frontend-superficies)"
+      ],
+      "created": "2026-09-06T21:31:41Z",
+      "last_seen": "2026-09-06T21:31:41Z"
+    },
+    {
+      "id": "L-075",
+      "key": "spec_precision_gap::monte a regiao aria live sempre presente e vazia trocando so o texto depois porque uma regiao viva inserida ja preenchida nao e anunciada e tohavetextcontent nao distingue os dois casos",
+      "text": "Monte a região aria-live sempre presente e vazia, trocando só o texto depois, porque uma região viva inserida ja preenchida nao e anunciada e toHaveTextContent nao distingue os dois casos.",
+      "signal": "spec_precision_gap",
+      "scope": "frontend-superficies",
+      "status": "candidate",
+      "features": [
+        "5-5-consultar-o-historico-de-comunicados"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "SuperficieComunicados.test.tsx:191-192 (AC2, P2 acessibilidade) (frontend-superficies)"
+      ],
+      "created": "2026-09-06T21:31:49Z",
+      "last_seen": "2026-09-06T21:31:49Z"
+    },
+    {
+      "id": "L-076",
+      "key": "spec_deviation::quando o design exige um campo derivado que o dataclass de retorno declarado nao possui declare no proprio design o tipo de retorno novo em vez de reusar o existente",
+      "text": "Quando o design exige um campo derivado que o dataclass de retorno declarado nao possui, declare no proprio design o tipo de retorno novo em vez de reusar o existente.",
+      "signal": "spec_deviation",
+      "scope": "backend-persistencia",
+      "status": "candidate",
+      "features": [
+        "5-5-consultar-o-historico-de-comunicados"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "adaptadores/persistencia/repositorio_entregas_simuladas.py:21-26 (backend-persistencia)"
+      ],
+      "created": "2026-09-06T21:31:49Z",
+      "last_seen": "2026-09-06T21:31:49Z"
     }
   ]
 }
