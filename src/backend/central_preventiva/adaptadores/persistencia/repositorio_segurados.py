@@ -53,6 +53,14 @@ class RepositorioSegurados:
             return None
         return Segurado(id=UUID(str(linha[0])), nome=str(linha[1]))
 
+    def listar_sinteticos(self) -> list[Segurado]:
+        """Lista todos os segurados do conjunto sintético semeado, ordenados por nome
+        (SELETOR-01) — lista vazia se o seed ainda não foi restaurado."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute("SELECT id, nome FROM segurados ORDER BY nome").fetchall()
+        return [Segurado(id=UUID(str(linha[0])), nome=str(linha[1])) for linha in linhas]
+
     def buscar_preferencias_por_id(self, id: UUID) -> PreferenciasSegurado | None:
         """Retorna o canal preferencial, a participação em alertas e a versão do segurado,
         ou `None` se não existir (5.3, APOLICE-01: "canal preferencial e participação em

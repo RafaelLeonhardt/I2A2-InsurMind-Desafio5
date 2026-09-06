@@ -118,6 +118,32 @@ def test_atualizar_preferencias_com_versao_correta_persiste_e_incrementa(
     assert persistido == atualizado
 
 
+def test_listar_sinteticos_devolve_todos_os_segurados_do_seed_ordenados_por_nome(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    id_b = uuid4()
+    id_a = uuid4()
+    inserir_segurado(caminho, id_b, "Pessoa Segurada Sintética DEMO-002")
+    inserir_segurado(caminho, id_a, "Pessoa Segurada Sintética DEMO-001")
+
+    listados = RepositorioSegurados(caminho).listar_sinteticos()
+
+    assert [segurado.id for segurado in listados] == [id_a, id_b]
+    assert [segurado.nome for segurado in listados] == [
+        "Pessoa Segurada Sintética DEMO-001",
+        "Pessoa Segurada Sintética DEMO-002",
+    ]
+
+
+def test_listar_sinteticos_devolve_lista_vazia_com_seed_ausente(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+
+    listados = RepositorioSegurados(caminho).listar_sinteticos()
+
+    assert listados == []
+
+
 def test_atualizar_preferencias_com_versao_incorreta_levanta_conflito_sem_mutar(
     tmp_path: Path,
 ) -> None:

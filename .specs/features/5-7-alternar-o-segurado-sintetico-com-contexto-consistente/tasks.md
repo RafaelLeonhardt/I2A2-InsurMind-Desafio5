@@ -74,8 +74,8 @@ T5
 
 **Done when**:
 
-- [ ] Retorna todos os segurados do seed
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Retorna todos os segurados do seed
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick

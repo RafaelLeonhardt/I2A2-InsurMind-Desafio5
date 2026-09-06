@@ -109,7 +109,7 @@ As Histórias 5.1–5.6 assumem "o segurado ativo" (`SEGURADO_PADRAO`, Épico 1)
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| SELETOR-01 | P1: Seletor "Visualizar como" sem ambiguidade de autenticação | Design | Pending |
+| SELETOR-01 | P1: Seletor "Visualizar como" sem ambiguidade de autenticação | Design | Implementing |
 | SELETOR-02 | P1: Troca consistente entre as cinco superfícies | Design | Pending |
 | SELETOR-03 | P1: Troca consistente entre as cinco superfícies | Design | Pending |
 | SELETOR-04 | P1: Troca consistente entre as cinco superfícies | Design | Pending |
