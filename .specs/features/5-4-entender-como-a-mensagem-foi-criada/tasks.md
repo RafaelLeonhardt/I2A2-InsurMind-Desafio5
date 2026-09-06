@@ -90,10 +90,10 @@ T2 → T3
 
 **Done when**:
 
-- [ ] `200` com a explicação completa quando pertencer ao segurado
-- [ ] `404` genérico para comunicado de outro segurado
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `200` com a explicação completa quando pertencer ao segurado
+- [x] `404` genérico para comunicado de outro segurado
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full

@@ -467,6 +467,46 @@
         "title": "ProblemaExecucao",
         "type": "object"
       },
+      "ProblemaExplicacaoComunicado": {
+        "additionalProperties": false,
+        "description": "Falha da consulta de explicação, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaExplicacaoComunicado",
+        "type": "object"
+      },
       "ProblemaLinhaDoTempo": {
         "additionalProperties": false,
         "description": "Falha da linha do tempo/busca, com ocorrência, impacto e próxima ação segura.",
@@ -1177,6 +1217,47 @@
         "title": "RespostaApresentacaoSimulada",
         "type": "object"
       },
+      "RespostaApresentacaoSimuladaExplicacao": {
+        "additionalProperties": false,
+        "description": "Prévia da mensagem final — cópia exata da versão aprovada e simulada.",
+        "properties": {
+          "assunto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Assunto apresentado, só no canal de e-mail.",
+            "title": "Assunto"
+          },
+          "canal": {
+            "description": "Canal em que a apresentação seria feita.",
+            "title": "Canal",
+            "type": "string"
+          },
+          "corpo": {
+            "description": "Corpo apresentado, cópia exata do conteúdo aprovado.",
+            "title": "Corpo",
+            "type": "string"
+          },
+          "rotulo": {
+            "description": "Rótulo fixo da natureza da entrega: sempre 'simulada'.",
+            "title": "Rotulo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "canal",
+          "assunto",
+          "corpo",
+          "rotulo"
+        ],
+        "title": "RespostaApresentacaoSimuladaExplicacao",
+        "type": "object"
+      },
       "RespostaAvaliacaoCritica": {
         "additionalProperties": false,
         "description": "Detalhe de uma avaliação: versão, critérios, decisão, motivos e proveniência.",
@@ -1315,6 +1396,49 @@
           "criado_em"
         ],
         "title": "RespostaAvaliacaoCriticaDetalhe",
+        "type": "object"
+      },
+      "RespostaAvaliacaoCriticaExplicacao": {
+        "additionalProperties": false,
+        "description": "Avaliação crítica de uma tentativa de geração.",
+        "properties": {
+          "agente": {
+            "description": "Nome do agente que avaliou.",
+            "title": "Agente",
+            "type": "string"
+          },
+          "aprovada": {
+            "description": "Se o agente crítico aprovou esta tentativa.",
+            "title": "Aprovada",
+            "type": "boolean"
+          },
+          "duracao_ms": {
+            "description": "Duração da chamada de avaliação, em milissegundos.",
+            "title": "Duracao Ms",
+            "type": "number"
+          },
+          "modelo": {
+            "description": "Modelo da OpenAI usado na avaliação.",
+            "title": "Modelo",
+            "type": "string"
+          },
+          "motivos": {
+            "description": "Categorias dos motivos de reprovação, se houver.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Motivos",
+            "type": "array"
+          }
+        },
+        "required": [
+          "aprovada",
+          "motivos",
+          "agente",
+          "modelo",
+          "duracao_ms"
+        ],
+        "title": "RespostaAvaliacaoCriticaExplicacao",
         "type": "object"
       },
       "RespostaAvaliacaoCriticaLote": {
@@ -1894,6 +2018,35 @@
           "justificativa"
         ],
         "title": "RespostaCriterioTeste",
+        "type": "object"
+      },
+      "RespostaDecisaoHumana": {
+        "additionalProperties": false,
+        "description": "Decisão humana registrada sobre uma tentativa.",
+        "properties": {
+          "justificativa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Justificativa da decisão, se houver.",
+            "title": "Justificativa"
+          },
+          "resultado": {
+            "description": "Resultado da decisão (`aprovar`, `rejeitar`, `excluir` ou `regenerar`).",
+            "title": "Resultado",
+            "type": "string"
+          }
+        },
+        "required": [
+          "resultado",
+          "justificativa"
+        ],
+        "title": "RespostaDecisaoHumana",
         "type": "object"
       },
       "RespostaDecisaoHumanaDetalhe": {
@@ -2755,6 +2908,41 @@
         "title": "RespostaEventoDetalhe",
         "type": "object"
       },
+      "RespostaEventoDeterministico": {
+        "additionalProperties": false,
+        "description": "Evento meteorológico de origem, sempre rotulado como determinístico.",
+        "properties": {
+          "area": {
+            "description": "Código de área monitorada afetada pelo evento.",
+            "title": "Area",
+            "type": "string"
+          },
+          "id": {
+            "description": "Identificador do evento meteorológico.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "proveniencia": {
+            "description": "Origem do evento (`real_inmet` ou `sintetico`).",
+            "title": "Proveniencia",
+            "type": "string"
+          },
+          "tipo": {
+            "description": "Tipo do evento (`chuva_intensa` ou `granizo`).",
+            "title": "Tipo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tipo",
+          "area",
+          "proveniencia"
+        ],
+        "title": "RespostaEventoDeterministico",
+        "type": "object"
+      },
       "RespostaEventoLote": {
         "additionalProperties": false,
         "description": "Evento meteorológico que originou a execução em revisão.",
@@ -3061,6 +3249,85 @@
           "criterios"
         ],
         "title": "RespostaExplicacaoApolice",
+        "type": "object"
+      },
+      "RespostaExplicacaoComunicado": {
+        "additionalProperties": false,
+        "description": "Explicação completa de \"Como esta mensagem foi criada\" (EXPLICACAO-01..05).",
+        "properties": {
+          "agente": {
+            "$ref": "#/components/schemas/RespostaSecaoAgente",
+            "description": "Seção agêntica."
+          },
+          "apresentacao_simulada": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaApresentacaoSimuladaExplicacao"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Prévia da mensagem final simulada, ou nula se ainda não simulada."
+          },
+          "contexto": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaSecaoContexto"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Contexto minimizado, ou nulo se ainda não montado."
+          },
+          "entrega_simulada_id": {
+            "description": "Identificador do comunicado explicado.",
+            "format": "uuid",
+            "title": "Entrega Simulada Id",
+            "type": "string"
+          },
+          "evento_e_regra": {
+            "$ref": "#/components/schemas/RespostaSecaoEvento",
+            "description": "Seção determinística."
+          },
+          "execucao_id": {
+            "description": "Execução a que a mensagem pertence.",
+            "format": "uuid",
+            "title": "Execucao Id",
+            "type": "string"
+          },
+          "execucao_origem_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Presente só quando a execução é uma retentativa correlacionada.",
+            "title": "Execucao Origem Id"
+          },
+          "mensagem_id": {
+            "description": "Mensagem de origem do comunicado.",
+            "format": "uuid",
+            "title": "Mensagem Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "entrega_simulada_id",
+          "mensagem_id",
+          "execucao_id",
+          "execucao_origem_id",
+          "evento_e_regra",
+          "contexto",
+          "agente",
+          "apresentacao_simulada"
+        ],
+        "title": "RespostaExplicacaoComunicado",
         "type": "object"
       },
       "RespostaHistoricoSincronizacoes": {
@@ -4443,6 +4710,119 @@
         "title": "RespostaSaude",
         "type": "object"
       },
+      "RespostaSecaoAgente": {
+        "additionalProperties": false,
+        "description": "Os papéis do agente redator e do agente crítico — sempre `agente` (EXPLICACAO-02).",
+        "properties": {
+          "causa_excecao": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Causa sanitizada da exceção, presente só quando `status='excecao'`.",
+            "title": "Causa Excecao"
+          },
+          "origem": {
+            "description": "Sempre `agente`: nunca uma decisão determinística.",
+            "title": "Origem",
+            "type": "string"
+          },
+          "status": {
+            "description": "`completa`, `parcial` (lacuna de dado) ou `excecao` (falha técnica).",
+            "title": "Status",
+            "type": "string"
+          },
+          "tentativas": {
+            "description": "Todas as tentativas de geração, da primeira à mais recente.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaTentativaExplicacao"
+            },
+            "title": "Tentativas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "origem",
+          "status",
+          "causa_excecao",
+          "tentativas"
+        ],
+        "title": "RespostaSecaoAgente",
+        "type": "object"
+      },
+      "RespostaSecaoContexto": {
+        "additionalProperties": false,
+        "description": "Categorias de dado usadas e não usadas pelo agente redator (EXPLICACAO-03).",
+        "properties": {
+          "categorias_nao_usadas": {
+            "description": "Categorias deliberadamente deixadas de fora.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Categorias Nao Usadas",
+            "type": "array"
+          },
+          "categorias_usadas": {
+            "description": "Categorias de dado que chegaram à IA.",
+            "items": {
+              "type": "string"
+            },
+            "title": "Categorias Usadas",
+            "type": "array"
+          }
+        },
+        "required": [
+          "categorias_usadas",
+          "categorias_nao_usadas"
+        ],
+        "title": "RespostaSecaoContexto",
+        "type": "object"
+      },
+      "RespostaSecaoEvento": {
+        "additionalProperties": false,
+        "description": "Evento e regra que originaram a mensagem — sempre `deterministica` (EXPLICACAO-01).",
+        "properties": {
+          "evento": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaEventoDeterministico"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Evento de origem, ou nulo se não houver evento associado."
+          },
+          "origem": {
+            "description": "Sempre `deterministica`: nunca produzido por IA.",
+            "title": "Origem",
+            "type": "string"
+          },
+          "regra_id": {
+            "description": "Regra preventiva aplicada ao público do lote.",
+            "format": "uuid",
+            "title": "Regra Id",
+            "type": "string"
+          },
+          "regra_versao": {
+            "description": "Versão da regra aplicada.",
+            "title": "Regra Versao",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "origem",
+          "evento",
+          "regra_id",
+          "regra_versao"
+        ],
+        "title": "RespostaSecaoEvento",
+        "type": "object"
+      },
       "RespostaSeguradoPadrao": {
         "additionalProperties": false,
         "description": "Resposta pública do segurado sintético padrão.",
@@ -4640,6 +5020,74 @@
           "finalizado_em"
         ],
         "title": "RespostaTentativa",
+        "type": "object"
+      },
+      "RespostaTentativaExplicacao": {
+        "additionalProperties": false,
+        "description": "Uma tentativa de geração: redator, crítico e decisões humanas — sempre `agente`.",
+        "properties": {
+          "assunto": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Assunto gerado nesta tentativa, só em e-mail.",
+            "title": "Assunto"
+          },
+          "avaliacao_critica": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaAvaliacaoCriticaExplicacao"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Avaliação do agente crítico, ou nula se ainda não avaliada."
+          },
+          "corpo": {
+            "description": "Corpo gerado nesta tentativa.",
+            "title": "Corpo",
+            "type": "string"
+          },
+          "decisoes_humanas": {
+            "description": "Decisões humanas registradas sobre esta tentativa.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaDecisaoHumana"
+            },
+            "title": "Decisoes Humanas",
+            "type": "array"
+          },
+          "modelo_redator": {
+            "description": "Modelo da OpenAI usado pelo agente redator.",
+            "title": "Modelo Redator",
+            "type": "string"
+          },
+          "numero_tentativa": {
+            "description": "Número da tentativa de geração.",
+            "title": "Numero Tentativa",
+            "type": "integer"
+          },
+          "origem_regeneracao": {
+            "description": "Por que esta tentativa existe: `primeira_tentativa`, `automatica` (ciclo automático de crítica) ou `humana` (decisão humana de regenerar).",
+            "title": "Origem Regeneracao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "numero_tentativa",
+          "origem_regeneracao",
+          "corpo",
+          "assunto",
+          "modelo_redator",
+          "avaliacao_critica",
+          "decisoes_humanas"
+        ],
+        "title": "RespostaTentativaExplicacao",
         "type": "object"
       },
       "RespostaTentativaProveniencia": {
@@ -7714,6 +8162,68 @@
         "summary": "Consultar o comunicado de uma entrega simulada",
         "tags": [
           "Comunicado"
+        ]
+      }
+    },
+    "/api/v1/segurados/{segurado_id}/comunicados/{entrega_simulada_id}/explicacao": {
+      "get": {
+        "description": "Devolve evento/regra (determinístico), redator/crítico/decisões humanas (agente), categorias de contexto usadas/não usadas e a prévia da mensagem final, exatamente como simulada. Um comunicado inexistente e um de outro segurado devolvem exatamente a mesma resposta `404`.",
+        "operationId": "consultar_explicacao_api_v1_segurados__segurado_id__comunicados__entrega_simulada_id__explicacao_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "segurado_id",
+            "required": true,
+            "schema": {
+              "title": "Segurado Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "entrega_simulada_id",
+            "required": true,
+            "schema": {
+              "title": "Entrega Simulada Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaExplicacaoComunicado"
+                }
+              }
+            },
+            "description": "Explicação encontrada para este segurado."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaExplicacaoComunicado"
+                }
+              }
+            },
+            "description": "Comunicado inexistente ou de outro segurado."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaExplicacaoComunicado"
+                }
+              }
+            },
+            "description": "Algum identificador informado não é um UUID válido."
+          }
+        },
+        "summary": "Consultar como um comunicado foi criado",
+        "tags": [
+          "Explicação do comunicado"
         ]
       }
     },
