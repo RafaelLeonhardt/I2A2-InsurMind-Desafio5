@@ -115,8 +115,8 @@ As Histórias 5.1–5.6 assumem "o segurado ativo" (`SEGURADO_PADRAO`, Épico 1)
 | SELETOR-04 | P1: Troca consistente entre as cinco superfícies | Design | Implementing |
 | SELETOR-05 | P1: Ausência de ações administrativas e retorno seguro ao Administrador | Design | Pending |
 | SELETOR-06 | P1: Ausência de ações administrativas e retorno seguro ao Administrador | Design | Implementing |
-| SELETOR-07 | P2: Acessibilidade do seletor | Design | Pending |
-| SELETOR-08 | P2: Acessibilidade do seletor | Design | Pending |
+| SELETOR-07 | P2: Acessibilidade do seletor | Design | Implementing |
+| SELETOR-08 | P2: Acessibilidade do seletor | Design | Implementing |
 
 **ID format:** `SELETOR-NN`
 

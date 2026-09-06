@@ -137,10 +137,10 @@ T5
 
 **Done when**:
 
-- [ ] Rótulo e texto nunca mencionam "login"/"senha"/"entrar"
-- [ ] Navegação por teclado anuncia rótulo, opção ativa, foco e mudança
-- [ ] Alvo clicável mede pelo menos 44×44px
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Rótulo e texto nunca mencionam "login"/"senha"/"entrar"
+- [x] Navegação por teclado anuncia rótulo, opção ativa, foco e mudança
+- [x] Alvo clicável mede pelo menos 44×44px
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full
