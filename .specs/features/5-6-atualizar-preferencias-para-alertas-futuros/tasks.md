@@ -170,15 +170,17 @@ T4 → T5
 
 **Done when**:
 
-- [ ] Só canal e participação são editáveis, nenhum outro campo de cadastro presente
-- [ ] `Salvando`→`Salvo` exibidos corretamente; erro preserva valores editados sem "Salvo" antecipado
-- [ ] Desativar participação exibe explicação de efeito "só futuro"
-- [ ] Formulário navegável inteiramente por teclado, com foco visível em cada etapa
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Só canal e participação são editáveis, nenhum outro campo de cadastro presente
+- [x] `Salvando`→`Salvo` exibidos corretamente; erro preserva valores editados sem "Salvo" antecipado
+- [x] Desativar participação exibe explicação de efeito "só futuro"
+- [x] Formulário navegável inteiramente por teclado, com foco visível em cada etapa
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full
+
+**Status**: ✅ Complete — surge um `GET`/`PUT` novo `preferenciasSegurado.ts` (mesmo padrão de `apoliceSegurado.ts`/`regras.ts`); a superfície ainda não está montada em nenhum roteador (`App.tsx`/`PerfilContexto.tsx`), mesma pendência das treze superfícies órfãs já registrada em `STATE.md` (item 9) — fora do escopo desta história.
 
 **Commit**: `feat(segurado): adicionar edicao de canal preferencial e participacao em alertas`
 

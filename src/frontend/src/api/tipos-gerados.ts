@@ -848,6 +848,30 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/segurados/{segurado_id}/preferencias": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Consultar canal preferencial e participação em alertas
+         * @description Devolve o canal preferencial, a participação em alertas e a versão corrente do segurado ativo, para exibição e para compor `versao_esperada` de uma atualização subsequente (PREFS-01).
+         */
+        get: operations["consultar_preferencias_api_v1_segurados__segurado_id__preferencias_get"];
+        /**
+         * Atualizar canal preferencial e participação em alertas
+         * @description Atualiza o canal preferencial e a participação em alertas do segurado ativo, de forma idempotente e sob concorrência otimista. Exige o cabeçalho `Idempotency-Key` em toda requisição.
+         */
+        put: operations["atualizar_preferencias_api_v1_segurados__segurado_id__preferencias_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -867,6 +891,38 @@ export interface components {
              * @description Motivo do erro em português brasileiro.
              */
             motivo: string;
+        };
+        /**
+         * ErroPreferenciasSegurado
+         * @description Falha de uma atualização de preferências, com ocorrência, impacto e próxima ação
+         *     segura.
+         */
+        ErroPreferenciasSegurado: {
+            /**
+             * Codigo
+             * @description Código estável que identifica o tipo da falha.
+             */
+            codigo: string;
+            /**
+             * Correlacao Id
+             * @description Identificador único desta ocorrência de falha.
+             */
+            correlacao_id: string;
+            /**
+             * Ocorrencia
+             * @description O que aconteceu, em português brasileiro.
+             */
+            ocorrencia: string;
+            /**
+             * Impacto
+             * @description Efeito prático da falha para quem chamou o recurso.
+             */
+            impacto: string;
+            /**
+             * Proxima Acao
+             * @description Próxima ação segura recomendada para contornar a falha.
+             */
+            proxima_acao: string;
         };
         /**
          * PedidoConfirmacaoSimulacao
@@ -3786,6 +3842,34 @@ export interface components {
             criterios: components["schemas"]["RespostaCriterioLote"][];
         };
         /**
+         * RespostaPreferencias
+         * @description As preferências do segurado após a atualização (fresca ou repetida por
+         *     idempotência).
+         */
+        RespostaPreferencias: {
+            /**
+             * Segurado Id
+             * Format: uuid
+             * @description Identificador do segurado.
+             */
+            segurado_id: string;
+            /**
+             * Canal Preferido
+             * @description Canal de comunicação preferencial.
+             */
+            canal_preferido: string;
+            /**
+             * Participa De Alertas
+             * @description Se o segurado participa de alertas.
+             */
+            participa_de_alertas: boolean;
+            /**
+             * Versao
+             * @description Nova versão do segurado após a atualização.
+             */
+            versao: number;
+        };
+        /**
          * RespostaPreflight
          * @description Desfecho do preflight de uma execução: estado alcançado e o que foi preparado.
          */
@@ -4836,6 +4920,28 @@ export interface components {
              * @description Identificador da área monitorada a avaliar.
              */
             area_id: string;
+        };
+        /**
+         * SolicitacaoPreferencias
+         * @description Canal preferencial, participação em alertas e versão esperada para concorrência
+         *     otimista.
+         */
+        SolicitacaoPreferencias: {
+            /**
+             * Canal Preferido
+             * @description Canal de comunicação (`whatsapp`, `email` ou `sms`).
+             */
+            canal_preferido: string;
+            /**
+             * Participa De Alertas
+             * @description Se o segurado participa de alertas.
+             */
+            participa_de_alertas: boolean;
+            /**
+             * Versao Esperada
+             * @description Versão atual esperada do segurado (concorrência otimista, PREFS-02).
+             */
+            versao_esperada: number;
         };
         /**
          * SolicitacaoRegra
@@ -6623,6 +6729,101 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ProblemaListaComunicados"];
+                };
+            };
+        };
+    };
+    consultar_preferencias_api_v1_segurados__segurado_id__preferencias_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                segurado_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Preferências do segurado encontradas. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaPreferencias"];
+                };
+            };
+            /** @description Segurado não encontrado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErroPreferenciasSegurado"];
+                };
+            };
+            /** @description O identificador do segurado não é um UUID válido. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErroPreferenciasSegurado"];
+                };
+            };
+        };
+    };
+    atualizar_preferencias_api_v1_segurados__segurado_id__preferencias_put: {
+        parameters: {
+            query?: never;
+            header?: {
+                "Idempotency-Key"?: string | null;
+            };
+            path: {
+                segurado_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SolicitacaoPreferencias"];
+            };
+        };
+        responses: {
+            /** @description Preferências atualizadas, ou resposta idempotente repetida. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaPreferencias"];
+                };
+            };
+            /** @description Segurado não encontrado. */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErroPreferenciasSegurado"];
+                };
+            };
+            /** @description Conflito de versão ou de idempotência. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErroPreferenciasSegurado"];
+                };
+            };
+            /** @description Identificador inválido, canal inválido ou cabeçalho `Idempotency-Key` ausente. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErroPreferenciasSegurado"];
                 };
             };
         };
