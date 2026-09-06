@@ -112,10 +112,10 @@ T2 → T3
 
 **Done when**:
 
-- [ ] Separação visual determinístico/IA presente em todas as seções
-- [ ] `Tab` não sai do drawer; `Esc` fecha e devolve o foco à origem; título permanece visível
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Separação visual determinístico/IA presente em todas as seções
+- [x] `Tab` não sai do drawer; `Esc` fecha e devolve o foco à origem; título permanece visível
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado; tipos atualizados
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
 
 **Tests**: unit
 **Gate**: full
