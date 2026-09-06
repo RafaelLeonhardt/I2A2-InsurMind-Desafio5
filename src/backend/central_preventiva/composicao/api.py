@@ -44,6 +44,9 @@ from central_preventiva.adaptadores.http.linha_do_tempo import (
 from central_preventiva.adaptadores.http.lista_alertas_segurado import (
     criar_roteador as criar_roteador_lista_alertas_segurado,
 )
+from central_preventiva.adaptadores.http.lista_comunicados import (
+    criar_roteador as criar_roteador_lista_comunicados,
+)
 from central_preventiva.adaptadores.http.mensagens import (
     criar_roteador as criar_roteador_mensagens,
 )
@@ -218,6 +221,10 @@ def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
     )
     aplicacao.include_router(
         criar_roteador_explicacao_comunicado(configuracao_ativa),
+        prefix="/api/v1",
+    )
+    aplicacao.include_router(
+        criar_roteador_lista_comunicados(configuracao_ativa),
         prefix="/api/v1",
     )
     return aplicacao

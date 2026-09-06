@@ -587,6 +587,46 @@
         "title": "ProblemaListaAlertas",
         "type": "object"
       },
+      "ProblemaListaComunicados": {
+        "additionalProperties": false,
+        "description": "Falha da lista de comunicados, com ocorrência, impacto e próxima ação segura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem consultou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ProblemaListaComunicados",
+        "type": "object"
+      },
       "ProblemaMensagens": {
         "additionalProperties": false,
         "description": "Falha da consulta de mensagens, com ocorrência, impacto e próxima ação segura.",
@@ -3408,6 +3448,61 @@
         "title": "RespostaItemAlerta",
         "type": "object"
       },
+      "RespostaItemComunicado": {
+        "additionalProperties": false,
+        "description": "Um item da lista de comunicados: canal, assunto/resumo, data e visualização.",
+        "properties": {
+          "assunto_ou_resumo": {
+            "description": "Assunto real (e-mail) ou resumo truncado do corpo (WhatsApp/SMS).",
+            "title": "Assunto Ou Resumo",
+            "type": "string"
+          },
+          "canal": {
+            "description": "Canal do comunicado (`whatsapp`, `email` ou `sms`).",
+            "title": "Canal",
+            "type": "string"
+          },
+          "criado_em": {
+            "description": "Instante RFC 3339 em UTC de criação da entrega.",
+            "format": "date-time",
+            "title": "Criado Em",
+            "type": "string"
+          },
+          "entrega_simulada_id": {
+            "description": "Identificador da entrega simulada.",
+            "format": "uuid",
+            "title": "Entrega Simulada Id",
+            "type": "string"
+          },
+          "mensagem_id": {
+            "description": "Mensagem que originou o comunicado.",
+            "format": "uuid",
+            "title": "Mensagem Id",
+            "type": "string"
+          },
+          "visualizacao": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RespostaVisualizacaoComunicado"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Primeira visualização já registrada, ou nula se ainda não visualizado."
+          }
+        },
+        "required": [
+          "entrega_simulada_id",
+          "mensagem_id",
+          "canal",
+          "assunto_ou_resumo",
+          "criado_em",
+          "visualizacao"
+        ],
+        "title": "RespostaItemComunicado",
+        "type": "object"
+      },
       "RespostaItemLote": {
         "additionalProperties": false,
         "description": "Uma mensagem do lote, com tudo que a decisão humana precisa (REVISAO-03).",
@@ -3604,6 +3699,25 @@
           "alertas"
         ],
         "title": "RespostaListaAlertas",
+        "type": "object"
+      },
+      "RespostaListaComunicados": {
+        "additionalProperties": false,
+        "description": "A lista completa de comunicados do segurado.",
+        "properties": {
+          "comunicados": {
+            "description": "Todos os comunicados do segurado, mais antigos primeiro.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaItemComunicado"
+            },
+            "title": "Comunicados",
+            "type": "array"
+          }
+        },
+        "required": [
+          "comunicados"
+        ],
+        "title": "RespostaListaComunicados",
         "type": "object"
       },
       "RespostaLoteRevisao": {
@@ -8100,6 +8214,49 @@
         "summary": "Consultar a explicação de critérios de uma execução",
         "tags": [
           "Apólice do segurado"
+        ]
+      }
+    },
+    "/api/v1/segurados/{segurado_id}/comunicados": {
+      "get": {
+        "description": "Devolve todos os comunicados do segurado, mais antigos primeiro, com canal, assunto/resumo, data e a visualização já registrada, se houver. Lista vazia quando o segurado não tiver nenhum comunicado.",
+        "operationId": "listar_comunicados_api_v1_segurados__segurado_id__comunicados_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "segurado_id",
+            "required": true,
+            "schema": {
+              "title": "Segurado Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaListaComunicados"
+                }
+              }
+            },
+            "description": "Consulta realizada, com ou sem comunicados."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemaListaComunicados"
+                }
+              }
+            },
+            "description": "O identificador do segurado não é um UUID válido."
+          }
+        },
+        "summary": "Listar todos os comunicados do segurado ativo",
+        "tags": [
+          "Comunicado"
         ]
       }
     },
