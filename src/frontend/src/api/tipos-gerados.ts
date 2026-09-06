@@ -872,6 +872,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/segurados": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Listar os segurados sintéticos disponíveis
+         * @description Devolve todos os segurados do conjunto sintético semeado, ordenados por nome, para popular o seletor demonstrativo 'Visualizar como'. Lista vazia quando os dados sintéticos ainda não foram restaurados.
+         */
+        get: operations["listar_segurados_api_v1_segurados_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3519,6 +3539,17 @@ export interface components {
             comunicados: components["schemas"]["RespostaItemComunicado"][];
         };
         /**
+         * RespostaListaSegurados
+         * @description A lista completa de segurados sintéticos do seed.
+         */
+        RespostaListaSegurados: {
+            /**
+             * Segurados
+             * @description Todos os segurados sintéticos do seed, ordenados por nome.
+             */
+            segurados: components["schemas"]["RespostaSeguradoListado"][];
+        };
+        /**
          * RespostaLoteRevisao
          * @description O lote de revisão de uma execução, com os itens de atenção primeiro (REVISAO-01).
          */
@@ -4338,6 +4369,23 @@ export interface components {
              * @description Versão da regra aplicada.
              */
             regra_versao: number;
+        };
+        /**
+         * RespostaSeguradoListado
+         * @description Um segurado sintético disponível para seleção.
+         */
+        RespostaSeguradoListado: {
+            /**
+             * Id
+             * Format: uuid
+             * @description Identificador do segurado sintético.
+             */
+            id: string;
+            /**
+             * Nome
+             * @description Nome do segurado sintético.
+             */
+            nome: string;
         };
         /**
          * RespostaSeguradoPadrao
@@ -6824,6 +6872,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErroPreferenciasSegurado"];
+                };
+            };
+        };
+    };
+    listar_segurados_api_v1_segurados_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Consulta realizada, com ou sem segurados. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RespostaListaSegurados"];
                 };
             };
         };

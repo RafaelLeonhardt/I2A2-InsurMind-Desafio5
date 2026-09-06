@@ -115,10 +115,10 @@ T5
 
 **Done when**:
 
-- [ ] Trocar de segurado persiste a escolha em `localStorage` e restaura ao recarregar
-- [ ] Falha simulada durante a troca reverte ao `seguradoAtivoId` anterior, com causa/impacto/próxima ação expostos
-- [ ] Resposta tardia de um `segurado_id` que não é mais o ativo é descartada (testado com dublê de temporização)
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run`
+- [x] Trocar de segurado persiste a escolha em `localStorage` e restaura ao recarregar
+- [x] Falha simulada durante a troca reverte ao `seguradoAtivoId` anterior, com causa/impacto/próxima ação expostos
+- [x] Resposta tardia de um `segurado_id` que não é mais o ativo é descartada (testado com dublê de temporização)
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run`
 
 **Tests**: unit
 **Gate**: quick
