@@ -146,13 +146,15 @@ T4 → T5
 
 **Done when**:
 
-- [ ] `200` com o segurado atualizado em caso de sucesso
-- [ ] `409` para conflito de versão e para idempotência com conteúdo diferente
-- [ ] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `200` com o segurado atualizado em caso de sucesso
+- [x] `409` para conflito de versão e para idempotência com conteúdo diferente
+- [x] `openapi.json` regenerado, `test_openapi_sincronizado.py` verde
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
 
 **Tests**: integration
 **Gate**: full
+
+**Status**: ✅ Complete — SPEC_DEVIATION: acrescentado `GET /segurados/{segurado_id}/preferencias` (não previsto em `design.md`/`tasks.md`) no mesmo roteador, porque T5 precisa do `versao` corrente para compor `versao_esperada` antes da primeira edição; reusa `RepositorioSegurados.buscar_preferencias_por_id` (5.3) sem tocar o endpoint de apólice já verificado. `test_saude.py` (enumeração de paths) atualizado com a rota nova.
 
 ---
 

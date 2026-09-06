@@ -23,6 +23,46 @@
         "title": "ErroCampo",
         "type": "object"
       },
+      "ErroPreferenciasSegurado": {
+        "additionalProperties": false,
+        "description": "Falha de uma atualização de preferências, com ocorrência, impacto e próxima ação\nsegura.",
+        "properties": {
+          "codigo": {
+            "description": "Código estável que identifica o tipo da falha.",
+            "title": "Codigo",
+            "type": "string"
+          },
+          "correlacao_id": {
+            "description": "Identificador único desta ocorrência de falha.",
+            "title": "Correlacao Id",
+            "type": "string"
+          },
+          "impacto": {
+            "description": "Efeito prático da falha para quem chamou o recurso.",
+            "title": "Impacto",
+            "type": "string"
+          },
+          "ocorrencia": {
+            "description": "O que aconteceu, em português brasileiro.",
+            "title": "Ocorrencia",
+            "type": "string"
+          },
+          "proxima_acao": {
+            "description": "Próxima ação segura recomendada para contornar a falha.",
+            "title": "Proxima Acao",
+            "type": "string"
+          }
+        },
+        "required": [
+          "codigo",
+          "correlacao_id",
+          "ocorrencia",
+          "impacto",
+          "proxima_acao"
+        ],
+        "title": "ErroPreferenciasSegurado",
+        "type": "object"
+      },
       "PedidoConfirmacaoSimulacao": {
         "additionalProperties": false,
         "description": "Confirmação consciente da simulação, com o reconhecimento explícito (SIMUL-03).",
@@ -4200,6 +4240,41 @@
         "title": "RespostaOrigem",
         "type": "object"
       },
+      "RespostaPreferencias": {
+        "additionalProperties": false,
+        "description": "As preferências do segurado após a atualização (fresca ou repetida por\nidempotência).",
+        "properties": {
+          "canal_preferido": {
+            "description": "Canal de comunicação preferencial.",
+            "title": "Canal Preferido",
+            "type": "string"
+          },
+          "participa_de_alertas": {
+            "description": "Se o segurado participa de alertas.",
+            "title": "Participa De Alertas",
+            "type": "boolean"
+          },
+          "segurado_id": {
+            "description": "Identificador do segurado.",
+            "format": "uuid",
+            "title": "Segurado Id",
+            "type": "string"
+          },
+          "versao": {
+            "description": "Nova versão do segurado após a atualização.",
+            "title": "Versao",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "segurado_id",
+          "canal_preferido",
+          "participa_de_alertas",
+          "versao"
+        ],
+        "title": "RespostaPreferencias",
+        "type": "object"
+      },
       "RespostaPreflight": {
         "additionalProperties": false,
         "description": "Desfecho do preflight de uma execução: estado alcançado e o que foi preparado.",
@@ -5858,6 +5933,34 @@
           "area_id"
         ],
         "title": "SolicitacaoExecucao",
+        "type": "object"
+      },
+      "SolicitacaoPreferencias": {
+        "additionalProperties": false,
+        "description": "Canal preferencial, participação em alertas e versão esperada para concorrência\notimista.",
+        "properties": {
+          "canal_preferido": {
+            "description": "Canal de comunicação (`whatsapp`, `email` ou `sms`).",
+            "title": "Canal Preferido",
+            "type": "string"
+          },
+          "participa_de_alertas": {
+            "description": "Se o segurado participa de alertas.",
+            "title": "Participa De Alertas",
+            "type": "boolean"
+          },
+          "versao_esperada": {
+            "description": "Versão atual esperada do segurado (concorrência otimista, PREFS-02).",
+            "title": "Versao Esperada",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "canal_preferido",
+          "participa_de_alertas",
+          "versao_esperada"
+        ],
+        "title": "SolicitacaoPreferencias",
         "type": "object"
       },
       "SolicitacaoRegra": {
@@ -8453,6 +8556,146 @@
         "summary": "Registrar a primeira visualização de um comunicado",
         "tags": [
           "Comunicado"
+        ]
+      }
+    },
+    "/api/v1/segurados/{segurado_id}/preferencias": {
+      "get": {
+        "description": "Devolve o canal preferencial, a participação em alertas e a versão corrente do segurado ativo, para exibição e para compor `versao_esperada` de uma atualização subsequente (PREFS-01).",
+        "operationId": "consultar_preferencias_api_v1_segurados__segurado_id__preferencias_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "segurado_id",
+            "required": true,
+            "schema": {
+              "title": "Segurado Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaPreferencias"
+                }
+              }
+            },
+            "description": "Preferências do segurado encontradas."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroPreferenciasSegurado"
+                }
+              }
+            },
+            "description": "Segurado não encontrado."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroPreferenciasSegurado"
+                }
+              }
+            },
+            "description": "O identificador do segurado não é um UUID válido."
+          }
+        },
+        "summary": "Consultar canal preferencial e participação em alertas",
+        "tags": [
+          "Preferências do segurado"
+        ]
+      },
+      "put": {
+        "description": "Atualiza o canal preferencial e a participação em alertas do segurado ativo, de forma idempotente e sob concorrência otimista. Exige o cabeçalho `Idempotency-Key` em toda requisição.",
+        "operationId": "atualizar_preferencias_api_v1_segurados__segurado_id__preferencias_put",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "segurado_id",
+            "required": true,
+            "schema": {
+              "title": "Segurado Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "Idempotency-Key",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Idempotency-Key"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SolicitacaoPreferencias"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaPreferencias"
+                }
+              }
+            },
+            "description": "Preferências atualizadas, ou resposta idempotente repetida."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroPreferenciasSegurado"
+                }
+              }
+            },
+            "description": "Segurado não encontrado."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroPreferenciasSegurado"
+                }
+              }
+            },
+            "description": "Conflito de versão ou de idempotência."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErroPreferenciasSegurado"
+                }
+              }
+            },
+            "description": "Identificador inválido, canal inválido ou cabeçalho `Idempotency-Key` ausente."
+          }
+        },
+        "summary": "Atualizar canal preferencial e participação em alertas",
+        "tags": [
+          "Preferências do segurado"
         ]
       }
     }
