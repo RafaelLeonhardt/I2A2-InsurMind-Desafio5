@@ -106,19 +106,19 @@ Toda a proveniência agêntica (3.4) e a explicação de risco/elegibilidade (2.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| EXPLICACAO-01 | P1: Explicação completa com separação determinístico/IA | Design | Pending |
-| EXPLICACAO-02 | P1: Explicação completa com separação determinístico/IA | Design | Pending |
-| EXPLICACAO-03 | P1: Contexto minimizado e prévia fiel sem promessa oficial | Design | Pending |
-| EXPLICACAO-04 | P1: Contexto minimizado e prévia fiel sem promessa oficial | Design | Pending |
-| EXPLICACAO-05 | P1: Procedência parcial/exceção sem inferência preenchida | Design | Pending |
-| EXPLICACAO-06 | P2: Navegação acessível do drawer explicativo | Design | Pending |
-| EXPLICACAO-07 | P2: Navegação acessível do drawer explicativo | Design | Pending |
+| EXPLICACAO-01 | P1: Explicação completa com separação determinístico/IA | T1/T2/T3 | ✅ Verified |
+| EXPLICACAO-02 | P1: Explicação completa com separação determinístico/IA | T1/T2/T3 | ✅ Verified |
+| EXPLICACAO-03 | P1: Contexto minimizado e prévia fiel sem promessa oficial | T1/T2/T3 | ✅ Verified |
+| EXPLICACAO-04 | P1: Contexto minimizado e prévia fiel sem promessa oficial | T1/T2/T3 | ✅ Verified |
+| EXPLICACAO-05 | P1: Procedência parcial/exceção sem inferência preenchida | T1/T2/T3 | ✅ Verified |
+| EXPLICACAO-06 | P2: Navegação acessível do drawer explicativo | T3 | ✅ Verified |
+| EXPLICACAO-07 | P2: Navegação acessível do drawer explicativo | T3 | ✅ Verified |
 
 **ID format:** `EXPLICACAO-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 7 total, 0 mapped to tasks, 7 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped — verified by `.specs/features/5-4-entender-como-a-mensagem-foi-criada/validation.md` (2026-09-06)
 
 ---
 

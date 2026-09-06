@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 73,
+  "next_id": 74,
   "lessons": [
     {
       "id": "L-001",
@@ -1329,6 +1329,24 @@
       ],
       "created": "2026-09-06T00:00:30Z",
       "last_seen": "2026-09-06T00:00:30Z"
+    },
+    {
+      "id": "L-073",
+      "key": "gate_fail::any new http route must also be added to the exhaustive openapi route allowlist guard test test saude py not only to the openapi contract sync test check both when a task adds an endpoint",
+      "text": "Any new HTTP route must also be added to the exhaustive OpenAPI route-allowlist guard test (test_saude.py), not only to the OpenAPI-contract-sync test — check both when a task adds an endpoint.",
+      "signal": "gate_fail",
+      "scope": "backend/api",
+      "status": "candidate",
+      "features": [
+        "5-4-entender-como-a-mensagem-foi-criada"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "src/backend/testes/test_saude.py:30 (backend/api)"
+      ],
+      "created": "2026-09-06T16:22:55Z",
+      "last_seen": "2026-09-06T16:22:55Z"
     }
   ]
 }

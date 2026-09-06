@@ -444,6 +444,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: APOLICE-02 - src/backend/testes/test_apolice_segurado.py:229-231 (validation.md nota A) (testes)
 - last seen: 2026-09-06T00:00:30Z
 
+### L-073 - Any new HTTP route must also be added to the exhaustive OpenAPI route-allowlist guard test (test_saude.py), not only to the OpenAPI-contract-sync test — check both when a task adds an endpoint.
+- signal: `gate_fail` · recurrence: 1 feature(s) · scope: `backend/api` · harmful: 0
+- features: 5-4-entender-como-a-mensagem-foi-criada
+- evidence: src/backend/testes/test_saude.py:30 (backend/api)
+- last seen: 2026-09-06T16:22:55Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
