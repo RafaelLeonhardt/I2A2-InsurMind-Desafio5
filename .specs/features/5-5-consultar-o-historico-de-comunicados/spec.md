@@ -93,18 +93,18 @@ A História 4.3 entrega o registro de primeira visualização de um comunicado i
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| COMUNICADOS-01 | P1: Lista de comunicados isolada por segurado | Design | Pending |
-| COMUNICADOS-02 | P1: Lista de comunicados isolada por segurado | Design | Pending |
-| COMUNICADOS-03 | P1: Detalhe com visualização idempotente e sem regressão de estado | Design | Pending |
-| COMUNICADOS-04 | P1: Detalhe com visualização idempotente e sem regressão de estado | Design | Pending |
-| COMUNICADOS-05 | P2: Erro visível sem conteúdo fixo e navegação acessível | Design | Pending |
-| COMUNICADOS-06 | P2: Erro visível sem conteúdo fixo e navegação acessível | Design | Pending |
+| COMUNICADOS-01 | P1: Lista de comunicados isolada por segurado | T1/T2/T3/T4 | Implementing |
+| COMUNICADOS-02 | P1: Lista de comunicados isolada por segurado | T2/T4 | In Tasks |
+| COMUNICADOS-03 | P1: Detalhe com visualização idempotente e sem regressão de estado | T4 | In Tasks |
+| COMUNICADOS-04 | P1: Detalhe com visualização idempotente e sem regressão de estado | T4 | In Tasks |
+| COMUNICADOS-05 | P2: Erro visível sem conteúdo fixo e navegação acessível | T4 | In Tasks |
+| COMUNICADOS-06 | P2: Erro visível sem conteúdo fixo e navegação acessível | T4 | In Tasks |
 
 **ID format:** `COMUNICADOS-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 6 total, 0 mapped to tasks, 6 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 6 total, 6 mapped to tasks, 0 unmapped
 
 ---
 

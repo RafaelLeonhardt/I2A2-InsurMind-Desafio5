@@ -67,9 +67,9 @@ T3 → T4
 
 **Done when**:
 
-- [ ] Retorna só entregas do segurado informado
-- [ ] E-mail retorna `assunto` real; WhatsApp/SMS retornam resumo truncado do corpo
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] Retorna só entregas do segurado informado
+- [x] E-mail retorna `assunto` real; WhatsApp/SMS retornam resumo truncado do corpo
+- [x] Gate check passa: `uv run --directory src/backend pytest`
 
 **Tests**: integration
 **Gate**: quick

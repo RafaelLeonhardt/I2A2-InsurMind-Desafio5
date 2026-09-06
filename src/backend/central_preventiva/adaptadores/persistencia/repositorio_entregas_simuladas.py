@@ -17,6 +17,13 @@ embora o mesmo parágrafo exija que a inserção ocorra "dentro da transação j
 chamador" — as duas coisas não podem valer ao mesmo tempo. `MensagemAprovada`,
 `ApresentacaoSimulada` e `EntregaSimulada` também não são definidas no design; a forma delas
 segue a linha "Forma da apresentação simulada por canal" da tabela de decisões da `spec.md`.
+
+SPEC_DEVIATION (História 5.5): o `design.md` declara `listar_por_segurado(self, segurado_id) ->
+list[EntregaSimulada]`, mas exige no mesmo componente um "assunto/resumo derivado" por canal —
+campo que `EntregaSimulada`/`ApresentacaoSimulada` não têm (só carregam o `assunto` real, quando
+existe). `listar_por_segurado` devolve `list[EntregaDoSegurado]` em vez disso, com
+`assunto_ou_resumo` já calculado: o `assunto` real para e-mail, um resumo truncado do `corpo`
+para WhatsApp/SMS (Tech Decision do `design.md`).
 """
 
 from collections.abc import Generator, Sequence
@@ -34,7 +41,11 @@ from central_preventiva.adaptadores.persistencia.repositorio_mensagens import (
     desserializar_saida,
     serializar_saida,
 )
+from central_preventiva.dominio.estados_mensagem import EstadoMensagem
 from central_preventiva.dominio.validador_saida_canal import Canal, SaidaCanal
+
+_TAMANHO_RESUMO = 60
+"""Comprimento máximo, em caracteres Unicode, do resumo derivado do `corpo` (WhatsApp/SMS)."""
 
 ROTULO_SIMULADA = "simulada"
 """Rótulo fixo de toda entrega desta tabela (SIMUL-06).
@@ -88,6 +99,17 @@ class EntregaSimulada:
     mensagem_id: UUID
     canal: Canal
     apresentacao: ApresentacaoSimulada
+    criado_em: datetime
+
+
+@dataclass(frozen=True, slots=True)
+class EntregaDoSegurado:
+    """Uma entrega simulada do segurado, com assunto/resumo já derivado (COMUNICADOS-01)."""
+
+    id: UUID
+    mensagem_id: UUID
+    canal: Canal
+    assunto_ou_resumo: str
     criado_em: datetime
 
 
@@ -160,6 +182,26 @@ class RepositorioEntregasSimuladas:
             ).fetchall()
         return [_entrega_de_linha(linha) for linha in linhas]
 
+    def listar_por_segurado(self, segurado_id: UUID) -> list[EntregaDoSegurado]:
+        """Lista as entregas simuladas do segurado, mais antigas primeiro (COMUNICADOS-01).
+
+        Só entregas cuja mensagem de origem está em `simulada_entregue` contam como
+        comunicado (Edge Case da `spec.md`, mesma checagem de `MensagemNaoElegivelParaComunicado`
+        em 4.3) — uma execução ainda em andamento não aparece na lista.
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute(
+                "SELECT e.id, e.mensagem_id, e.canal, e.apresentacao, e.criado_em "
+                "FROM entregas_simuladas e "
+                "JOIN mensagens m ON m.id = e.mensagem_id "
+                "JOIN elegibilidades_historicas el ON el.id = m.elegibilidade_id "
+                "WHERE el.segurado_id = ? AND m.estado = ? "
+                "ORDER BY e.criado_em, e.id",
+                [segurado_id, EstadoMensagem.SIMULADA_ENTREGUE.value],
+            ).fetchall()
+        return [_entrega_do_segurado_de_linha(linha) for linha in linhas]
+
     def obter_por_id(self, entrega_simulada_id: UUID) -> EntregaSimulada | None:
         """Lê uma entrega simulada pelo identificador, ou `None` se não existir (4.3).
 
@@ -193,4 +235,29 @@ def _entrega_de_linha(linha: tuple[object, ...]) -> EntregaSimulada:
             canal=canal, corpo=conteudo.corpo, assunto=conteudo.assunto
         ),
         criado_em=cast(datetime, linha[5]),
+    )
+
+
+def _assunto_ou_resumo(apresentacao: SaidaCanal) -> str:
+    """Assunto real do e-mail, ou um resumo truncado do corpo (WhatsApp/SMS)."""
+
+    if apresentacao.assunto is not None:
+        return apresentacao.assunto
+    corpo = apresentacao.corpo
+    if len(corpo) <= _TAMANHO_RESUMO:
+        return corpo
+    return corpo[:_TAMANHO_RESUMO].rstrip() + "…"
+
+
+def _entrega_do_segurado_de_linha(linha: tuple[object, ...]) -> EntregaDoSegurado:
+    """Traduz uma linha da junção `entregas_simuladas`×`mensagens`×`elegibilidades_historicas`
+    para `EntregaDoSegurado`, com o assunto/resumo já derivado."""
+
+    conteudo = desserializar_saida(str(linha[3]))
+    return EntregaDoSegurado(
+        id=UUID(str(linha[0])),
+        mensagem_id=UUID(str(linha[1])),
+        canal=Canal(str(linha[2])),
+        assunto_ou_resumo=_assunto_ou_resumo(conteudo),
+        criado_em=cast(datetime, linha[4]),
     )

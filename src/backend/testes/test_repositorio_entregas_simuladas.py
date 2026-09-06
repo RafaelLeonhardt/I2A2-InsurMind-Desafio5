@@ -18,14 +18,95 @@ from central_preventiva.adaptadores.persistencia.repositorio_entregas_simuladas 
     MensagemAprovada,
     RepositorioEntregasSimuladas,
 )
+from central_preventiva.adaptadores.persistencia.repositorio_mensagens import RepositorioMensagens
+from central_preventiva.adaptadores.persistencia.serializacao_criterios import (
+    serializar_criterios,
+)
 from central_preventiva.adaptadores.persistencia.transacao import TransacaoDuckDB
+from central_preventiva.dominio.avaliador_elegibilidade import (
+    OPERANDO_AREA_AFETADA,
+    OPERANDO_COBERTURA_EXIGIDA,
+)
+from central_preventiva.dominio.avaliador_risco import Criterio
+from central_preventiva.dominio.estados_mensagem import EstadoMensagem
 from central_preventiva.dominio.validador_saida_canal import Canal, SaidaCanal
 
 EXECUCAO_ID = UUID("11111111-1111-1111-1111-111111111111")
 OUTRA_EXECUCAO_ID = UUID("99999999-9999-9999-9999-999999999999")
+CARLOS_ID = UUID("44444444-4444-4444-4444-444444444444")
+OUTRO_SEGURADO_ID = UUID("55555555-5555-5555-5555-555555555555")
 CORPO_SMS = "Chuva forte hoje na sua região. Evite áreas alagadas."
 CORPO_EMAIL = "Prezada, previsão de chuva intensa na sua região nas próximas horas."
 ASSUNTO_EMAIL = "Aviso preventivo da sua seguradora"
+CORPO_LONGO_WHATSAPP = (
+    "Atenção: previsão de chuva intensa na sua região nas próximas seis horas, com risco "
+    "de alagamento em vias e áreas baixas. Evite deslocamentos desnecessários."
+)
+CRITERIOS = (
+    Criterio(OPERANDO_AREA_AFETADA, "9990001", True, "Área corresponde."),
+    Criterio(OPERANDO_COBERTURA_EXIGIDA, "alagamento", True, "Possui cobertura."),
+)
+
+
+class CenarioSegurado:
+    """Semeia regra/execução/elegibilidade/mensagem reais, para exercitar a junção de
+    `listar_por_segurado` com as tabelas de outras histórias (2.4, 2.5, 3.2)."""
+
+    def __init__(self, tmp_path: Path) -> None:
+        """Migra o banco e monta os repositórios reais sobre ele."""
+
+        self.caminho = preparar(tmp_path)
+        self.mensagens = RepositorioMensagens(self.caminho)
+        self.entregas = RepositorioEntregasSimuladas(self.caminho)
+        with abrir_conexao(self.caminho) as conexao:
+            conexao.execute(
+                "INSERT INTO regras (id, evento_tipo, limiar_meteorologico, area_aplicavel, "
+                "apolice_tipo, cobertura_exigida, antecedencia_horas, canal, versao, estado) "
+                "VALUES (?, 'chuva_intensa', 50.0, '9990001', 'residencial', 'alagamento', "
+                "6, 'sms', 1, 'ativa')",
+                [uuid4()],
+            )
+            conexao.execute(
+                "INSERT INTO execucao_preventiva (id, estado, versao) "
+                "VALUES (?, 'concluida', 1)",
+                [EXECUCAO_ID],
+            )
+
+    def entrega(
+        self,
+        canal: Canal,
+        conteudo: SaidaCanal,
+        segurado_id: UUID = CARLOS_ID,
+        estado: EstadoMensagem = EstadoMensagem.SIMULADA_ENTREGUE,
+    ) -> UUID:
+        """Semeia elegibilidade+mensagem+entrega simulada para o segurado informado."""
+
+        elegibilidade_id = uuid4()
+        with abrir_conexao(self.caminho) as conexao:
+            conexao.execute(
+                "INSERT INTO elegibilidades_historicas "
+                "(id, execucao_id, evento_id, regra_id, segurado_id, "
+                "apolice_id, elegivel, criterios, canal, nome_segurado, justificativa) "
+                "VALUES (?, ?, ?, ?, ?, ?, true, ?, ?, 'Carlos Teste', "
+                "'Atende integralmente aos critérios da regra ativa.')",
+                [
+                    elegibilidade_id,
+                    EXECUCAO_ID,
+                    uuid4(),
+                    uuid4(),
+                    segurado_id,
+                    uuid4(),
+                    serializar_criterios(CRITERIOS),
+                    canal.value,
+                ],
+            )
+        mensagem_id = self.mensagens.criar(EXECUCAO_ID, elegibilidade_id, canal)
+        [entrega_id] = self.entregas.criar_lote(
+            EXECUCAO_ID, [MensagemAprovada(mensagem_id, canal, conteudo)]
+        )
+        if estado is not EstadoMensagem.GERANDO:
+            self.mensagens.transicionar(mensagem_id, 1, estado)
+        return entrega_id
 
 
 def preparar(tmp_path: Path) -> Path:
@@ -219,3 +300,76 @@ def test_obter_por_id_devolve_none_para_identificador_inexistente(tmp_path: Path
     repositorio = RepositorioEntregasSimuladas(caminho)
 
     assert repositorio.obter_por_id(uuid4()) is None
+
+
+def test_listar_por_segurado_isola_por_segurado_e_deriva_assunto_ou_resumo_por_canal(
+    tmp_path: Path,
+) -> None:
+    """COMUNICADOS-01: só entregas do segurado informado, e-mail com assunto real,
+    WhatsApp/SMS com resumo truncado do corpo quando ele excede o tamanho fixo."""
+
+    cenario = CenarioSegurado(tmp_path)
+    entrega_email = cenario.entrega(
+        Canal.EMAIL, SaidaCanal(corpo=CORPO_EMAIL, assunto=ASSUNTO_EMAIL)
+    )
+    entrega_whatsapp = cenario.entrega(Canal.WHATSAPP, SaidaCanal(corpo=CORPO_LONGO_WHATSAPP))
+    cenario.entrega(Canal.SMS, SaidaCanal(corpo=CORPO_SMS), segurado_id=OUTRO_SEGURADO_ID)
+
+    entregas = cenario.entregas.listar_por_segurado(CARLOS_ID)
+
+    assert [entrega.id for entrega in entregas] == [entrega_email, entrega_whatsapp]
+    assert entregas[0].assunto_ou_resumo == ASSUNTO_EMAIL
+    assert entregas[1].assunto_ou_resumo == CORPO_LONGO_WHATSAPP[:60].rstrip() + "…"
+    assert len(entregas[1].assunto_ou_resumo) <= 61
+
+
+def test_listar_por_segurado_nao_trunca_corpo_curto_do_sms(tmp_path: Path) -> None:
+    """Um corpo dentro do limite não ganha reticências nem é cortado."""
+
+    cenario = CenarioSegurado(tmp_path)
+    corpo_curto = "Chuva leve hoje."
+    cenario.entrega(Canal.SMS, SaidaCanal(corpo=corpo_curto))
+
+    [entrega] = cenario.entregas.listar_por_segurado(CARLOS_ID)
+
+    assert entrega.assunto_ou_resumo == corpo_curto
+
+
+def test_listar_por_segurado_sem_comunicados_devolve_lista_vazia(tmp_path: Path) -> None:
+    """Segurado sem nenhuma entrega simulada recebe lista vazia, não erro."""
+
+    cenario = CenarioSegurado(tmp_path)
+
+    assert cenario.entregas.listar_por_segurado(CARLOS_ID) == []
+
+
+def test_listar_por_segurado_exclui_mensagem_ainda_nao_simulada_entregue(
+    tmp_path: Path,
+) -> None:
+    """Edge Case da spec.md: uma execução ainda em andamento (mensagem não
+    `simulada_entregue`) não aparece na lista de comunicados."""
+
+    cenario = CenarioSegurado(tmp_path)
+    cenario.entrega(
+        Canal.SMS, SaidaCanal(corpo=CORPO_SMS), estado=EstadoMensagem.REJEITADA
+    )
+
+    assert cenario.entregas.listar_por_segurado(CARLOS_ID) == []
+
+
+def test_listar_por_segurado_ordena_por_data_e_desempata_por_id(tmp_path: Path) -> None:
+    """Edge Case da spec.md: duas entregas com a mesma data são ordenadas de forma
+    determinística por um critério secundário estável (id), sem posição instável."""
+
+    cenario = CenarioSegurado(tmp_path)
+    entrega_alta = cenario.entrega(Canal.SMS, SaidaCanal(corpo="Primeira."))
+    entrega_baixa = cenario.entrega(Canal.SMS, SaidaCanal(corpo="Segunda."))
+    ids_ordenados = sorted([entrega_alta, entrega_baixa])
+    with abrir_conexao(cenario.caminho) as conexao:
+        conexao.execute(
+            "UPDATE entregas_simuladas SET criado_em = TIMESTAMP '2026-01-01 00:00:00'"
+        )
+
+    entregas = cenario.entregas.listar_por_segurado(CARLOS_ID)
+
+    assert [entrega.id for entrega in entregas] == ids_ordenados
