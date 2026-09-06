@@ -93,12 +93,12 @@ A História 4.3 entrega o registro de primeira visualização de um comunicado i
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| COMUNICADOS-01 | P1: Lista de comunicados isolada por segurado | T1/T2/T3/T4 | Implementing |
-| COMUNICADOS-02 | P1: Lista de comunicados isolada por segurado | T2/T4 | Implementing |
-| COMUNICADOS-03 | P1: Detalhe com visualização idempotente e sem regressão de estado | T4 | Implementing |
-| COMUNICADOS-04 | P1: Detalhe com visualização idempotente e sem regressão de estado | T4 | Implementing |
-| COMUNICADOS-05 | P2: Erro visível sem conteúdo fixo e navegação acessível | T4 | Implementing |
-| COMUNICADOS-06 | P2: Erro visível sem conteúdo fixo e navegação acessível | T4 | Implementing |
+| COMUNICADOS-01 | P1: Lista de comunicados isolada por segurado | T1/T2/T3/T4 | Verified |
+| COMUNICADOS-02 | P1: Lista de comunicados isolada por segurado | T2/T4 | Verified |
+| COMUNICADOS-03 | P1: Detalhe com visualização idempotente e sem regressão de estado | T4 | Verified |
+| COMUNICADOS-04 | P1: Detalhe com visualização idempotente e sem regressão de estado | T4 | Verified |
+| COMUNICADOS-05 | P2: Erro visível sem conteúdo fixo e navegação acessível | T4 | Verified |
+| COMUNICADOS-06 | P2: Erro visível sem conteúdo fixo e navegação acessível | T4 | Verified (observação Minor sobre o anúncio da seleção — ver validation.md) |
 
 **ID format:** `COMUNICADOS-NN`
 
