@@ -476,3 +476,27 @@ export type ListaComunicados = {
 export function listarComunicados(seguradoId: string): Promise<ListaComunicados> {
   return obter<ListaComunicados>(`/segurados/${seguradoId}/comunicados`)
 }
+
+/** Explicação completa de um comunicado: parte determinística e parte agêntica (4.4). */
+export type ExplicacaoComunicado = {
+  entrega_simulada_id: string
+  execucao_id: string
+  mensagem_id: string
+  evento_e_regra: {
+    origem: string
+    regra_id: string
+    regra_versao: number
+    evento: { tipo: string; area: string } | null
+  }
+  contexto: { categorias_usadas: string[]; categorias_nao_usadas: string[] } | null
+  agente: { origem: string; status: string; tentativas: { numero_tentativa: number }[] }
+}
+
+export function obterExplicacaoComunicado(
+  seguradoId: string,
+  entregaSimuladaId: string,
+): Promise<ExplicacaoComunicado> {
+  return obter<ExplicacaoComunicado>(
+    `/segurados/${seguradoId}/comunicados/${entregaSimuladaId}/explicacao`,
+  )
+}

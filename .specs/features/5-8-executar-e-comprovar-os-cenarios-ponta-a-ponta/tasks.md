@@ -286,9 +286,16 @@ T13
 
 **Done when**:
 
-- [ ] Todas as 7 evidências listadas no AC são alcançáveis pela navegação, sem editar arquivo/banco
-- [ ] `openapi.json` gerado corresponde ao contrato realmente executado (reusa `test_openapi_sincronizado.py`)
-- [ ] Gate check passa: `npx playwright test testes-e2e/cenarios/evidencias-localizaveis.spec.ts`
+- [x] Todas as 7 evidências listadas no AC são alcançáveis pela navegação, sem editar arquivo/banco
+      — prontidão, documentação da API, comunicado, explicação e linha do tempo do alerta na
+      interface real; evento e decisão, supervisão, resultados e linha do tempo da execução pela
+      API REST, porque as superfícies de Administrador dos Épicos 2–4 e a gaveta
+      `SuperficieExplicacaoComunicado` ainda não estão montadas em `App.tsx` (item aberto já
+      registrado em `.specs/STATE.md`)
+- [x] `openapi.json` gerado corresponde ao contrato realmente executado — o documento servido
+      pelo processo no ar é comparado ao instantâneo versionado, e toda rota exercitada pela
+      suíte é confirmada no contrato publicado
+- [x] Gate check passa: `npx playwright test testes-e2e/cenarios/evidencias-localizaveis.spec.ts`
 
 **Tests**: e2e
 **Gate**: e2e (cenários)
