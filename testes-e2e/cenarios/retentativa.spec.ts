@@ -20,10 +20,12 @@ import { ESTACAO_CHUVA, MODELO_OPENAI_E2E } from '../suporte/ambiente.ts'
 import {
   aguardarEstado,
   buscarExecucoes,
+  decidirLote,
   iniciarExecucao,
   obterElegibilidade,
   obterExecucao,
   obterLinhaDoTempo,
+  obterLoteRevisao,
   solicitarNovaTentativaIA,
   solicitarPreflight,
 } from '../suporte/api.ts'
@@ -119,6 +121,21 @@ test.describe('E2E-07: retentativa correlacionada', () => {
     await solicitarPreflight(criada.execucao_id)
     const emRevisao = await aguardarEstado(criada.execucao_id, ['aguardando_revisao'])
     expect(emRevisao.estado).toBe('aguardando_revisao')
+
+    // Fecha a execução nova antes de sair. A restauração recusa rodar enquanto existir uma
+    // execução não terminal (DW-002), e cada cenário da suíte restaura o banco ao começar:
+    // deixar o lote aberto aqui bloquearia o cenário seguinte.
+    const loteNovo = await obterLoteRevisao(criada.execucao_id)
+    const itemNovo = loteNovo.itens[0]!
+    const encerrada = await decidirLote(criada.execucao_id, [
+      {
+        mensagem_id: itemNovo.mensagem_id,
+        versao_esperada: itemNovo.versao,
+        resultado: 'rejeitar',
+        justificativa: 'Encerramento do cenário de retentativa, sem simulação.',
+      },
+    ])
+    expect(encerrada.estado).toBe('concluida')
 
     const origemAoFinal = await obterExecucao(origemId)
     expect(origemAoFinal.estado).toBe('falhou_preparacao_ia')
