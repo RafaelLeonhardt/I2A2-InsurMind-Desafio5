@@ -154,9 +154,9 @@ T13
 
 **Done when**:
 
-- [ ] Execução termina `sem_risco` com motivo consultável
-- [ ] Nenhuma chamada à OpenAI, mensagem ou simulação registrada
-- [ ] Gate check passa: `npx playwright test testes-e2e/cenarios/sem-risco.spec.ts`
+- [x] Execução termina `sem_risco` com motivo consultável
+- [x] Nenhuma chamada à OpenAI, mensagem ou simulação registrada
+- [x] Gate check passa: `npx playwright test testes-e2e/cenarios/sem-risco.spec.ts`
 
 **Tests**: e2e
 **Gate**: e2e (cenários)

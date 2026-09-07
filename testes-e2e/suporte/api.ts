@@ -247,6 +247,29 @@ export function listarEventos(): Promise<{ eventos: Evento[] }> {
   return obter<{ eventos: Evento[] }>('/meteorologia/eventos')
 }
 
+/** Mensagens produzidas por uma execução (vazio quando nenhuma foi gerada). */
+export type Mensagens = {
+  execucao_id: string
+  registros: { mensagem_id: string; canal: string; estado: string }[]
+}
+
+export function obterMensagens(execucaoId: string): Promise<Mensagens> {
+  return obter<Mensagens>(`/execucoes/${execucaoId}/mensagens`)
+}
+
+/** Resultados consolidados da simulação de uma execução. */
+export type Resultados = {
+  execucao_id: string
+  estado: string
+  concluido: boolean
+  totais_por_estado: { estado: string; total: number }[]
+  nao_simulaveis: { mensagem_id: string }[]
+}
+
+export function obterResultados(execucaoId: string): Promise<Resultados> {
+  return obter<Resultados>(`/execucoes/${execucaoId}/resultados`)
+}
+
 /** Preferências de um segurado sintético. */
 export type Preferencias = {
   segurado_id: string
