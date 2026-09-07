@@ -47,11 +47,17 @@ class ArquivoNaoRastreado(RuntimeError):
 
 
 def _esta_excluido(caminho_relativo: str) -> bool:
-    if Path(caminho_relativo).name == ".env" or caminho_relativo == ".env":
-        return True
+    partes = Path(caminho_relativo).parts
     for padrao in PADROES_EXCLUIDOS:
         prefixo = padrao.rstrip("/")
-        if caminho_relativo == prefixo or caminho_relativo.startswith(prefixo + "/"):
+        if "/" in prefixo:
+            # Padrão composto (ex.: "docs/entrega/"): ancorado à raiz, como um
+            # padrão de .gitignore com "/" no meio.
+            if caminho_relativo == prefixo or caminho_relativo.startswith(prefixo + "/"):
+                return True
+        elif prefixo in partes:
+            # Padrão de um segmento (ex.: ".venv/", "__pycache__/"): casa em
+            # qualquer profundidade, como um padrão de .gitignore sem "/".
             return True
     return any(caminho_relativo.endswith(sufixo) for sufixo in SUFIXOS_EXCLUIDOS)
 

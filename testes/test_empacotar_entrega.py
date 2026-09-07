@@ -2,11 +2,15 @@
 
 Cobre a AC "ZIP completo e sanitizado" de `spec.md` (ENTREGA-02): o ZIP extraído
 nunca contém `.env`, chave, cache ou artefato operacional, e contém `src/`,
-`docs/` (incluindo `docs/evidencias/`), `README.md` e `LICENSE`.
+`docs/` (incluindo `docs/evidencias/`), `README.md` e `LICENSE`. Também cobre
+ENTREGA-03 (repositório com licença MIT e livre de segredos conhecidos), cujo
+Independent Test em `spec.md` é literalmente uma busca automatizada no
+conteúdo extraído — não só nos nomes de caminho.
 """
 
 from __future__ import annotations
 
+import re
 import subprocess
 import sys
 import zipfile
@@ -28,6 +32,14 @@ PADROES_PROIBIDOS = (
     ".ruff_cache",
 )
 SUFIXOS_PROIBIDOS = (".duckdb", ".duckdb.wal", ".pyc")
+
+PADROES_DE_CHAVE_CONHECIDA = (
+    re.compile(rb"sk-[A-Za-z0-9]{20,}"),
+    re.compile(rb"AKIA[0-9A-Z]{16}"),
+    re.compile(rb"gh[pousr]_[A-Za-z0-9]{36,}"),
+    re.compile(rb"xox[baprs]-[A-Za-z0-9-]{10,}"),
+    re.compile(rb"-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----"),
+)
 
 
 @pytest.fixture(scope="module")
@@ -73,6 +85,62 @@ def test_zip_contem_arquivo_essencial(zip_gerado: zipfile.ZipFile, caminho_esper
     nomes = zip_gerado.namelist()
     alvo = f"{modulo.NOME_PASTA_RAIZ_NO_ZIP}/{caminho_esperado}"
     assert alvo in nomes
+
+
+def test_zip_licenca_e_mit(zip_gerado: zipfile.ZipFile) -> None:
+    conteudo = zip_gerado.read(f"{modulo.NOME_PASTA_RAIZ_NO_ZIP}/LICENSE").decode("utf-8")
+    assert conteudo.startswith("MIT License")
+
+
+def test_zip_nao_contem_nenhum_padrao_de_chave_conhecida(zip_gerado: zipfile.ZipFile) -> None:
+    for nome in zip_gerado.namelist():
+        dados = zip_gerado.read(nome)
+        for padrao in PADROES_DE_CHAVE_CONHECIDA:
+            assert not padrao.search(dados), f"padrão de chave encontrado em {nome}"
+
+
+@pytest.mark.parametrize(
+    ("caminho", "esperado"),
+    [
+        (".env", True),
+        ("sub/.env", True),
+        (".venv/lib/x.py", True),
+        ("sub/.venv/lib/x.py", True),
+        ("__pycache__/x.pyc", True),
+        ("node_modules/pkg/index.js", True),
+        ("var/central_preventiva.duckdb", True),
+        ("docs/entrega/relatorio-tecnico.pdf", True),
+        (".pytest_cache/v/x", True),
+        ("banco.duckdb", True),
+        ("banco.duckdb.wal", True),
+        ("modulo.pyc", True),
+        ("src/backend/central_preventiva/main.py", False),
+        (".env.example", False),
+        ("README.md", False),
+    ],
+)
+def test_esta_excluido_reconhece_cada_padrao_da_lista(caminho: str, esperado: bool) -> None:
+    assert modulo._esta_excluido(caminho) is esperado
+
+
+def test_filtro_defensivo_remove_env_mesmo_se_rastreado_pelo_git(tmp_path: Path) -> None:
+    subprocess.run(["git", "init", "-q"], cwd=tmp_path, check=True)
+    (tmp_path / "README.md").write_text("readme", encoding="utf-8")
+    (tmp_path / ".env").write_text("SEGREDO=1", encoding="utf-8")
+    # `-f` força o rastreamento mesmo que um `.gitignore` existisse: prova que
+    # é o filtro defensivo de `_esta_excluido`, não o `.gitignore`, que remove
+    # o arquivo da lista final.
+    subprocess.run(["git", "add", "-f", "README.md", ".env"], cwd=tmp_path, check=True)
+    subprocess.run(
+        ["git", "-c", "user.email=t@t.com", "-c", "user.name=t", "commit", "-q", "-m", "inicial"],
+        cwd=tmp_path,
+        check=True,
+    )
+
+    arquivos = modulo.listar_arquivos_no_pacote(raiz=tmp_path)
+
+    assert "README.md" in arquivos
+    assert ".env" not in arquivos
 
 
 def test_falha_explicita_quando_raiz_nao_e_repositorio_git(tmp_path: Path) -> None:
