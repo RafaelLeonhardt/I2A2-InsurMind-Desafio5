@@ -80,6 +80,10 @@ def test_falha_explicita_quando_diretorio_de_artefatos_nao_existe(tmp_path: Path
 
 def test_inventario_nao_inclui_a_si_mesmo(diretorio_artefatos: Path) -> None:
     saida = diretorio_artefatos / "inventario.json"
+    # Gera duas vezes: na primeira, inventario.json ainda não existe, então a
+    # exclusão não chega a ser exercitada. É só na segunda rodada, com o
+    # arquivo já presente no diretório, que o filtro é de fato testado.
+    modulo.gerar(diretorio_artefatos, saida)
     modulo.gerar(diretorio_artefatos, saida)
 
     inventario = json.loads(saida.read_text(encoding="utf-8"))
