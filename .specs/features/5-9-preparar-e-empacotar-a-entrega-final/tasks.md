@@ -90,7 +90,7 @@ T5
 **Where**: `scripts/empacotar_entrega.py`
 **Depends on**: None
 **Reuses**: `.gitignore` já existente como lista de exclusão
-**Requirement**: ENTREGA-02
+**Requirement**: ENTREGA-02, ENTREGA-03
 
 **Tools**: MCP: NONE — Skill: NONE
 
@@ -98,6 +98,7 @@ T5
 
 - [x] ZIP extraído não contém nenhum arquivo/padrão da lista de exclusão (testado por busca automatizada no conteúdo extraído)
 - [x] ZIP contém `src/`, `docs/` (incluindo `docs/evidencias/`), `README.md`, `LICENSE`
+- [x] ZIP contém `LICENSE` com texto MIT e não contém nenhum padrão de chave conhecida (busca automatizada no conteúdo extraído, ENTREGA-03)
 - [x] Gate check passa: `uv run --directory . pytest testes/test_empacotar_entrega.py`
 
 **Tests**: integration
@@ -111,7 +112,7 @@ T5
 **Where**: `scripts/gerar_inventario.py`
 **Depends on**: T1, T2
 **Reuses**: PDF de T1, ZIP de T2
-**Requirement**: ENTREGA-03
+**Requirement**: ENTREGA-05
 
 **Tools**: MCP: NONE — Skill: NONE
 
@@ -129,10 +130,10 @@ T5
 ### T4: Validação de checkout limpo e ZIP
 
 **What**: Roteiro documentado (e, quando possível, automatizado) que valida instalação/execução a partir de um `git clone` limpo e separadamente do ZIP extraído, usando só comandos do README.
-**Where**: `docs/entrega/validacao-checkout.md`
+**Where**: `docs/evidencias/validacao-checkout-entrega.md` — rastreado pelo Git (`docs/entrega/` é ignorado por decisão do `design.md`; esta evidência precisa acompanhar a entrega, então vive junto das demais evidências de `docs/evidencias/`, não em `docs/entrega/`)
 **Depends on**: T3
 **Reuses**: comandos já documentados no `README.md`
-**Requirement**: ENTREGA-04, ENTREGA-05
+**Requirement**: ENTREGA-04
 
 **Tools**: MCP: NONE — Skill: NONE
 
@@ -141,7 +142,7 @@ T5
 - [x] Checkout limpo instala e executa usando só os comandos do README, sem etapa manual oculta
 - [x] ZIP extraído instala e executa da mesma forma, independentemente do checkout via Git
 - [x] Nenhuma dependência de artefato operacional local (`var/central_preventiva.duckdb` preexistente, por exemplo) em nenhum dos dois caminhos
-- [x] Gate check passa: execução manual documentada do roteiro, com resultado registrado em `docs/entrega/validacao-checkout.md`
+- [x] Gate check passa: execução manual documentada do roteiro, com resultado registrado em `docs/evidencias/validacao-checkout-entrega.md`
 
 **Tests**: integration
 **Gate**: build

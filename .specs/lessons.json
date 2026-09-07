@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 84,
+  "next_id": 91,
   "lessons": [
     {
       "id": "L-001",
@@ -1531,6 +1531,132 @@
       ],
       "created": "2026-09-07T13:16:25Z",
       "last_seen": "2026-09-07T13:16:25Z"
+    },
+    {
+      "id": "L-084",
+      "key": "surviving_mutant::ao validar um documento gerado afirme o conteudo do corpo de cada secao nunca apenas a presenca do cabecalho",
+      "text": "Ao validar um documento gerado, afirme o conteudo do corpo de cada secao, nunca apenas a presenca do cabecalho.",
+      "signal": "surviving_mutant",
+      "scope": "scripts",
+      "status": "candidate",
+      "features": [
+        "5-9-preparar-e-empacotar-a-entrega-final"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M3 - scripts/gerar_relatorio_tecnico.py:248 (scripts)"
+      ],
+      "created": "2026-09-07T14:09:27Z",
+      "last_seen": "2026-09-07T14:09:27Z"
+    },
+    {
+      "id": "L-085",
+      "key": "surviving_mutant::nunca compare a saida com o valor devolvido pela propria funcao sob teste ancore a assercao num literal ou numa fonte independente",
+      "text": "Nunca compare a saida com o valor devolvido pela propria funcao sob teste; ancore a assercao num literal ou numa fonte independente.",
+      "signal": "surviving_mutant",
+      "scope": "scripts",
+      "status": "candidate",
+      "features": [
+        "5-9-preparar-e-empacotar-a-entrega-final"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M5 - scripts/gerar_relatorio_tecnico.py:268 (scripts)"
+      ],
+      "created": "2026-09-07T14:09:27Z",
+      "last_seen": "2026-09-07T14:09:27Z"
+    },
+    {
+      "id": "L-086",
+      "key": "surviving_mutant::ao testar falha explicita afirme a mensagem da excecao e nao apenas o tipo para nao passar por uma excecao levantada por outro motivo",
+      "text": "Ao testar falha explicita, afirme a mensagem da excecao e nao apenas o tipo, para nao passar por uma excecao levantada por outro motivo.",
+      "signal": "surviving_mutant",
+      "scope": "scripts",
+      "status": "candidate",
+      "features": [
+        "5-9-preparar-e-empacotar-a-entrega-final"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M4 - scripts/gerar_relatorio_tecnico.py:82 (scripts)"
+      ],
+      "created": "2026-09-07T14:09:27Z",
+      "last_seen": "2026-09-07T14:09:27Z"
+    },
+    {
+      "id": "L-087",
+      "key": "surviving_mutant::filtro de defesa em profundidade exige teste unitario direto testar so a camada anterior deixa o filtro sem cobertura",
+      "text": "Filtro de defesa em profundidade exige teste unitario direto; testar so a camada anterior deixa o filtro sem cobertura.",
+      "signal": "surviving_mutant",
+      "scope": "scripts",
+      "status": "candidate",
+      "features": [
+        "5-9-preparar-e-empacotar-a-entrega-final"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M1 - scripts/empacotar_entrega.py:49 (scripts)"
+      ],
+      "created": "2026-09-07T14:09:27Z",
+      "last_seen": "2026-09-07T14:09:27Z"
+    },
+    {
+      "id": "L-088",
+      "key": "surviving_mutant::teste de exclusao de artefato so discrimina se o artefato ja existir no momento da execucao execute a operacao duas vezes",
+      "text": "Teste de exclusao de artefato so discrimina se o artefato ja existir no momento da execucao; execute a operacao duas vezes.",
+      "signal": "surviving_mutant",
+      "scope": "scripts",
+      "status": "candidate",
+      "features": [
+        "5-9-preparar-e-empacotar-a-entrega-final"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "M6 - scripts/gerar_inventario.py:45 (scripts)"
+      ],
+      "created": "2026-09-07T14:09:27Z",
+      "last_seen": "2026-09-07T14:09:27Z"
+    },
+    {
+      "id": "L-089",
+      "key": "ac_gap::confira que cada requirement id da spec tem exatamente uma task dona antes de fechar a fase tasks ids deslocados deixam uma ac sem implementacao",
+      "text": "Confira que cada requirement ID da spec tem exatamente uma task dona antes de fechar a fase Tasks; IDs deslocados deixam uma AC sem implementacao.",
+      "signal": "ac_gap",
+      "scope": "specs",
+      "status": "candidate",
+      "features": [
+        "5-9-preparar-e-empacotar-a-entrega-final"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "ENTREGA-03 - .specs/features/5-9-preparar-e-empacotar-a-entrega-final/validation.md (specs)"
+      ],
+      "created": "2026-09-07T14:09:27Z",
+      "last_seen": "2026-09-07T14:09:27Z"
+    },
+    {
+      "id": "L-090",
+      "key": "ac_gap::quando a ac proibe segredos no pacote verifique o conteudo dos arquivos e nao apenas os nomes de caminho",
+      "text": "Quando a AC proibe segredos no pacote, verifique o conteudo dos arquivos e nao apenas os nomes de caminho.",
+      "signal": "ac_gap",
+      "scope": "scripts",
+      "status": "candidate",
+      "features": [
+        "5-9-preparar-e-empacotar-a-entrega-final"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "ENTREGA-02 - spec.md:52 (scripts)"
+      ],
+      "created": "2026-09-07T14:09:28Z",
+      "last_seen": "2026-09-07T14:09:28Z"
     }
   ]
 }

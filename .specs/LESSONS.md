@@ -510,6 +510,48 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation.md E2E-11 / testes-e2e/responsividade/sistema-visual.spec.ts:22-32 (design-tokens)
 - last seen: 2026-09-07T13:16:25Z
 
+### L-084 - Ao validar um documento gerado, afirme o conteudo do corpo de cada secao, nunca apenas a presenca do cabecalho.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `scripts` · harmful: 0
+- features: 5-9-preparar-e-empacotar-a-entrega-final
+- evidence: M3 - scripts/gerar_relatorio_tecnico.py:248 (scripts)
+- last seen: 2026-09-07T14:09:27Z
+
+### L-085 - Nunca compare a saida com o valor devolvido pela propria funcao sob teste; ancore a assercao num literal ou numa fonte independente.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `scripts` · harmful: 0
+- features: 5-9-preparar-e-empacotar-a-entrega-final
+- evidence: M5 - scripts/gerar_relatorio_tecnico.py:268 (scripts)
+- last seen: 2026-09-07T14:09:27Z
+
+### L-086 - Ao testar falha explicita, afirme a mensagem da excecao e nao apenas o tipo, para nao passar por uma excecao levantada por outro motivo.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `scripts` · harmful: 0
+- features: 5-9-preparar-e-empacotar-a-entrega-final
+- evidence: M4 - scripts/gerar_relatorio_tecnico.py:82 (scripts)
+- last seen: 2026-09-07T14:09:27Z
+
+### L-087 - Filtro de defesa em profundidade exige teste unitario direto; testar so a camada anterior deixa o filtro sem cobertura.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `scripts` · harmful: 0
+- features: 5-9-preparar-e-empacotar-a-entrega-final
+- evidence: M1 - scripts/empacotar_entrega.py:49 (scripts)
+- last seen: 2026-09-07T14:09:27Z
+
+### L-088 - Teste de exclusao de artefato so discrimina se o artefato ja existir no momento da execucao; execute a operacao duas vezes.
+- signal: `surviving_mutant` · recurrence: 1 feature(s) · scope: `scripts` · harmful: 0
+- features: 5-9-preparar-e-empacotar-a-entrega-final
+- evidence: M6 - scripts/gerar_inventario.py:45 (scripts)
+- last seen: 2026-09-07T14:09:27Z
+
+### L-089 - Confira que cada requirement ID da spec tem exatamente uma task dona antes de fechar a fase Tasks; IDs deslocados deixam uma AC sem implementacao.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `specs` · harmful: 0
+- features: 5-9-preparar-e-empacotar-a-entrega-final
+- evidence: ENTREGA-03 - .specs/features/5-9-preparar-e-empacotar-a-entrega-final/validation.md (specs)
+- last seen: 2026-09-07T14:09:27Z
+
+### L-090 - Quando a AC proibe segredos no pacote, verifique o conteudo dos arquivos e nao apenas os nomes de caminho.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `scripts` · harmful: 0
+- features: 5-9-preparar-e-empacotar-a-entrega-final
+- evidence: ENTREGA-02 - spec.md:52 (scripts)
+- last seen: 2026-09-07T14:09:28Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

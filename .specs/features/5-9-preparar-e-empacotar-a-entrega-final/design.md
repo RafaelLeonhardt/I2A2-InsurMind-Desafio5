@@ -117,6 +117,7 @@ Nenhuma migração — esta história não toca o schema de produção. `docs/en
 | Escopo dos três scripts | Cada um só de orquestração de arquivos já existentes — nenhum gera conteúdo novo além de agregar/converter/formatar o que 5.8 e os ADRs já produziram | Evita qualquer decisão de produto nova; esta história é inteiramente sobre empacotar o que já existe |
 | Local dos artefatos finais | `docs/entrega/` (novo diretório, ignorado pelo Git — mesmo espírito de `var/`) | Artefatos de entrega são operacionais/gerados, não código-fonte versionado; consistente com a convenção já usada para `var/central_preventiva.duckdb` |
 | Checksum | SHA-256, formato já amplamente padrão para verificação de integridade de arquivo | Nenhuma decisão nova necessária — é o padrão de fato para esse propósito |
+| Local do relatório de validação de checkout/ZIP (T4) | `docs/evidencias/validacao-checkout-entrega.md` — **não** `docs/entrega/` | Correção pós-Verifier (achado Fix 6, primeira rodada): a decisão acima cobre os três artefatos *gerados* (PDF, ZIP, inventário), que são regeneráveis e por isso corretamente ignorados; mas a evidência de ENTREGA-04 precisa acompanhar a entrega publicada, então segue a convenção já existente de `docs/evidencias/` (rastreada pelo Git), não a de `var/` |
 
 ---
 
