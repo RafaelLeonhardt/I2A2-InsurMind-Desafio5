@@ -10,11 +10,21 @@ const {
   restaurarDadosSinteticosMock,
   verificarDocumentacaoApiMock,
   getAlertaMaisRelevanteMock,
+  getListaSeguradosMock,
+  getListaAlertasMock,
+  getApoliceMock,
+  getListaComunicadosMock,
+  getPreferenciasMock,
 } = vi.hoisted(() => ({
   getSeguradoPadraoMock: vi.fn(),
   restaurarDadosSinteticosMock: vi.fn(),
   verificarDocumentacaoApiMock: vi.fn(),
   getAlertaMaisRelevanteMock: vi.fn(),
+  getListaSeguradosMock: vi.fn(),
+  getListaAlertasMock: vi.fn(),
+  getApoliceMock: vi.fn(),
+  getListaComunicadosMock: vi.fn(),
+  getPreferenciasMock: vi.fn(),
 }))
 
 vi.mock('./api/contexto', async () => {
@@ -49,6 +59,36 @@ vi.mock('./api/documentacaoApi', async () => {
   }
 })
 
+// PainelSegurado (5.7) monta as cinco superfícies de 5.1-5.6 juntas sob o perfil Segurado —
+// cada uma precisa de sua própria API mockada para o shell permanecer hermético (sem
+// requisição de rede real em nenhum teste deste arquivo).
+vi.mock('./api/listaSegurados', async () => {
+  const real = await vi.importActual<typeof import('./api/listaSegurados')>('./api/listaSegurados')
+  return { ...real, getListaSegurados: getListaSeguradosMock }
+})
+
+vi.mock('./api/listaAlertasSegurado', async () => {
+  const real =
+    await vi.importActual<typeof import('./api/listaAlertasSegurado')>('./api/listaAlertasSegurado')
+  return { ...real, getListaAlertas: getListaAlertasMock }
+})
+
+vi.mock('./api/apoliceSegurado', async () => {
+  const real = await vi.importActual<typeof import('./api/apoliceSegurado')>('./api/apoliceSegurado')
+  return { ...real, getApolice: getApoliceMock }
+})
+
+vi.mock('./api/listaComunicados', async () => {
+  const real = await vi.importActual<typeof import('./api/listaComunicados')>('./api/listaComunicados')
+  return { ...real, getListaComunicados: getListaComunicadosMock }
+})
+
+vi.mock('./api/preferenciasSegurado', async () => {
+  const real =
+    await vi.importActual<typeof import('./api/preferenciasSegurado')>('./api/preferenciasSegurado')
+  return { ...real, getPreferencias: getPreferenciasMock }
+})
+
 function definirLargura(largura: number) {
   Object.defineProperty(window, 'innerWidth', { configurable: true, value: largura })
 }
@@ -75,6 +115,29 @@ beforeEach(() => {
     origem: 'real_inmet',
     instanteObservado: '2026-09-04T18:00:00',
     fonteDegradada: false,
+  })
+  getListaSeguradosMock.mockResolvedValue([
+    { id: '11111111-1111-4111-8111-111111111111', nome: 'Pessoa Segurada Sintética DEMO-001' },
+  ])
+  getListaAlertasMock.mockResolvedValue([])
+  getApoliceMock.mockResolvedValue({
+    numero: 'APOL-0001',
+    tipo: 'residencial',
+    situacao: 'ativa',
+    estadoObjetivo: 'vigente',
+    vigenciaInicio: '2026-01-01',
+    vigenciaFim: '2026-12-31',
+    enderecoRiscoSintetico: 'Endereço sintético',
+    coberturas: ['alagamento'],
+    canalPreferido: 'whatsapp',
+    participaDeAlertas: true,
+  })
+  getListaComunicadosMock.mockResolvedValue([])
+  getPreferenciasMock.mockResolvedValue({
+    seguradoId: '11111111-1111-4111-8111-111111111111',
+    canalPreferido: 'whatsapp',
+    participaDeAlertas: true,
+    versao: 1,
   })
   window.localStorage.clear()
 })
@@ -132,6 +195,38 @@ describe('shell do contexto demonstrativo', () => {
     expect(
       await screen.findByRole('heading', { name: 'Alerta preventivo para sua área' }),
     ).toBeInTheDocument()
+  })
+
+  it('perfil Segurado: o seletor "Visualizar como" está alcançável e troca as superfícies (5.7)', async () => {
+    definirLargura(1440)
+    const SEGURADO_A = { id: '11111111-1111-4111-8111-111111111111', nome: 'Pessoa Sintética DEMO-001' }
+    const SEGURADO_B = { id: '22222222-2222-4222-8222-222222222222', nome: 'Pessoa Sintética DEMO-002' }
+    getListaSeguradosMock.mockResolvedValue([SEGURADO_A, SEGURADO_B])
+    getApoliceMock.mockImplementation(async (id: string) => ({
+      numero: id === SEGURADO_A.id ? 'APOL-A' : 'APOL-B',
+      tipo: 'residencial',
+      situacao: 'ativa',
+      estadoObjetivo: 'vigente',
+      vigenciaInicio: '2026-01-01',
+      vigenciaFim: '2026-12-31',
+      enderecoRiscoSintetico: 'Endereço sintético',
+      coberturas: ['alagamento'],
+      canalPreferido: 'whatsapp',
+      participaDeAlertas: true,
+    }))
+    const usuario = userEvent.setup()
+    render(<App />)
+
+    await usuario.click(screen.getByRole('button', { name: /Visualizar como Segurado/ }))
+    await screen.findByRole('button', { name: 'Visão geral' })
+
+    const seletorSegurado = await screen.findByRole('combobox', { name: 'Visualizar como' })
+    expect(await screen.findByText('APOL-A')).toBeInTheDocument()
+
+    await usuario.selectOptions(seletorSegurado, SEGURADO_B.id)
+
+    expect(await screen.findByText('APOL-B')).toBeInTheDocument()
+    expect(screen.queryByText('APOL-A')).not.toBeInTheDocument()
   })
 
   it('Segurado → Administrador: navegação mostra Prontidão e Restaurar dados sintéticos', async () => {

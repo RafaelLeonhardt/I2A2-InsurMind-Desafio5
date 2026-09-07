@@ -230,3 +230,11 @@ T4 → T5
 | T5: Integração das 5 superfícies | Componente React (extensão) | unit | unit | ✅ OK |
 
 **Rules confirmed**: nenhum `Tests: none` nesta história; nenhuma task adia teste.
+
+---
+
+## Fix Tasks (Verifier Round 1 — FAIL, `validation.md` de 2026-09-06)
+
+Rodada 1 confirmou T1–T5 corretos e bem discriminados no nível de componente (sensor 3/3 morto, 8/8 requisitos SELETOR-01..08 espec-precisos), mas achou 1 gap Blocker: `PainelSegurado` nunca era montado em nenhum lugar alcançável da aplicação real (`App.tsx` continuava renderizando `VisaoGeralSegurado` isolado sob o perfil Segurado). O SPEC_DEVIATION que justificou não tocar as 5 superfícies originais nunca endereçava essa lacuna de alcançabilidade.
+
+- [x] **Fix 1** — `App.tsx` monta `PainelSegurado` (em vez de `VisaoGeralSegurado` isolado) no caso `'visao-geral'` do perfil Segurado; `App.test.tsx` ganhou mocks herméticos para as 4 APIs adicionais que `PainelSegurado` agora traz (`listaSegurados`, `listaAlertasSegurado`, `apoliceSegurado`, `listaComunicados`, `preferenciasSegurado`) e um novo teste (`'perfil Segurado: o seletor "Visualizar como" está alcançável e troca as superfícies (5.7)'`) que navega até o perfil Segurado pela UI real, confirma o combobox "Visualizar como" alcançável e prova que trocar de segurado atualiza o conteúdo visível. Nenhum teste existente de `App.test.tsx` foi alterado; todos os 13 continuam passando, +1 novo (441 no total do frontend, antes 440).

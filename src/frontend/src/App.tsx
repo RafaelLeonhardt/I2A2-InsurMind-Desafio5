@@ -8,7 +8,7 @@ import { PerfilProvider, SUPERFICIES_POR_PERFIL, usePerfilContexto } from './con
 import { RestaurarDemonstracao } from './funcionalidades/dados-sinteticos/RestaurarDemonstracao'
 import { SuperficieDocumentacaoApi } from './funcionalidades/documentacao-api/SuperficieDocumentacaoApi'
 import { SuperficieProntidao } from './funcionalidades/prontidao/SuperficieProntidao'
-import { VisaoGeralSegurado } from './funcionalidades/segurado/VisaoGeralSegurado'
+import { PainelSegurado } from './funcionalidades/segurado/PainelSegurado'
 
 function focarConteudoPrincipal(evento: MouseEvent<HTMLAnchorElement>) {
   evento.preventDefault()
@@ -38,7 +38,7 @@ export function SuperficieAtiva() {
     case 'documentacao-api':
       return <SuperficieDocumentacaoApi />
     case 'visao-geral':
-      return <VisaoGeralSegurado />
+      return <PainelSegurado />
   }
 }
 
