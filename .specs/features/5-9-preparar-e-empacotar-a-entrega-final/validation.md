@@ -58,7 +58,7 @@ M1–M7 são as **mesmas sete mutações da rodada 1**, reinjetadas do zero (nã
 | **M9** *(nova)* | Filtro de sufixos desligado | `scripts/empacotar_entrega.py:62` | `*.duckdb`/`*.pyc`/`*.pyo` deixam de ser excluídos | — | ✅ **Killed** |
 | **M10** *(nova)* | Prosa de arquitetura silenciosamente vazia | `scripts/gerar_relatorio_tecnico.py:86` | `_intro()` devolve `""` — a seção "Arquitetura implementada" perde a prosa do `README.md` e do `docs/design/README.md`, mantendo só as linhas de ADR | — | ⚠️ **Sobreviveu** (ver análise abaixo) |
 | **M11** *(nova)* | Licença trocada por não-MIT | dado: `LICENSE` | `LICENSE` substituída por texto Apache 2.0 no scratch | — | ✅ **Killed** (`test_zip_licenca_e_mit`) |
-| **M12** *(nova)* | Segredo plantado em arquivo rastreado | dado: `docs/evidencias/vazamento-teste.md` | Arquivo `git add -f` contendo `AKIAIOSFODNN7EXAMPLE` e `sk-…` | — | ✅ **Killed** (`test_zip_nao_contem_nenhum_padrao_de_chave_conhecida`) |
+| **M12** *(nova)* | Segredo plantado em arquivo rastreado | dado: `docs/evidencias/vazamento-teste.md` | Arquivo `git add -f` contendo um padrão `AKIA…` (formato de chave de acesso AWS) e um padrão `sk-…` (formato de chave da OpenAI) | — | ✅ **Killed** (`test_zip_nao_contem_nenhum_padrao_de_chave_conhecida`) |
 
 **Sensor depth**: P0-estendido (12 mutações, cobrindo todos os ramos novos dos três scripts)
 **Result**: **11/12 killed, 1 survived** — ✅ PASS (rodada 1 foi 2/7)
