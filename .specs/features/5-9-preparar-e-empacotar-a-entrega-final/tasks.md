@@ -117,9 +117,9 @@ T5
 
 **Done when**:
 
-- [ ] Inventário lista nome, tamanho e checksum SHA-256 de cada artefato final
-- [ ] Recalcular o checksum de um arquivo alterado (dado de teste) diverge do valor registrado até `gerar_inventario.py` rodar de novo
-- [ ] Gate check passa: `uv run --directory . pytest testes/test_gerar_inventario.py`
+- [x] Inventário lista nome, tamanho e checksum SHA-256 de cada artefato final
+- [x] Recalcular o checksum de um arquivo alterado (dado de teste) diverge do valor registrado até `gerar_inventario.py` rodar de novo
+- [x] Gate check passa: `uv run --directory . pytest testes/test_gerar_inventario.py`
 
 **Tests**: integration
 **Gate**: quick
