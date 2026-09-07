@@ -96,7 +96,7 @@ A História 5.8 produz evidências estruturadas e exemplos sanitizados de toda a
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| ENTREGA-01 | P1: Relatório técnico verificável e ZIP sanitizado | Design | Pending |
+| ENTREGA-01 | P1: Relatório técnico verificável e ZIP sanitizado | Design | Implementing |
 | ENTREGA-02 | P1: Relatório técnico verificável e ZIP sanitizado | Design | Pending |
 | ENTREGA-03 | P1: Repositório reproduzível e inventário verificável | Design | Pending |
 | ENTREGA-04 | P1: Repositório reproduzível e inventário verificável | Design | Pending |

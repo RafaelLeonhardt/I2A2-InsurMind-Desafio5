@@ -1,0 +1,21 @@
+[project]
+name = "central-preventiva-entrega"
+version = "0.1.0"
+description = "Scripts de orquestracao para preparar o pacote de entrega final (Historia 5.9)."
+requires-python = ">=3.11"
+dependencies = [
+  "fpdf2>=2.8.8,<3",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=9.0.2,<10",
+  "pypdf>=6.17.0,<7",
+]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["testes"]
+
+[tool.uv]
+package = false

@@ -74,10 +74,10 @@ T5
 
 **Done when**:
 
-- [ ] PDF gerado contém arquitetura, agentes, tecnologias, fluxo, decisões, limitações, evidências, exemplos sanitizados
-- [ ] Evidência ausente (dado de teste) faz o script falhar explicitamente, sem gerar PDF com lacuna
-- [ ] Ferramenta de conversão Markdown→PDF escolhida e documentada (verificada no ambiente real)
-- [ ] Gate check passa: `uv run --directory . pytest testes/test_gerar_relatorio_tecnico.py`
+- [x] PDF gerado contém arquitetura, agentes, tecnologias, fluxo, decisões, limitações, evidências, exemplos sanitizados
+- [x] Evidência ausente (dado de teste) faz o script falhar explicitamente, sem gerar PDF com lacuna
+- [x] Ferramenta de conversão Markdown→PDF escolhida e documentada (verificada no ambiente real)
+- [x] Gate check passa: `uv run --directory . pytest testes/test_gerar_relatorio_tecnico.py`
 
 **Tests**: integration
 **Gate**: quick
