@@ -36,6 +36,11 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 | E2E (responsividade) | Após a task de verificação visual | `npx playwright test testes-e2e/responsividade` |
 | Build (fim de fase) | Fim de fase / suíte completa | `uv run --directory src/backend pytest && npm test --prefix src/frontend -- --run && npx playwright test` |
 
+> Execute os comandos de Playwright como `npm test --prefix testes-e2e -- <arquivo ou diretório>`
+> (equivalente a `npx playwright test <...>` rodado dentro de `testes-e2e/`). Chamar
+> `npx playwright` a partir da raiz do repositório seleciona o executável `playwright` do
+> pacote Python, quando ele existe no `PATH`, e a descoberta de cenários falha.
+
 ---
 
 ## Execution Plan
@@ -107,9 +112,9 @@ T13
 
 **Done when**:
 
-- [ ] Cenário completo verde, do evento até a visualização do comunicado
-- [ ] Ao menos um registro não elegível aparece com explicação consultável
-- [ ] Gate check passa: `npx playwright test testes-e2e/cenarios/chuva-intensa.spec.ts`
+- [x] Cenário completo verde, do evento até a visualização do comunicado
+- [x] Ao menos um registro não elegível aparece com explicação consultável
+- [x] Gate check passa: `npx playwright test testes-e2e/cenarios/chuva-intensa.spec.ts`
 
 **Tests**: e2e
 **Gate**: e2e (cenários)

@@ -107,11 +107,23 @@ export type DiarioChamadas = {
   openaiChat: ChamadaRegistrada[]
 }
 
-const CORPO_PREVENTIVO_PADRAO =
-  'Chuva forte prevista na sua regiao nas proximas horas. Evite areas alagadas, ' +
-  'recolha objetos soltos e mantenha documentos em local alto. Comunicacao preventiva.'
-
-const ASSUNTO_PREVENTIVO_PADRAO = 'Comunicado preventivo sobre o tempo na sua regiao'
+/**
+ * Conteúdo que o dublê da OpenAI devolve quando nada foi programado, por canal.
+ *
+ * Exportado para que os cenários possam afirmar que **este** texto chegou ao comunicado do
+ * segurado: é o que prova que a saída do redator atravessou crítica, revisão e simulação sem
+ * ser substituída por conteúdo fixo em nenhum ponto do caminho.
+ */
+export const CONTEUDO_PADRAO_DUBLE = {
+  whatsapp:
+    'Chuva forte prevista na sua regiao nas proximas horas. Evite areas alagadas, ' +
+    'recolha objetos soltos e mantenha documentos em local alto. Comunicacao preventiva.',
+  sms: 'Chuva forte prevista hoje. Evite areas alagadas. Comunicacao preventiva.',
+  assuntoEmail: 'Comunicado preventivo sobre o tempo na sua regiao',
+  corpoEmail:
+    'Chuva forte prevista na sua regiao nas proximas horas. Evite areas alagadas, ' +
+    'recolha objetos soltos e mantenha documentos em local alto. Comunicacao preventiva.',
+} as const
 
 const INSTANTE_BASE_INMET = Date.UTC(2026, 7, 30, 0, 0, 0)
 const CHUVA_PADRAO_MILIMETROS = 2.4
@@ -185,18 +197,19 @@ function corpoGranizoSintetico(estacao: string, intensidade: number, sequencia: 
 function conteudoPadraoDoEsquema(esquema: string): unknown {
   if (esquema === 'AvaliacaoEstruturada') return { aprovada: true, motivos: [] }
   if (esquema === 'SaidaEmail') {
-    return { assunto: ASSUNTO_PREVENTIVO_PADRAO, corpo: CORPO_PREVENTIVO_PADRAO }
+    return {
+      assunto: CONTEUDO_PADRAO_DUBLE.assuntoEmail,
+      corpo: CONTEUDO_PADRAO_DUBLE.corpoEmail,
+    }
   }
-  if (esquema === 'SaidaSMS') {
-    return { corpo: 'Chuva forte prevista hoje. Evite areas alagadas. Comunicacao preventiva.' }
-  }
-  return { corpo: CORPO_PREVENTIVO_PADRAO }
+  if (esquema === 'SaidaSMS') return { corpo: CONTEUDO_PADRAO_DUBLE.sms }
+  return { corpo: CONTEUDO_PADRAO_DUBLE.whatsapp }
 }
 
 /** Monta uma resposta de `POST /v1/chat/completions` no formato da API de chat da OpenAI. */
 function completacaoDeChat(modelo: string, conteudo: unknown): unknown {
   return {
-    id: 'chatcmpl-dublê-e2e',
+    id: 'chatcmpl-duble-e2e',
     object: 'chat.completion',
     created: Math.floor(Date.now() / 1000),
     model: modelo,
@@ -303,7 +316,7 @@ export async function iniciarServidorDubles(
     if ('modelos' in resposta) {
       responderJson(res, 200, {
         object: 'list',
-        data: resposta.modelos.map((id) => ({ id, object: 'model', owned_by: 'dublê-e2e' })),
+        data: resposta.modelos.map((id) => ({ id, object: 'model', owned_by: 'duble-e2e' })),
       })
       return true
     }
@@ -371,7 +384,7 @@ export async function iniciarServidorDubles(
       if (programada && aplicar(programada, res, {})) return
       responderJson(res, 200, {
         object: 'list',
-        data: modelosDisponiveis.map((id) => ({ id, object: 'model', owned_by: 'dublê-e2e' })),
+        data: modelosDisponiveis.map((id) => ({ id, object: 'model', owned_by: 'duble-e2e' })),
       })
       return
     }

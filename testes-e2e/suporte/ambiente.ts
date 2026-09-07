@@ -30,7 +30,7 @@ export const CAMINHO_BANCO_E2E = 'var/e2e/central_preventiva.duckdb'
 export const MODELO_OPENAI_E2E = 'gpt-4o-mini'
 
 /** Credencial de fachada: não vale nada, mas evita o curto-circuito "credencial ausente". */
-export const CHAVE_OPENAI_E2E = 'sk-dublê-e2e-sem-valor-real'
+export const CHAVE_OPENAI_E2E = 'sk-duble-e2e-sem-valor-real'
 
 /** Nome da variável de ambiente pela qual o `globalSetup` publica a porta do dublê. */
 export const VARIAVEL_PORTA_DUBLES = 'CENTRAL_PREVENTIVA_E2E_PORTA_DUBLES'

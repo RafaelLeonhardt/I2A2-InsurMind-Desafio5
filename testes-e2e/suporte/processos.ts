@@ -1,7 +1,7 @@
 /** Sobe e derruba os processos reais (backend, frontend) usados pela suíte E2E (5.8). */
 
 import { spawn, type ChildProcess } from 'node:child_process'
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, rmSync } from 'node:fs'
 import { createServer } from 'node:net'
 import { dirname, resolve } from 'node:path'
 import {
@@ -118,10 +118,19 @@ export async function exigirPortaLivre(porta: number, nome: string): Promise<voi
   })
 }
 
-/** Prepara o banco exclusivo da suíte, com o servidor ainda parado (DuckDB é escritor único). */
+/**
+ * Prepara o banco exclusivo da suíte, com o servidor ainda parado (DuckDB é escritor único).
+ *
+ * O arquivo é recriado do zero a cada execução. Uma rodada anterior interrompida pode ter
+ * deixado uma execução preventiva em estado não terminal, e a restauração recusa rodar nesse
+ * caso (DW-002) — a suíte ficaria bloqueada por um resíduo, não por um defeito do produto.
+ * O banco é integralmente recriável pelas migrações e pelo seed versionados.
+ */
 export async function prepararBanco(portaDubles: number): Promise<void> {
   const caminho = resolve(RAIZ_PROJETO, CAMINHO_BANCO_E2E)
   mkdirSync(dirname(caminho), { recursive: true })
+  rmSync(caminho, { force: true })
+  rmSync(`${caminho}.wal`, { force: true })
   const script = resolve(RAIZ_PROJETO, 'testes-e2e', 'suporte', 'preparar_banco.py')
   await new Promise<void>((resolver, rejeitar) => {
     const processo = spawn(

@@ -97,11 +97,16 @@ npm ci --prefix testes-e2e
 npm run instalar-navegadores --prefix testes-e2e
 ```
 
-Rode a suíte a partir de `testes-e2e/`:
+Rode a suíte completa, ou um cenário específico:
 
 ```bash
-npx playwright test --config testes-e2e/playwright.config.ts
+npm test --prefix testes-e2e
+npm test --prefix testes-e2e -- cenarios/chuva-intensa.spec.ts
 ```
+
+Use `npm --prefix`, e não `npx playwright` a partir da raiz: se houver um executável
+`playwright` do pacote Python no `PATH`, o `npx` da raiz o escolhe no lugar do Playwright de
+`testes-e2e/node_modules` e a descoberta de cenários falha.
 
 A suíte inicia sozinha o servidor de dublês, prepara um banco DuckDB exclusivo
 (`var/e2e/central_preventiva.duckdb`, fora do controle de versão), sobe a API em

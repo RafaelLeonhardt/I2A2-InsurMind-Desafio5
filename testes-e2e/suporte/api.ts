@@ -177,7 +177,7 @@ export type LoteRevisao = {
     mensagem_id: string
     canal: string
     estado: string
-    versao_esperada: number
+    versao: number
     decidivel: boolean
     em_excecao: boolean
     aprovada_pelo_critico: boolean
