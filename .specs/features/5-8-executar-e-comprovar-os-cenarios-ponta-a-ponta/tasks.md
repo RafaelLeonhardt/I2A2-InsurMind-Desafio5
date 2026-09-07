@@ -265,9 +265,9 @@ T13
 
 **Done when**:
 
-- [ ] Nova execução correlacionada criada com `execucao_origem_id`, snapshots válidos, origem permanece terminal
-- [ ] Repetir o comando de retentativa não duplica execução nem efeito
-- [ ] Gate check passa: `npx playwright test testes-e2e/cenarios/retentativa.spec.ts`
+- [x] Nova execução correlacionada criada com `execucao_origem_id`, snapshots válidos, origem permanece terminal
+- [x] Repetir o comando de retentativa não duplica execução nem efeito
+- [x] Gate check passa: `npx playwright test testes-e2e/cenarios/retentativa.spec.ts`
 
 **Tests**: e2e
 **Gate**: e2e (cenários)

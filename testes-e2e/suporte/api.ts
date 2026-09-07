@@ -118,6 +118,32 @@ export async function aguardarEstado(
   )
 }
 
+/** Ack da execução correlacionada criada a partir de uma falha terminal (AD-009). */
+export type NovaTentativa = { execucao_id: string; execucao_origem_id: string }
+
+/**
+ * Solicita a nova tentativa de preparação agêntica reusando uma `Idempotency-Key` conhecida.
+ *
+ * A chave é do chamador de propósito: repetir o comando com a mesma chave é exatamente o que
+ * comprova a ausência de duplicação exigida pelo AC.
+ */
+export function solicitarNovaTentativaIA(
+  execucaoOrigemId: string,
+  chave: string,
+): Promise<NovaTentativa> {
+  return postarComChave<NovaTentativa>(
+    `/execucoes/${execucaoOrigemId}/nova-tentativa-ia`,
+    chave,
+  )
+}
+
+/** Busca execuções por estado, sem nenhum efeito colateral. */
+export function buscarExecucoes(estado: string): Promise<{
+  resultados: { execucao_id: string; estado: string }[]
+}> {
+  return obter(`/execucoes?estado=${encodeURIComponent(estado)}`)
+}
+
 /** Snapshot público da avaliação de relevância meteorológica. */
 export type AvaliacaoRisco = {
   execucao_id: string

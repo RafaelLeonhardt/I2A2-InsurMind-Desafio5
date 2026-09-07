@@ -127,7 +127,7 @@ Depois que os Épicos 1–4 e as Histórias 5.1–5.7 estiverem implementados, n
 | E2E-04 | P1: Resiliência agêntica e de integração comprovada | Design | Implementing |
 | E2E-05 | P1: Resiliência agêntica e de integração comprovada | Design | Implementing |
 | E2E-06 | P1: Resiliência agêntica e de integração comprovada | Design | Implementing |
-| E2E-07 | P1: Resiliência agêntica e de integração comprovada | Design | Pending |
+| E2E-07 | P1: Resiliência agêntica e de integração comprovada | Design | Implementing |
 | E2E-08 | P1: Evidências localizáveis, contrato de API fiel e suíte completa | Design | Implementing |
 | E2E-09 | P1: Evidências localizáveis, contrato de API fiel e suíte completa | Design | Pending |
 | E2E-10 | P2: Fidelidade visual, componentes contratados e acessibilidade WCAG 2.2 AA | Design | Pending |
