@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   type ApoliceSegurado,
   ErroApoliceSegurado,
@@ -88,15 +88,23 @@ export function SuperficieApolice({
   const [explicacao, definirExplicacao] = useState<ExplicacaoApolice | null>(null)
   const [falhaExplicacao, definirFalhaExplicacao] = useState<FalhaApolice | null>(null)
 
+  const requisicaoApoliceAtualRef = useRef(0)
+  const requisicaoExplicacaoAtualRef = useRef(0)
+
   const carregar = useCallback(async () => {
+    const requisicao = ++requisicaoApoliceAtualRef.current
     definirEstado('carregando')
     definirFalha(null)
     try {
       const idSegurado = seguradoId ?? (await getSeguradoPadrao()).id
       const encontrada = await getApolice(idSegurado)
+      // Uma requisição mais recente já pode ter chegado primeiro (troca de segurado
+      // rápida, 5.7) — nunca sobrescrever a apólice do segurado novo com a do anterior.
+      if (requisicao !== requisicaoApoliceAtualRef.current) return
       definirApolice(encontrada)
       definirEstado('pronta')
     } catch (causa) {
+      if (requisicao !== requisicaoApoliceAtualRef.current) return
       if (causa instanceof ErroApoliceSegurado && causa.status === 404) {
         definirEstado('nao_encontrada')
         return
@@ -112,14 +120,17 @@ export function SuperficieApolice({
 
   const carregarExplicacao = useCallback(async () => {
     if (!elegibilidadeIdExplicacao) return
+    const requisicao = ++requisicaoExplicacaoAtualRef.current
     definirEstadoExplicacao('carregando')
     definirFalhaExplicacao(null)
     try {
       const idSegurado = seguradoId ?? (await getSeguradoPadrao()).id
       const encontrada = await getExplicacaoApolice(idSegurado, elegibilidadeIdExplicacao)
+      if (requisicao !== requisicaoExplicacaoAtualRef.current) return
       definirExplicacao(encontrada)
       definirEstadoExplicacao('pronta')
     } catch (causa) {
+      if (requisicao !== requisicaoExplicacaoAtualRef.current) return
       if (causa instanceof ErroApoliceSegurado && causa.status === 404) {
         definirEstadoExplicacao('nao_encontrada')
         return

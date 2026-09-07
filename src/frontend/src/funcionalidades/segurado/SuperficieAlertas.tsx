@@ -113,17 +113,23 @@ export function SuperficieAlertas({
   const idSeguradoResolvidoRef = useRef<string | null>(null)
   const tituloDetalheRef = useRef<HTMLHeadingElement>(null)
   const ultimaSelecaoIdRef = useRef<string | null>(null)
+  const requisicaoListaAtualRef = useRef(0)
 
   const carregarLista = useCallback(async () => {
+    const requisicao = ++requisicaoListaAtualRef.current
     definirEstadoLista('carregando')
     definirFalhaLista(null)
     try {
       const idSegurado = seguradoId ?? (await getSeguradoPadrao()).id
-      idSeguradoResolvidoRef.current = idSegurado
       const encontrados = await getListaAlertas(idSegurado)
+      // Uma requisição mais recente já pode ter chegado primeiro (troca de segurado
+      // rápida, 5.7) — nunca sobrescrever a lista do segurado novo com a do anterior.
+      if (requisicao !== requisicaoListaAtualRef.current) return
+      idSeguradoResolvidoRef.current = idSegurado
       definirItens(encontrados)
       definirEstadoLista('pronta')
     } catch (causa) {
+      if (requisicao !== requisicaoListaAtualRef.current) return
       definirFalhaLista(falhaDe(causa))
       definirEstadoLista('erro')
     }

@@ -46,6 +46,14 @@ function item(sobrescritas: Partial<ItemComunicado> = {}): ItemComunicado {
   }
 }
 
+function promessaControlada<T>() {
+  let resolver: (valor: T) => void = () => {}
+  const promessa = new Promise<T>((resolucao) => {
+    resolver = resolucao
+  })
+  return { promessa, resolver }
+}
+
 function comunicado(sobrescritas: Partial<Comunicado> = {}): Comunicado {
   return {
     entregaSimuladaId: ENTREGA_ID,
@@ -111,6 +119,28 @@ describe('lista de comunicados (COMUNICADOS-01)', () => {
     render(<SuperficieComunicados seguradoId={OUTRO_SEGURADO_ID} />)
     expect(await screen.findByRole('heading', { name: 'Nenhum comunicado no momento' })).toBeInTheDocument()
     expect(getListaComunicadosMock).toHaveBeenCalledWith(OUTRO_SEGURADO_ID)
+  })
+
+  it('descarta uma resposta antiga que chega depois de uma troca de segurado mais recente', async () => {
+    const antiga = promessaControlada<ItemComunicado[]>()
+    getListaComunicadosMock.mockReturnValueOnce(antiga.promessa)
+    const { rerender } = render(<SuperficieComunicados seguradoId={SEGURADO_ID} />)
+    await screen.findByText('Carregando comunicados…')
+
+    const nova = promessaControlada<ItemComunicado[]>()
+    getListaComunicadosMock.mockReturnValueOnce(nova.promessa)
+    rerender(<SuperficieComunicados seguradoId={OUTRO_SEGURADO_ID} />)
+
+    nova.resolver([item({ assuntoOuResumo: 'Aviso novo' })])
+    await screen.findByText('Aviso novo')
+
+    antiga.resolver([item({ assuntoOuResumo: 'Aviso antigo' })])
+
+    // Aguarda um macrotask real para dar tempo da continuação assíncrona da resposta
+    // obsoleta rodar e provar que o guard de token a descarta.
+    await new Promise((resolucao) => setTimeout(resolucao, 50))
+    expect(screen.queryByText('Aviso antigo')).not.toBeInTheDocument()
+    expect(screen.getByText('Aviso novo')).toBeInTheDocument()
   })
 
   it('mostra estado vazio explicativo mencionando Alertas, Apólice e Meus Dados', async () => {

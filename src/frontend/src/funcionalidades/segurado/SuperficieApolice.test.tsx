@@ -27,7 +27,16 @@ vi.mock('../../api/contexto', async (importarOriginal) => ({
 }))
 
 const SEGURADO_ID = '11111111-1111-1111-1111-111111111111'
+const OUTRO_SEGURADO_ID = '44444444-4444-4444-4444-444444444444'
 const ELEGIBILIDADE_ID = '22222222-2222-2222-2222-222222222222'
+
+function promessaControlada<T>() {
+  let resolver: (valor: T) => void = () => {}
+  const promessa = new Promise<T>((resolucao) => {
+    resolver = resolucao
+  })
+  return { promessa, resolver }
+}
 
 function apoliceBase(sobrescritas: Partial<ApoliceSegurado> = {}): ApoliceSegurado {
   return {
@@ -280,6 +289,28 @@ describe('resolução do segurado ativo', () => {
     await screen.findByText('RES-0001')
     expect(getSeguradoPadraoMock).toHaveBeenCalledTimes(1)
     expect(getApoliceMock).toHaveBeenCalledWith(SEGURADO_ID)
+  })
+
+  it('descarta uma resposta antiga que chega depois de uma troca de segurado mais recente', async () => {
+    const antiga = promessaControlada<ApoliceSegurado>()
+    getApoliceMock.mockReturnValueOnce(antiga.promessa)
+    const { rerender } = render(<SuperficieApolice seguradoId={SEGURADO_ID} />)
+    await screen.findByText('Carregando apólice…')
+
+    const nova = promessaControlada<ApoliceSegurado>()
+    getApoliceMock.mockReturnValueOnce(nova.promessa)
+    rerender(<SuperficieApolice seguradoId={OUTRO_SEGURADO_ID} />)
+
+    nova.resolver(apoliceBase({ numero: 'RES-NOVA' }))
+    await screen.findByText('RES-NOVA')
+
+    antiga.resolver(apoliceBase({ numero: 'RES-ANTIGA' }))
+
+    // Aguarda um macrotask real para dar tempo da continuação assíncrona da resposta
+    // obsoleta rodar e provar que o guard de token a descarta.
+    await new Promise((resolucao) => setTimeout(resolucao, 50))
+    expect(screen.queryByText('RES-ANTIGA')).not.toBeInTheDocument()
+    expect(screen.getByText('RES-NOVA')).toBeInTheDocument()
   })
 
   it('mostra falha de contexto ao resolver o segurado padrão', async () => {

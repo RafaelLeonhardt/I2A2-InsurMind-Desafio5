@@ -61,17 +61,23 @@ export function SuperficieComunicados({ seguradoId }: PropriedadesSuperficieComu
 
   const botaoVoltarRef = useRef<HTMLButtonElement>(null)
   const ultimaSelecaoIdRef = useRef<string | null>(null)
+  const requisicaoListaAtualRef = useRef(0)
 
   const carregarLista = useCallback(async () => {
+    const requisicao = ++requisicaoListaAtualRef.current
     definirEstadoLista('carregando')
     definirFalhaLista(null)
     try {
       const idSegurado = seguradoId ?? (await getSeguradoPadrao()).id
-      definirIdSeguradoResolvido(idSegurado)
       const encontrados = await getListaComunicados(idSegurado)
+      // Uma requisição mais recente já pode ter chegado primeiro (troca de segurado
+      // rápida, 5.7) — nunca sobrescrever a lista do segurado novo com a do anterior.
+      if (requisicao !== requisicaoListaAtualRef.current) return
+      definirIdSeguradoResolvido(idSegurado)
       definirItens(encontrados)
       definirEstadoLista('pronta')
     } catch (causa) {
+      if (requisicao !== requisicaoListaAtualRef.current) return
       definirFalhaLista(falhaDe(causa))
       definirEstadoLista('erro')
     }

@@ -24,7 +24,16 @@ vi.mock('../../api/contexto', async (importarOriginal) => ({
 }))
 
 const SEGURADO_ID = '11111111-1111-1111-1111-111111111111'
+const OUTRO_SEGURADO_ID = '44444444-4444-4444-4444-444444444444'
 const ELEGIBILIDADE_ID = '22222222-2222-2222-2222-222222222222'
+
+function promessaControlada<T>() {
+  let resolver: (valor: T) => void = () => {}
+  const promessa = new Promise<T>((resolucao) => {
+    resolver = resolucao
+  })
+  return { promessa, resolver }
+}
 
 function alertaBase(sobrescritas: Partial<AlertaSegurado> = {}): AlertaSegurado {
   return {
@@ -338,6 +347,28 @@ describe('resolução do segurado ativo', () => {
     await screen.findByRole('heading', { name: 'Nenhum alerta no momento' })
     expect(getSeguradoPadraoMock).toHaveBeenCalledTimes(1)
     expect(getListaAlertasMock).toHaveBeenCalledWith(SEGURADO_ID)
+  })
+
+  it('descarta uma resposta antiga que chega depois de uma troca de segurado mais recente', async () => {
+    const antiga = promessaControlada<ItemAlerta[]>()
+    getListaAlertasMock.mockReturnValueOnce(antiga.promessa)
+    const { rerender } = render(<SuperficieAlertas seguradoId={SEGURADO_ID} />)
+    await screen.findByText('Carregando alertas…')
+
+    const nova = promessaControlada<ItemAlerta[]>()
+    getListaAlertasMock.mockReturnValueOnce(nova.promessa)
+    rerender(<SuperficieAlertas seguradoId={OUTRO_SEGURADO_ID} />)
+
+    nova.resolver([item({ alerta: alertaBase({ localizacao: 'AREA-NOVA' }) })])
+    await screen.findByRole('cell', { name: 'AREA-NOVA' })
+
+    antiga.resolver([item({ alerta: alertaBase({ localizacao: 'AREA-ANTIGA' }) })])
+
+    // Aguarda um macrotask real para dar tempo da continuação assíncrona da resposta
+    // obsoleta rodar e provar que o guard de token a descarta.
+    await new Promise((resolucao) => setTimeout(resolucao, 50))
+    expect(screen.queryByRole('cell', { name: 'AREA-ANTIGA' })).not.toBeInTheDocument()
+    expect(screen.getByRole('cell', { name: 'AREA-NOVA' })).toBeInTheDocument()
   })
 })
 
