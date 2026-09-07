@@ -181,10 +181,12 @@ export type LoteRevisao = {
     decidivel: boolean
     em_excecao: boolean
     aprovada_pelo_critico: boolean
-    destinatario: { nome_segurado: string }
+    destinatario: { nome_segurado: string; apolice_id: string; codigo_ibge_area: string }
+    origem: { evento_id: string; regra_id: string; regra_versao: number; justificativa: string }
   }[]
-  evento: { tipo: string; area: string; proveniencia: string } | null
+  evento: { tipo: string; area: string; proveniencia: string; intensidade: number } | null
   regra_id: string | null
+  regra_versao: number | null
 }
 
 export function obterLoteRevisao(execucaoId: string): Promise<LoteRevisao> {
@@ -227,6 +229,41 @@ export function confirmarSimulacao(
     versao_esperada: versaoEsperada,
     reconhecimento_simulacao: true,
   })
+}
+
+/** Regra preventiva versionada. */
+export type Regra = {
+  id: string
+  evento_tipo: string
+  limiar_meteorologico: number
+  area_aplicavel: string
+  apolice_tipo: string
+  cobertura_exigida: string
+  canal: string
+  versao: number
+  estado: string
+}
+
+export function obterRegra(regraId: string): Promise<Regra> {
+  return obter<Regra>(`/regras/${regraId}`)
+}
+
+/** Alerta mais relevante exibido ao segurado, com origem, impactos e recomendações. */
+export type AlertaSegurado = {
+  alerta: {
+    elegibilidade_id: string
+    evento_tipo: string
+    origem: string
+    localizacao: string
+    severidade: string
+    impactos_esperados: string[]
+    recomendacoes: string[]
+    fonte_degradada: boolean
+  } | null
+}
+
+export function obterAlertaMaisRelevante(seguradoId: string): Promise<AlertaSegurado> {
+  return obter<AlertaSegurado>(`/segurados/${seguradoId}/alerta-mais-relevante`)
 }
 
 /** Ativa o cenário sintético rotulado de contingência (AD-013). */

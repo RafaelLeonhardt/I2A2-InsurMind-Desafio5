@@ -133,9 +133,9 @@ T13
 
 **Done when**:
 
-- [ ] Cenário completo verde, do evento até a visualização do comunicado
-- [ ] Regras/apólices/canais/recomendações específicas de granizo confirmadas na evidência
-- [ ] Gate check passa: `npx playwright test testes-e2e/cenarios/granizo.spec.ts`
+- [x] Cenário completo verde, do evento até a visualização do comunicado
+- [x] Regras/apólices/canais/recomendações específicas de granizo confirmadas na evidência
+- [x] Gate check passa: `npx playwright test testes-e2e/cenarios/granizo.spec.ts`
 
 **Tests**: e2e
 **Gate**: e2e (cenários)

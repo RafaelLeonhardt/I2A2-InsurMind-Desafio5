@@ -31,5 +31,10 @@ export async function abrirPainelSegurado(page: Page, nomeSegurado: string): Pro
   const seletor = page.getByLabel('Visualizar como')
   await expect(seletor).toBeEnabled()
   await seletor.selectOption({ label: nomeSegurado })
-  await expect(seletor).toHaveValue(/.+/)
+
+  // Confirma que a troca foi validada antes de qualquer asserção do cenário: o seletor só
+  // exibe o novo nome depois que `SeguradoContexto` conclui a troca. Sem isso, uma troca que
+  // não se aplicasse apareceria adiante como um erro obscuro de elemento, não como a falha
+  // que de fato é.
+  await expect(seletor.locator('option:checked')).toHaveText(nomeSegurado)
 }
