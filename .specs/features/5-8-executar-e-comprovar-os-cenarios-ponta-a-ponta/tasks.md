@@ -314,10 +314,10 @@ T13
 
 **Done when**:
 
-- [ ] Fluxos principais funcionam em 1440×1024 e larguras ≥1024px sem função essencial desaparecer
-- [ ] Aviso de resolução não suportada aparece abaixo de 1024px
-- [ ] Nenhum componente/estado de `DESIGN.md`/`EXPERIENCE.md` aparece como botão inerte ou dado fixo (checklist por superfície documentado no relatório)
-- [ ] Gate check passa: `npx playwright test testes-e2e/responsividade`
+- [x] Fluxos principais funcionam em 1440×1024 e larguras ≥1024px sem função essencial desaparecer
+- [x] Aviso de resolução não suportada aparece abaixo de 1024px
+- [x] Nenhum componente/estado de `DESIGN.md`/`EXPERIENCE.md` aparece como botão inerte ou dado fixo (checklist por superfície documentado no relatório — ver `docs/evidencias/responsividade-sistema-visual.md`)
+- [x] Gate check passa: `npx playwright test testes-e2e/responsividade`
 
 **Tests**: e2e
 **Gate**: e2e (responsividade)
@@ -336,9 +336,9 @@ T13
 
 **Done when**:
 
-- [ ] `axe-core` roda sem violação crítica/séria nos fluxos principais listados no AC
-- [ ] Checklist manual (teclado/foco/contraste/zoom/nomes/movimento reduzido) documentado por fluxo, com todo desvio explicitamente registrado
-- [ ] Gate check passa: `npx playwright test testes-e2e/acessibilidade`
+- [x] `axe-core` roda sem violação crítica/séria nos fluxos principais listados no AC
+- [x] Checklist manual (teclado/foco/contraste/zoom/nomes/movimento reduzido) documentado por fluxo, com todo desvio explicitamente registrado — ver `docs/evidencias/acessibilidade-checklist-manual.md`
+- [x] Gate check passa: `npx playwright test testes-e2e/acessibilidade`
 
 **Tests**: e2e
 **Gate**: e2e (acessibilidade)
@@ -357,10 +357,10 @@ T13
 
 **Done when**:
 
-- [ ] `python3 scripts/gerar_evidencias.py` roda a suíte completa e produz `docs/evidencias/` com um relatório por cenário
-- [ ] Cada relatório cita `file:line` do(s) teste(s) que comprovam o cenário
-- [ ] README lista o comando único e os comandos individuais, todos em português brasileiro
-- [ ] Gate check passa: `uv run --directory src/backend pytest && npm test --prefix src/frontend -- --run && npx playwright test`
+- [x] `python3 scripts/gerar_evidencias.py` roda a suíte completa e produz `docs/evidencias/` com um relatório por cenário
+- [x] Cada relatório cita `file:line` do(s) teste(s) que comprovam o cenário
+- [x] README lista o comando único e os comandos individuais, todos em português brasileiro
+- [x] Gate check passa: `uv run --directory src/backend pytest && npm test --prefix src/frontend -- --run && npx playwright test`
 
 **Tests**: none
 **Gate**: build

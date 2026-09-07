@@ -114,6 +114,26 @@ A suíte inicia sozinha o servidor de dublês, prepara um banco DuckDB exclusivo
 portas livres antes de rodar**: a suíte recusa iniciar se já houver um servidor de
 desenvolvimento nelas, e o banco de desenvolvimento nunca é tocado.
 
+## Evidências da suíte completa
+
+`scripts/gerar_evidencias.py` roda a suíte inteira (backend, frontend e Playwright) num único
+comando e organiza os resultados em `docs/evidencias/`: um relatório markdown por cenário/fluxo
+E2E, citando `file:line` do(s) teste(s) que o comprovam, mais um índice (`docs/evidencias/README.md`)
+com o resumo de cada suíte.
+
+```bash
+python3 scripts/gerar_evidencias.py
+```
+
+Esse comando único executa exatamente os três comandos abaixo, na ordem, e depois monta os
+relatórios — rodá-los manualmente produz o mesmo resultado de teste sem gerar as evidências:
+
+```bash
+uv run --directory src/backend pytest
+npm test --prefix src/frontend -- --run
+npx playwright test --reporter=list,json   # em testes-e2e/, ou: npm test --prefix testes-e2e
+```
+
 ## Licença
 
 Este projeto está licenciado sob a [Licença MIT](LICENSE).
