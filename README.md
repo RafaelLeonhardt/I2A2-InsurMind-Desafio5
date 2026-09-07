@@ -84,6 +84,31 @@ npm run gerar-tipos-api --prefix src/frontend    # regera src/frontend/src/api/t
 npm run verificar-tipos-api --prefix src/frontend # falha se o arquivo versionado divergir do contrato ao vivo
 ```
 
+## Testes ponta a ponta (Playwright)
+
+Os cenários ponta a ponta ficam em `testes-e2e/` e rodam contra o backend e o frontend reais,
+num navegador Chromium de verdade. Nenhuma chamada sai da máquina: INMET e OpenAI são
+substituídos por um servidor de dublês local, iniciado pela própria suíte.
+
+Instale as dependências e o navegador uma vez:
+
+```bash
+npm ci --prefix testes-e2e
+npm run instalar-navegadores --prefix testes-e2e
+```
+
+Rode a suíte a partir de `testes-e2e/`:
+
+```bash
+npx playwright test --config testes-e2e/playwright.config.ts
+```
+
+A suíte inicia sozinha o servidor de dublês, prepara um banco DuckDB exclusivo
+(`var/e2e/central_preventiva.duckdb`, fora do controle de versão), sobe a API em
+`127.0.0.1:8000` e o frontend em `127.0.0.1:5173`, e derruba tudo ao final. **Deixe as duas
+portas livres antes de rodar**: a suíte recusa iniciar se já houver um servidor de
+desenvolvimento nelas, e o banco de desenvolvimento nunca é tocado.
+
 ## Licença
 
 Este projeto está licenciado sob a [Licença MIT](LICENSE).

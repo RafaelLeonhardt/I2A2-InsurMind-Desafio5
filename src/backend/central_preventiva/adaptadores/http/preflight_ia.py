@@ -264,6 +264,7 @@ def montar_portas_preflight(configuracao: Configuracao) -> PortasPreflightIA:
             chave.get_secret_value() if chave is not None else None,
             configuracao.modelo_openai,
             configuracao.timeout_openai_segundos,
+            url_modelos=f"{configuracao.url_base_openai}/v1/models",
         ),
         montador=MontadorContextoAgente(),
         execucoes=RepositorioExecucaoPreventiva(caminho),

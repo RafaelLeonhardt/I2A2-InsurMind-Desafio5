@@ -80,12 +80,15 @@ class VerificadorDisponibilidadeOpenAI:
     `RetryComBackoff` do caso de uso (`aplicacao/_retry.py`), não a este adaptador.
     """
 
+    # SPEC_DEVIATION: URL configurável via `Configuracao.url_base_openai` para permitir E2E
+    # sem chamada real (história 5.8); o default preserva o comportamento de produção.
     def __init__(
         self,
         chave: str | None,
         modelo: str,
         timeout_segundos: float,
         transport: httpx.AsyncBaseTransport | None = None,
+        url_modelos: str = URL_MODELOS_OPENAI,
     ) -> None:
         """Guarda a credencial já resolvida, o modelo alvo e o limite de tempo (AD-8)."""
 
@@ -93,6 +96,7 @@ class VerificadorDisponibilidadeOpenAI:
         self._modelo = modelo
         self._timeout_segundos = timeout_segundos
         self._transport = transport
+        self._url_modelos = url_modelos
 
     async def verificar(self) -> ResultadoDisponibilidade:
         """Executa uma tentativa e classifica o resultado, sem nunca expor a credencial.
@@ -109,7 +113,7 @@ class VerificadorDisponibilidadeOpenAI:
                 transport=self._transport, timeout=self._timeout_segundos
             ) as cliente:
                 resposta = await cliente.get(
-                    URL_MODELOS_OPENAI,
+                    self._url_modelos,
                     headers={"Authorization": f"Bearer {self._chave}"},
                 )
         except httpx.TimeoutException:

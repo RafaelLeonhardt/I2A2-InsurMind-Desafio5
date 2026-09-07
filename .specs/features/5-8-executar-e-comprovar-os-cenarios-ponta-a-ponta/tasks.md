@@ -86,9 +86,9 @@ T13
 
 **Done when**:
 
-- [ ] `npx playwright test` roda (mesmo que sem nenhum cenário ainda) contra o backend/frontend locais
-- [ ] Documentado no README o comando para instalar os navegadores do Playwright
-- [ ] Gate check passa: `uv run --directory src/backend pytest && npm test --prefix src/frontend -- --run` (nenhuma regressão na suíte já existente)
+- [x] `npx playwright test` roda (mesmo que sem nenhum cenário ainda) contra o backend/frontend locais
+- [x] Documentado no README o comando para instalar os navegadores do Playwright
+- [x] Gate check passa: `uv run --directory src/backend pytest && npm test --prefix src/frontend -- --run` (nenhuma regressão na suíte já existente)
 
 **Tests**: none
 **Gate**: build

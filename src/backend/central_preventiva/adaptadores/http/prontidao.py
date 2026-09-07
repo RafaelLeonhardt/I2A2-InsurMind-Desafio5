@@ -124,7 +124,14 @@ def criar_roteador(configuracao: Configuracao) -> APIRouter:
         backend=SondaBackend(),
         banco_dados=SondaBancoDados(configuracao.caminho_banco),
         inmet=SondaInmet(configuracao.url_base_inmet),
-        openai=SondaOpenAI(chave_openai.get_secret_value()) if chave_openai else None,
+        openai=(
+            SondaOpenAI(
+                chave_openai.get_secret_value(),
+                url_modelos=f"{configuracao.url_base_openai}/v1/models",
+            )
+            if chave_openai
+            else None
+        ),
     )
 
     @roteador.get(

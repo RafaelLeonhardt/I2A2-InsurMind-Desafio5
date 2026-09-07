@@ -34,17 +34,21 @@ class SondaOpenAI:
     esta sonda. A chave nunca é incluída em `causa`, exceção ou log.
     """
 
+    # SPEC_DEVIATION: URL configurável via `Configuracao.url_base_openai` para permitir E2E
+    # sem chamada real (história 5.8); o default preserva o comportamento de produção.
     def __init__(
         self,
         chave: str,
         transport: httpx.AsyncBaseTransport | None = None,
         medir_tempo: Callable[[], float] = time.monotonic,
+        url_modelos: str = URL_MODELOS_OPENAI,
     ) -> None:
         """Guarda a credencial já resolvida e, opcionalmente, um transporte e relógio dublês."""
 
         self._chave = chave
         self._transport = transport
         self._medir_tempo = medir_tempo
+        self._url_modelos = url_modelos
 
     async def verificar(self) -> ResultadoSonda:
         """Executa uma única tentativa HTTP e classifica o resultado, sem retries."""
@@ -55,7 +59,7 @@ class SondaOpenAI:
                 transport=self._transport, timeout=TIMEOUT_SEGUNDOS
             ) as cliente:
                 resposta = await cliente.get(
-                    URL_MODELOS_OPENAI,
+                    self._url_modelos,
                     headers={"Authorization": f"Bearer {self._chave}"},
                 )
         except httpx.TimeoutException:

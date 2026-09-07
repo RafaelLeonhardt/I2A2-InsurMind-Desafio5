@@ -50,6 +50,10 @@ class Configuracao(BaseSettings):
         default="",
         validation_alias="CENTRAL_PREVENTIVA_URL_BASE_INMET",
     )
+    url_base_openai: str = Field(
+        default="https://api.openai.com",
+        validation_alias="CENTRAL_PREVENTIVA_URL_BASE_OPENAI",
+    )
     modelo_openai: str = Field(
         default="gpt-4o-mini",
         validation_alias="CENTRAL_PREVENTIVA_MODELO_OPENAI",
