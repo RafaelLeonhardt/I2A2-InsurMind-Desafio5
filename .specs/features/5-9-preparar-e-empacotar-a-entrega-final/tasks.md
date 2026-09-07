@@ -138,10 +138,10 @@ T5
 
 **Done when**:
 
-- [ ] Checkout limpo instala e executa usando só os comandos do README, sem etapa manual oculta
-- [ ] ZIP extraído instala e executa da mesma forma, independentemente do checkout via Git
-- [ ] Nenhuma dependência de artefato operacional local (`var/central_preventiva.duckdb` preexistente, por exemplo) em nenhum dos dois caminhos
-- [ ] Gate check passa: execução manual documentada do roteiro, com resultado registrado em `docs/entrega/validacao-checkout.md`
+- [x] Checkout limpo instala e executa usando só os comandos do README, sem etapa manual oculta
+- [x] ZIP extraído instala e executa da mesma forma, independentemente do checkout via Git
+- [x] Nenhuma dependência de artefato operacional local (`var/central_preventiva.duckdb` preexistente, por exemplo) em nenhum dos dois caminhos
+- [x] Gate check passa: execução manual documentada do roteiro, com resultado registrado em `docs/entrega/validacao-checkout.md`
 
 **Tests**: integration
 **Gate**: build
