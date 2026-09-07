@@ -109,20 +109,20 @@ As Histórias 5.1–5.6 assumem "o segurado ativo" (`SEGURADO_PADRAO`, Épico 1)
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| SELETOR-01 | P1: Seletor "Visualizar como" sem ambiguidade de autenticação | Design | Implementing |
-| SELETOR-02 | P1: Troca consistente entre as cinco superfícies | Design | Implementing |
-| SELETOR-03 | P1: Troca consistente entre as cinco superfícies | Design | Implementing |
-| SELETOR-04 | P1: Troca consistente entre as cinco superfícies | Design | Implementing |
-| SELETOR-05 | P1: Ausência de ações administrativas e retorno seguro ao Administrador | Design | Implementing |
-| SELETOR-06 | P1: Ausência de ações administrativas e retorno seguro ao Administrador | Design | Implementing |
-| SELETOR-07 | P2: Acessibilidade do seletor | Design | Implementing |
-| SELETOR-08 | P2: Acessibilidade do seletor | Design | Implementing |
+| SELETOR-01 | P1: Seletor "Visualizar como" sem ambiguidade de autenticação | Design | ✅ Verified |
+| SELETOR-02 | P1: Troca consistente entre as cinco superfícies | Design | ✅ Verified |
+| SELETOR-03 | P1: Troca consistente entre as cinco superfícies | Design | ✅ Verified |
+| SELETOR-04 | P1: Troca consistente entre as cinco superfícies | Design | ✅ Verified |
+| SELETOR-05 | P1: Ausência de ações administrativas e retorno seguro ao Administrador | Design | ✅ Verified |
+| SELETOR-06 | P1: Ausência de ações administrativas e retorno seguro ao Administrador | Design | ✅ Verified |
+| SELETOR-07 | P2: Acessibilidade do seletor | Design | ✅ Verified |
+| SELETOR-08 | P2: Acessibilidade do seletor | Design | ✅ Verified |
 
 **ID format:** `SELETOR-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 8 total, 0 mapped to tasks, 8 unmapped ⚠️ (mapeamento ocorre na fase Tasks)
+**Coverage:** 8 total, 8 verified (round 2 — see `validation.md`), 0 unmapped
 
 ---
 
