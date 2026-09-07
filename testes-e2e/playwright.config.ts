@@ -34,5 +34,12 @@ export default defineConfig({
     locale: 'pt-BR',
     timezoneId: 'America/Sao_Paulo',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  // O `viewport` vem depois do preset do dispositivo de propósito: `devices['Desktop Chrome']`
+  // traz 1280×720, e a resolução de referência do contrato de UX é 1440×1024.
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 1024 } },
+    },
+  ],
 })
