@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 79,
+  "next_id": 81,
   "lessons": [
     {
       "id": "L-001",
@@ -1441,6 +1441,42 @@
       ],
       "created": "2026-09-06T23:05:03Z",
       "last_seen": "2026-09-06T23:05:03Z"
+    },
+    {
+      "id": "L-079",
+      "key": "ac_gap::before marking a ui story done confirm its new top level component is actually mounted and reachable from the app s real entry point app tsx router nav config not just rendered in its own isolated test a correctly tested component nobody mounts delivers zero acceptance criteria to a real user",
+      "text": "Before marking a UI story done, confirm its new top-level component is actually mounted and reachable from the app's real entry point (App.tsx / router / nav config), not just rendered in its own isolated test — a correctly tested component nobody mounts delivers zero acceptance criteria to a real user.",
+      "signal": "ac_gap",
+      "scope": "frontend-integration",
+      "status": "candidate",
+      "features": [
+        "5-7-alternar-o-segurado-sintetico-com-contexto-consistente"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md Gap 1 / SELETOR-01..05,07,08 / src/frontend/src/App.tsx:41 / src/frontend/src/contexto/PerfilContexto.tsx:15 (frontend-integration)"
+      ],
+      "created": "2026-09-07T00:07:07Z",
+      "last_seen": "2026-09-07T00:07:07Z"
+    },
+    {
+      "id": "L-080",
+      "key": "spec_deviation::a spec deviation that introduces a new composition root instead of modifying existing components must also state where that root is wired into the running app justifying the structural choice is not the same as justifying delivery of the story s acceptance criteria",
+      "text": "A SPEC_DEVIATION that introduces a new composition root instead of modifying existing components must also state where that root is wired into the running app - justifying the structural choice is not the same as justifying delivery of the story's acceptance criteria.",
+      "signal": "spec_deviation",
+      "scope": "frontend-integration",
+      "status": "candidate",
+      "features": [
+        "5-7-alternar-o-segurado-sintetico-com-contexto-consistente"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "tasks.md T5 SPEC_DEVIATION / design.md 'Implementado como' / src/frontend/src/funcionalidades/segurado/PainelSegurado.tsx:9-26 (frontend-integration)"
+      ],
+      "created": "2026-09-07T00:07:07Z",
+      "last_seen": "2026-09-07T00:07:07Z"
     }
   ]
 }

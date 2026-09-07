@@ -480,6 +480,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation.md P1: Efeito so futuro e preservacao de historico AC1 - PREFS-04 (aplicacao)
 - last seen: 2026-09-06T23:05:03Z
 
+### L-079 - Before marking a UI story done, confirm its new top-level component is actually mounted and reachable from the app's real entry point (App.tsx / router / nav config), not just rendered in its own isolated test — a correctly tested component nobody mounts delivers zero acceptance criteria to a real user.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `frontend-integration` · harmful: 0
+- features: 5-7-alternar-o-segurado-sintetico-com-contexto-consistente
+- evidence: validation.md Gap 1 / SELETOR-01..05,07,08 / src/frontend/src/App.tsx:41 / src/frontend/src/contexto/PerfilContexto.tsx:15 (frontend-integration)
+- last seen: 2026-09-07T00:07:07Z
+
+### L-080 - A SPEC_DEVIATION that introduces a new composition root instead of modifying existing components must also state where that root is wired into the running app - justifying the structural choice is not the same as justifying delivery of the story's acceptance criteria.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `frontend-integration` · harmful: 0
+- features: 5-7-alternar-o-segurado-sintetico-com-contexto-consistente
+- evidence: tasks.md T5 SPEC_DEVIATION / design.md 'Implementado como' / src/frontend/src/funcionalidades/segurado/PainelSegurado.tsx:9-26 (frontend-integration)
+- last seen: 2026-09-07T00:07:07Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
