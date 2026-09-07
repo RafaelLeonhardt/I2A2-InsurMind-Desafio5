@@ -10,10 +10,15 @@
   border: 0;
 }
 
+.tabela-prontidao-rolagem {
+  margin-top: 1.25rem;
+  overflow-x: auto;
+}
+
 .tabela-prontidao {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
-  margin-top: 1.25rem;
 }
 
 .tabela-prontidao th,

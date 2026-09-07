@@ -137,7 +137,7 @@ def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
         CORSMiddleware,
         allow_origins=[configuracao_ativa.origem_frontend],
         allow_credentials=False,
-        allow_methods=["GET", "POST"],
+        allow_methods=["GET", "POST", "PUT"],
         allow_headers=["Accept", "Content-Type", "Idempotency-Key"],
     )
     aplicacao.include_router(roteador_saude, prefix="/api/v1")

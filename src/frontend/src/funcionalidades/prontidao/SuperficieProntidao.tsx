@@ -161,8 +161,9 @@ export function SuperficieProntidao() {
           </p>
         </div>
       )}
-      <table className="tabela-prontidao">
-        <caption className="sr-only">Prontidão das 4 dependências</caption>
+      <div aria-label="Prontidão das 4 dependências" className="tabela-prontidao-rolagem" role="region">
+        <table className="tabela-prontidao">
+          <caption className="sr-only">Prontidão das 4 dependências</caption>
         <thead>
           <tr>
             <th scope="col">Dependência</th>
@@ -220,7 +221,8 @@ export function SuperficieProntidao() {
             )
           })}
         </tbody>
-      </table>
+        </table>
+      </div>
     </main>
   )
 }
