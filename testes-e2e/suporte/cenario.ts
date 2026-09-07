@@ -26,6 +26,15 @@ export async function prepararCenario(): Promise<void> {
  */
 export async function abrirProntidao(page: Page): Promise<void> {
   await page.goto('/')
+
+  // O perfil ativo é persistido em `localStorage`, então um cenário que já visitou o painel
+  // do Segurado recarrega nele. A volta é pelo mesmo botão real da barra de contexto.
+  const alternarPerfil = page.getByRole('button', { name: /^Visualizar como / })
+  await expect(alternarPerfil).toBeVisible()
+  if ((await alternarPerfil.textContent())?.includes('Administrador')) {
+    await alternarPerfil.click()
+  }
+
   await page.getByRole('button', { name: 'Prontidão' }).click()
   await expect(page.getByRole('heading', { name: 'Prontidão das dependências' })).toBeVisible()
 }

@@ -164,9 +164,18 @@ export function obterDetalheElegibilidade(
   return obter<DetalheElegibilidade>(`/execucoes/${execucaoId}/elegibilidade/${registroId}`)
 }
 
+/** Desfecho do preflight: estado alcançado, contextos montados e causa do bloqueio. */
+export type Preflight = {
+  execucao_id: string
+  estado: string
+  contextos_montados: number
+  itens_em_excecao: string[]
+  causa: string | null
+}
+
 /** Aciona a preparação agêntica (preflight de IA) de uma execução. */
-export function solicitarPreflight(execucaoId: string): Promise<unknown> {
-  return postar(`/execucoes/${execucaoId}/preflight`)
+export function solicitarPreflight(execucaoId: string): Promise<Preflight> {
+  return postar<Preflight>(`/execucoes/${execucaoId}/preflight`)
 }
 
 /** Motivo categorizado de uma avaliação do agente crítico. */

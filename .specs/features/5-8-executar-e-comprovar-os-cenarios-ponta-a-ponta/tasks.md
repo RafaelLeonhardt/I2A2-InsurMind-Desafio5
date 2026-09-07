@@ -241,9 +241,12 @@ T13
 
 **Done when**:
 
-- [ ] Execução termina `falhou_preparacao_ia`, sem nenhum texto fixo simulando resposta da IA
-- [ ] Trabalho determinístico anterior (2.1–2.6) permanece consultável
-- [ ] Gate check passa: `npx playwright test testes-e2e/cenarios/indisponibilidade-openai.spec.ts`
+- [x] Execução termina `falhou_preparacao_ia`, sem nenhum texto fixo simulando resposta da IA —
+      duas causas cobertas (transporte e modelo fora do catálogo); a variante literal
+      `OPENAI_API_KEY` ausente fica com a cobertura de integração do backend, ver
+      `SPEC_DEVIATION` no cabeçalho de `indisponibilidade-openai.spec.ts`
+- [x] Trabalho determinístico anterior (2.1–2.6) permanece consultável
+- [x] Gate check passa: `npx playwright test testes-e2e/cenarios/indisponibilidade-openai.spec.ts`
 
 **Tests**: e2e
 **Gate**: e2e (cenários)
