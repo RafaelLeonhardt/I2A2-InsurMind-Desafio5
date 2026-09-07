@@ -314,6 +314,55 @@ export function listarEventos(): Promise<{ eventos: Evento[] }> {
   return obter<{ eventos: Evento[] }>('/meteorologia/eventos')
 }
 
+/** Solicita uma coleta meteorológica manual para a área informada. */
+export function solicitarColeta(areaId: string): Promise<{
+  id: string
+  estado: string
+  registros_validos: number
+  motivo_falha: string | null
+}> {
+  return postar('/meteorologia/coletas', { area_id: areaId })
+}
+
+/** Uma tentativa individual de coleta dentro de uma sincronização com retry (RESIL-02). */
+export type TentativaColeta = { numero_tentativa: number; codigo_resultado: string }
+
+/** Registro público de uma tentativa de sincronização meteorológica. */
+export type Sincronizacao = {
+  id: string
+  area_monitorada_id: string
+  origem: string
+  estado: string
+  registros_validos: number
+  motivo_falha: string | null
+  tentativas: TentativaColeta[]
+  limite_tentativas: number
+}
+
+/** Histórico de sincronização meteorológica, com o último snapshot válido. */
+export type HistoricoSincronizacoes = {
+  ultima_tentativa: Sincronizacao | null
+  ultima_valida: Sincronizacao | null
+  resultados_anteriores: Sincronizacao[]
+}
+
+export function obterSincronizacoes(): Promise<HistoricoSincronizacoes> {
+  return obter<HistoricoSincronizacoes>('/meteorologia/sincronizacoes')
+}
+
+/** Cronologia completa de uma execução, com marcos de sistema, IA e humanos. */
+export type LinhaDoTempo = {
+  execucao_id: string
+  estado: string
+  execucao_origem_id: string | null
+  retentativas: string[]
+  marcos: { tipo: string; ator: string; acao: string; resultado: string; correlacao: string }[]
+}
+
+export function obterLinhaDoTempo(execucaoId: string): Promise<LinhaDoTempo> {
+  return obter<LinhaDoTempo>(`/execucoes/${execucaoId}/linha-do-tempo`)
+}
+
 /** Mensagens produzidas por uma execução (vazio quando nenhuma foi gerada). */
 export type Mensagens = {
   execucao_id: string

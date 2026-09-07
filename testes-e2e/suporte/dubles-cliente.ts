@@ -33,6 +33,11 @@ export async function programarInmet(
   await postar('/__mock__/programar-inmet', { estacao: estacao ?? null, respostas })
 }
 
+/** Programa a fila do ping de prontidão do INMET (`GET /`), separada da fila de coleta. */
+export async function programarSondaInmet(respostas: RespostaProgramada[]): Promise<void> {
+  await postar('/__mock__/programar-sonda-inmet', { respostas })
+}
+
 /**
  * Programa a fila de `POST /v1/chat/completions`.
  *

@@ -217,9 +217,12 @@ T13
 
 **Done when**:
 
-- [ ] Timeout/tentativas/snapshot informativo visíveis na interface
-- [ ] Origem sintética permanece visível até o fim do fluxo
-- [ ] Gate check passa: `npx playwright test testes-e2e/cenarios/contingencia-inmet.spec.ts`
+- [x] Timeout/tentativas/snapshot informativo visíveis na interface — timeout na superfície de
+      Prontidão real (INMET `Indisponível` + causa + impacto); tentativas e snapshot pela API
+      REST, porque a superfície de Fonte Meteorológica não está montada em `App.tsx` (item
+      aberto já registrado em `.specs/STATE.md`)
+- [x] Origem sintética permanece visível até o fim do fluxo
+- [x] Gate check passa: `npx playwright test testes-e2e/cenarios/contingencia-inmet.spec.ts`
 
 **Tests**: e2e
 **Gate**: e2e (cenários)

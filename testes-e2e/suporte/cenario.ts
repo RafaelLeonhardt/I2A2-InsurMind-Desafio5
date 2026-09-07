@@ -18,6 +18,19 @@ export async function prepararCenario(): Promise<void> {
 }
 
 /**
+ * Abre a interface real na superfície de Prontidão do perfil Administrador.
+ *
+ * O shell inicia no perfil Administrador com Prontidão como primeira superfície; a navegação
+ * lateral é o caminho real até ela, e clicá-la explicitamente mantém o teste correto mesmo se
+ * a ordem das superfícies mudar.
+ */
+export async function abrirProntidao(page: Page): Promise<void> {
+  await page.goto('/')
+  await page.getByRole('button', { name: 'Prontidão' }).click()
+  await expect(page.getByRole('heading', { name: 'Prontidão das dependências' })).toBeVisible()
+}
+
+/**
  * Abre a interface real, troca para o perfil Segurado e seleciona o segurado sintético.
  *
  * O shell inicia no perfil Administrador; o botão "Visualizar como Segurado" da barra de

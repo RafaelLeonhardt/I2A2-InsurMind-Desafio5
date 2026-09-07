@@ -15,6 +15,7 @@
  *
  * | Rota | Quem chama |
  * | --- | --- |
+ * | `GET /` | `SondaInmet.verificar` (ping de prontidão do INMET) |
  * | `GET /estacao/dados/:data/:estacao` | `ClienteInmet.coletar` |
  * | `GET /v1/models` | `SondaOpenAI.verificar`, `VerificadorDisponibilidadeOpenAI.verificar` |
  * | `POST /v1/chat/completions` | `AgenteRedator.gerar`, `AgenteCritico.avaliar` |
@@ -40,6 +41,16 @@
  *   "respostas": [ RespostaProgramada, ... ]
  * }
  * ```
+ *
+ * ### `POST /__mock__/programar-sonda-inmet`
+ *
+ * ```jsonc
+ * { "respostas": [ RespostaProgramada, ... ] }
+ * ```
+ *
+ * Fila do ping de prontidão do INMET (`GET /`), separada da fila de coleta: a `SondaInmet`
+ * consulta a raiz da URL base, não `/estacao/dados/...`, e tem timeout próprio (3s). É o que
+ * permite a um cenário derrubar o INMET e ver a superfície de Prontidão reagir.
  *
  * ### `POST /__mock__/programar-openai`
  *
@@ -270,6 +281,7 @@ export async function iniciarServidorDubles(
 ): Promise<ServidorDubles> {
   const filasInmet = new Map<string, FilaRespostas>()
   const filaInmetCoringa = new FilaRespostas()
+  const filaSondaInmet = new FilaRespostas()
   const filasChat = new Map<string, FilaRespostas>()
   const filaChat = new FilaRespostas()
   const filaModelos = new FilaRespostas()
@@ -295,6 +307,7 @@ export async function iniciarServidorDubles(
   function resetar(): void {
     for (const fila of filasInmet.values()) fila.limpar()
     filaInmetCoringa.limpar()
+    filaSondaInmet.limpar()
     for (const fila of filasChat.values()) fila.limpar()
     filaChat.limpar()
     filaModelos.limpar()
@@ -369,6 +382,11 @@ export async function iniciarServidorDubles(
           responderJson(res, 200, { ok: true })
           return
         }
+        if (caminho === '/__mock__/programar-sonda-inmet' && metodo === 'POST') {
+          filaSondaInmet.programar((corpo.respostas ?? []) as RespostaProgramada[])
+          responderJson(res, 200, { ok: true })
+          return
+        }
         if (caminho === '/__mock__/programar-openai' && metodo === 'POST') {
           const respostas = (corpo.respostas ?? []) as RespostaProgramada[]
           const esquema = corpo.esquema
@@ -385,6 +403,13 @@ export async function iniciarServidorDubles(
         }
         responderJson(res, 404, { erro: 'rota de controle desconhecida', caminho })
       })()
+      return
+    }
+
+    if (metodo === 'GET' && caminho === '/') {
+      const programada = filaSondaInmet.proxima()
+      if (programada && aplicar(programada, res, {})) return
+      responderJson(res, 200, { servico: 'duble-e2e-inmet' })
       return
     }
 
