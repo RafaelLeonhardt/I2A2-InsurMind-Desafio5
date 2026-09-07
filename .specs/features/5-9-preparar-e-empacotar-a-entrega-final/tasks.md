@@ -96,9 +96,9 @@ T5
 
 **Done when**:
 
-- [ ] ZIP extraído não contém nenhum arquivo/padrão da lista de exclusão (testado por busca automatizada no conteúdo extraído)
-- [ ] ZIP contém `src/`, `docs/` (incluindo `docs/evidencias/`), `README.md`, `LICENSE`
-- [ ] Gate check passa: `uv run --directory . pytest testes/test_empacotar_entrega.py`
+- [x] ZIP extraído não contém nenhum arquivo/padrão da lista de exclusão (testado por busca automatizada no conteúdo extraído)
+- [x] ZIP contém `src/`, `docs/` (incluindo `docs/evidencias/`), `README.md`, `LICENSE`
+- [x] Gate check passa: `uv run --directory . pytest testes/test_empacotar_entrega.py`
 
 **Tests**: integration
 **Gate**: quick
