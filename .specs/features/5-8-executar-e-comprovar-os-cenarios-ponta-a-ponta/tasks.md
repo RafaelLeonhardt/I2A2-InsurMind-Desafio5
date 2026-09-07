@@ -196,9 +196,9 @@ T13
 
 **Done when**:
 
-- [ ] Ciclo reprova→regenera visível até a 3ª tentativa
-- [ ] Esgotamento produz `falhou_conteudo` com `Exceção`, mensagem fora do lote simulável
-- [ ] Gate check passa: `npx playwright test testes-e2e/cenarios/regeneracao.spec.ts`
+- [x] Ciclo reprova→regenera visível até a 3ª tentativa
+- [x] Esgotamento produz `falhou_conteudo` com `Exceção`, mensagem fora do lote simulável
+- [x] Gate check passa: `npx playwright test testes-e2e/cenarios/regeneracao.spec.ts`
 
 **Tests**: e2e
 **Gate**: e2e (cenários)

@@ -46,9 +46,18 @@
  * ```jsonc
  * {
  *   "endpoint": "chat",  // "chat" = POST /v1/chat/completions; "modelos" = GET /v1/models
+ *   "esquema": "AvaliacaoEstruturada",  // opcional; só em "chat" (ver abaixo)
  *   "respostas": [ RespostaProgramada, ... ]
  * }
  * ```
+ *
+ * Redator e crítico compartilham a mesma rota `POST /v1/chat/completions` e se distinguem
+ * pelo `response_format.json_schema.name` da requisição: `SaidaWhatsApp`/`SaidaSMS`/
+ * `SaidaEmail` para o redator, `AvaliacaoEstruturada` para o crítico. Informar `esquema`
+ * programa uma fila só daquele agente; omiti-lo programa a fila coringa, usada por qualquer
+ * esquema sem fila própria — mesma composição das filas por estação do INMET. É o que
+ * permite reprovar o crítico três vezes seguidas sem que a resposta de reprovação caia na
+ * chamada do redator.
  *
  * ### `RespostaProgramada`
  *
@@ -261,6 +270,7 @@ export async function iniciarServidorDubles(
 ): Promise<ServidorDubles> {
   const filasInmet = new Map<string, FilaRespostas>()
   const filaInmetCoringa = new FilaRespostas()
+  const filasChat = new Map<string, FilaRespostas>()
   const filaChat = new FilaRespostas()
   const filaModelos = new FilaRespostas()
   const diario: DiarioChamadas = { inmet: [], openaiModelos: [], openaiChat: [] }
@@ -274,9 +284,18 @@ export async function iniciarServidorDubles(
     return nova
   }
 
+  function filaDoEsquema(esquema: string): FilaRespostas {
+    const existente = filasChat.get(esquema)
+    if (existente) return existente
+    const nova = new FilaRespostas()
+    filasChat.set(esquema, nova)
+    return nova
+  }
+
   function resetar(): void {
     for (const fila of filasInmet.values()) fila.limpar()
     filaInmetCoringa.limpar()
+    for (const fila of filasChat.values()) fila.limpar()
     filaChat.limpar()
     filaModelos.limpar()
     diario.inmet.length = 0
@@ -352,8 +371,11 @@ export async function iniciarServidorDubles(
         }
         if (caminho === '/__mock__/programar-openai' && metodo === 'POST') {
           const respostas = (corpo.respostas ?? []) as RespostaProgramada[]
+          const esquema = corpo.esquema
           if (corpo.endpoint === 'modelos') filaModelos.programar(respostas)
-          else filaChat.programar(respostas)
+          else if (typeof esquema === 'string' && esquema !== '') {
+            filaDoEsquema(esquema).programar(respostas)
+          } else filaChat.programar(respostas)
           responderJson(res, 200, { ok: true })
           return
         }
@@ -398,7 +420,7 @@ export async function iniciarServidorDubles(
         const esquema = corpo.response_format?.json_schema?.name ?? 'desconhecido'
         const modelo = corpo.model ?? 'gpt-4o-mini'
         diario.openaiChat.push({ esquema })
-        const programada = filaChat.proxima()
+        const programada = filaDoEsquema(esquema).proxima() ?? filaChat.proxima()
         if (programada && aplicar(programada, res, { modelo })) return
         responderJson(res, 200, completacaoDeChat(modelo, conteudoPadraoDoEsquema(esquema)))
       })()

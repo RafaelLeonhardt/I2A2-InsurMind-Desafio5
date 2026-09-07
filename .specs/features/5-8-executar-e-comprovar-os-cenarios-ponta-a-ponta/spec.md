@@ -124,7 +124,7 @@ Depois que os Épicos 1–4 e as Histórias 5.1–5.7 estiverem implementados, n
 | E2E-01 | P1: Cenários completos e encerramentos determinísticos comprovados | Design | Implementing |
 | E2E-02 | P1: Cenários completos e encerramentos determinísticos comprovados | Design | Implementing |
 | E2E-03 | P1: Cenários completos e encerramentos determinísticos comprovados | Design | Implementing |
-| E2E-04 | P1: Resiliência agêntica e de integração comprovada | Design | Pending |
+| E2E-04 | P1: Resiliência agêntica e de integração comprovada | Design | Implementing |
 | E2E-05 | P1: Resiliência agêntica e de integração comprovada | Design | Pending |
 | E2E-06 | P1: Resiliência agêntica e de integração comprovada | Design | Pending |
 | E2E-07 | P1: Resiliência agêntica e de integração comprovada | Design | Pending |

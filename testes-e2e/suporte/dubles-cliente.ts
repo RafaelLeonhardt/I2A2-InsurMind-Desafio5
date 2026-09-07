@@ -33,9 +33,22 @@ export async function programarInmet(
   await postar('/__mock__/programar-inmet', { estacao: estacao ?? null, respostas })
 }
 
-/** Programa a fila de `POST /v1/chat/completions` (redator e crítico compartilham a fila). */
-export async function programarChatOpenAI(respostas: RespostaProgramada[]): Promise<void> {
-  await postar('/__mock__/programar-openai', { endpoint: 'chat', respostas })
+/**
+ * Programa a fila de `POST /v1/chat/completions`.
+ *
+ * Sem `esquema`, programa a fila coringa, usada por qualquer agente sem fila própria.
+ * Com `esquema` (`SaidaWhatsApp`/`SaidaSMS`/`SaidaEmail` para o redator,
+ * `AvaliacaoEstruturada` para o crítico), programa só as chamadas daquele agente.
+ */
+export async function programarChatOpenAI(
+  respostas: RespostaProgramada[],
+  esquema?: string,
+): Promise<void> {
+  await postar('/__mock__/programar-openai', {
+    endpoint: 'chat',
+    esquema: esquema ?? null,
+    respostas,
+  })
 }
 
 /** Programa a fila de `GET /v1/models` (sonda de prontidão e preflight de IA). */

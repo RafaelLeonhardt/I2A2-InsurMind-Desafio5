@@ -169,6 +169,18 @@ export function solicitarPreflight(execucaoId: string): Promise<unknown> {
   return postar(`/execucoes/${execucaoId}/preflight`)
 }
 
+/** Motivo categorizado de uma avaliação do agente crítico. */
+export type MotivoCritica = { categoria: string; justificativa: string }
+
+/** Uma tentativa de geração apresentada no lote de revisão. */
+export type VersaoRevisada = {
+  numero_tentativa: number
+  corpo: string
+  valida: boolean
+  motivo_invalidez: string | null
+  avaliacao_critica: { aprovada: boolean; motivos: MotivoCritica[] } | null
+}
+
 /** Lote de revisão humana de uma execução. */
 export type LoteRevisao = {
   execucao_id: string
@@ -180,11 +192,19 @@ export type LoteRevisao = {
     versao: number
     decidivel: boolean
     em_excecao: boolean
+    pode_regenerar: boolean
+    reprovacao_historica: boolean
+    tentativa_atual: number
+    limite_tentativas: number
     aprovada_pelo_critico: boolean
     destinatario: { nome_segurado: string; apolice_id: string; codigo_ibge_area: string }
     origem: { evento_id: string; regra_id: string; regra_versao: number; justificativa: string }
+    versoes: VersaoRevisada[]
   }[]
   evento: { tipo: string; area: string; proveniencia: string; intensidade: number } | null
+  itens_em_excecao: number
+  aprovacoes_agenticas: number
+  total_publico_incluido: number
   regra_id: string | null
   regra_versao: number | null
 }
@@ -193,12 +213,22 @@ export function obterLoteRevisao(execucaoId: string): Promise<LoteRevisao> {
   return obter<LoteRevisao>(`/execucoes/${execucaoId}/revisao`)
 }
 
+/** Desfecho do envio de decisões: o que foi aplicado e onde o agregado parou. */
+export type DecisaoLote = {
+  execucao_id: string
+  estado: string
+  aplicadas: string[]
+  recusadas: { mensagem_id: string; motivo: string }[]
+  mensagens_aprovadas: string[]
+  regeneracoes_ativas: string[]
+}
+
 /** Aplica decisões humanas sobre o lote, numa transação única. */
 export function decidirLote(
   execucaoId: string,
   decisoes: { mensagem_id: string; versao_esperada: number; resultado: string; justificativa?: string }[],
-): Promise<unknown> {
-  return postar(`/execucoes/${execucaoId}/revisao/decisoes`, { decisoes })
+): Promise<DecisaoLote> {
+  return postar<DecisaoLote>(`/execucoes/${execucaoId}/revisao/decisoes`, { decisoes })
 }
 
 /** Resumo da simulação, antes e depois da confirmação. */
@@ -294,13 +324,36 @@ export function obterMensagens(execucaoId: string): Promise<Mensagens> {
   return obter<Mensagens>(`/execucoes/${execucaoId}/mensagens`)
 }
 
+/** Detalhe completo de uma mensagem: tentativas, avaliações e exceção técnica. */
+export type DetalheMensagem = {
+  mensagem_id: string
+  estado: string
+  canal: string
+  nome_segurado: string
+  excecao: { causa: string; impacto: string; tentativas: number } | null
+  versoes: {
+    numero_tentativa: number
+    corpo: string
+    valida: boolean
+    avaliacao_critica: { aprovada: boolean; motivos: MotivoCritica[] } | null
+  }[]
+}
+
+export function obterDetalheMensagem(
+  execucaoId: string,
+  mensagemId: string,
+): Promise<DetalheMensagem> {
+  return obter<DetalheMensagem>(`/execucoes/${execucaoId}/mensagens/${mensagemId}/detalhe`)
+}
+
 /** Resultados consolidados da simulação de uma execução. */
 export type Resultados = {
   execucao_id: string
   estado: string
   concluido: boolean
-  totais_por_estado: { estado: string; total: number }[]
-  nao_simulaveis: { mensagem_id: string }[]
+  totais_por_estado: { chave: string; total: number }[]
+  totais_por_canal: { chave: string; total: number }[]
+  nao_simulaveis: { mensagem_id: string; canal: string; estado: string; motivo: string }[]
 }
 
 export function obterResultados(execucaoId: string): Promise<Resultados> {
