@@ -27,6 +27,10 @@ type PropriedadesSuperficieMeusDados = {
   /** Segurado a exibir. Ausente hoje: resolve o segurado padrão internamente (mesmo
    * seam de SuperficieApolice, 5.3). */
   seguradoId?: string
+  /** Quando true, renderiza como `<section>` sem `id`/foco próprios em vez de `<main>`
+   * (5.7, `PainelSegurado`): evita landmark e id duplicados ao compor esta superfície
+   * junto de outras na mesma página. Ausente/false preserva o comportamento original. */
+  comoSecao?: boolean
 }
 
 const ROTULOS_CANAL: Record<string, string> = {
@@ -55,7 +59,12 @@ function falhaDe(causa: unknown): FalhaPreferencias {
  * (o estado `formulario` só muda por ação do usuário ou por um salvamento bem-sucedido) —
  * garante que Carlos nunca perde a edição em curso, mesmo com um `409` de versão.
  */
-export function SuperficieMeusDados({ seguradoId }: PropriedadesSuperficieMeusDados) {
+export function SuperficieMeusDados({
+  seguradoId,
+  comoSecao,
+}: PropriedadesSuperficieMeusDados) {
+  const ElementoRaiz: 'main' | 'section' = comoSecao ? 'section' : 'main'
+  const atributosRaiz = comoSecao ? {} : { id: 'conteudo-principal', tabIndex: -1 }
   const [estado, definirEstado] = useState<EstadoCarregamento>('carregando')
   const [falha, definirFalha] = useState<FalhaPreferencias | null>(null)
   const [preferencias, definirPreferencias] = useState<PreferenciasSegurado | null>(null)
@@ -117,15 +126,15 @@ export function SuperficieMeusDados({ seguradoId }: PropriedadesSuperficieMeusDa
 
   if (estado === 'carregando') {
     return (
-      <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <ElementoRaiz className="conteudo" {...atributosRaiz}>
         <p role="status">Carregando suas preferências…</p>
-      </main>
+      </ElementoRaiz>
     )
   }
 
   if (estado === 'erro') {
     return (
-      <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <ElementoRaiz className="conteudo" {...atributosRaiz}>
         <div role="alert">
           <h1>Não foi possível carregar suas preferências</h1>
           <p>
@@ -141,14 +150,14 @@ export function SuperficieMeusDados({ seguradoId }: PropriedadesSuperficieMeusDa
             Tentar novamente
           </button>
         </div>
-      </main>
+      </ElementoRaiz>
     )
   }
 
   if (!formulario) return null
 
   return (
-    <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+    <ElementoRaiz className="conteudo" {...atributosRaiz}>
       <h1>Meus dados</h1>
       <p className="introducao">
         Altere seu canal preferencial de comunicação e sua participação em alertas. Nenhum
@@ -213,6 +222,6 @@ export function SuperficieMeusDados({ seguradoId }: PropriedadesSuperficieMeusDa
           </p>
         </div>
       )}
-    </main>
+    </ElementoRaiz>
   )
 }

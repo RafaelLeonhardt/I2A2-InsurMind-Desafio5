@@ -30,7 +30,7 @@ import {
   obterSimulacao,
   solicitarPreflight,
 } from '../suporte/api.ts'
-import { abrirPainelSegurado, prepararCenario } from '../suporte/cenario.ts'
+import { abrirPainelSegurado, conteudoComTexto, prepararCenario } from '../suporte/cenario.ts'
 import { programarInmet } from '../suporte/dubles-cliente.ts'
 import {
   AREA_GRANIZO_ID,
@@ -133,22 +133,22 @@ test.describe('E2E-02: granizo automóvel', () => {
 
     await abrirPainelSegurado(page, NOME_SEGURADO_GRANIZO_ELEGIVEL)
 
-    const visaoGeral = page.getByRole('main').filter({ hasText: 'Impactos esperados' })
+    const visaoGeral = conteudoComTexto(page, 'Impactos esperados')
     await expect(visaoGeral.getByText('Granizo', { exact: true })).toBeVisible()
     await expect(visaoGeral.getByText('Cenário demonstrativo (sintético)').first()).toBeVisible()
     for (const recomendacao of RECOMENDACOES_GRANIZO) {
       await expect(visaoGeral.getByText(recomendacao)).toBeVisible()
     }
 
-    const apolice = page.getByRole('main').filter({ hasText: 'Sua apólice' })
+    const apolice = conteudoComTexto(page, 'Sua apólice')
     await expect(apolice.getByText('DEMO-AUT-0003')).toBeVisible()
     await expect(apolice.getByText('Automóvel', { exact: true })).toBeVisible()
 
-    const comunicados = page.getByRole('main').filter({ hasText: 'Seus comunicados' })
+    const comunicados = conteudoComTexto(page, 'Seus comunicados')
     await expect(comunicados.getByRole('cell', { name: 'SMS' })).toBeVisible()
     await comunicados.getByRole('button', { name: 'Ver detalhe' }).first().click()
 
-    const detalhe = page.getByRole('main').filter({ hasText: 'Seu comunicado preventivo' })
+    const detalhe = conteudoComTexto(page, 'Seu comunicado preventivo')
     await expect(detalhe.getByText(CONTEUDO_PADRAO_DUBLE.sms)).toBeVisible()
   })
 })

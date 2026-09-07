@@ -23,20 +23,30 @@ import { VisaoGeralSegurado } from './VisaoGeralSegurado'
  * (SeguradoContexto, 5.7 T3) — a prop injetada aqui também não muda, então nenhuma das cinco
  * superfícies dispara uma nova requisição antes da troca estar confirmada, e uma falha
  * reverte silenciosamente sem nunca propagar um id inconsistente (SELETOR-02/03/04).
+ *
+ * fix (5.8, achado pela suíte E2E): a grade CSS de `.aplicacao` (`App.css`) espera UM único
+ * item de conteúdo na célula central — cada superfície de 5.1–5.6 foi construída como página
+ * independente, com seu próprio `<main id="conteudo-principal">`. Compostas como irmãs soltas
+ * (Fragment), eram 6 itens (`SeletorSegurado` + 5 superfícies) auto-posicionados pela grade,
+ * um deles caindo sob a coluna de navegação, mais 6 landmarks/ids "conteudo-principal"
+ * duplicados. `conteudo-segurado-empilhado` (App.css) é o único item real da grade; dentro
+ * dele as superfícies empilham em fluxo normal. Só `VisaoGeralSegurado` continua como o
+ * `<main>` da página (âncora do skip-link); as outras quatro recebem `comoSecao` e renderizam
+ * como `<section>` sem `id`/foco próprios.
  */
 function ConteudoPainelSegurado() {
   const { seguradoAtivoId } = useSeguradoContexto()
   const seguradoId = seguradoAtivoId ?? undefined
 
   return (
-    <>
+    <div className="conteudo-segurado-empilhado">
       <SeletorSegurado />
       <VisaoGeralSegurado seguradoId={seguradoId} />
-      <SuperficieAlertas seguradoId={seguradoId} />
-      <SuperficieApolice seguradoId={seguradoId} />
-      <SuperficieComunicados seguradoId={seguradoId} />
-      <SuperficieMeusDados seguradoId={seguradoId} />
-    </>
+      <SuperficieAlertas comoSecao seguradoId={seguradoId} />
+      <SuperficieApolice comoSecao seguradoId={seguradoId} />
+      <SuperficieComunicados comoSecao seguradoId={seguradoId} />
+      <SuperficieMeusDados comoSecao seguradoId={seguradoId} />
+    </div>
   )
 }
 

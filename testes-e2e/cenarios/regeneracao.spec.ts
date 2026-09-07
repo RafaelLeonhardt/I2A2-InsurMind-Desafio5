@@ -26,7 +26,7 @@ import {
   obterSimulacao,
   solicitarPreflight,
 } from '../suporte/api.ts'
-import { abrirPainelSegurado, prepararCenario } from '../suporte/cenario.ts'
+import { abrirPainelSegurado, conteudoComTexto, prepararCenario } from '../suporte/cenario.ts'
 import { chamadasRegistradas, programarChatOpenAI, programarInmet } from '../suporte/dubles-cliente.ts'
 import { AREA_CHUVA_ID, NOME_SEGURADO_CHUVA_ELEGIVEL, SEGURADO_CHUVA_ELEGIVEL_ID } from '../suporte/identificadores.ts'
 
@@ -157,9 +157,7 @@ test.describe('E2E-04: regeneração e esgotamento de tentativas', () => {
     // A mensagem afetada nunca entra na simulação: o segurado elegível vê o estado vazio,
     // não um comunicado gerado a partir de conteúdo reprovado.
     await abrirPainelSegurado(page, NOME_SEGURADO_CHUVA_ELEGIVEL)
-    const painelComunicados = page
-      .getByRole('main')
-      .filter({ hasText: 'Nenhum comunicado no momento' })
+    const painelComunicados = conteudoComTexto(page, 'Nenhum comunicado no momento')
     await expect(painelComunicados).toBeVisible()
   })
 })

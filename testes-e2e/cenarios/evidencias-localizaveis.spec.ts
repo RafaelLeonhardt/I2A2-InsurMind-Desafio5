@@ -46,7 +46,7 @@ import {
   obterSimulacao,
   solicitarPreflight,
 } from '../suporte/api.ts'
-import { abrirPainelSegurado, abrirProntidao, prepararCenario } from '../suporte/cenario.ts'
+import { abrirPainelSegurado, abrirProntidao, conteudoComTexto, prepararCenario } from '../suporte/cenario.ts'
 import { programarInmet } from '../suporte/dubles-cliente.ts'
 import {
   AREA_CHUVA_ID,
@@ -195,15 +195,15 @@ test.describe('E2E-08: evidências localizáveis e contrato de API fiel', () => 
     // tempo do alerta, todos alcançáveis por navegação.
     await abrirPainelSegurado(page, NOME_SEGURADO_CHUVA_ELEGIVEL)
 
-    const alertas = page.getByRole('main').filter({ hasText: 'Seus alertas' })
+    const alertas = conteudoComTexto(page, 'Seus alertas')
     await alertas.getByRole('button', { name: 'Ver detalhe' }).first().click()
-    const detalheAlerta = page.getByRole('main').filter({ hasText: 'Contexto da apólice' })
+    const detalheAlerta = conteudoComTexto(page, 'Contexto da apólice')
     await expect(detalheAlerta.getByRole('heading', { name: 'Contexto da apólice' })).toBeVisible()
     await expect(detalheAlerta.getByRole('heading', { name: 'Linha do tempo' })).toBeVisible()
 
-    const comunicados = page.getByRole('main').filter({ hasText: 'Seus comunicados' })
+    const comunicados = conteudoComTexto(page, 'Seus comunicados')
     await comunicados.getByRole('button', { name: 'Ver detalhe' }).first().click()
-    const detalheComunicado = page.getByRole('main').filter({ hasText: 'Seu comunicado preventivo' })
+    const detalheComunicado = conteudoComTexto(page, 'Seu comunicado preventivo')
     await expect(detalheComunicado.getByText(CONTEUDO_PADRAO_DUBLE.whatsapp)).toBeVisible()
     await expect(
       detalheComunicado.getByRole('heading', { name: 'Linha do tempo' }),
@@ -247,7 +247,7 @@ test.describe('E2E-08: evidências localizáveis e contrato de API fiel', () => 
     // Swagger UI real, alcançável a partir da superfície de Documentação da API.
     await page.goto('/')
     await page.getByRole('button', { name: 'Documentação da API' }).click()
-    const superficie = page.getByRole('main').filter({ hasText: 'Documentação da API' })
+    const superficie = conteudoComTexto(page, 'Documentação da API')
     await expect(superficie.getByText('Disponível', { exact: true })).toBeVisible()
     const enlaceSwagger = superficie.getByRole('link', { name: `${ENDERECO_BACKEND}/docs` })
     await expect(enlaceSwagger).toBeVisible()

@@ -1,6 +1,6 @@
 /** Preparo comum a todo cenário E2E e navegação até o painel do perfil Segurado (5.8). */
 
-import { expect, type Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 import { restaurarDadosSinteticos } from './api.ts'
 import { resetarDubles } from './dubles-cliente.ts'
 
@@ -59,4 +59,17 @@ export async function abrirPainelSegurado(page: Page, nomeSegurado: string): Pro
   // não se aplicasse apareceria adiante como um erro obscuro de elemento, não como a falha
   // que de fato é.
   await expect(seletor.locator('option:checked')).toHaveText(nomeSegurado)
+}
+
+/**
+ * Localiza uma área de conteúdo pelo texto, sem depender de ela ser `<main>` ou `<section>`.
+ *
+ * `PainelSegurado` compõe cinco superfícies numa única página (5.7): só a primeira
+ * (`VisaoGeralSegurado`) é o `<main>` real da página; as outras quatro renderizam como
+ * `<section>` para não duplicar landmark/id (fix 5.8, `App.css`/`PainelSegurado.tsx`). Toda
+ * área de conteúdo, `<main>` ou `<section>`, carrega a classe `conteudo` — usar essa classe em
+ * vez do papel ARIA é o que torna esta busca correta nos dois casos.
+ */
+export function conteudoComTexto(page: Page, texto: string | RegExp): Locator {
+  return page.locator('.conteudo').filter({ hasText: texto })
 }

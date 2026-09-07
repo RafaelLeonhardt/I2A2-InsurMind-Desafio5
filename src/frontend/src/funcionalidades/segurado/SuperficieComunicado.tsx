@@ -25,6 +25,10 @@ type EstadoVisualizacao = 'pendente' | 'registrando' | 'confirmada' | 'erro'
 type PropriedadesSuperficieComunicado = {
   seguradoId: string
   entregaSimuladaId: string
+  /** Quando true, renderiza como `<section>` sem `id`/foco próprios em vez de `<main>`
+   * (5.7, `PainelSegurado`): evita landmark e id duplicados ao compor esta superfície
+   * junto de outras na mesma página. Ausente/false preserva o comportamento original. */
+  comoSecao?: boolean
 }
 
 /**
@@ -38,7 +42,10 @@ type PropriedadesSuperficieComunicado = {
 export function SuperficieComunicado({
   seguradoId,
   entregaSimuladaId,
+  comoSecao,
 }: PropriedadesSuperficieComunicado) {
+  const ElementoRaiz: 'main' | 'section' = comoSecao ? 'section' : 'main'
+  const atributosRaiz = comoSecao ? {} : { id: 'conteudo-principal', tabIndex: -1 }
   const [estadoCarregamento, definirEstadoCarregamento] =
     useState<EstadoCarregamento>('carregando')
   const [comunicado, definirComunicado] = useState<Comunicado | null>(null)
@@ -98,7 +105,7 @@ export function SuperficieComunicado({
   }, [estadoCarregamento])
 
   return (
-    <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+    <ElementoRaiz className="conteudo" {...atributosRaiz}>
       <p className="rotulo-contexto">Comunicado</p>
       <h1>Seu comunicado preventivo</h1>
 
@@ -176,7 +183,7 @@ export function SuperficieComunicado({
           )}
         </>
       )}
-    </main>
+    </ElementoRaiz>
   )
 }
 

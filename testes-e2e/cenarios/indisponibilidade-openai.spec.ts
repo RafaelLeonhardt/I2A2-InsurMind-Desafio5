@@ -38,7 +38,7 @@ import {
   obterSincronizacoes,
   solicitarPreflight,
 } from '../suporte/api.ts'
-import { abrirPainelSegurado, abrirProntidao, prepararCenario } from '../suporte/cenario.ts'
+import { abrirPainelSegurado, abrirProntidao, conteudoComTexto, prepararCenario } from '../suporte/cenario.ts'
 import {
   chamadasRegistradas,
   programarInmet,
@@ -133,7 +133,7 @@ test.describe('E2E-06: indisponibilidade da OpenAI', () => {
     // A interface real não inventa conteúdo: o segurado elegível não recebe comunicado.
     await abrirPainelSegurado(page, NOME_SEGURADO_CHUVA_ELEGIVEL)
     await expect(
-      page.getByRole('main').filter({ hasText: 'Nenhum comunicado no momento' }),
+      conteudoComTexto(page, 'Nenhum comunicado no momento'),
     ).toBeVisible()
 
     // E a Prontidão explica a causa em vez de escondê-la.

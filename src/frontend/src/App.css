@@ -33,6 +33,7 @@ button:focus-visible, a:focus-visible, main:focus-visible { outline: 3px solid v
 .barra-contexto div + div { border-left: 1px solid var(--line); padding-left: 1rem; }
 .barra-contexto strong { display: block; color: var(--navy); font-size: .9rem; }
 .conteudo { min-width: 0; padding: 2.5rem clamp(1.5rem, 4vw, 4rem) 5.5rem; }
+.conteudo-segurado-empilhado { min-width: 0; }
 h1, h2 { font-family: 'Roboto Condensed', sans-serif; color: var(--navy); }
 h1 { max-width: 760px; margin: 0; font-size: clamp(2rem, 3.6vw, 3.25rem); line-height: 1.05; }
 h2 { margin: 0 0 .7rem; }
@@ -40,7 +41,7 @@ h2 { margin: 0 0 .7rem; }
 .aviso-fonte-degradada { display: flex; align-items: center; gap: .6rem; max-width: 720px; margin: 1rem 0; padding: .6rem .9rem; border-left: 4px solid var(--amber); border-radius: .25rem; background: #fffbeb; color: #7c2d12; font-weight: 600; }
 .alerta-principal { display: grid; grid-template-columns: auto 1fr; gap: 1rem; margin: 2rem 0; padding: 1.25rem; border: 1px solid var(--line); border-left: 5px solid var(--amber); border-radius: 7px; }
 .icone-alerta { width: 50px; height: 50px; display: grid; place-items: center; border-radius: 50%; color: var(--navy); background: var(--soft); }
-.nivel-risco { color: var(--orange); font-size: .78rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
+.nivel-risco { color: var(--navy); font-size: .78rem; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; }
 .alerta-principal h2 { margin: .2rem 0; }
 .alerta-principal p { margin: 0; color: var(--muted); }
 .acoes-preventivas { padding-left: 1.3rem; color: var(--blue); }

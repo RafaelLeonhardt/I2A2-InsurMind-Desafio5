@@ -33,7 +33,7 @@ import {
   solicitarColeta,
   solicitarPreflight,
 } from '../suporte/api.ts'
-import { abrirPainelSegurado, abrirProntidao, prepararCenario } from '../suporte/cenario.ts'
+import { abrirPainelSegurado, abrirProntidao, conteudoComTexto, prepararCenario } from '../suporte/cenario.ts'
 import { programarInmet, programarSondaInmet } from '../suporte/dubles-cliente.ts'
 import {
   AREA_CHUVA_ID,
@@ -152,10 +152,10 @@ test.describe('E2E-05: contingência do INMET', () => {
 
     // Fim do fluxo: o segurado vê o comunicado com a origem sintética rotulada na tela.
     await abrirPainelSegurado(page, NOME_SEGURADO_GRANIZO_ELEGIVEL)
-    const visaoGeral = page.getByRole('main').filter({ hasText: 'Impactos esperados' })
+    const visaoGeral = conteudoComTexto(page, 'Impactos esperados')
     await expect(visaoGeral.getByText('Cenário demonstrativo (sintético)').first()).toBeVisible()
 
-    const comunicados = page.getByRole('main').filter({ hasText: 'Seus comunicados' })
+    const comunicados = conteudoComTexto(page, 'Seus comunicados')
     await expect(comunicados.getByRole('cell', { name: 'SMS' })).toBeVisible()
   })
 })

@@ -31,6 +31,10 @@ type PropriedadesSuperficieAlertas = {
   /** Abre direto no detalhe deste alerta, simulando acesso direto ao endereço
    * (ALERTAS-05, Independent Test) — sem ele, a superfície abre na lista. */
   elegibilidadeIdInicial?: string
+  /** Quando true, renderiza como `<section>` sem `id`/foco próprios em vez de `<main>`
+   * (5.7, `PainelSegurado`): evita landmark e id duplicados ao compor esta superfície
+   * junto de outras na mesma página. Ausente/false preserva o comportamento original. */
+  comoSecao?: boolean
 }
 
 const ROTULOS_EVENTO: Record<string, string> = {
@@ -97,7 +101,10 @@ function falhaDe(causa: unknown): FalhaAlertas {
 export function SuperficieAlertas({
   seguradoId,
   elegibilidadeIdInicial,
+  comoSecao,
 }: PropriedadesSuperficieAlertas) {
+  const ElementoRaiz: 'main' | 'section' = comoSecao ? 'section' : 'main'
+  const atributosRaiz = comoSecao ? {} : { id: 'conteudo-principal', tabIndex: -1 }
   const [estadoLista, definirEstadoLista] = useState<EstadoLista>('carregando')
   const [itens, definirItens] = useState<ItemAlerta[]>([])
   const [falhaLista, definirFalhaLista] = useState<FalhaAlertas | null>(null)
@@ -193,15 +200,15 @@ export function SuperficieAlertas({
 
   if (estadoLista === 'carregando') {
     return (
-      <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <ElementoRaiz className="conteudo" {...atributosRaiz}>
         <p role="status">Carregando alertas…</p>
-      </main>
+      </ElementoRaiz>
     )
   }
 
   if (estadoLista === 'erro') {
     return (
-      <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <ElementoRaiz className="conteudo" {...atributosRaiz}>
         <div role="alert">
           <h1>Não foi possível carregar seus alertas</h1>
           <p>
@@ -217,13 +224,13 @@ export function SuperficieAlertas({
             Tentar novamente
           </button>
         </div>
-      </main>
+      </ElementoRaiz>
     )
   }
 
   if (elegibilidadeSelecionada !== null) {
     return (
-      <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <ElementoRaiz className="conteudo" {...atributosRaiz}>
         <p aria-live="polite" className="sr-only">
           {anuncio}
         </p>
@@ -336,24 +343,24 @@ export function SuperficieAlertas({
             </section>
           </>
         )}
-      </main>
+      </ElementoRaiz>
     )
   }
 
   if (itens.length === 0) {
     return (
-      <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <ElementoRaiz className="conteudo" {...atributosRaiz}>
         <h1>Nenhum alerta no momento</h1>
         <p className="introducao">Você ainda não tem nenhum alerta ativo ou anterior.</p>
         <button onClick={() => void carregarLista()} type="button">
           Atualizar
         </button>
-      </main>
+      </ElementoRaiz>
     )
   }
 
   return (
-    <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+    <ElementoRaiz className="conteudo" {...atributosRaiz}>
       <h1>Seus alertas</h1>
       <table>
         <caption className="sr-only">Lista de alertas ativos e anteriores</caption>
@@ -397,6 +404,6 @@ export function SuperficieAlertas({
           ))}
         </tbody>
       </table>
-    </main>
+    </ElementoRaiz>
   )
 }

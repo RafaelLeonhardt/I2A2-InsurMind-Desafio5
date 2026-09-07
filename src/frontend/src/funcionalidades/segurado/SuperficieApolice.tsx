@@ -24,6 +24,10 @@ type PropriedadesSuperficieApolice = {
   /** Quando informado, mostra também a explicação de critérios desta elegibilidade
    * (APOLICE-02) — normalmente aberta a partir do detalhe de um alerta (5.2). */
   elegibilidadeIdExplicacao?: string
+  /** Quando true, renderiza como `<section>` sem `id`/foco próprios em vez de `<main>`
+   * (5.7, `PainelSegurado`): evita landmark e id duplicados ao compor esta superfície
+   * junto de outras na mesma página. Ausente/false preserva o comportamento original. */
+  comoSecao?: boolean
 }
 
 const ROTULOS_TIPO: Record<string, string> = {
@@ -79,7 +83,10 @@ function falhaDe(causa: unknown): FalhaApolice {
 export function SuperficieApolice({
   seguradoId,
   elegibilidadeIdExplicacao,
+  comoSecao,
 }: PropriedadesSuperficieApolice) {
+  const ElementoRaiz: 'main' | 'section' = comoSecao ? 'section' : 'main'
+  const atributosRaiz = comoSecao ? {} : { id: 'conteudo-principal', tabIndex: -1 }
   const [estado, definirEstado] = useState<EstadoApolice>('carregando')
   const [apolice, definirApolice] = useState<ApoliceSegurado | null>(null)
   const [falha, definirFalha] = useState<FalhaApolice | null>(null)
@@ -146,24 +153,24 @@ export function SuperficieApolice({
 
   if (estado === 'carregando') {
     return (
-      <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <ElementoRaiz className="conteudo" {...atributosRaiz}>
         <p role="status">Carregando apólice…</p>
-      </main>
+      </ElementoRaiz>
     )
   }
 
   if (estado === 'nao_encontrada') {
     return (
-      <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <ElementoRaiz className="conteudo" {...atributosRaiz}>
         <h1>Não encontrada</h1>
         <p>Esta apólice não existe ou não pertence a você.</p>
-      </main>
+      </ElementoRaiz>
     )
   }
 
   if (estado === 'erro') {
     return (
-      <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <ElementoRaiz className="conteudo" {...atributosRaiz}>
         <div role="alert">
           <h1>Não foi possível carregar sua apólice</h1>
           <p>
@@ -179,14 +186,14 @@ export function SuperficieApolice({
             Tentar novamente
           </button>
         </div>
-      </main>
+      </ElementoRaiz>
     )
   }
 
   if (!apolice) return null
 
   return (
-    <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+    <ElementoRaiz className="conteudo" {...atributosRaiz}>
       <h1>Sua apólice</h1>
       <p className="introducao">
         Situação atual: <strong>{rotuloEstadoObjetivo(apolice.estadoObjetivo)}</strong>
@@ -278,6 +285,6 @@ export function SuperficieApolice({
           )}
         </section>
       )}
-    </main>
+    </ElementoRaiz>
   )
 }

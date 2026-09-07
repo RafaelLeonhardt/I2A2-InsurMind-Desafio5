@@ -15,6 +15,10 @@ type PropriedadesSuperficieComunicados = {
   /** Segurado a exibir. Ausente hoje: resolve o segurado padrão internamente (mesmo seam de
    * SuperficieAlertas, 5.2 — 5.7 ainda não gerencia a troca). */
   seguradoId?: string
+  /** Quando true, renderiza como `<section>` sem `id`/foco próprios em vez de `<main>`
+   * (5.7, `PainelSegurado`): evita landmark e id duplicados ao compor esta superfície
+   * junto de outras na mesma página. Ausente/false preserva o comportamento original. */
+  comoSecao?: boolean
 }
 
 const ROTULOS_CANAL: Record<string, string> = {
@@ -50,7 +54,12 @@ function falhaDe(causa: unknown): FalhaComunicados {
  * registro idempotente da primeira visualização continuam exatamente os mesmos, nunca
  * duplicados aqui — esta superfície só agrega a lista e a navegação entre lista e detalhe.
  */
-export function SuperficieComunicados({ seguradoId }: PropriedadesSuperficieComunicados) {
+export function SuperficieComunicados({
+  seguradoId,
+  comoSecao,
+}: PropriedadesSuperficieComunicados) {
+  const ElementoRaiz: 'main' | 'section' = comoSecao ? 'section' : 'main'
+  const atributosRaiz = comoSecao ? {} : { id: 'conteudo-principal', tabIndex: -1 }
   const [estadoLista, definirEstadoLista] = useState<EstadoLista>('carregando')
   const [itens, definirItens] = useState<ItemComunicado[]>([])
   const [falhaLista, definirFalhaLista] = useState<FalhaComunicados | null>(null)
@@ -114,15 +123,15 @@ export function SuperficieComunicados({ seguradoId }: PropriedadesSuperficieComu
 
   if (estadoLista === 'carregando') {
     return (
-      <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <ElementoRaiz className="conteudo" {...atributosRaiz}>
         <p role="status">Carregando comunicados…</p>
-      </main>
+      </ElementoRaiz>
     )
   }
 
   if (estadoLista === 'erro') {
     return (
-      <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <ElementoRaiz className="conteudo" {...atributosRaiz}>
         <div role="alert">
           <h1>Não foi possível carregar seus comunicados</h1>
           <p>
@@ -138,7 +147,7 @@ export function SuperficieComunicados({ seguradoId }: PropriedadesSuperficieComu
             Tentar novamente
           </button>
         </div>
-      </main>
+      </ElementoRaiz>
     )
   }
 
@@ -152,14 +161,18 @@ export function SuperficieComunicados({ seguradoId }: PropriedadesSuperficieComu
         <button onClick={voltarParaLista} ref={botaoVoltarRef} type="button">
           Voltar à lista
         </button>
-        <SuperficieComunicado entregaSimuladaId={entregaSelecionada} seguradoId={idSegurado} />
+        <SuperficieComunicado
+          comoSecao={comoSecao}
+          entregaSimuladaId={entregaSelecionada}
+          seguradoId={idSegurado}
+        />
       </>
     )
   }
 
   if (itens.length === 0) {
     return (
-      <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <ElementoRaiz className="conteudo" {...atributosRaiz}>
         <h1>Nenhum comunicado no momento</h1>
         <p className="introducao">
           Você ainda não tem nenhum comunicado simulado. Enquanto isso, você pode consultar
@@ -168,12 +181,12 @@ export function SuperficieComunicados({ seguradoId }: PropriedadesSuperficieComu
         <button onClick={() => void carregarLista()} type="button">
           Atualizar
         </button>
-      </main>
+      </ElementoRaiz>
     )
   }
 
   return (
-    <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+    <ElementoRaiz className="conteudo" {...atributosRaiz}>
       <h1>Seus comunicados</h1>
       <table>
         <caption className="sr-only">Lista de comunicados simulados</caption>
@@ -206,6 +219,6 @@ export function SuperficieComunicados({ seguradoId }: PropriedadesSuperficieComu
           ))}
         </tbody>
       </table>
-    </main>
+    </ElementoRaiz>
   )
 }

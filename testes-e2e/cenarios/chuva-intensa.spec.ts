@@ -25,7 +25,7 @@ import {
   obterSimulacao,
   solicitarPreflight,
 } from '../suporte/api.ts'
-import { prepararCenario, abrirPainelSegurado } from '../suporte/cenario.ts'
+import { prepararCenario, abrirPainelSegurado, conteudoComTexto } from '../suporte/cenario.ts'
 import { ESTACAO_CHUVA } from '../suporte/ambiente.ts'
 import { programarInmet } from '../suporte/dubles-cliente.ts'
 import {
@@ -102,11 +102,11 @@ test.describe('E2E-01: chuva intensa residencial', () => {
 
     await abrirPainelSegurado(page, NOME_SEGURADO_CHUVA_ELEGIVEL)
 
-    const comunicados = page.getByRole('main').filter({ hasText: 'Seus comunicados' })
+    const comunicados = conteudoComTexto(page, 'Seus comunicados')
     await expect(comunicados.getByRole('cell', { name: 'WhatsApp' })).toBeVisible()
     await comunicados.getByRole('button', { name: 'Ver detalhe' }).first().click()
 
-    const detalhe = page.getByRole('main').filter({ hasText: 'Seu comunicado preventivo' })
+    const detalhe = conteudoComTexto(page, 'Seu comunicado preventivo')
     await expect(detalhe.getByText(CONTEUDO_PADRAO_DUBLE.whatsapp)).toBeVisible()
   })
 })
