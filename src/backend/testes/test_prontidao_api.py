@@ -40,7 +40,7 @@ def configuracao_para(caminho: Path, chave_openai: str | None = None) -> Configu
 
     return Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         caminho_banco=caminho,
         chave_openai=chave_openai,
         url_base_inmet="",
@@ -129,12 +129,12 @@ def test_cors_libera_o_get_de_prontidao_para_a_origem_local(tmp_path: Path) -> N
     permitida = cliente_para(caminho).options(
         CAMINHO,
         headers={
-            "Origin": "http://127.0.0.1:5173",
+            "Origin": "http://127.0.0.1:5151",
             "Access-Control-Request-Method": "GET",
         },
     )
 
-    assert permitida.headers["access-control-allow-origin"] == "http://127.0.0.1:5173"
+    assert permitida.headers["access-control-allow-origin"] == "http://127.0.0.1:5151"
 
 
 def test_post_sem_idempotency_key_e_recusado(tmp_path: Path) -> None:

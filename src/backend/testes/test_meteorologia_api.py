@@ -19,7 +19,7 @@ CAMINHO_COLETAS = "/api/v1/meteorologia/coletas"
 CAMINHO_EVENTOS = "/api/v1/meteorologia/eventos"
 CAMINHO_SINCRONIZACOES = "/api/v1/meteorologia/sincronizacoes"
 TIPO_PROBLEMA = "application/problem+json"
-ORIGEM_CONFIGURADA = "http://127.0.0.1:5173"
+ORIGEM_CONFIGURADA = "http://127.0.0.1:5151"
 IDENTIFICADOR_CENARIO_GRANIZO = "granizo-demonstrativo"
 
 

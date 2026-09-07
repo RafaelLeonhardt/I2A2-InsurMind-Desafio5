@@ -89,7 +89,7 @@ def cliente_para(caminho: Path) -> TestClient:
 
     configuracao = Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         caminho_banco=caminho,
     )
     return TestClient(criar_aplicacao(configuracao))

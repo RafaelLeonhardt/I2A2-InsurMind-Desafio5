@@ -167,7 +167,7 @@ T15 → T16
 
 ### T5: Add CORS + docs-availability boundary test
 
-**What**: Add `test_cors.py` asserting the app returns `Access-Control-Allow-Origin: http://127.0.0.1:5173` for a request with that `Origin` header and not for `http://evil.example`; assert `GET /docs` and `GET /openapi.json` return `200`.
+**What**: Add `test_cors.py` asserting the app returns `Access-Control-Allow-Origin: http://127.0.0.1:5151` for a request with that `Origin` header and not for `http://evil.example`; assert `GET /docs` and `GET /openapi.json` return `200`.
 **Where**: `src/backend/testes/test_cors.py`
 **Depends on**: T4
 **Reuses**: `configuracao_para`/`cliente_para` pattern from `test_contexto_api.py`

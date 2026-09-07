@@ -118,8 +118,8 @@ O frontend já consulta saúde, prontidão, contexto e restauração pela API RE
 
 **Acceptance Criteria**:
 
-1. WHEN uma requisição `OPTIONS`/`fetch` partir de uma origem diferente de `http://127.0.0.1:5173` THEN a API SHALL recusar CORS (sem cabeçalho `Access-Control-Allow-Origin` correspondente).
-2. WHEN uma requisição partir da origem configurada `http://127.0.0.1:5173` THEN a API SHALL responder com os cabeçalhos CORS liberando `GET`, `POST`, `Accept`, `Content-Type`, `Idempotency-Key`.
+1. WHEN uma requisição `OPTIONS`/`fetch` partir de uma origem diferente de `http://127.0.0.1:5151` THEN a API SHALL recusar CORS (sem cabeçalho `Access-Control-Allow-Origin` correspondente).
+2. WHEN uma requisição partir da origem configurada `http://127.0.0.1:5151` THEN a API SHALL responder com os cabeçalhos CORS liberando `GET`, `POST`, `Accept`, `Content-Type`, `Idempotency-Key`.
 3. The test suite SHALL incluir um teste que gera `openapi.json` a partir da aplicação em execução e falha se divergir do arquivo versionado (mesma checagem do frontend, do lado do backend).
 
 **Independent Test**: Rodar a suíte de testes backend e ver os testes de CORS e sincronia de OpenAPI passando isoladamente.

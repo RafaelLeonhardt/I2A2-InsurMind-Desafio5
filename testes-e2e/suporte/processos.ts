@@ -70,7 +70,7 @@ function gerenciar(processo: ChildProcess, nome: string): ProcessoGerenciado {
  * Espera um endereço HTTP responder `200` com um corpo reconhecível da própria aplicação.
  *
  * A conferência do corpo não é preciosismo: outro processo pode estar escutando no curinga
- * da mesma porta (`*:5173`) e responder no lugar do servidor esperado até que o nosso termine
+ * da mesma porta (`*:5151`) e responder no lugar do servidor esperado até que o nosso termine
  * de subir. Sem essa checagem a suíte seguiria contra a aplicação errada.
  */
 export async function aguardarDisponivel(

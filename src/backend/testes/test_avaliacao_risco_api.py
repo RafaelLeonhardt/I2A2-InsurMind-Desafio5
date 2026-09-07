@@ -49,7 +49,7 @@ def inserir_avaliacao(caminho: Path, execucao_id: str) -> None:
 def configuracao_para(caminho: Path) -> Configuracao:
     return Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         caminho_banco=caminho,
         url_base_inmet="https://inmet.exemplo.invalido",
         _env_file=None,

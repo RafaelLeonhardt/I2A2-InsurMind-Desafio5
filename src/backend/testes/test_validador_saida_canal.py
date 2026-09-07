@@ -49,7 +49,7 @@ def test_limites_padrao_da_configuracao_sao_os_documentados_na_spec() -> None:
 
     configuracao = Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         _env_file=None,
     )
 

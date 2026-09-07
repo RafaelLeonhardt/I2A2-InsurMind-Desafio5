@@ -12,7 +12,7 @@ def criar_configuracao_local() -> Configuracao:
 
     return Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
     )
 
 
@@ -83,13 +83,13 @@ def test_cors_aceita_somente_a_origem_local_configurada() -> None:
     cliente = TestClient(criar_aplicacao(criar_configuracao_local()))
     permitida = cliente.options(
         "/api/v1/saude",
-        headers={"Origin": "http://127.0.0.1:5173", "Access-Control-Request-Method": "GET"},
+        headers={"Origin": "http://127.0.0.1:5151", "Access-Control-Request-Method": "GET"},
     )
     recusada = cliente.options(
         "/api/v1/saude",
-        headers={"Origin": "http://localhost:5173", "Access-Control-Request-Method": "GET"},
+        headers={"Origin": "http://localhost:5151", "Access-Control-Request-Method": "GET"},
     )
-    assert permitida.headers["access-control-allow-origin"] == "http://127.0.0.1:5173"
+    assert permitida.headers["access-control-allow-origin"] == "http://127.0.0.1:5151"
     assert "access-control-allow-origin" not in recusada.headers
 
 
@@ -97,7 +97,7 @@ def test_composicao_real_carrega_ambiente_e_configura_saude_e_cors(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("CENTRAL_PREVENTIVA_HOST_API", "127.0.0.1")
-    monkeypatch.setenv("CENTRAL_PREVENTIVA_ORIGEM_FRONTEND", "http://127.0.0.1:5173")
+    monkeypatch.setenv("CENTRAL_PREVENTIVA_ORIGEM_FRONTEND", "http://127.0.0.1:5151")
     obter_configuracao.cache_clear()
 
     try:
@@ -106,12 +106,12 @@ def test_composicao_real_carrega_ambiente_e_configura_saude_e_cors(
         cors = cliente.options(
             "/api/v1/saude",
             headers={
-                "Origin": "http://127.0.0.1:5173",
+                "Origin": "http://127.0.0.1:5151",
                 "Access-Control-Request-Method": "GET",
             },
         )
 
         assert saude.json() == {"status": "disponivel", "ambiente": "educacional"}
-        assert cors.headers["access-control-allow-origin"] == "http://127.0.0.1:5173"
+        assert cors.headers["access-control-allow-origin"] == "http://127.0.0.1:5151"
     finally:
         obter_configuracao.cache_clear()

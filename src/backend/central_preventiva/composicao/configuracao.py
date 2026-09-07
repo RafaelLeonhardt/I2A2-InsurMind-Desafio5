@@ -101,7 +101,7 @@ class Configuracao(BaseSettings):
     def validar_origem_frontend(cls, valor: str) -> str:
         """Aceita somente a origem canônica do frontend local."""
 
-        if valor != "http://127.0.0.1:5173":
+        if valor != "http://127.0.0.1:5151":
             raise ValueError("origem fora da interface de loopback")
         return valor
 

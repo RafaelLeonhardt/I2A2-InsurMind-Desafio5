@@ -23,7 +23,7 @@ def configuracao_para(caminho: Path) -> Configuracao:
 
     return Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         caminho_banco=caminho,
     )
 
@@ -209,11 +209,11 @@ def test_cors_libera_o_post_de_restauracao_para_a_origem_local(tmp_path: Path) -
     permitida = cliente_para(caminho).options(
         CAMINHO,
         headers={
-            "Origin": "http://127.0.0.1:5173",
+            "Origin": "http://127.0.0.1:5151",
             "Access-Control-Request-Method": "POST",
             "Access-Control-Request-Headers": "Idempotency-Key",
         },
     )
 
-    assert permitida.headers["access-control-allow-origin"] == "http://127.0.0.1:5173"
+    assert permitida.headers["access-control-allow-origin"] == "http://127.0.0.1:5151"
     assert "idempotency-key" in permitida.headers["access-control-allow-headers"].lower()

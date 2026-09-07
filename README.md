@@ -110,7 +110,7 @@ Use `npm --prefix`, e não `npx playwright` a partir da raiz: se houver um execu
 
 A suíte inicia sozinha o servidor de dublês, prepara um banco DuckDB exclusivo
 (`var/e2e/central_preventiva.duckdb`, fora do controle de versão), sobe a API em
-`127.0.0.1:8000` e o frontend em `127.0.0.1:5173`, e derruba tudo ao final. **Deixe as duas
+`127.0.0.1:8000` e o frontend em `127.0.0.1:5151`, e derruba tudo ao final. **Deixe as duas
 portas livres antes de rodar**: a suíte recusa iniciar se já houver um servidor de
 desenvolvimento nelas, e o banco de desenvolvimento nunca é tocado.
 

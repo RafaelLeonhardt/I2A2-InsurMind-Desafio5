@@ -10,7 +10,7 @@ export const RAIZ_PROJETO = resolve(dirname(fileURLToPath(import.meta.url)), '..
 export const PORTA_BACKEND = 8000
 
 /** Porta do frontend real. Fixa em `src/frontend/vite.config.ts` (`strictPort`). */
-export const PORTA_FRONTEND = 5173
+export const PORTA_FRONTEND = 5151
 
 /** Endereço da API real. */
 export const ENDERECO_BACKEND = `http://127.0.0.1:${PORTA_BACKEND}`

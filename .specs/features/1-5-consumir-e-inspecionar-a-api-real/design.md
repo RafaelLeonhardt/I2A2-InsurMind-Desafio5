@@ -89,7 +89,7 @@ graph TD
 
 ### `testes/test_cors.py` (backend, new)
 
-- **Purpose**: asserts the app responds with `Access-Control-Allow-Origin: http://127.0.0.1:5173` when that `Origin` header is sent, and omits it (or FastAPI/Starlette rejects) for a different origin (e.g. `http://evil.example`).
+- **Purpose**: asserts the app responds with `Access-Control-Allow-Origin: http://127.0.0.1:5151` when that `Origin` header is sent, and omits it (or FastAPI/Starlette rejects) for a different origin (e.g. `http://evil.example`).
 - **Location**: `src/backend/testes/test_cors.py`
 - **Reuses**: `TestClient(criar_aplicacao(...))`, same helper pattern.
 

@@ -17,11 +17,11 @@ from central_preventiva.composicao.configuracao import (
 def test_aceita_configuracao_local() -> None:
     configuracao = Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
     )
 
     assert configuracao.host_api == "127.0.0.1"
-    assert configuracao.origem_frontend == "http://127.0.0.1:5173"
+    assert configuracao.origem_frontend == "http://127.0.0.1:5151"
 
 
 def test_recusa_configuracao_estrutural_ausente() -> None:
@@ -32,13 +32,13 @@ def test_recusa_configuracao_estrutural_ausente() -> None:
 @pytest.mark.parametrize(
     ("host", "origem"),
     [
-        ("0.0.0.0", "http://127.0.0.1:5173"),
-        ("127.0.0.1", "http://localhost:5173"),
-        ("127.0.0.1", "https://127.0.0.1:5173"),
-        ("127.0.0.1", "http://127.0.0.1:5173/caminho"),
+        ("0.0.0.0", "http://127.0.0.1:5151"),
+        ("127.0.0.1", "http://localhost:5151"),
+        ("127.0.0.1", "https://127.0.0.1:5151"),
+        ("127.0.0.1", "http://127.0.0.1:5151/caminho"),
         ("127.0.0.1", "http://127.0.0.1"),
         ("127.0.0.1", "http://127.0.0.1:9999"),
-        ("127.0.0.1", " http://127.0.0.1:5173"),
+        ("127.0.0.1", " http://127.0.0.1:5151"),
     ],
 )
 def test_recusa_configuracao_fora_do_loopback(host: str, origem: str) -> None:
@@ -56,7 +56,7 @@ def test_caminho_do_banco_padrao_fica_no_diretorio_local_ignorado_pelo_git(
 
     configuracao = Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         _env_file=None,
     )
 
@@ -66,7 +66,7 @@ def test_caminho_do_banco_padrao_fica_no_diretorio_local_ignorado_pelo_git(
 def test_aceita_caminho_do_banco_relativo_resolvido_na_raiz_do_projeto() -> None:
     configuracao = Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         caminho_banco=Path("var/demonstracao.duckdb"),
     )
 
@@ -78,7 +78,7 @@ def test_preserva_caminho_do_banco_absoluto(tmp_path: Path) -> None:
 
     configuracao = Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         caminho_banco=caminho,
     )
 
@@ -93,7 +93,7 @@ def test_recusa_caminho_do_banco_invalido(caminho: str) -> None:
     with pytest.raises(ValidationError):
         Configuracao(
             host_api="127.0.0.1",
-            origem_frontend="http://127.0.0.1:5173",
+            origem_frontend="http://127.0.0.1:5151",
             caminho_banco=Path(caminho),
         )
 
@@ -103,7 +103,7 @@ def test_erro_de_configuracao_nao_revela_o_caminho_do_banco(
 ) -> None:
     caminho_sensivel = "/caminho/interno/nao-exibir"
     monkeypatch.setenv("CENTRAL_PREVENTIVA_HOST_API", "127.0.0.1")
-    monkeypatch.setenv("CENTRAL_PREVENTIVA_ORIGEM_FRONTEND", "http://127.0.0.1:5173")
+    monkeypatch.setenv("CENTRAL_PREVENTIVA_ORIGEM_FRONTEND", "http://127.0.0.1:5151")
     monkeypatch.setenv("CENTRAL_PREVENTIVA_CAMINHO_BANCO", caminho_sensivel)
     obter_configuracao.cache_clear()
 
@@ -132,7 +132,7 @@ def test_erro_de_configuracao_nao_revela_valores(
 def test_aceita_chave_openai_ausente() -> None:
     configuracao = Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         _env_file=None,
     )
 
@@ -144,7 +144,7 @@ def test_chave_openai_nunca_aparece_no_repr_nem_no_str() -> None:
 
     configuracao = Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         chave_openai=chave_sintetica,
         _env_file=None,
     )
@@ -156,7 +156,7 @@ def test_chave_openai_nunca_aparece_no_repr_nem_no_str() -> None:
 def test_url_base_inmet_tem_padrao_vazio_quando_ausente() -> None:
     configuracao = Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         _env_file=None,
     )
 
@@ -166,7 +166,7 @@ def test_url_base_inmet_tem_padrao_vazio_quando_ausente() -> None:
 def test_url_base_inmet_aceita_valor_configurado() -> None:
     configuracao = Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         url_base_inmet="https://exemplo-inmet.invalido/api",
         _env_file=None,
     )
@@ -200,7 +200,7 @@ def test_parametros_da_producao_agentica_tem_padroes_documentados_e_validos() ->
 
     configuracao = Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         _env_file=None,
     )
 
@@ -213,7 +213,7 @@ def test_parametros_da_producao_agentica_tem_padroes_documentados_e_validos() ->
 def test_parametros_da_producao_agentica_aceitam_valores_configurados() -> None:
     configuracao = Configuracao(
         host_api="127.0.0.1",
-        origem_frontend="http://127.0.0.1:5173",
+        origem_frontend="http://127.0.0.1:5151",
         modelo_openai="gpt-4.1-mini",
         temperatura_openai=0.7,
         versao_prompt="v3",
@@ -255,7 +255,7 @@ def test_recusa_configuracao_estrutural_malformada_da_producao_agentica(
     with pytest.raises(ValidationError):
         Configuracao(
             host_api="127.0.0.1",
-            origem_frontend="http://127.0.0.1:5173",
+            origem_frontend="http://127.0.0.1:5151",
             _env_file=None,
             **{campo: valor},
         )
@@ -268,7 +268,7 @@ def test_erro_de_configuracao_agentica_nao_revela_o_valor_recebido(
 
     valor_sensivel = "modelo interno que nao pode aparecer"
     monkeypatch.setenv("CENTRAL_PREVENTIVA_HOST_API", "127.0.0.1")
-    monkeypatch.setenv("CENTRAL_PREVENTIVA_ORIGEM_FRONTEND", "http://127.0.0.1:5173")
+    monkeypatch.setenv("CENTRAL_PREVENTIVA_ORIGEM_FRONTEND", "http://127.0.0.1:5151")
     monkeypatch.setenv("CENTRAL_PREVENTIVA_MODELO_OPENAI", valor_sensivel)
     obter_configuracao.cache_clear()
 

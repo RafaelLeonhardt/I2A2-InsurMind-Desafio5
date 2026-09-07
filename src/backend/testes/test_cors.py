@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from central_preventiva.composicao.api import criar_aplicacao
 from central_preventiva.composicao.configuracao import Configuracao
 
-ORIGEM_CONFIGURADA = "http://127.0.0.1:5173"
+ORIGEM_CONFIGURADA = "http://127.0.0.1:5151"
 ORIGEM_NAO_CONFIGURADA = "http://evil.example"
 
 
