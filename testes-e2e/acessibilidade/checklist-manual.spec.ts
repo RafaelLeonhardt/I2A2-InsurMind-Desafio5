@@ -26,17 +26,12 @@
  * - Os desvios de token visual medidos estão na tabela do cabeçalho de
  *   `testes-e2e/responsividade/sistema-visual.spec.ts`; nenhum deles produz violação WCAG
  *   crítica ou séria.
- * - Refluxo da tabela de Prontidão (defeito aberto, o teste de zoom abaixo o reprova): a
- *   tabela de 6 colunas não cabe na coluna de conteúdo quando uma célula carrega o texto mais
- *   longo. Medido com o INMET indisponível: em 1024 px CSS (o piso declarado em `DESIGN.md`),
- *   `.tabela-prontidao` ocupa 922 px e o documento chega a `scrollWidth` 1060 contra
- *   `clientWidth` 1024, forçando rolagem horizontal na página inteira. Em 720 px o mesmo
- *   acontece já com o texto curto (877 px). Com todas as dependências disponíveis, o texto é
- *   curto o bastante e não há transbordo em 1440/1280/1024/900 px — por isso o defeito só
- *   aparece no estado de contingência. `EXPERIENCE.md` prevê "rolagem nomeada" para tabela
- *   operacional, ou seja, a rolagem deveria ficar dentro da própria região da tabela. A
- *   correção pertence à história da superfície de Prontidão, não a esta
- *   (ver "Out of Scope" em `spec.md`).
+ * - Refluxo da tabela de Prontidão sob o texto mais longo (INMET indisponível), no piso de
+ *   1024 px CSS declarado em `DESIGN.md`: a tabela de 6 colunas rolava horizontalmente a
+ *   página inteira em vez de rolar apenas dentro da própria região, contra a "rolagem nomeada"
+ *   que `EXPERIENCE.md` prevê para tabela operacional. Corrigido em `36523bf` (fix(api):
+ *   permitir PUT no CORS e conter a rolagem da tabela de prontidao); o teste de zoom abaixo
+ *   mede exatamente esse estado de maior densidade textual e passa.
  */
 
 import { expect, test, type Page } from '@playwright/test'

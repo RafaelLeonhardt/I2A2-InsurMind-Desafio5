@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 81,
+  "next_id": 84,
   "lessons": [
     {
       "id": "L-001",
@@ -1477,6 +1477,60 @@
       ],
       "created": "2026-09-07T00:07:07Z",
       "last_seen": "2026-09-07T00:07:07Z"
+    },
+    {
+      "id": "L-081",
+      "key": "ac_gap::when a task s done when cites a generated artifact as the place a deviation or checklist is recorded make the generator copy that content into the artifact leaving it only in the source file s header means the named evidence file does not carry what it promises",
+      "text": "When a task's Done-when cites a generated artifact as the place a deviation or checklist is recorded, make the generator copy that content into the artifact - leaving it only in the source file's header means the named evidence file does not carry what it promises.",
+      "signal": "ac_gap",
+      "scope": "evidencias",
+      "status": "candidate",
+      "features": [
+        "5-8-executar-e-comprovar-os-cenarios-ponta-a-ponta"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md Achado 2 / spec.md:116 Edge Case / tasks.md:319,340 / scripts/gerar_evidencias.py:124 (evidencias)"
+      ],
+      "created": "2026-09-07T13:16:17Z",
+      "last_seen": "2026-09-07T13:16:17Z"
+    },
+    {
+      "id": "L-082",
+      "key": "spec_deviation::when a fix lands for a defect that a test file s header documents as open update that header in the same commit a stale known open defect note in a verification artifact reports a problem that no longer exists",
+      "text": "When a fix lands for a defect that a test file's header documents as open, update that header in the same commit - a stale 'known open defect' note in a verification artifact reports a problem that no longer exists.",
+      "signal": "spec_deviation",
+      "scope": "testes-e2e",
+      "status": "candidate",
+      "features": [
+        "5-8-executar-e-comprovar-os-cenarios-ponta-a-ponta"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "testes-e2e/acessibilidade/checklist-manual.spec.ts:30-39 / fix commit 36523bf / validation.md Achado 1 (testes-e2e)"
+      ],
+      "created": "2026-09-07T13:16:25Z",
+      "last_seen": "2026-09-07T13:16:25Z"
+    },
+    {
+      "id": "L-083",
+      "key": "spec_precision_gap::when a measured value diverges from the design contract record the deviation and assert only the properties that do hold asserting the implemented value turns the defect into the contract",
+      "text": "When a measured value diverges from the design contract, record the deviation and assert only the properties that do hold - asserting the implemented value turns the defect into the contract.",
+      "signal": "spec_precision_gap",
+      "scope": "design-tokens",
+      "status": "candidate",
+      "features": [
+        "5-8-executar-e-comprovar-os-cenarios-ponta-a-ponta"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md E2E-11 / testes-e2e/responsividade/sistema-visual.spec.ts:22-32 (design-tokens)"
+      ],
+      "created": "2026-09-07T13:16:25Z",
+      "last_seen": "2026-09-07T13:16:25Z"
     }
   ]
 }

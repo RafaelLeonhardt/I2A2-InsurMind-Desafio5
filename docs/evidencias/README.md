@@ -1,6 +1,6 @@
 # Evidências da suíte completa — História 5.8
 
-Gerado em 2026-09-07 12:57:23 UTC por `python3 scripts/gerar_evidencias.py`.
+Gerado em 2026-09-07 13:22:56 UTC por `python3 scripts/gerar_evidencias.py`.
 
 ## Suítes de unidade e integração
 
@@ -14,25 +14,25 @@ Resumo da última linha de cada suíte:
 
 ```
 [backend]
-........................................................................ [ 85%]
-........................................................................ [ 92%]
 ........................................................................ [ 98%]
 ...............                                                          [100%]
-1095 passed in 129.64s (0:02:09)
+1095 passed in 121.86s (0:02:01)
+Uninstalled 1 package in 1ms
+Installed 1 package in 4ms
 
 [frontend]
  RUN  v4.1.11 /Users/rafael/Documents/git/I2A2/insur-minds/Desafio5/src/frontend
  Test Files  46 passed (46)
       Tests  444 passed (444)
-   Start at  09:55:01
-   Duration  18.89s (transform 2.79s, setup 8.05s, import 58.30s, tests 20.20s, environment 36.71s)
+   Start at  10:20:36
+   Duration  16.25s (transform 2.44s, setup 6.24s, import 52.26s, tests 17.09s, environment 30.00s)
 
 [e2e]
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 INFO:     Shutting down
 INFO:     Waiting for application shutdown.
 INFO:     Application shutdown complete.
-INFO:     Finished server process [10016]
+INFO:     Finished server process [22137]
 ```
 
 ## Cenários ponta a ponta
@@ -47,7 +47,7 @@ INFO:     Finished server process [10016]
 | [Cenário E2E-02 — granizo automóvel, da entrada sintética rotulada ao comunicado.](cenarios-granizo.md) | E2E-02 | ✅ passou |
 | [Cenário E2E-06 — produção agêntica alcançada com a OpenAI indisponível ou mal configurada.](cenarios-indisponibilidade-openai.md) | E2E-06 | ✅ passou |
 | [Cenário E2E-04 — regeneração automática e esgotamento das três tentativas.](cenarios-regeneracao.md) | E2E-04 | ✅ passou |
-| [Cenário E2E-07 — retentativa correlacionada a partir de uma falha terminal, sem duplicação.](cenarios-retentativa.md) | E2E-06, E2E-07 | ✅ passou |
+| [Cenário E2E-07 — retentativa correlacionada a partir de uma falha terminal, sem duplicação.](cenarios-retentativa.md) | E2E-07 | ✅ passou |
 | [Cenário E2E-03 (metade "sem público elegível") — evento relevante, ninguém elegível.](cenarios-sem-elegivel.md) | E2E-03 | ✅ passou |
 | [Cenário E2E-03 (metade "sem risco") — evento que não atinge nenhuma regra.](cenarios-sem-risco.md) | E2E-03 | ✅ passou |
 | [E2E-11 e E2E-12 — tokens do sistema visual e ausência de controle inerte ou dado fixo.](responsividade-sistema-visual.md) | E2E-11, E2E-12 | ✅ passou |

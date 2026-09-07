@@ -492,6 +492,24 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: tasks.md T5 SPEC_DEVIATION / design.md 'Implementado como' / src/frontend/src/funcionalidades/segurado/PainelSegurado.tsx:9-26 (frontend-integration)
 - last seen: 2026-09-07T00:07:07Z
 
+### L-081 - When a task's Done-when cites a generated artifact as the place a deviation or checklist is recorded, make the generator copy that content into the artifact - leaving it only in the source file's header means the named evidence file does not carry what it promises.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `evidencias` · harmful: 0
+- features: 5-8-executar-e-comprovar-os-cenarios-ponta-a-ponta
+- evidence: validation.md Achado 2 / spec.md:116 Edge Case / tasks.md:319,340 / scripts/gerar_evidencias.py:124 (evidencias)
+- last seen: 2026-09-07T13:16:17Z
+
+### L-082 - When a fix lands for a defect that a test file's header documents as open, update that header in the same commit - a stale 'known open defect' note in a verification artifact reports a problem that no longer exists.
+- signal: `spec_deviation` · recurrence: 1 feature(s) · scope: `testes-e2e` · harmful: 0
+- features: 5-8-executar-e-comprovar-os-cenarios-ponta-a-ponta
+- evidence: testes-e2e/acessibilidade/checklist-manual.spec.ts:30-39 / fix commit 36523bf / validation.md Achado 1 (testes-e2e)
+- last seen: 2026-09-07T13:16:25Z
+
+### L-083 - When a measured value diverges from the design contract, record the deviation and assert only the properties that do hold - asserting the implemented value turns the defect into the contract.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `design-tokens` · harmful: 0
+- features: 5-8-executar-e-comprovar-os-cenarios-ponta-a-ponta
+- evidence: validation.md E2E-11 / testes-e2e/responsividade/sistema-visual.spec.ts:22-32 (design-tokens)
+- last seen: 2026-09-07T13:16:25Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

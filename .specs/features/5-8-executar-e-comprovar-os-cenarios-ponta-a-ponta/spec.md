@@ -121,19 +121,19 @@ Depois que os Épicos 1–4 e as Histórias 5.1–5.7 estiverem implementados, n
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| E2E-01 | P1: Cenários completos e encerramentos determinísticos comprovados | Design | Implementing |
-| E2E-02 | P1: Cenários completos e encerramentos determinísticos comprovados | Design | Implementing |
-| E2E-03 | P1: Cenários completos e encerramentos determinísticos comprovados | Design | Implementing |
-| E2E-04 | P1: Resiliência agêntica e de integração comprovada | Design | Implementing |
-| E2E-05 | P1: Resiliência agêntica e de integração comprovada | Design | Implementing |
-| E2E-06 | P1: Resiliência agêntica e de integração comprovada | Design | Implementing |
-| E2E-07 | P1: Resiliência agêntica e de integração comprovada | Design | Implementing |
-| E2E-08 | P1: Evidências localizáveis, contrato de API fiel e suíte completa | Design | Implementing |
-| E2E-09 | P1: Evidências localizáveis, contrato de API fiel e suíte completa | Design | Implementing |
-| E2E-10 | P2: Fidelidade visual, componentes contratados e acessibilidade WCAG 2.2 AA | Design | Implementing |
-| E2E-11 | P2: Fidelidade visual, componentes contratados e acessibilidade WCAG 2.2 AA | Design | Implementing |
-| E2E-12 | P2: Fidelidade visual, componentes contratados e acessibilidade WCAG 2.2 AA | Design | Implementing |
-| E2E-13 | P2: Fidelidade visual, componentes contratados e acessibilidade WCAG 2.2 AA | Design | Implementing |
+| E2E-01 | P1: Cenários completos e encerramentos determinísticos comprovados | Design | Verified |
+| E2E-02 | P1: Cenários completos e encerramentos determinísticos comprovados | Design | Verified |
+| E2E-03 | P1: Cenários completos e encerramentos determinísticos comprovados | Design | Verified |
+| E2E-04 | P1: Resiliência agêntica e de integração comprovada | Design | Verified |
+| E2E-05 | P1: Resiliência agêntica e de integração comprovada | Design | Verified |
+| E2E-06 | P1: Resiliência agêntica e de integração comprovada | Design | Verified |
+| E2E-07 | P1: Resiliência agêntica e de integração comprovada | Design | Verified |
+| E2E-08 | P1: Evidências localizáveis, contrato de API fiel e suíte completa | Design | Verified |
+| E2E-09 | P1: Evidências localizáveis, contrato de API fiel e suíte completa | Design | Verified |
+| E2E-10 | P2: Fidelidade visual, componentes contratados e acessibilidade WCAG 2.2 AA | Design | Verified |
+| E2E-11 | P2: Fidelidade visual, componentes contratados e acessibilidade WCAG 2.2 AA | Design | Verified com desvio documentado (9 tokens divergentes de `DESIGN.md`, registrados e não silenciados; correção fora do escopo desta história) |
+| E2E-12 | P2: Fidelidade visual, componentes contratados e acessibilidade WCAG 2.2 AA | Design | Verified |
+| E2E-13 | P2: Fidelidade visual, componentes contratados e acessibilidade WCAG 2.2 AA | Design | Verified |
 
 **ID format:** `E2E-NN`
 

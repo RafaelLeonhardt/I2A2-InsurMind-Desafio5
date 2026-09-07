@@ -53,6 +53,7 @@ class RelatorioCenario:
     arquivo_relativo: str
     titulo: str
     requisitos: list[str]
+    contexto: str
     casos: list[CasoDeTeste] = field(default_factory=list)
 
     @property
@@ -112,18 +113,27 @@ def rodar_e2e() -> ResultadoComando:
     )
 
 
-def extrair_cabecalho(caminho: Path) -> tuple[str, list[str]]:
-    """Lê o comentário `/** ... */` no topo do arquivo e devolve (título, requisitos)."""
+def extrair_cabecalho(caminho: Path) -> tuple[str, list[str], str]:
+    """Lê o comentário `/** ... */` no topo do arquivo e devolve (título, requisitos, contexto).
+
+    `requisitos` só considera a linha de título (ex.: "Cenário E2E-01 — ..."), nunca o corpo
+    inteiro do comentário — o corpo costuma citar outros E2E-NN só para contexto (ex.:
+    "mesmo caminho de E2E-06"), e isso não é um requisito que o arquivo comprove.
+    """
     texto = caminho.read_text(encoding="utf-8")
     correspondencia = re.search(r"/\*\*(.*?)\*/", texto, re.S)
     if not correspondencia:
-        return caminho.stem, []
+        return caminho.stem, [], ""
     corpo = correspondencia.group(1)
     linhas = [linha.strip().lstrip("*").strip() for linha in corpo.splitlines()]
-    linhas = [linha for linha in linhas if linha]
-    titulo = linhas[0] if linhas else caminho.stem
-    requisitos = sorted(set(PADRAO_CABECALHO_REQUISITO.findall(corpo)))
-    return titulo, requisitos
+    indices_com_conteudo = [indice for indice, linha in enumerate(linhas) if linha]
+    if not indices_com_conteudo:
+        return caminho.stem, [], ""
+    indice_titulo = indices_com_conteudo[0]
+    titulo = linhas[indice_titulo]
+    requisitos = sorted(set(PADRAO_CABECALHO_REQUISITO.findall(titulo)))
+    contexto = "\n".join(linhas[indice_titulo + 1 :]).strip("\n")
+    return titulo, requisitos, contexto
 
 
 def coletar_casos(suite: dict, casos_por_arquivo: dict[str, list[CasoDeTeste]]) -> None:
@@ -151,12 +161,13 @@ def montar_relatorios_e2e() -> list[RelatorioCenario]:
     relatorios = []
     for caminho in arquivos_spec:
         relativo = str(caminho.relative_to(E2E))
-        titulo, requisitos = extrair_cabecalho(caminho)
+        titulo, requisitos, contexto = extrair_cabecalho(caminho)
         relatorios.append(
             RelatorioCenario(
                 arquivo_relativo=relativo,
                 titulo=titulo,
                 requisitos=requisitos,
+                contexto=contexto,
                 casos=casos_por_arquivo.get(relativo, []),
             )
         )
@@ -186,6 +197,17 @@ def escrever_relatorio_cenario(relatorio: RelatorioCenario) -> Path:
         resultado = "✅ passou" if caso.passou else "❌ falhou"
         linhas.append(f"| {caso.titulo} | `testes-e2e/{caso.arquivo}:{caso.linha}` | {resultado} |")
     linhas.append("")
+
+    if relatorio.contexto:
+        linhas.append("## Contexto do cenário")
+        linhas.append("")
+        linhas.append(
+            "Cópia do comentário de cabeçalho do arquivo de teste — inclui desvios conhecidos, "
+            "tabelas de rastreabilidade e o que a IA não pode inventar sem editar o teste."
+        )
+        linhas.append("")
+        linhas.append(relatorio.contexto)
+        linhas.append("")
 
     destino = EVIDENCIAS / f"{slug(relatorio.arquivo_relativo)}.md"
     destino.write_text("\n".join(linhas), encoding="utf-8")
