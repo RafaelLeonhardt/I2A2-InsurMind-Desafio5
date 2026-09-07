@@ -24,7 +24,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 | `gerar_relatorio_tecnico.py` | integration | PDF gerado contém as seções do AC; falha explícita se evidência ausente | `testes/test_gerar_relatorio_tecnico.py` | `uv run --directory . pytest testes/test_gerar_relatorio_tecnico.py` |
 | `empacotar_entrega.py` | integration | ZIP não contém nenhum padrão da lista de exclusão | `testes/test_empacotar_entrega.py` | `uv run --directory . pytest testes/test_empacotar_entrega.py` |
 | `gerar_inventario.py` | integration | Checksums batem com o conteúdo real dos arquivos | `testes/test_gerar_inventario.py` | `uv run --directory . pytest testes/test_gerar_inventario.py` |
-| Validação de checkout limpo + ZIP | integration | Instalação/execução só com comandos do README, sem etapa oculta | roteiro manual documentado em `docs/entrega/validacao-checkout.md` | comandos do `README.md`, executados em diretório limpo |
+| Validação de checkout limpo + ZIP | integration | Instalação/execução só com comandos do README, sem etapa oculta | roteiro manual documentado em `docs/evidencias/validacao-checkout-entrega.md` | comandos do `README.md`, executados em diretório limpo |
 
 ## Gate Check Commands
 

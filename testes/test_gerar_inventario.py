@@ -1,6 +1,6 @@
 """Testes de integração de `scripts/gerar_inventario.py` (História 5.9, T3).
 
-Cobre a AC "inventário verificável" de `spec.md` (ENTREGA-03): checksums batem
+Cobre a AC "inventário verificável" de `spec.md` (ENTREGA-05): checksums batem
 com o conteúdo real de cada artefato, e um arquivo alterado diverge do valor
 registrado até o inventário rodar de novo.
 """

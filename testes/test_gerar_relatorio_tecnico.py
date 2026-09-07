@@ -83,6 +83,20 @@ def test_secao_arquitetura_contem_titulo_de_adr_real(relatorio_pdf: str) -> None
     assert "Uso de DuckDB como banco de dados" in relatorio_pdf
 
 
+def test_secao_arquitetura_contem_prosa_real_do_readme_e_do_design(relatorio_pdf: str) -> None:
+    # Fecha o spec-precision gap do Verifier (M10, rodada 2): a seção não pode
+    # se sustentar só nas linhas de ADR — a prosa introdutória do README.md e
+    # do docs/design/README.md também precisa chegar ao corpo do relatório.
+    marcador_readme = "transformar a comunicação entre seguradoras e segurados"
+    marcador_design = "prova de conceito para comunicação proativa com segurados"
+    texto_readme = _ler_bruto(modulo.README_MD)
+    texto_design = _ler_bruto(modulo.DESIGN_README)
+    assert marcador_readme in texto_readme  # sanidade da fonte
+    assert marcador_design in texto_design  # sanidade da fonte
+    assert marcador_readme in relatorio_pdf
+    assert marcador_design in relatorio_pdf
+
+
 def test_secao_agentes_contem_titulo_real_do_adr_0012(relatorio_pdf: str) -> None:
     adr_0012 = modulo.DOCS / "adr" / "0012-adocao-de-langchain-e-langgraph-para-agentes.md"
     titulo = _ler_bruto(adr_0012).splitlines()[0].lstrip("# ").strip()

@@ -96,11 +96,11 @@ A História 5.8 produz evidências estruturadas e exemplos sanitizados de toda a
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| ENTREGA-01 | P1: Relatório técnico verificável e ZIP sanitizado | Design | Implementing |
-| ENTREGA-02 | P1: Relatório técnico verificável e ZIP sanitizado | Design | Implementing |
-| ENTREGA-03 | P1: Repositório reproduzível e inventário verificável | Design | Implementing |
-| ENTREGA-04 | P1: Repositório reproduzível e inventário verificável | Design | Implementing |
-| ENTREGA-05 | P1: Repositório reproduzível e inventário verificável | Design | Implementing |
+| ENTREGA-01 | P1: Relatório técnico verificável e ZIP sanitizado | Design | Verified |
+| ENTREGA-02 | P1: Relatório técnico verificável e ZIP sanitizado | Design | Verified |
+| ENTREGA-03 | P1: Repositório reproduzível e inventário verificável | Design | Verified |
+| ENTREGA-04 | P1: Repositório reproduzível e inventário verificável | Design | Verified |
+| ENTREGA-05 | P1: Repositório reproduzível e inventário verificável | Design | Verified |
 | ENTREGA-06 | P2: Publicação só com autorização explícita, com falha preservando integridade local | Design | Pending |
 | ENTREGA-07 | P2: Publicação só com autorização explícita, com falha preservando integridade local | Design | Pending |
 

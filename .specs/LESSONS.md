@@ -552,6 +552,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: ENTREGA-02 - spec.md:52 (scripts)
 - last seen: 2026-09-07T14:09:28Z
 
+### L-091 - Quando uma secao e montada a partir de varias fontes, afirme um marcador de cada fonte; um corpo nao vazio prova apenas que uma delas contribuiu.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `scripts` · harmful: 0
+- features: 5-9-preparar-e-empacotar-a-entrega-final
+- evidence: validation.md M10 - scripts/gerar_relatorio_tecnico.py:86 (scripts)
+- last seen: 2026-09-07T14:26:39Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

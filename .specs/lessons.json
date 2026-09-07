@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 91,
+  "next_id": 92,
   "lessons": [
     {
       "id": "L-001",
@@ -1657,6 +1657,24 @@
       ],
       "created": "2026-09-07T14:09:28Z",
       "last_seen": "2026-09-07T14:09:28Z"
+    },
+    {
+      "id": "L-091",
+      "key": "spec_precision_gap::quando uma secao e montada a partir de varias fontes afirme um marcador de cada fonte um corpo nao vazio prova apenas que uma delas contribuiu",
+      "text": "Quando uma secao e montada a partir de varias fontes, afirme um marcador de cada fonte; um corpo nao vazio prova apenas que uma delas contribuiu.",
+      "signal": "spec_precision_gap",
+      "scope": "scripts",
+      "status": "candidate",
+      "features": [
+        "5-9-preparar-e-empacotar-a-entrega-final"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md M10 - scripts/gerar_relatorio_tecnico.py:86 (scripts)"
+      ],
+      "created": "2026-09-07T14:26:39Z",
+      "last_seen": "2026-09-07T14:26:39Z"
     }
   ]
 }
