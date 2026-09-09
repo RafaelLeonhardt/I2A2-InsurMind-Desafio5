@@ -79,19 +79,19 @@ O protótipo navegável (`docs/design/prototype`, tela `AdminHome`/imagem `01-mo
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| ADMNAV-01 | P1: Painel do administrador com navegação própria | T4/T5 | In Tasks (T4/T5 done) |
-| ADMNAV-02 | P1: Painel do administrador com navegação própria | T6 | In Tasks (T6 done) |
-| ADMNAV-03 | P1: Painel do administrador com navegação própria | T4 | In Tasks (T4 done) |
-| ADMNAV-04 | P1: Lista de eventos climáticos identificados | T1/T2/T7/T8 | In Tasks (T1–T3/T7 done) |
-| ADMNAV-05 | P1: Lista de eventos climáticos identificados | T6/T8 | In Tasks (backend e nav prontos — T1–T3/T6) |
-| ADMNAV-06 | P1: Lista de eventos climáticos identificados | - | Pending |
-| ADMNAV-07 | P1: Lista de eventos climáticos identificados | - | Pending |
+| ADMNAV-01 | P1: Painel do administrador com navegação própria | T4/T5 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
+| ADMNAV-02 | P1: Painel do administrador com navegação própria | T6 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
+| ADMNAV-03 | P1: Painel do administrador com navegação própria | T4 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
+| ADMNAV-04 | P1: Lista de eventos climáticos identificados | T1/T2/T7/T8 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
+| ADMNAV-05 | P1: Lista de eventos climáticos identificados | T6/T8 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
+| ADMNAV-06 | P1: Lista de eventos climáticos identificados | T8 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
+| ADMNAV-07 | P1: Lista de eventos climáticos identificados | T8 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
 
 **ID format:** `ADMNAV-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 7 total, 0 mapped to tasks, 7 unmapped ⚠️ — fase Specify apenas; Design/Tasks pendentes.
+**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped — todas as tasks (T1–T8) implementadas e com gate verde; validação final pendente do Verifier (`.specs/features/6-1-.../validation.md`).
 
 ---
 

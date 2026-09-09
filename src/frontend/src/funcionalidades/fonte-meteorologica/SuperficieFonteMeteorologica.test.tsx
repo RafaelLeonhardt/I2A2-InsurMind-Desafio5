@@ -39,6 +39,8 @@ function evento(sobrescritas: Partial<EventoMeteorologico> = {}): EventoMeteorol
     intensidade: 55.4,
     proveniencia: 'real_inmet',
     instanteObservado: '2026-08-30T18:00:00+00:00',
+    execucaoId: null,
+    execucaoEstado: null,
     ...sobrescritas,
   }
 }

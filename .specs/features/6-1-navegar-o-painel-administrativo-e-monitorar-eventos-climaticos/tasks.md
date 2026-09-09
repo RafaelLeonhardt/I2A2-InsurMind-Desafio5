@@ -230,7 +230,7 @@ T7 → T8
 
 ---
 
-### T8: Criar `SuperficieEventos` (lista de eventos climáticos)
+### T8: Criar `SuperficieEventos` (lista de eventos climáticos) ✅ Concluída
 
 **What**: Novo componente que chama `getEventos()` (T7), exibe cada evento (tipo, área, severidade derivada da intensidade, `execucaoEstado` ou "Sem execução iniciada"), com estados `carregando`/`disponivel`/`vazio`/`erro`, e uma ação por linha com execução associada que chama `selecionarSuperficie({ tipo: 'evento-execucao', execucaoId, perfilPai: 'administrador' })`. Substitui o placeholder do `case 'eventos'` em `App.tsx` (deixado por T6) pelo componente real, agora que ele existe.
 **Where**: `src/frontend/src/funcionalidades/eventos/SuperficieEventos.tsx` (pasta nova), `src/frontend/src/App.tsx` (troca o placeholder de `'eventos'`)

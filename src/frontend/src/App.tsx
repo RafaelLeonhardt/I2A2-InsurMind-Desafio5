@@ -7,6 +7,7 @@ import { NavegacaoLateral } from './componentes/NavegacaoLateral'
 import { PerfilProvider, SUPERFICIES_TOPO_POR_PERFIL, usePerfilContexto } from './contexto/PerfilContexto'
 import { RestaurarDemonstracao } from './funcionalidades/dados-sinteticos/RestaurarDemonstracao'
 import { SuperficieDocumentacaoApi } from './funcionalidades/documentacao-api/SuperficieDocumentacaoApi'
+import { SuperficieEventos } from './funcionalidades/eventos/SuperficieEventos'
 import { SuperficieExecucao } from './funcionalidades/execucao/SuperficieExecucao'
 import { SuperficieProntidao } from './funcionalidades/prontidao/SuperficieProntidao'
 import { PainelSegurado } from './funcionalidades/segurado/PainelSegurado'
@@ -53,7 +54,7 @@ export function SuperficieAtiva() {
     case 'evento-execucao':
       return <SuperficieExecucao execucaoId={superficieAtiva.execucaoId} />
     case 'eventos':
-      return <EmConstrucao titulo="Eventos climáticos" />
+      return <SuperficieEventos />
     case 'regras':
       return <EmConstrucao titulo="Regras de negócio" />
     case 'segurados':
