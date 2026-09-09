@@ -80,7 +80,7 @@ O protótipo navegável (`docs/design/prototype`, tela `AdminHome`/imagem `01-mo
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
 | ADMNAV-01 | P1: Painel do administrador com navegação própria | T4/T5 | In Tasks (T4/T5 done) |
-| ADMNAV-02 | P1: Painel do administrador com navegação própria | T6 | In Tasks |
+| ADMNAV-02 | P1: Painel do administrador com navegação própria | T6 | In Tasks (T6 done) |
 | ADMNAV-03 | P1: Painel do administrador com navegação própria | T4 | In Tasks (T4 done) |
 | ADMNAV-04 | P1: Lista de eventos climáticos identificados | T1/T2/T7/T8 | In Tasks (T1–T3 done) |
 | ADMNAV-05 | P1: Lista de eventos climáticos identificados | T6/T8 | In Tasks (backend pronto — T1–T3) |

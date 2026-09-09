@@ -183,24 +183,24 @@ T7 → T8
 
 ---
 
-### T6: Montar as novas superfícies no `App.tsx`
+### T6: Montar as novas superfícies no `App.tsx` ✅ Concluída
 
-**What**: `SuperficieAtiva()` ganha os `case`s `'eventos'` (monta `SuperficieEventos`, T7/T8) e `'evento-execucao'` (monta `SuperficieExecucao` já existente, passando `execucaoId` do payload); os `case`s `'regras'`, `'segurados'`, `'comunicacoes'`, `'fontes-de-dados'` recebem um placeholder mínimo ("Em construção — ver Histórias 6.3–6.7") até suas próprias histórias os implementarem, para que a navegação de T5 nunca leve a uma tela quebrada.
+**What**: `SuperficieAtiva()` ganha o `case` `'evento-execucao'` (monta `SuperficieExecucao` já existente, passando `execucaoId` do payload); os `case`s `'eventos'`, `'regras'`, `'segurados'`, `'comunicacoes'`, `'fontes-de-dados'` recebem um placeholder mínimo ("Em construção — ver Histórias 6.2–6.7") até suas próprias tasks/histórias os implementarem, para que a navegação de T5 nunca leve a uma tela quebrada. `'eventos'` troca do placeholder para `SuperficieEventos` real em T8, quando o componente passa a existir — não aqui, para não criar uma dependência circular (T6 não pode importar um componente que só nasce em T8).
 **Where**: `src/frontend/src/App.tsx`
 **Depends on**: T4, T5
 **Reuses**: `SuperficieExecucao` (`funcionalidades/execucao/SuperficieExecucao.tsx`) sem nenhuma alteração nele
-**Requirement**: ADMNAV-02, ADMNAV-05
+**Requirement**: ADMNAV-02
 
 **Tools**:
 - MCP: NONE
 - Skill: NONE
 
 **Done when**:
-- [ ] Selecionar "Eventos climáticos" troca a superfície ativa sem erro
+- [ ] Selecionar qualquer um dos 5 itens de negócio troca a superfície ativa sem erro
 - [ ] Uma superfície `{ tipo: 'evento-execucao', execucaoId }` monta `SuperficieExecucao` com o `execucaoId` correto
-- [ ] Os 4 itens ainda não implementados mostram o placeholder, nunca uma tela em branco ou erro
+- [ ] Os 5 itens ainda não implementados (`eventos` incluído, por ora) mostram o placeholder, nunca uma tela em branco ou erro
 - [ ] Gate check passa: `npm run test --prefix src/frontend -- run App.test`
-- [ ] Contagem de testes aumenta em pelo menos 2 (troca para 'eventos'; montagem de 'evento-execucao' com o id correto)
+- [ ] Contagem de testes aumenta em pelo menos 2 (placeholder para 'eventos'; montagem de 'evento-execucao' com o id correto)
 
 **Tests**: unit
 **Gate**: quick
@@ -232,8 +232,8 @@ T7 → T8
 
 ### T8: Criar `SuperficieEventos` (lista de eventos climáticos)
 
-**What**: Novo componente que chama `getEventos()` (T7), exibe cada evento (tipo, área, severidade derivada da intensidade, `execucaoEstado` ou "Sem execução iniciada"), com estados `carregando`/`disponivel`/`vazio`/`erro`, e uma ação por linha com execução associada que chama `selecionarSuperficie({ tipo: 'evento-execucao', execucaoId, perfilPai: 'administrador' })`.
-**Where**: `src/frontend/src/funcionalidades/eventos/SuperficieEventos.tsx` (pasta nova)
+**What**: Novo componente que chama `getEventos()` (T7), exibe cada evento (tipo, área, severidade derivada da intensidade, `execucaoEstado` ou "Sem execução iniciada"), com estados `carregando`/`disponivel`/`vazio`/`erro`, e uma ação por linha com execução associada que chama `selecionarSuperficie({ tipo: 'evento-execucao', execucaoId, perfilPai: 'administrador' })`. Substitui o placeholder do `case 'eventos'` em `App.tsx` (deixado por T6) pelo componente real, agora que ele existe.
+**Where**: `src/frontend/src/funcionalidades/eventos/SuperficieEventos.tsx` (pasta nova), `src/frontend/src/App.tsx` (troca o placeholder de `'eventos'`)
 **Depends on**: T6, T7
 **Reuses**: Padrão de estados nomeados já usado em `SuperficieFonteMeteorologica`/`SuperficieApolice`; `usePerfilContexto` (T4)
 **Requirement**: ADMNAV-04, ADMNAV-05, ADMNAV-06, ADMNAV-07

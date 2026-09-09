@@ -4,11 +4,22 @@ import { BarraContexto } from './componentes/BarraContexto'
 import { ContextoInconsistente } from './componentes/ContextoInconsistente'
 import { FaixaDemonstracao } from './componentes/FaixaDemonstracao'
 import { NavegacaoLateral } from './componentes/NavegacaoLateral'
-import { PerfilProvider, SUPERFICIES_POR_PERFIL, usePerfilContexto } from './contexto/PerfilContexto'
+import { PerfilProvider, SUPERFICIES_TOPO_POR_PERFIL, usePerfilContexto } from './contexto/PerfilContexto'
 import { RestaurarDemonstracao } from './funcionalidades/dados-sinteticos/RestaurarDemonstracao'
 import { SuperficieDocumentacaoApi } from './funcionalidades/documentacao-api/SuperficieDocumentacaoApi'
+import { SuperficieExecucao } from './funcionalidades/execucao/SuperficieExecucao'
 import { SuperficieProntidao } from './funcionalidades/prontidao/SuperficieProntidao'
 import { PainelSegurado } from './funcionalidades/segurado/PainelSegurado'
+
+/** Placeholder das superfícies de negócio do admin ainda não implementadas (Histórias 6.2–6.7). */
+function EmConstrucao({ titulo }: { titulo: string }) {
+  return (
+    <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
+      <h1>{titulo}</h1>
+      <p>Em construção — ver Histórias 6.2–6.7.</p>
+    </main>
+  )
+}
 
 function focarConteudoPrincipal(evento: MouseEvent<HTMLAnchorElement>) {
   evento.preventDefault()
@@ -25,12 +36,12 @@ export function SuperficieAtiva() {
     return (
       <ContextoInconsistente
         perfil={perfil}
-        aoVoltar={() => selecionarSuperficie(SUPERFICIES_POR_PERFIL[perfil][0])}
+        aoVoltar={() => selecionarSuperficie(SUPERFICIES_TOPO_POR_PERFIL[perfil][0])}
       />
     )
   }
 
-  switch (superficieAtiva) {
+  switch (superficieAtiva.tipo) {
     case 'prontidao':
       return <SuperficieProntidao />
     case 'restaurar-dados-sinteticos':
@@ -39,6 +50,18 @@ export function SuperficieAtiva() {
       return <SuperficieDocumentacaoApi />
     case 'visao-geral':
       return <PainelSegurado />
+    case 'evento-execucao':
+      return <SuperficieExecucao execucaoId={superficieAtiva.execucaoId} />
+    case 'eventos':
+      return <EmConstrucao titulo="Eventos climáticos" />
+    case 'regras':
+      return <EmConstrucao titulo="Regras de negócio" />
+    case 'segurados':
+      return <EmConstrucao titulo="Segurados" />
+    case 'comunicacoes':
+      return <EmConstrucao titulo="Comunicações" />
+    case 'fontes-de-dados':
+      return <EmConstrucao titulo="Fontes de dados" />
   }
 }
 

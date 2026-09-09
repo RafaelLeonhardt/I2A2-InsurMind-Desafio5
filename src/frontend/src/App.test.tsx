@@ -15,6 +15,7 @@ const {
   getApoliceMock,
   getListaComunicadosMock,
   getPreferenciasMock,
+  getExecucaoMock,
 } = vi.hoisted(() => ({
   getSeguradoPadraoMock: vi.fn(),
   restaurarDadosSinteticosMock: vi.fn(),
@@ -25,6 +26,7 @@ const {
   getApoliceMock: vi.fn(),
   getListaComunicadosMock: vi.fn(),
   getPreferenciasMock: vi.fn(),
+  getExecucaoMock: vi.fn(),
 }))
 
 vi.mock('./api/contexto', async () => {
@@ -89,6 +91,11 @@ vi.mock('./api/preferenciasSegurado', async () => {
   return { ...real, getPreferencias: getPreferenciasMock }
 })
 
+vi.mock('./api/execucao', async () => {
+  const real = await vi.importActual<typeof import('./api/execucao')>('./api/execucao')
+  return { ...real, getExecucao: getExecucaoMock }
+})
+
 function definirLargura(largura: number) {
   Object.defineProperty(window, 'innerWidth', { configurable: true, value: largura })
 }
@@ -138,6 +145,15 @@ beforeEach(() => {
     canalPreferido: 'whatsapp',
     participaDeAlertas: true,
     versao: 1,
+  })
+  getExecucaoMock.mockResolvedValue({
+    id: '33333333-3333-4333-8333-333333333333',
+    estado: 'concluida',
+    marcos: [],
+    publicoElegivelTotal: 0,
+    publicoElegivelPrevia: [],
+    execucaoOrigemId: null,
+    retentativas: [],
   })
   window.localStorage.clear()
 })
@@ -301,7 +317,7 @@ describe('shell do contexto demonstrativo', () => {
     function ForcarSuperficieInvalida() {
       const { selecionarSuperficie } = usePerfilContexto()
       useEffect(() => {
-        selecionarSuperficie('visao-geral')
+        selecionarSuperficie({ tipo: 'visao-geral' })
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [])
       return null
@@ -376,5 +392,44 @@ describe('shell do contexto demonstrativo', () => {
         screen.getByText('Visualizando como Segurado').closest('[aria-live="polite"]'),
       ).not.toBeNull()
     })
+  })
+
+  it('navega para "Regras de negócio" e mostra o placeholder "Em construção"', async () => {
+    definirLargura(1440)
+    const usuario = userEvent.setup()
+    render(<App />)
+
+    await usuario.click(screen.getByRole('button', { name: 'Regras de negócio' }))
+
+    expect(await screen.findByRole('heading', { name: 'Regras de negócio' })).toBeInTheDocument()
+    expect(screen.getByText(/Em construção/)).toBeInTheDocument()
+  })
+
+  it('uma superfície { tipo: "evento-execucao" } monta SuperficieExecucao com o execucaoId correto', async () => {
+    function ForcarSuperficieDeExecucao() {
+      const { selecionarSuperficie } = usePerfilContexto()
+      useEffect(() => {
+        selecionarSuperficie({
+          tipo: 'evento-execucao',
+          execucaoId: '33333333-3333-4333-8333-333333333333',
+          perfilPai: 'administrador',
+        })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [])
+      return null
+    }
+
+    definirLargura(1440)
+    render(
+      <PerfilProvider>
+        <ForcarSuperficieDeExecucao />
+        <SuperficieAtiva />
+      </PerfilProvider>,
+    )
+
+    expect(
+      await screen.findByRole('heading', { name: 'Acompanhamento da execução' }),
+    ).toBeInTheDocument()
+    expect(getExecucaoMock).toHaveBeenCalledWith('33333333-3333-4333-8333-333333333333')
   })
 })
