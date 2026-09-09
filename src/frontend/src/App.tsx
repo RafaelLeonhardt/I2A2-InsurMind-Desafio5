@@ -13,6 +13,7 @@ import { SuperficieFonteMeteorologica } from './funcionalidades/fonte-meteorolog
 import { SuperficieProntidao } from './funcionalidades/prontidao/SuperficieProntidao'
 import { SuperficieRegras } from './funcionalidades/regras/SuperficieRegras'
 import { PainelSegurado } from './funcionalidades/segurado/PainelSegurado'
+import { SuperficieSegurados } from './funcionalidades/segurados-admin/SuperficieSegurados'
 
 /** Placeholder das superfícies de negócio do admin ainda não implementadas (Histórias 6.4–6.5). */
 function EmConstrucao({ titulo }: { titulo: string }) {
@@ -60,7 +61,7 @@ export function SuperficieAtiva() {
     case 'regras':
       return <SuperficieRegras />
     case 'segurados':
-      return <EmConstrucao titulo="Segurados" />
+      return <SuperficieSegurados />
     case 'comunicacoes':
       return <EmConstrucao titulo="Comunicações" />
     case 'fontes-de-dados':

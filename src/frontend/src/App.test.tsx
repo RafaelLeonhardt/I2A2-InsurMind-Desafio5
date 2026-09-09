@@ -19,6 +19,7 @@ const {
   getEventosMock,
   getSincronizacoesMock,
   getRegrasMock,
+  getSeguradosDetalhadoMock,
 } = vi.hoisted(() => ({
   getSeguradoPadraoMock: vi.fn(),
   restaurarDadosSinteticosMock: vi.fn(),
@@ -33,6 +34,7 @@ const {
   getEventosMock: vi.fn(),
   getSincronizacoesMock: vi.fn(),
   getRegrasMock: vi.fn(),
+  getSeguradosDetalhadoMock: vi.fn(),
 }))
 
 vi.mock('./api/contexto', async () => {
@@ -112,6 +114,12 @@ vi.mock('./api/regras', async () => {
   return { ...real, getRegras: getRegrasMock }
 })
 
+vi.mock('./api/listaSeguradosAdmin', async () => {
+  const real =
+    await vi.importActual<typeof import('./api/listaSeguradosAdmin')>('./api/listaSeguradosAdmin')
+  return { ...real, getSeguradosDetalhado: getSeguradosDetalhadoMock }
+})
+
 function definirLargura(largura: number) {
   Object.defineProperty(window, 'innerWidth', { configurable: true, value: largura })
 }
@@ -179,6 +187,7 @@ beforeEach(() => {
     resultadosAnteriores: [],
   })
   getRegrasMock.mockResolvedValue([])
+  getSeguradosDetalhadoMock.mockResolvedValue([])
   window.localStorage.clear()
 })
 
@@ -470,15 +479,25 @@ describe('shell do contexto demonstrativo', () => {
     expect(getRegrasMock).toHaveBeenCalled()
   })
 
-  it('navega para "Segurados" e mostra o placeholder "Em construção"', async () => {
+  it('navega para "Segurados" e monta SuperficieSegurados (6.4)', async () => {
     definirLargura(1440)
+    getSeguradosDetalhadoMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-8444-444444444444',
+        nome: 'Pessoa Segurada Sintética DEMO-001',
+        codigoIbgeArea: '9990001',
+        apoliceNumero: 'RES-0001',
+        canalPreferido: 'whatsapp',
+      },
+    ])
     const usuario = userEvent.setup()
     render(<App />)
 
     await usuario.click(screen.getByRole('button', { name: 'Segurados' }))
 
     expect(await screen.findByRole('heading', { name: 'Segurados' })).toBeInTheDocument()
-    expect(screen.getByText(/Em construção/)).toBeInTheDocument()
+    expect(await screen.findByText('Pessoa Segurada Sintética DEMO-001')).toBeInTheDocument()
+    expect(getSeguradosDetalhadoMock).toHaveBeenCalled()
   })
 
   it('navega para "Fontes de dados" e monta SuperficieFonteMeteorologica', async () => {
