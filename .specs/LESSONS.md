@@ -558,6 +558,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: validation.md M10 - scripts/gerar_relatorio_tecnico.py:86 (scripts)
 - last seen: 2026-09-07T14:26:39Z
 
+### L-092 - Quando um AC descreve uma coluna/campo condicional ('exibir SE o backend expuser X'), confirmar antes de aceitar como satisfeito que o campo X existe de fato no tipo da API — se nunca existir, a condicionalidade descrita no AC nunca é exercitada e a spec deveria documentar o mecanismo real (ex.: uma explicação sempre presente) em vez da coluna condicional literal.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `frontend/spec-wording` · harmful: 0
+- features: 6-2-acompanhar-a-execucao-e-a-decisao-do-evento
+- evidence: PAINELEXEC-05 - src/frontend/src/funcionalidades/evento-decisao/SuperficieEventoDecisao.tsx:311-358 (frontend/spec-wording)
+- last seen: 2026-09-09T20:14:36Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.

@@ -75,17 +75,17 @@
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| PAINELEXEC-01 | P1: Abrir a execução de um evento a partir da lista | Execute | Implementing — já satisfeito pela navegação da 6.1 (`SuperficieEventos` → `App.tsx` → `SuperficieExecucao`); aguardando Verifier |
-| PAINELEXEC-02 | P1: Abrir a execução de um evento a partir da lista | Execute | Implementing — `mostrarDecisaoDeRisco` ampliado para cobrir toda etapa pós-coleta (`SuperficieExecucao.tsx`); aguardando Verifier |
-| PAINELEXEC-03 | P1: Abrir a execução de um evento a partir da lista | Execute | Implementing — estados `falhou_*` tratados como exceção + seção "Execuções correlacionadas" (`execucaoOrigemId`/`retentativas`) navegável; aguardando Verifier |
-| PAINELEXEC-04 | P1: Consultar o público elegível da decisão | Execute | Implementing — já satisfeito por `SuperficieEventoDecisao` (2.5), tabela com segurado/apólice/localização/canal; aguardando Verifier |
-| PAINELEXEC-05 | P1: Consultar o público elegível da decisão | Execute | Implementing — já satisfeito por `SuperficieEventoDecisao` (2.5), explicação expansível "Ver critérios" por segurado; aguardando Verifier |
+| PAINELEXEC-01 | P1: Abrir a execução de um evento a partir da lista | Execute | ✅ Verified — navegação da 6.1 (`SuperficieEventos.tsx:83-85,162-168` → `App.tsx:54-55` → `SuperficieExecucao`), evidência própria em `SuperficieEventos.test.tsx:61-87` |
+| PAINELEXEC-02 | P1: Abrir a execução de um evento a partir da lista | Execute | ✅ Verified — `mostrarDecisaoDeRisco` ampliado para cobrir toda etapa pós-coleta (`SuperficieExecucao.tsx:190-191,280`), evidência em `SuperficieExecucao.test.tsx:302-321` |
+| PAINELEXEC-03 | P1: Abrir a execução de um evento a partir da lista | Execute | ✅ Verified — estados `falhou_*` tratados como exceção (`SuperficieExecucao.tsx:78-84`) + seção "Execuções correlacionadas" navegável (`:243-278`), evidência em `SuperficieExecucao.test.tsx:279-377` |
+| PAINELEXEC-04 | P1: Consultar o público elegível da decisão | Execute | ✅ Verified — já satisfeito por `SuperficieEventoDecisao` (2.5), tabela segurado/apólice/localização/canal (`SuperficieEventoDecisao.tsx:281-323`), evidência em `SuperficieEventoDecisao.test.tsx:274-287` |
+| PAINELEXEC-05 | P1: Consultar o público elegível da decisão | Execute | ✅ Verified (com nota de spec-precision) — já satisfeito por `SuperficieEventoDecisao` (2.5), explicação expansível "Ver critérios" por segurado (`SuperficieEventoDecisao.tsx:311-358`); ver `validation.md` — mecanismo real é uma explicação sempre presente, não a coluna condicional descrita literalmente no AC (o campo `motivo` nunca existe no tipo da API) |
 
 **ID format:** `PAINELEXEC-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 5 total, 5 mapped, 0 unmapped — Design feito inline (Medium, reusa AD-016; sem decisão de arquitetura nova), Tasks feito inline (3 mudanças atômicas em `SuperficieExecucao.tsx`), Execute concluído; aguardando Verifier.
+**Coverage:** 5 total, 5 mapped, 0 unmapped — Design feito inline (Medium, reusa AD-016; sem decisão de arquitetura nova), Tasks feito inline (3 mudanças atômicas em `SuperficieExecucao.tsx`), Execute concluído. **Verifier: PASS** (`.specs/features/6-2-acompanhar-a-execucao-e-a-decisao-do-evento/validation.md`, 2026-09-09) — 5/5 ACs com evidência `file:line`, 3/3 mutações do sensor mortas, 0 sobreviventes.
 
 ---
 
