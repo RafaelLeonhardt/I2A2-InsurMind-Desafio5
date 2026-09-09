@@ -87,17 +87,17 @@ O protótipo (`SourcePage`/imagem `11-fonte-meteorologica-instabilidade`) mostra
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| MONITORFONTE-01 | P1: Consultar o estado atual da fonte meteorológica | - | Pending |
-| MONITORFONTE-02 | P1: Consultar o estado atual da fonte meteorológica | - | Pending |
-| MONITORFONTE-03 | P1: Consultar o estado atual da fonte meteorológica | - | Pending |
-| MONITORFONTE-04 | P1: Consultar o histórico de sincronizações | - | Pending |
-| MONITORFONTE-05 | P2: Tentar novamente uma sincronização falha | - | Pending |
+| MONITORFONTE-01 | P1: Consultar o estado atual da fonte meteorológica | Execute | Implementing — `App.tsx` monta `SuperficieFonteMeteorologica`; evidência pré-existente em `SuperficieFonteMeteorologica.test.tsx`; aguardando Verifier |
+| MONITORFONTE-02 | P1: Consultar o estado atual da fonte meteorológica | Execute | Implementing — estados `indisponivel`/`degradada` já destacados (badges), evidência pré-existente; aguardando Verifier |
+| MONITORFONTE-03 | P1: Consultar o estado atual da fonte meteorológica | Execute | Implementing — estado `sintetica` já sinalizado, evidência pré-existente; aguardando Verifier |
+| MONITORFONTE-04 | P1: Consultar o histórico de sincronizações | Execute | Implementing — histórico já exibido, evidência pré-existente; aguardando Verifier |
+| MONITORFONTE-05 | P2: Tentar novamente uma sincronização falha | Execute | Implementing — `solicitarNovaTentativa` já implementado, evidência pré-existente; aguardando Verifier |
 
 **ID format:** `MONITORFONTE-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 5 total, 0 mapped to tasks, 5 unmapped ⚠️ — fase Specify apenas; Design/Tasks pendentes.
+**Coverage:** 5 total, 5 mapped, 0 unmapped — Design feito inline (Medium, componente `SuperficieFonteMeteorologica` já pronto e exaustivamente testado desde antes — só integração de navegação); aguardando Verifier.
 
 ---
 

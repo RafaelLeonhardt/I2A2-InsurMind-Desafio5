@@ -17,6 +17,7 @@ const {
   getPreferenciasMock,
   getExecucaoMock,
   getEventosMock,
+  getSincronizacoesMock,
   getRegrasMock,
 } = vi.hoisted(() => ({
   getSeguradoPadraoMock: vi.fn(),
@@ -30,6 +31,7 @@ const {
   getPreferenciasMock: vi.fn(),
   getExecucaoMock: vi.fn(),
   getEventosMock: vi.fn(),
+  getSincronizacoesMock: vi.fn(),
   getRegrasMock: vi.fn(),
 }))
 
@@ -102,7 +104,7 @@ vi.mock('./api/execucao', async () => {
 
 vi.mock('./api/meteorologia', async () => {
   const real = await vi.importActual<typeof import('./api/meteorologia')>('./api/meteorologia')
-  return { ...real, getEventos: getEventosMock }
+  return { ...real, getEventos: getEventosMock, getSincronizacoes: getSincronizacoesMock }
 })
 
 vi.mock('./api/regras', async () => {
@@ -170,6 +172,12 @@ beforeEach(() => {
     retentativas: [],
   })
   getEventosMock.mockResolvedValue([])
+  getSincronizacoesMock.mockResolvedValue({
+    ultimaTentativa: null,
+    ultimaValida: null,
+    proximaConsulta: null,
+    resultadosAnteriores: [],
+  })
   getRegrasMock.mockResolvedValue([])
   window.localStorage.clear()
 })
@@ -471,6 +479,17 @@ describe('shell do contexto demonstrativo', () => {
 
     expect(await screen.findByRole('heading', { name: 'Segurados' })).toBeInTheDocument()
     expect(screen.getByText(/Em construção/)).toBeInTheDocument()
+  })
+
+  it('navega para "Fontes de dados" e monta SuperficieFonteMeteorologica', async () => {
+    definirLargura(1440)
+    const usuario = userEvent.setup()
+    render(<App />)
+
+    await usuario.click(screen.getByRole('button', { name: 'Fontes de dados' }))
+
+    expect(await screen.findByRole('heading', { name: 'Fonte meteorológica' })).toBeInTheDocument()
+    expect(getSincronizacoesMock).toHaveBeenCalled()
   })
 
   it('uma superfície { tipo: "evento-execucao" } monta SuperficieExecucao com o execucaoId correto', async () => {

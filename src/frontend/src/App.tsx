@@ -9,11 +9,12 @@ import { RestaurarDemonstracao } from './funcionalidades/dados-sinteticos/Restau
 import { SuperficieDocumentacaoApi } from './funcionalidades/documentacao-api/SuperficieDocumentacaoApi'
 import { SuperficieEventos } from './funcionalidades/eventos/SuperficieEventos'
 import { SuperficieExecucao } from './funcionalidades/execucao/SuperficieExecucao'
+import { SuperficieFonteMeteorologica } from './funcionalidades/fonte-meteorologica/SuperficieFonteMeteorologica'
 import { SuperficieProntidao } from './funcionalidades/prontidao/SuperficieProntidao'
 import { SuperficieRegras } from './funcionalidades/regras/SuperficieRegras'
 import { PainelSegurado } from './funcionalidades/segurado/PainelSegurado'
 
-/** Placeholder das superfícies de negócio do admin ainda não implementadas (Histórias 6.4–6.7). */
+/** Placeholder das superfícies de negócio do admin ainda não implementadas (Histórias 6.4–6.5). */
 function EmConstrucao({ titulo }: { titulo: string }) {
   return (
     <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
@@ -63,7 +64,7 @@ export function SuperficieAtiva() {
     case 'comunicacoes':
       return <EmConstrucao titulo="Comunicações" />
     case 'fontes-de-dados':
-      return <EmConstrucao titulo="Fontes de dados" />
+      return <SuperficieFonteMeteorologica />
   }
 }
 
