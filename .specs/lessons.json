@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 95,
+  "next_id": 98,
   "lessons": [
     {
       "id": "L-001",
@@ -1729,6 +1729,60 @@
       ],
       "created": "2026-09-09T20:36:47Z",
       "last_seen": "2026-09-09T20:36:47Z"
+    },
+    {
+      "id": "L-095",
+      "key": "spec_precision_gap::when a spec requires each of several enumerated states to be visually distinct assert the actual css class icon per state not just the state s text label a shared templated render path can silently regress one state s styling while its label test still passes",
+      "text": "When a spec requires each of several enumerated states to be visually distinct, assert the actual CSS class/icon per state, not just the state's text label - a shared templated render path can silently regress one state's styling while its label test still passes.",
+      "signal": "spec_precision_gap",
+      "scope": "frontend-testing",
+      "status": "candidate",
+      "features": [
+        "6-7-monitorar-a-fonte-meteorologica-inmet"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "src/frontend/src/funcionalidades/fonte-meteorologica/SuperficieFonteMeteorologica.test.tsx:258-277 (frontend-testing)"
+      ],
+      "created": "2026-09-09T21:25:08Z",
+      "last_seen": "2026-09-09T21:25:08Z"
+    },
+    {
+      "id": "L-096",
+      "key": "spec_precision_gap::when a spec requires a per item provenance origin label to be shown assert the literal rendered label for the non default provenance value not only an aggregate summary badge that happens to correlate with it",
+      "text": "When a spec requires a per-item provenance/origin label to be shown, assert the literal rendered label for the non-default provenance value, not only an aggregate/summary badge that happens to correlate with it.",
+      "signal": "spec_precision_gap",
+      "scope": "frontend-testing",
+      "status": "candidate",
+      "features": [
+        "6-7-monitorar-a-fonte-meteorologica-inmet"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "src/frontend/src/funcionalidades/fonte-meteorologica/SuperficieFonteMeteorologica.test.tsx:247-256 (frontend-testing)"
+      ],
+      "created": "2026-09-09T21:25:16Z",
+      "last_seen": "2026-09-09T21:25:16Z"
+    },
+    {
+      "id": "L-097",
+      "key": "spec_precision_gap::when a spec requires an action to update the displayed state after it completes assert the resulting displayed value label after the action not just that the triggering api call and a refetch occurred",
+      "text": "When a spec requires an action to update the displayed state after it completes, assert the resulting displayed value/label after the action, not just that the triggering API call and a refetch occurred.",
+      "signal": "spec_precision_gap",
+      "scope": "frontend-testing",
+      "status": "candidate",
+      "features": [
+        "6-7-monitorar-a-fonte-meteorologica-inmet"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "src/frontend/src/funcionalidades/fonte-meteorologica/SuperficieFonteMeteorologica.test.tsx:317-335 (frontend-testing)"
+      ],
+      "created": "2026-09-09T21:25:16Z",
+      "last_seen": "2026-09-09T21:25:16Z"
     }
   ]
 }

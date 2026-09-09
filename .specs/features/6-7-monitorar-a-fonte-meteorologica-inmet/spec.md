@@ -87,17 +87,17 @@ O protótipo (`SourcePage`/imagem `11-fonte-meteorologica-instabilidade`) mostra
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| MONITORFONTE-01 | P1: Consultar o estado atual da fonte meteorológica | Execute | Implementing — `App.tsx` monta `SuperficieFonteMeteorologica`; evidência pré-existente em `SuperficieFonteMeteorologica.test.tsx`; aguardando Verifier |
-| MONITORFONTE-02 | P1: Consultar o estado atual da fonte meteorológica | Execute | Implementing — estados `indisponivel`/`degradada` já destacados (badges), evidência pré-existente; aguardando Verifier |
-| MONITORFONTE-03 | P1: Consultar o estado atual da fonte meteorológica | Execute | Implementing — estado `sintetica` já sinalizado, evidência pré-existente; aguardando Verifier |
-| MONITORFONTE-04 | P1: Consultar o histórico de sincronizações | Execute | Implementing — histórico já exibido, evidência pré-existente; aguardando Verifier |
-| MONITORFONTE-05 | P2: Tentar novamente uma sincronização falha | Execute | Implementing — `solicitarNovaTentativa` já implementado, evidência pré-existente; aguardando Verifier |
+| MONITORFONTE-01 | P1: Consultar o estado atual da fonte meteorológica | Execute | ✅ Verified — `App.tsx:66-67` monta `SuperficieFonteMeteorologica`; `App.test.tsx:484-494` confirma via navegação real; 6 estados com rótulo acessível em `SuperficieFonteMeteorologica.test.tsx:225-315` |
+| MONITORFONTE-02 | P1: Consultar o estado atual da fonte meteorológica | Execute | ✅ Verified — `indisponivel`/`degradada` destacados por cor+ícone distintos de `operacional` (`SuperficieFonteMeteorologica.tsx:218-223`, `.css:22-40`), mecanismo testado em `SuperficieFonteMeteorologica.test.tsx:516-527` |
+| MONITORFONTE-03 | P1: Consultar o estado atual da fonte meteorológica | Execute | ✅ Verified — badge "Sintética" sinaliza proveniência sintética, `SuperficieFonteMeteorologica.test.tsx:247-256` |
+| MONITORFONTE-04 | P1: Consultar o histórico de sincronizações | Execute | ✅ Verified — histórico com resultado e instante por tentativa, `SuperficieFonteMeteorologica.test.tsx:178-202` |
+| MONITORFONTE-05 | P2: Tentar novamente uma sincronização falha | Execute | ✅ Verified — `solicitarNovaTentativa` disparado e histórico reconsultado, `SuperficieFonteMeteorologica.test.tsx:317-335` |
 
 **ID format:** `MONITORFONTE-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 5 total, 5 mapped, 0 unmapped — Design feito inline (Medium, componente `SuperficieFonteMeteorologica` já pronto e exaustivamente testado desde antes — só integração de navegação); aguardando Verifier.
+**Coverage:** 5 total, 5 mapped, 0 unmapped — Design feito inline (Medium, componente `SuperficieFonteMeteorologica` já pronto e exaustivamente testado desde antes — só integração de navegação). Verificado por sub-agente independente em `.specs/features/6-7-monitorar-a-fonte-meteorologica-inmet/validation.md` (PASS, 3 notas de precisão não bloqueantes).
 
 ---
 

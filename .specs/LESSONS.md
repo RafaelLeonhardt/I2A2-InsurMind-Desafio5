@@ -576,6 +576,24 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: spec.md Edge Cases: nenhuma regra ativa (frontend)
 - last seen: 2026-09-09T20:36:47Z
 
+### L-095 - When a spec requires each of several enumerated states to be visually distinct, assert the actual CSS class/icon per state, not just the state's text label - a shared templated render path can silently regress one state's styling while its label test still passes.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `frontend-testing` · harmful: 0
+- features: 6-7-monitorar-a-fonte-meteorologica-inmet
+- evidence: src/frontend/src/funcionalidades/fonte-meteorologica/SuperficieFonteMeteorologica.test.tsx:258-277 (frontend-testing)
+- last seen: 2026-09-09T21:25:08Z
+
+### L-096 - When a spec requires a per-item provenance/origin label to be shown, assert the literal rendered label for the non-default provenance value, not only an aggregate/summary badge that happens to correlate with it.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `frontend-testing` · harmful: 0
+- features: 6-7-monitorar-a-fonte-meteorologica-inmet
+- evidence: src/frontend/src/funcionalidades/fonte-meteorologica/SuperficieFonteMeteorologica.test.tsx:247-256 (frontend-testing)
+- last seen: 2026-09-09T21:25:16Z
+
+### L-097 - When a spec requires an action to update the displayed state after it completes, assert the resulting displayed value/label after the action, not just that the triggering API call and a refetch occurred.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `frontend-testing` · harmful: 0
+- features: 6-7-monitorar-a-fonte-meteorologica-inmet
+- evidence: src/frontend/src/funcionalidades/fonte-meteorologica/SuperficieFonteMeteorologica.test.tsx:317-335 (frontend-testing)
+- last seen: 2026-09-09T21:25:16Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
