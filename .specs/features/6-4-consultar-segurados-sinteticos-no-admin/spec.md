@@ -2,7 +2,7 @@
 
 ## Problem Statement
 
-O protótipo (`PeopleTable`, rota `insureds` do `adminNav`, tela "Segurados") e a imagem `02-analise-evento-regra-publico` mostram o administrador consultando a base de segurados sintéticos — nome, bairro, apólice, canal — tanto isoladamente quanto como prévia de elegibilidade. O backend já expõe essa listagem (`lista_segurados`, `src/backend/central_preventiva/adaptadores/http/lista_segurados.py`, com teste de API em `test_lista_segurados_api.py`), mas não existe, nem órfão, nenhum componente de frontend que a exiba para o Administrador — a única listagem de pessoas hoje é o `SeletorSegurado`, que pertence ao perfil Segurado e serve para "visualizar como" outro segurado, não para o admin auditar a base. Esta é a única superfície de negócio do admin que precisa ser construída do zero, não apenas religada.
+O protótipo (`PeopleTable`, rota `insureds` do `adminNav`, tela "Segurados") e a imagem `02-analise-evento-regra-publico` mostram o administrador consultando a base de segurados sintéticos — nome, bairro, apólice, canal — tanto isoladamente quanto como prévia de elegibilidade. O backend já expõe uma listagem de segurados (`lista_segurados`, `src/backend/central_preventiva/adaptadores/http/lista_segurados.py`, com teste de API em `test_lista_segurados_api.py`), mas ela só traz `id`+`nome` para o seletor "Visualizar como" (SELETOR-01) — faltam bairro, apólice e canal (ver Assumptions). Nenhum componente de frontend exibe essa base para o Administrador, nem órfão — a única listagem de pessoas hoje é o `SeletorSegurado`, que pertence ao perfil Segurado e serve para "visualizar como" outro segurado, não para o admin auditar a base. Esta é a única superfície de negócio do admin que precisa ser construída do zero, não apenas religada.
 
 ## Goals
 
@@ -24,7 +24,7 @@ O protótipo (`PeopleTable`, rota `insureds` do `adminNav`, tela "Segurados") e 
 
 | Assumption / decision | Chosen default | Rationale | Confirmed? |
 | --- | --- | --- | --- |
-| Fonte de dado | `GET` de `lista_segurados` (já implementado e testado no backend) — nenhum endpoint novo | O backend já entrega exatamente os campos que o protótipo (`PeopleTable`) exibe | y — verificado em `test_lista_segurados_api.py` |
+| Fonte de dado | `GET /segurados` (`lista_segurados.py`) hoje devolve só `id`+`nome` — `RespostaSeguradoListado` é usado unicamente pelo seletor "Visualizar como" do perfil Segurado (SELETOR-01) e não traz bairro/apólice/canal. Esta história inclui uma extensão aditiva do backend: `RepositorioSegurados` ganha `listar_sinteticos_detalhado()` (`LEFT JOIN` com `apolices`, deduplicado por recência com `QUALIFY ROW_NUMBER()`, mesmo padrão de `RepositorioMeteorologia.mapear_execucoes_por_evento`), exposto por um recurso HTTP novo e dedicado, `GET /segurados/detalhado`, com seu próprio modelo de resposta (`RespostaSeguradoDetalhado`: `id`, `nome`, `codigo_ibge_area`, `apolice_numero` nulo sem apólice, `canal_preferido`). `GET /segurados` e `RepositorioSegurados.listar_sinteticos()` continuam inalterados — o seletor "Visualizar como" não é afetado | O backend não entregava os campos que o protótipo (`PeopleTable`) exibe; a extensão aditiva evita alargar um método/dataclass já consumido pelo seletor, mesmo princípio já aplicado a `PreferenciasSegurado` (separado de `Segurado`) | y — corrigido durante a implementação com evidência de código (`lista_segurados.py`, `repositorio_segurados.py`); ver `lista_segurados_detalhado.py` e `test_lista_segurados_detalhado_api.py` |
 | Padrão visual/estrutural do componente novo | Segue o padrão já estabelecido pelas demais superfícies de listagem do projeto (ex.: tabela com busca simples, como a lista de destinatários de `SuperficieGeracaoMensagens`) em vez de inventar um padrão de UI novo | Consistência de UX e menor risco de divergir dos tokens visuais já usados no projeto (AD conhecido: 9 divergências de tokens já registradas em E2E-11 — não adicionar mais um padrão à parte) | y — decisão de manter consistência com o sistema visual existente |
 | "Abrir o contexto do segurado" a partir da lista (Goal 3) | Reusa a mesma perspectiva de leitura já usada pela prévia de elegíveis (História 6.2) — não abre o `PainelSegurado` do perfil Segurado (que é sobre "eu, o segurado logado", não sobre "auditar um segurado qualquer" como admin) | Evita confundir a visão de autoatendimento (Épico 5) com a visão de auditoria administrativa; são propósitos e audiências diferentes mesmo reusando componentes de exibição | y — mantém a separação de perfis já estabelecida no projeto |
 
@@ -87,20 +87,20 @@ O protótipo (`PeopleTable`, rota `insureds` do `adminNav`, tela "Segurados") e 
 
 ## Requirement Traceability
 
-| Requirement ID | Story | Phase | Status |
-| --- | --- | --- | --- |
-| LISTASEG-01 | P1: Listar segurados sintéticos | - | Pending |
-| LISTASEG-02 | P1: Listar segurados sintéticos | - | Pending |
-| LISTASEG-03 | P1: Listar segurados sintéticos | - | Pending |
-| LISTASEG-04 | P2: Buscar por nome ou bairro | - | Pending |
-| LISTASEG-05 | P2: Buscar por nome ou bairro | - | Pending |
-| LISTASEG-06 | P3: Abrir o contexto de um segurado a partir da lista | - | Pending |
+| Requirement ID | Story | Phase | Status | Evidence |
+| --- | --- | --- | --- | --- |
+| LISTASEG-01 | P1: Listar segurados sintéticos | Execute | Implementing | `SuperficieSegurados.tsx` renderiza tabela nome/localização/apólice/canal a partir de `getSeguradosDetalhado()`; teste `SuperficieSegurados.test.tsx` ("exibe nome, localização, apólice e canal traduzido de cada segurado (LISTASEG-01)") |
+| LISTASEG-02 | P1: Listar segurados sintéticos | Execute | Implementing | Estado `vazio` explícito em `SuperficieSegurados.tsx`; teste "mostra o estado vazio explícito quando a API devolve lista vazia (LISTASEG-02)" |
+| LISTASEG-03 | P1: Listar segurados sintéticos | Execute | Implementing | Estado `erro` com "Tentar novamente" em `SuperficieSegurados.tsx`; teste "mostra erro explícito com 'Tentar novamente' quando a API falha (LISTASEG-03)" |
+| LISTASEG-04 | P2: Buscar por nome ou bairro | Execute | Implementing | Filtro client-side por `nome`/`codigoIbgeArea` com `.toLowerCase()` nos dois lados; testes "filtra por localização (LISTASEG-04)" e "filtra por nome sem diferenciar maiúsculas/minúsculas (LISTASEG-04)" |
+| LISTASEG-05 | P2: Buscar por nome ou bairro | Execute | Implementing | Mensagem "Nenhum segurado encontrado para..." distinta da mensagem de lista vazia; teste "mostra mensagem de 'nenhum resultado' distinta da lista vazia quando a busca não bate (LISTASEG-05)" |
+| LISTASEG-06 | P3: Abrir o contexto de um segurado a partir da lista | Execute | Implementing | Botão "Ver contexto" abre `SuperficieApolice`/`SuperficieAlertas`/`SuperficieComunicados` com `comoSecao`+`seguradoId`, sem ação de edição; testes "abre o contexto somente leitura do segurado selecionado, com o seguradoId correto (LISTASEG-06)" e "nenhuma ação de edição fica disponível no contexto aberto" |
 
 **ID format:** `LISTASEG-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 6 total, 0 mapped to tasks, 6 unmapped ⚠️ — fase Specify apenas; Design/Tasks pendentes.
+**Coverage:** 6 total, 6 mapped, 0 unmapped — implementação concluída (Execute); aguardando verificação independente (Verifier).
 
 ---
 
