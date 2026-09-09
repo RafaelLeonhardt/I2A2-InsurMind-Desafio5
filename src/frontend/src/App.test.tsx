@@ -17,6 +17,7 @@ const {
   getPreferenciasMock,
   getExecucaoMock,
   getEventosMock,
+  getRegrasMock,
 } = vi.hoisted(() => ({
   getSeguradoPadraoMock: vi.fn(),
   restaurarDadosSinteticosMock: vi.fn(),
@@ -29,6 +30,7 @@ const {
   getPreferenciasMock: vi.fn(),
   getExecucaoMock: vi.fn(),
   getEventosMock: vi.fn(),
+  getRegrasMock: vi.fn(),
 }))
 
 vi.mock('./api/contexto', async () => {
@@ -103,6 +105,11 @@ vi.mock('./api/meteorologia', async () => {
   return { ...real, getEventos: getEventosMock }
 })
 
+vi.mock('./api/regras', async () => {
+  const real = await vi.importActual<typeof import('./api/regras')>('./api/regras')
+  return { ...real, getRegras: getRegrasMock }
+})
+
 function definirLargura(largura: number) {
   Object.defineProperty(window, 'innerWidth', { configurable: true, value: largura })
 }
@@ -163,6 +170,7 @@ beforeEach(() => {
     retentativas: [],
   })
   getEventosMock.mockResolvedValue([])
+  getRegrasMock.mockResolvedValue([])
   window.localStorage.clear()
 })
 
@@ -428,14 +436,40 @@ describe('shell do contexto demonstrativo', () => {
     expect(getEventosMock).toHaveBeenCalled()
   })
 
-  it('navega para "Regras de negócio" e mostra o placeholder "Em construção"', async () => {
+  it('navega para "Regras de negócio" e monta SuperficieRegras', async () => {
     definirLargura(1440)
+    getRegrasMock.mockResolvedValue([
+      {
+        id: '55555555-5555-4555-8555-555555555555',
+        eventoTipo: 'chuva_intensa',
+        limiarMeteorologico: 50,
+        areaAplicavel: '9990001',
+        apoliceTipo: 'residencial',
+        coberturaExigida: 'alagamento',
+        antecedenciaHoras: 24,
+        canal: 'whatsapp',
+        versao: 1,
+        estado: 'ativa',
+      },
+    ])
     const usuario = userEvent.setup()
     render(<App />)
 
     await usuario.click(screen.getByRole('button', { name: 'Regras de negócio' }))
 
-    expect(await screen.findByRole('heading', { name: 'Regras de negócio' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Regras' })).toBeInTheDocument()
+    expect(await screen.findByText('Chuva intensa')).toBeInTheDocument()
+    expect(getRegrasMock).toHaveBeenCalled()
+  })
+
+  it('navega para "Segurados" e mostra o placeholder "Em construção"', async () => {
+    definirLargura(1440)
+    const usuario = userEvent.setup()
+    render(<App />)
+
+    await usuario.click(screen.getByRole('button', { name: 'Segurados' }))
+
+    expect(await screen.findByRole('heading', { name: 'Segurados' })).toBeInTheDocument()
     expect(screen.getByText(/Em construção/)).toBeInTheDocument()
   })
 

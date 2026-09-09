@@ -259,6 +259,42 @@ describe('superfície de regras', () => {
     )
   })
 
+  it('rejeita a ativação com erro explícito quando a versão mudou no backend (conflito, REGRASADM-03)', async () => {
+    getRegras.mockResolvedValue([REGRA_ATIVA])
+    testarRegra.mockResolvedValue([
+      {
+        eventoId: '33333333-3333-3333-3333-333333333333',
+        relevante: true,
+        motivo: 'relevante',
+        criterios: [],
+      },
+    ])
+    ativarRegra.mockRejectedValue(
+      new ErroRegras({
+        codigo: 'conflito_versao',
+        correlacaoId: null,
+        ocorrencia: 'A regra foi alterada por outra pessoa desde que esta tela foi carregada.',
+        impacto: 'Sua alteração não foi salva.',
+        proximaAcao: 'Recarregue a tela e refaça a alteração sobre a versão mais recente.',
+        status: 409,
+        erros: [],
+      }),
+    )
+    const usuario = userEvent.setup()
+
+    render(<SuperficieRegras />)
+    await usuario.click(await screen.findByRole('button', { name: 'Editar' }))
+    await usuario.click(screen.getByRole('button', { name: 'Testar' }))
+    await screen.findByText(/Resultado do teste determinístico/)
+    await usuario.click(screen.getByRole('button', { name: /Ativar nova versão/ }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'A regra foi alterada por outra pessoa desde que esta tela foi carregada.',
+    )
+    expect(screen.queryByRole('status')).toBeNull()
+    expect(screen.getByRole('button', { name: /Ativar nova versão/ })).toBeInTheDocument()
+  })
+
   it('abre a edição e dispara o teste inteiramente por teclado, com foco visível (REGRA-14)', async () => {
     getRegras.mockResolvedValue([REGRA_ATIVA])
     testarRegra.mockResolvedValue([

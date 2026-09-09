@@ -18,6 +18,7 @@
 | Rajadas de vento como condição separada (idem, só na imagem 10) | Mesmo motivo acima — não presente no domínio (`AvaliadorRisco`, 2.3) hoje |
 | Gestão de usuários e perfis, Configurações (nav da imagem 10) | Não fazem parte desta história nem de nenhuma especificada — telas isoladas na imagem, sem contraparte de produto confirmada |
 | Criação de uma segunda regra ativa simultânea para o mesmo tipo de evento | Fora do domínio atual (`RepositorioRegras`, 2.4); esta história edita a regra existente, não introduz múltiplas regras concorrentes |
+| REGRASADM-04 (estimativa de elegíveis antes de salvar) | **Decisão do usuário em 2026-09-09**: adiada como follow-up — exige uma capacidade nova de backend (contar segurados por área/tipo de apólice/cobertura) que não existe hoje e é materialmente maior que "integrar navegação" (escopo das demais histórias do Épico 6). P2, não bloqueia REGRASADM-01/02/03 (a própria spec já registrava isso). Retomar como história própria se o produto priorizar |
 
 ---
 
@@ -25,8 +26,9 @@
 
 | Assumption / decision | Chosen default | Rationale | Confirmed? |
 | --- | --- | --- | --- |
-| Fonte de dado e regras de negócio da edição | Reusa integralmente `SuperficieRegras` já implementado (seções Evento, Público elegível, Comunicação, resumo em linguagem natural, estimativa de elegíveis) — nenhuma reescrita de comportamento, só integração à navegação | O componente já cobre a spec original de 2.4 (`REGRA-NN`); esta história é puramente de alcançabilidade | y — verificado no código-fonte |
-| Concorrência otimista na UI | Um conflito de versão (`versao_esperada` desatualizado) é mostrado como erro explícito pedindo para recarregar, nunca sobrescrito silenciosamente | Seguindo AD-008, já aplicado a toda tabela mutável do projeto | y — decorre de AD-008 |
+| Fonte de dado e regras de negócio da edição | **Corrigido durante o Design de 6.3**: `SuperficieRegras` (2.4) não tem seções "Evento/Público elegível/Comunicação" nem "resumo em linguagem natural" — é uma tabela versionada (tipo de evento, severidade, limiar, área, apólice, cobertura, antecedência, canal, versão, estado) + formulário de edição com "Testar"/"Ativar nova versão". Os mesmos dados de evento/elegibilidade/comunicação estão presentes, só não organizados nessas 3 seções nomeadas como o protótipo (`RulePage`) sugeria — reusado sem reescrita, só integrado à navegação | Verificado por leitura direta de `SuperficieRegras.tsx`; a Assumption original presumia uma estrutura visual que nunca existiu no componente real de 2.4 | y — corrigido com evidência de código, ver Out of Scope para o desdobramento em REGRASADM-04 |
+| "Testar" valida contra eventos, não conta elegíveis | O botão "Testar" (`testarRegra`) avalia a regra contra cenários sintéticos de **eventos meteorológicos** (relevância de risco, mesmo mecanismo de 2.4/2.3) — não existe, hoje, nenhum endpoint que conte quantos segurados/apólices bateriam com área+tipo de apólice+cobertura de uma regra proposta. `GET /segurados` (6.4) só devolve id+nome, sem apólice/área/cobertura | Verificado em `api/regras.ts` (`CasoTeste` é por evento, não por segurado) e `lista_segurados.py` (`RespostaSeguradoListado` só tem `id`/`nome`) | y — corrigido com evidência de código |
+| Concorrência otimista na UI | Um conflito de versão (`versao_esperada` desatualizado) é mostrado como erro explícito pedindo para recarregar, nunca sobrescrito silenciosamente | Seguindo AD-008, já aplicado a toda tabela mutável do projeto; backend já responde `409 conflito_versao` (`adaptadores/http/regras.py:456-459`) e o frontend já trata qualquer falha de `ativarRegra` como erro explícito (`ErroRegras`) — só faltava um teste próprio para esse cenário específico | y — decorre de AD-008, comportamento já existente, cobertura de teste adicionada nesta história |
 
 **Open questions:** none — todas resolvidas ou registradas acima.
 
@@ -75,16 +77,16 @@
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| REGRASADM-01 | P1: Consultar e editar a regra preventiva ativa | - | Pending |
-| REGRASADM-02 | P1: Consultar e editar a regra preventiva ativa | - | Pending |
-| REGRASADM-03 | P1: Consultar e editar a regra preventiva ativa | - | Pending |
-| REGRASADM-04 | P2: Ver a estimativa de elegíveis antes de salvar | - | Pending |
+| REGRASADM-01 | P1: Consultar e editar a regra preventiva ativa | Execute | Implementing — `App.tsx` monta `SuperficieRegras` (2.4) no case `'regras'`; aguardando Verifier |
+| REGRASADM-02 | P1: Consultar e editar a regra preventiva ativa | Execute | Implementing — `ativarRegra(id, versao, dados)` já existente (2.4); aguardando Verifier |
+| REGRASADM-03 | P1: Consultar e editar a regra preventiva ativa | Execute | Implementing — backend já responde `409 conflito_versao`; teste novo cobrindo o cenário em `SuperficieRegras.test.tsx`; aguardando Verifier |
+| REGRASADM-04 | P2: Ver a estimativa de elegíveis antes de salvar | - | Deferred — ver Out of Scope (decisão do usuário, exige capacidade nova de backend) |
 
 **ID format:** `REGRASADM-NN`
 
-**Status values:** Pending → In Design → In Tasks → Implementing → Verified
+**Status values:** Pending → In Design → In Tasks → Implementing → Verified → Deferred
 
-**Coverage:** 4 total, 0 mapped to tasks, 4 unmapped ⚠️ — fase Specify apenas; Design/Tasks pendentes.
+**Coverage:** 4 total, 3 mapped (P1, Execute concluído), 1 deferred (P2, REGRASADM-04) — Design feito inline (Medium, reusa `SuperficieRegras` 2.4 já existente, sem decisão de arquitetura nova); aguardando Verifier.
 
 ---
 

@@ -10,9 +10,10 @@ import { SuperficieDocumentacaoApi } from './funcionalidades/documentacao-api/Su
 import { SuperficieEventos } from './funcionalidades/eventos/SuperficieEventos'
 import { SuperficieExecucao } from './funcionalidades/execucao/SuperficieExecucao'
 import { SuperficieProntidao } from './funcionalidades/prontidao/SuperficieProntidao'
+import { SuperficieRegras } from './funcionalidades/regras/SuperficieRegras'
 import { PainelSegurado } from './funcionalidades/segurado/PainelSegurado'
 
-/** Placeholder das superfícies de negócio do admin ainda não implementadas (Histórias 6.2–6.7). */
+/** Placeholder das superfícies de negócio do admin ainda não implementadas (Histórias 6.4–6.7). */
 function EmConstrucao({ titulo }: { titulo: string }) {
   return (
     <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
@@ -56,7 +57,7 @@ export function SuperficieAtiva() {
     case 'eventos':
       return <SuperficieEventos />
     case 'regras':
-      return <EmConstrucao titulo="Regras de negócio" />
+      return <SuperficieRegras />
     case 'segurados':
       return <EmConstrucao titulo="Segurados" />
     case 'comunicacoes':
