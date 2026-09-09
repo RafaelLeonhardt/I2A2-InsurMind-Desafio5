@@ -167,6 +167,28 @@ class RepositorioEventosMeteorologicos:
             for linha in linhas
         )
 
+    def mapear_execucoes_por_evento(self) -> dict[UUID, tuple[UUID, str]]:
+        """Liga cada evento à sua execução preventiva mais recente (História 6.1).
+
+        A ligação física já existe em `avaliacoes_risco` (`evento_id` + `execucao_id`
+        persistidos juntos, migração 0004) — este método só a expõe para a listagem de
+        eventos, sem tocar no dataclass de domínio `EventoMeteorologico`, que é reusado
+        por `salvar`/`buscar_por_id`/`listar_sinteticos_por_tipo` e não tem relação com
+        execução. `QUALIFY` mantém só a avaliação mais recente por evento, caso um
+        evento venha a ser reavaliado mais de uma vez (o schema não impede).
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute(
+                "SELECT ar.evento_id, ar.execucao_id, ep.estado "
+                "FROM avaliacoes_risco ar "
+                "JOIN execucao_preventiva ep ON ep.id = ar.execucao_id "
+                "QUALIFY ROW_NUMBER() OVER (PARTITION BY ar.evento_id ORDER BY ar.criado_em DESC) = 1"
+            ).fetchall()
+        return {
+            UUID(str(linha[0])): (UUID(str(linha[1])), str(linha[2])) for linha in linhas
+        }
+
     def listar_sinteticos_por_tipo(
         self, tipo: TipoEventoMeteorologico
     ) -> tuple[EventoMeteorologico, ...]:

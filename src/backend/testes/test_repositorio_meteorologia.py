@@ -89,6 +89,67 @@ def test_buscar_evento_inexistente_devolve_none_sem_lancar(tmp_path: Path) -> No
     assert RepositorioEventosMeteorologicos(caminho).buscar_por_id(uuid4()) is None
 
 
+def inserir_execucao(caminho: Path, execucao_id, estado: str) -> None:
+    """Insere uma execução preventiva de teste, fora do fluxo real de orquestração."""
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO execucao_preventiva (id, estado) VALUES (?, ?)",
+            [execucao_id, estado],
+        )
+
+
+def inserir_avaliacao_risco(
+    caminho: Path, execucao_id, evento_id, criado_em: datetime
+) -> None:
+    """Insere uma avaliação de risco de teste, ligando evento e execução (migração 0004)."""
+
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO avaliacoes_risco "
+            "(id, execucao_id, evento_id, regra_id, regra_versao, relevante, criterios, "
+            "motivo, criado_em) VALUES (?, ?, ?, NULL, NULL, true, '[]', 'evento_relevante', ?)",
+            [uuid4(), execucao_id, evento_id, criado_em],
+        )
+
+
+def test_mapear_execucoes_por_evento_devolve_vazio_sem_nenhuma_avaliacao(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+
+    assert RepositorioEventosMeteorologicos(caminho).mapear_execucoes_por_evento() == {}
+
+
+def test_mapear_execucoes_por_evento_liga_evento_a_sua_execucao(tmp_path: Path) -> None:
+    caminho = preparar_banco(tmp_path)
+    evento_id = uuid4()
+    execucao_id = uuid4()
+    inserir_execucao(caminho, execucao_id, "aguardando_geracao")
+    inserir_avaliacao_risco(caminho, execucao_id, evento_id, datetime(2026, 8, 30, 18, 0, 0))
+
+    mapa = RepositorioEventosMeteorologicos(caminho).mapear_execucoes_por_evento()
+
+    assert mapa == {evento_id: (execucao_id, "aguardando_geracao")}
+
+
+def test_mapear_execucoes_por_evento_mantem_so_a_avaliacao_mais_recente_por_evento(
+    tmp_path: Path,
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    evento_id = uuid4()
+    execucao_antiga_id = uuid4()
+    execucao_recente_id = uuid4()
+    inserir_execucao(caminho, execucao_antiga_id, "concluido")
+    inserir_execucao(caminho, execucao_recente_id, "aguardando_geracao")
+    inserir_avaliacao_risco(caminho, execucao_antiga_id, evento_id, datetime(2026, 8, 30, 10, 0, 0))
+    inserir_avaliacao_risco(caminho, execucao_recente_id, evento_id, datetime(2026, 8, 30, 20, 0, 0))
+
+    mapa = RepositorioEventosMeteorologicos(caminho).mapear_execucoes_por_evento()
+
+    assert mapa == {evento_id: (execucao_recente_id, "aguardando_geracao")}
+
+
 def test_listar_sinteticos_por_tipo_exclui_eventos_reais_do_mesmo_tipo(tmp_path: Path) -> None:
     """2.4 T3: o teste determinístico de uma regra só pode usar cenários sintéticos — um
     evento real do mesmo tipo (ex.: coletado do INMET) nunca deve ser incluído."""
