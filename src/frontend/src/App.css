@@ -113,6 +113,11 @@ button:focus-visible, a:focus-visible, main:focus-visible { outline: 3px solid v
 
 .conteudo { min-width: 0; padding: 2.5rem clamp(1.5rem, 4vw, 4rem) 5.5rem; }
 
+/* Fora do Segurado (sem `.painel-contextual`), `.conteudo` é o único item de conteúdo de
+   `.aplicacao` — usa as colunas 2 e 3 inteiras em vez de deixar a 3ª coluna (300px)
+   como espaço vazio ao lado, o que forçava tabelas largas (ex. Prontidão) a cortar. */
+.aplicacao > .conteudo { grid-column: 2 / 4; }
+
 /* Antes da 5.7/5.8, `.painel-contextual` era o 3º item de `.aplicacao` (grid de 3
    colunas). Depois que `PainelSegurado` passou a empilhar as 5 superfícies dentro de
    `.conteudo-segurado-empilhado` (um único item de grid), `.painel-contextual` ficou
@@ -178,6 +183,9 @@ h3 { margin: 0 0 .85rem; font-size: .95rem; text-transform: uppercase; letter-sp
 }
 .caixa-status[role='alert'] { border-left-color: var(--red); background: #fef2f2; }
 .caixa-status[role='alert'] strong:first-child { color: #7f1d1d; }
+.caixa-status[data-tom='sucesso'] { border-left-color: var(--green); background: #eaf7f2; }
+.caixa-status[data-tom='sucesso'] strong:first-child { color: #126b4b; }
+.caixa-status a { color: inherit; font-weight: 600; }
 .caixa-status p { margin: 0 0 .35rem; }
 .caixa-status p:last-child { margin-bottom: 0; }
 .caixa-status .btn { margin-top: .6rem; }
@@ -320,7 +328,7 @@ h3 { margin: 0 0 .85rem; font-size: .95rem; text-transform: uppercase; letter-sp
   }
   .barra-contexto, .faixa-toolbar { grid-column: 2; }
   .aviso-responsivo { grid-column: 2; }
-  .conteudo { grid-column: 2; }
+  .aplicacao > .conteudo { grid-column: 2; }
   .conteudo-segurado-empilhado { grid-column: 2; display: block; }
   .conteudo-segurado-empilhado > .conteudo,
   .conteudo-segurado-empilhado > .painel-contextual { max-width: none; }

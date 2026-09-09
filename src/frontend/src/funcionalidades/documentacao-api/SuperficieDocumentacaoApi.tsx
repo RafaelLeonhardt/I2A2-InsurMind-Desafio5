@@ -45,10 +45,14 @@ export function SuperficieDocumentacaoApi() {
         disponíveis localmente.
       </p>
 
-      {estado === 'carregando' && <p role="status">Verificando disponibilidade…</p>}
+      {estado === 'carregando' && (
+        <p className="caixa-status" role="status">
+          Verificando disponibilidade…
+        </p>
+      )}
 
       {estado === 'disponivel' && resultado && (
-        <div>
+        <div className="caixa-status" data-tom="sucesso">
           <p>
             <strong>Disponível</strong>
           </p>
@@ -63,7 +67,7 @@ export function SuperficieDocumentacaoApi() {
       )}
 
       {estado === 'indisponivel' && (
-        <div role="alert">
+        <div className="caixa-status" role="alert">
           <p>
             <strong>Indisponível</strong>
           </p>

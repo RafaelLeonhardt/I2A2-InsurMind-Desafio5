@@ -149,7 +149,7 @@ export function SuperficieProntidao() {
         demonstração.
       </p>
       {falhaCarregamento && (
-        <div role="alert">
+        <div className="caixa-status" role="alert">
           <p>
             <strong>Ocorrência:</strong> {falhaCarregamento.ocorrencia}
           </p>

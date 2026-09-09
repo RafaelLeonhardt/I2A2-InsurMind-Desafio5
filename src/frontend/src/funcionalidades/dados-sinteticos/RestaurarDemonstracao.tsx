@@ -1,3 +1,4 @@
+import { ArrowsClockwiseIcon, DatabaseIcon } from '@phosphor-icons/react'
 import { useState } from 'react'
 import {
   ErroRestauracao,
@@ -53,17 +54,27 @@ export function RestaurarDemonstracao() {
         Repõe o conjunto sintético versionado da demonstração para repetir os cenários a partir de
         um estado conhecido.
       </p>
-      <dl>
-        <div>
-          <dt>Objeto da restauração</dt>
-          <dd>{OBJETO}</dd>
+      <dl className="grade-icones">
+        <div className="cartao-contexto">
+          <i aria-hidden="true">
+            <DatabaseIcon size={22} />
+          </i>
+          <div>
+            <dt>Objeto da restauração</dt>
+            <dd>{OBJETO}</dd>
+          </div>
         </div>
-        <div>
-          <dt>Origem dos dados</dt>
-          <dd>Conjunto sintético versionado no repositório, sem qualquer dado real.</dd>
+        <div className="cartao-contexto">
+          <i aria-hidden="true">
+            <ArrowsClockwiseIcon size={22} />
+          </i>
+          <div>
+            <dt>Origem dos dados</dt>
+            <dd>Conjunto sintético versionado no repositório, sem qualquer dado real.</dd>
+          </div>
         </div>
       </dl>
-      <button onClick={() => definirEstado('confirmacao')} type="button">
+      <button className="btn" onClick={() => definirEstado('confirmacao')} type="button">
         Restaurar demonstração
       </button>
 
@@ -79,15 +90,19 @@ export function RestaurarDemonstracao() {
         rotuloConfirmar={rotuloDaConfirmacao(estado)}
         titulo="Restaurar demonstração"
       >
-        {emProcessamento && <p role="status">Restaurando os dados sintéticos…</p>}
+        {emProcessamento && (
+          <p className="caixa-status" role="status">
+            Restaurando os dados sintéticos…
+          </p>
+        )}
         {estado === 'concluido' && (
-          <p role="status">
+          <p className="caixa-status" role="status">
             Dados sintéticos restaurados
             {resultado ? ` em ${resultado.restauradoEm}` : ''}.
           </p>
         )}
         {estado === 'falha' && falha && (
-          <div role="alert">
+          <div className="caixa-status" role="alert">
             <p>
               <strong>Ocorrência:</strong> {falha.ocorrencia}
             </p>

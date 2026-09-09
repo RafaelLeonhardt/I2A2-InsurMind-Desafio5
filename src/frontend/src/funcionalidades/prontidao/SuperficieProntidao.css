@@ -19,14 +19,28 @@
   width: 100%;
   min-width: 640px;
   border-collapse: collapse;
+  font-size: 0.88rem;
 }
 
 .tabela-prontidao th,
 .tabela-prontidao td {
-  padding: 0.75rem 1rem;
+  padding: 0.8rem 1rem;
   text-align: left;
   vertical-align: top;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--line);
+}
+
+.tabela-prontidao thead th {
+  color: var(--muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 2px solid var(--line);
+}
+
+.tabela-prontidao tbody tr:hover {
+  background: var(--soft);
 }
 
 .estado-badge {
@@ -39,12 +53,12 @@
 }
 
 .estado-badge--verificando {
-  color: #475569;
+  color: var(--muted);
   background: #f1f5f9;
 }
 
 .estado-badge--disponivel {
-  color: #15803d;
+  color: var(--green);
   background: #dcfce7;
 }
 
@@ -54,7 +68,7 @@
 }
 
 .estado-badge--indisponivel {
-  color: #b91c1c;
+  color: var(--red);
   background: #fee2e2;
 }
 
@@ -62,12 +76,18 @@
   min-width: 44px;
   min-height: 44px;
   padding: 0.6rem 1.1rem;
-  border: 1px solid #cbd5f5;
-  border-radius: 0.5rem;
-  background: #ffffff;
-  color: #0f172a;
+  border: 1px solid var(--navy);
+  border-radius: 5px;
+  background: var(--white);
+  color: var(--navy);
   font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
+}
+
+.botao-reverificar:hover {
+  background: var(--soft);
 }
 
 .botao-reverificar:disabled {
@@ -76,6 +96,6 @@
 }
 
 .botao-reverificar:focus-visible {
-  outline: 3px solid #1d4ed8;
+  outline: 3px solid var(--amber);
   outline-offset: 2px;
 }

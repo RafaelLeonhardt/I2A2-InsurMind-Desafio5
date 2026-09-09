@@ -11,15 +11,16 @@
 .modal {
   width: min(32rem, 100%);
   padding: 1.75rem;
-  border-radius: 0.75rem;
-  background: #ffffff;
-  color: #0f172a;
-  box-shadow: 0 1.25rem 3rem rgb(15 23 42 / 25%);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--navy);
+  box-shadow: 0 1.25rem 3rem rgb(6 29 69 / 25%);
 }
 
 .modal h2 {
   margin: 0 0 1rem;
-  font-size: 1.25rem;
+  font-family: 'Roboto Condensed', sans-serif;
+  font-size: 1.3rem;
 }
 
 .modal-descricao {
@@ -32,11 +33,12 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: #475569;
+  color: var(--muted);
 }
 
 .modal-descricao dd {
   margin: 0.15rem 0 0;
+  font-weight: 600;
 }
 
 .modal-acoes {
@@ -47,27 +49,38 @@
 }
 
 .modal-acoes button {
-  padding: 0.6rem 1.1rem;
-  border: 1px solid #cbd5f5;
-  border-radius: 0.5rem;
-  background: #ffffff;
-  color: #0f172a;
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border: 1px solid var(--navy);
+  border-radius: 5px;
+  background: var(--white);
+  color: var(--navy);
   font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
 }
 
+.modal-acoes button:hover {
+  background: var(--soft);
+}
+
 .modal-acoes button:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
 .modal-acoes .modal-confirmar {
-  border-color: #1d4ed8;
-  background: #1d4ed8;
-  color: #ffffff;
+  border-color: var(--navy);
+  background: var(--navy);
+  color: var(--white);
+}
+
+.modal-acoes .modal-confirmar:hover {
+  background: var(--blue);
 }
 
 .modal-acoes button:focus-visible {
-  outline: 3px solid #1d4ed8;
+  outline: 3px solid var(--amber);
   outline-offset: 2px;
 }
