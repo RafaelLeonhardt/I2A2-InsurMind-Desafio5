@@ -23,6 +23,15 @@ button:focus-visible, a:focus-visible, main:focus-visible { outline: 3px solid v
 
 .navegacao {
   grid-row: 1 / 4;
+  /* `position:sticky` + `height:100vh` prende a lateral a exatamente uma altura de
+     viewport (como no protótipo). Sem isso, `grid-row:1/4` esticava `.navegacao` até a
+     altura da coluna de conteúdo mais alta — no Segurado, com 5 superfícies empilhadas,
+     isso passava de 2500px, e `background-size:cover` ampliava a imagem a ponto de só
+     sobrar céu escuro visível (prédios e coqueiros ficavam bem abaixo da dobra). */
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
   padding: 1.5rem 0;
   color: #eaf4ff;
   background-color: rgba(3, 22, 52, .84);
@@ -338,7 +347,7 @@ h3 { margin: 0 0 .85rem; font-size: .95rem; text-transform: uppercase; letter-sp
 
 @media (max-width: 1023px) {
   .aplicacao { display: block; padding-bottom: 68px; }
-  .navegacao { padding: 1rem 0; }
+  .navegacao { position: static; height: auto; padding: 1rem 0; }
   .navegacao ul { display: flex; overflow-x: auto; padding: 0 .5rem; }
   .marca { margin-bottom: 1rem; padding-inline: 1rem; }
   .navegacao > .rotulo-contexto, .selo-lateral { display: none; }
