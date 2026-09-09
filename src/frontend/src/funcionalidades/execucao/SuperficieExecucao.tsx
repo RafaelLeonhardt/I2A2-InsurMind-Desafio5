@@ -8,7 +8,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { type Execucao, ErroExecucao, getExecucao } from '../../api/execucao'
 import { usePerfilContexto } from '../../contexto/PerfilContexto'
 import { SuperficieEventoDecisao } from '../evento-decisao/SuperficieEventoDecisao'
+import { SuperficiePreparacaoIA } from '../preparacao-ia/SuperficiePreparacaoIA'
 import './SuperficieExecucao.css'
+
+const ESTADOS_PREPARACAO_IA: ReadonlySet<string> = new Set([
+  'aguardando_geracao',
+  'falhou_preparacao_ia',
+])
 
 const INTERVALO_POLLING_MS = 1500
 
@@ -189,6 +195,7 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
   // não só quando a execução chega em aguardando_geracao.
   const mostrarDecisaoDeRisco =
     execucao !== null && execucao.estado !== 'coletando' && execucao.estado !== 'falhou_coleta'
+  const mostrarPreparacaoIa = execucao !== null && ESTADOS_PREPARACAO_IA.has(execucao.estado)
 
   return (
     <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
@@ -240,7 +247,9 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
         </section>
       )}
 
-      {execucao && (execucao.execucaoOrigemId !== null || execucao.retentativas.length > 0) && (
+      {execucao &&
+        !mostrarPreparacaoIa &&
+        (execucao.execucaoOrigemId !== null || execucao.retentativas.length > 0) && (
         <section aria-labelledby="titulo-execucoes-correlacionadas">
           <h2 id="titulo-execucoes-correlacionadas">Execuções correlacionadas</h2>
           {execucao.execucaoOrigemId !== null && (
@@ -278,6 +287,10 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
       )}
 
       {mostrarDecisaoDeRisco && <SuperficieEventoDecisao embutido execucaoId={execucaoId} />}
+
+      {mostrarPreparacaoIa && (
+        <SuperficiePreparacaoIA aoNavegar={abrirExecucao} execucaoId={execucaoId} />
+      )}
     </main>
   )
 }

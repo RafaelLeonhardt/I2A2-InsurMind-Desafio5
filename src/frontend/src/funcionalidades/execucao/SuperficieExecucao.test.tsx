@@ -295,8 +295,10 @@ describe('superfície de execução', () => {
     const excecao = await screen.findByText('Falha técnica não recuperável')
     expect(excecao.closest('[data-categoria]')).toHaveAttribute('data-categoria', 'excecao')
     expect(
-      screen.getByText('ErroIntegracaoIA: contexto mínimo indisponível'),
-    ).toBeInTheDocument()
+      excecao
+        .closest('[data-categoria]')
+        ?.textContent?.includes('ErroIntegracaoIA: contexto mínimo indisponível'),
+    ).toBe(true)
   })
 
   it('embute a decisão de risco também em sem_risco, para explicar por que o evento foi sem risco', async () => {
@@ -325,9 +327,9 @@ describe('superfície de execução', () => {
     const ORIGEM_ID = '99999999-9999-9999-9999-999999999999'
     getExecucao.mockResolvedValue(
       execucao({
-        estado: 'falhou_preparacao_ia',
+        estado: 'falhou_coleta',
         marcos: [
-          { marco: 'falhou_preparacao_ia', causa: 'erro sintético', criadoEm: '2026-08-30T12:00:00Z' },
+          { marco: 'falhou_coleta', causa: 'erro sintético', criadoEm: '2026-08-30T12:00:00Z' },
         ],
         execucaoOrigemId: ORIGEM_ID,
       }),
@@ -373,6 +375,65 @@ describe('superfície de execução', () => {
     await screen.findByText('Encerrado — evento sem risco relevante')
     expect(
       screen.queryByRole('heading', { name: 'Execuções correlacionadas' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('embute a preparação de IA em aguardando_geracao, com aoNavegar navegando para a origem', async () => {
+    const usuario = userEvent.setup()
+    const ORIGEM_ID = '77777777-7777-7777-7777-777777777777'
+    getExecucao.mockResolvedValue(
+      execucao({
+        estado: 'aguardando_geracao',
+        marcos: [{ marco: 'aguardando_geracao', causa: null, criadoEm: '2026-08-30T12:00:00Z' }],
+        execucaoOrigemId: ORIGEM_ID,
+      }),
+    )
+    renderizar()
+
+    expect(
+      await screen.findByRole('heading', { name: 'Preparação da produção de mensagens' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'Execuções correlacionadas' }),
+    ).not.toBeInTheDocument()
+
+    await usuario.click(await screen.findByRole('button', { name: 'Ver execução de origem' }))
+    expect(screen.getByTestId('superficie-ativa')).toHaveTextContent(
+      JSON.stringify({ tipo: 'evento-execucao', execucaoId: ORIGEM_ID, perfilPai: 'administrador' }),
+    )
+  })
+
+  it('embute a preparação de IA (bloqueio) em falhou_preparacao_ia, sem duplicar execuções correlacionadas', async () => {
+    getExecucao.mockResolvedValue(
+      execucao({
+        estado: 'falhou_preparacao_ia',
+        marcos: [
+          {
+            marco: 'falhou_preparacao_ia',
+            causa: 'ErroIntegracaoIA: contexto mínimo indisponível',
+            criadoEm: '2026-08-30T12:00:00Z',
+          },
+        ],
+      }),
+    )
+    const { container } = renderizar()
+
+    expect(
+      await screen.findByRole('heading', { name: 'Preparação da produção de mensagens' }),
+    ).toBeInTheDocument()
+    expect(container.querySelectorAll('h1, h2').length).toBeGreaterThan(0)
+    expect(
+      screen.queryByRole('heading', { name: 'Execuções correlacionadas' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('não embute a preparação de IA fora de aguardando_geracao/falhou_preparacao_ia', async () => {
+    getExecucao.mockResolvedValue(execucao({ estado: 'sem_risco', marcos: [] }))
+    renderizar()
+
+    await screen.findByText('Encerrado — evento sem risco relevante')
+    expect(
+      screen.queryByRole('heading', { name: 'Preparação da produção de mensagens' }),
     ).not.toBeInTheDocument()
   })
 })
