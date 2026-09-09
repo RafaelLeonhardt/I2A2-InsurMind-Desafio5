@@ -11,6 +11,10 @@ from central_preventiva.dominio.estados_prontidao import EstadoProntidao
 TIMEOUT_SEGUNDOS = 3.0
 """Timeout da sonda (ping de prontidão), não o timeout do adaptador de produção."""
 
+CABECALHOS = {"User-Agent": "central-preventiva-backend/0.1.0"}
+"""O WAF do INMET derruba a conexão para User-Agents padrão de bibliotecas HTTP
+(ex.: `python-httpx/...`, `curl/...`); um identificador de aplicação evita o bloqueio."""
+
 ORCAMENTO_LATENCIA_SEGUNDOS = 1.5
 """Acima deste tempo, uma resposta 2xx é classificada como `DEGRADADA`."""
 
@@ -44,7 +48,7 @@ class SondaInmet:
         inicio = self._medir_tempo()
         try:
             async with httpx.AsyncClient(
-                transport=self._transport, timeout=TIMEOUT_SEGUNDOS
+                transport=self._transport, timeout=TIMEOUT_SEGUNDOS, headers=CABECALHOS
             ) as cliente:
                 resposta = await cliente.get(self._url_base)
         except httpx.TimeoutException:

@@ -9,6 +9,10 @@ from central_preventiva.aplicacao.portas_meteorologia import AreaMonitorada, Res
 TIMEOUT_SEGUNDOS = 5.0
 """Timeout da coleta de produção (distinto dos 3s da sonda de prontidão, que só faz ping)."""
 
+CABECALHOS = {"User-Agent": "central-preventiva-backend/0.1.0"}
+"""O WAF do INMET derruba a conexão para User-Agents padrão de bibliotecas HTTP
+(ex.: `python-httpx/...`, `curl/...`); um identificador de aplicação evita o bloqueio."""
+
 
 class ClienteInmet:
     """Executa uma única chamada HTTP real ao INMET, sem normalizar nem tratar falhas."""
@@ -30,7 +34,7 @@ class ClienteInmet:
         data_hoje = date.today().isoformat()
         caminho = f"/estacao/dados/{data_hoje}/{area.codigo_estacao_inmet}"
         async with httpx.AsyncClient(
-            transport=self._transport, timeout=TIMEOUT_SEGUNDOS
+            transport=self._transport, timeout=TIMEOUT_SEGUNDOS, headers=CABECALHOS
         ) as cliente:
             resposta = await cliente.get(f"{self._url_base}{caminho}")
 
