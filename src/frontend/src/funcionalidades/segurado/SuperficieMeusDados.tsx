@@ -127,7 +127,9 @@ export function SuperficieMeusDados({
   if (estado === 'carregando') {
     return (
       <ElementoRaiz className="conteudo" {...atributosRaiz}>
-        <p role="status">Carregando suas preferências…</p>
+        <p className="caixa-status" role="status">
+          Carregando suas preferências…
+        </p>
       </ElementoRaiz>
     )
   }
@@ -135,7 +137,7 @@ export function SuperficieMeusDados({
   if (estado === 'erro') {
     return (
       <ElementoRaiz className="conteudo" {...atributosRaiz}>
-        <div role="alert">
+        <div className="caixa-status" role="alert">
           <h1>Não foi possível carregar suas preferências</h1>
           <p>
             <strong>Ocorrência:</strong> {falha?.ocorrencia}
@@ -146,7 +148,7 @@ export function SuperficieMeusDados({
           <p>
             <strong>Próxima ação:</strong> {falha?.proximaAcao}
           </p>
-          <button onClick={() => void carregar()} type="button">
+          <button className="btn secondary" onClick={() => void carregar()} type="button">
             Tentar novamente
           </button>
         </div>
@@ -164,7 +166,7 @@ export function SuperficieMeusDados({
         outro cadastro é editável nesta versão.
       </p>
 
-      <form onSubmit={salvar}>
+      <form className="cartao" onSubmit={salvar}>
         <div className="campo-formulario">
           <label htmlFor="campo-canal-preferido">Canal preferencial</label>
           <select
@@ -201,16 +203,24 @@ export function SuperficieMeusDados({
           )}
         </div>
 
-        <button disabled={estadoSalvamento === 'salvando'} type="submit">
+        <button className="btn" disabled={estadoSalvamento === 'salvando'} type="submit">
           {estadoSalvamento === 'salvando' ? 'Salvando…' : 'Salvar'}
         </button>
       </form>
 
-      {estadoSalvamento === 'salvando' && <p role="status">Salvando…</p>}
-      {estadoSalvamento === 'salvo' && <p role="status">Salvo</p>}
+      {estadoSalvamento === 'salvando' && (
+        <p className="caixa-status" role="status">
+          Salvando…
+        </p>
+      )}
+      {estadoSalvamento === 'salvo' && (
+        <p className="caixa-status" role="status">
+          Salvo
+        </p>
+      )}
 
       {estadoSalvamento === 'erro' && falhaSalvamento && (
-        <div role="alert">
+        <div className="caixa-status" role="alert">
           <p>
             <strong>Ocorrência:</strong> {falhaSalvamento.ocorrencia}
           </p>

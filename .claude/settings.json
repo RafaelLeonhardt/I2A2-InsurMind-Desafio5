@@ -73,7 +73,9 @@
       "Bash(python3 - /private/tmp/claude-501/-Users-rafael-Documents-git-I2A2-insur-minds-Desafio5/003b514d-781b-4c06-b00f-9ed5b0cd9e42/scratchpad/sensor/src/frontend/src/funcionalidades/dados-sinteticos/RestaurarDemonstracao.tsx)",
       "Bash(PYTHONPATH=/private/tmp/claude-501/-Users-rafael-Documents-git-I2A2-insur-minds-Desafio5/003b514d-781b-4c06-b00f-9ed5b0cd9e42/scratchpad/base/src/backend /Users/rafael/Documents/git/I2A2/insur-minds/Desafio5/src/backend/.venv/bin/python -m pytest --collect-only -q)",
       "Bash(PYTHONPATH=/private/tmp/claude-501/-Users-rafael-Documents-git-I2A2-insur-minds-Desafio5/003b514d-781b-4c06-b00f-9ed5b0cd9e42/scratchpad/base/src/backend /Users/rafael/Documents/git/I2A2/insur-minds/Desafio5/src/backend/.venv/bin/python -m pytest)",
-      "Bash(python3 .claude/skills/tlc-spec-driven/scripts/check_commit.py --message \"docs\\(specs\\): registrar validacao PASS e status final da historia 1.2\")"
+      "Bash(python3 .claude/skills/tlc-spec-driven/scripts/check_commit.py --message \"docs\\(specs\\): registrar validacao PASS e status final da historia 1.2\")",
+      "Bash(curl -s http://127.0.0.1:8000/api/v1/segurados)",
+      "Bash(curl -s http://127.0.0.1:8000/api/v1/segurados/padrao)"
     ]
   }
 }

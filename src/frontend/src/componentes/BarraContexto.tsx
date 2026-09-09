@@ -93,7 +93,7 @@ export function BarraContexto() {
         <span className="rotulo-contexto">Data e hora de referência</span>
         <strong>{dataHoraReferencia}</strong>
       </div>
-      <button className="seletor-demonstrativo" onClick={trocarPerfil} type="button">
+      <button className="btn secondary" onClick={trocarPerfil} type="button">
         <ArrowsLeftRightIcon aria-hidden="true" size={18} />
         Visualizar como {ROTULOS_PERFIL[PERFIL_OPOSTO[perfil]]}
       </button>

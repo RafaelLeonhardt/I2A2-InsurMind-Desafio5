@@ -109,10 +109,14 @@ export function SuperficieComunicado({
       <p className="rotulo-contexto">Comunicado</p>
       <h1>Seu comunicado preventivo</h1>
 
-      {estadoCarregamento === 'carregando' && <p role="status">Carregando comunicado…</p>}
+      {estadoCarregamento === 'carregando' && (
+        <p className="caixa-status" role="status">
+          Carregando comunicado…
+        </p>
+      )}
 
       {estadoCarregamento === 'indisponivel' && (
-        <div role="alert">
+        <div className="caixa-status" role="alert">
           <p>
             <strong>Ocorrência:</strong>{' '}
             {falhaComunicado?.ocorrencia ?? 'Falha desconhecida ao consultar o comunicado.'}
@@ -176,7 +180,7 @@ export function SuperficieComunicado({
                 <strong>Impacto:</strong>{' '}
                 {falhaVisualizacao?.impacto ?? 'A visualização ainda não está confirmada.'}
               </p>
-              <button onClick={() => void registrarAbertura()} type="button">
+              <button className="btn secondary" onClick={() => void registrarAbertura()} type="button">
                 Tentar novamente
               </button>
             </div>

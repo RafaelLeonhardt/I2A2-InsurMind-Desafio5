@@ -124,7 +124,9 @@ export function SuperficieComunicados({
   if (estadoLista === 'carregando') {
     return (
       <ElementoRaiz className="conteudo" {...atributosRaiz}>
-        <p role="status">Carregando comunicados…</p>
+        <p className="caixa-status" role="status">
+          Carregando comunicados…
+        </p>
       </ElementoRaiz>
     )
   }
@@ -132,7 +134,7 @@ export function SuperficieComunicados({
   if (estadoLista === 'erro') {
     return (
       <ElementoRaiz className="conteudo" {...atributosRaiz}>
-        <div role="alert">
+        <div className="caixa-status" role="alert">
           <h1>Não foi possível carregar seus comunicados</h1>
           <p>
             <strong>Ocorrência:</strong> {falhaLista?.ocorrencia}
@@ -143,7 +145,7 @@ export function SuperficieComunicados({
           <p>
             <strong>Próxima ação:</strong> {falhaLista?.proximaAcao}
           </p>
-          <button onClick={() => void carregarLista()} type="button">
+          <button className="btn secondary" onClick={() => void carregarLista()} type="button">
             Tentar novamente
           </button>
         </div>
@@ -158,7 +160,7 @@ export function SuperficieComunicados({
         <p aria-live="polite" className="sr-only">
           {anuncio}
         </p>
-        <button onClick={voltarParaLista} ref={botaoVoltarRef} type="button">
+        <button className="btn secondary" onClick={voltarParaLista} ref={botaoVoltarRef} type="button">
           Voltar à lista
         </button>
         <SuperficieComunicado
@@ -178,7 +180,7 @@ export function SuperficieComunicados({
           Você ainda não tem nenhum comunicado simulado. Enquanto isso, você pode consultar
           Alertas, Apólice ou Meus Dados no menu lateral.
         </p>
-        <button onClick={() => void carregarLista()} type="button">
+        <button className="btn secondary" onClick={() => void carregarLista()} type="button">
           Atualizar
         </button>
       </ElementoRaiz>
@@ -188,7 +190,7 @@ export function SuperficieComunicados({
   return (
     <ElementoRaiz className="conteudo" {...atributosRaiz}>
       <h1>Seus comunicados</h1>
-      <table>
+      <table className="tabela">
         <caption className="sr-only">Lista de comunicados simulados</caption>
         <thead>
           <tr>
@@ -208,6 +210,7 @@ export function SuperficieComunicados({
               <td>{rotuloEstado(item)}</td>
               <td>
                 <button
+                  className="btn secondary"
                   id={`botao-detalhe-${item.entregaSimuladaId}`}
                   onClick={() => abrirDetalhe(item.entregaSimuladaId)}
                   type="button"

@@ -20,7 +20,7 @@ export function ContextoInconsistente({
       <p className="introducao">
         O contexto solicitado está ausente ou não é compatível com o perfil ativo no momento.
       </p>
-      <button onClick={aoVoltar} type="button">
+      <button className="btn secondary" onClick={aoVoltar} type="button">
         Voltar para a Visão geral
       </button>
     </main>

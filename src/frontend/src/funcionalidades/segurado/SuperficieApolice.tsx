@@ -1,3 +1,10 @@
+import {
+  CalendarDotsIcon,
+  HouseIcon,
+  MapPinIcon,
+  ShieldCheckIcon,
+  UserIcon,
+} from '@phosphor-icons/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   type ApoliceSegurado,
@@ -154,7 +161,9 @@ export function SuperficieApolice({
   if (estado === 'carregando') {
     return (
       <ElementoRaiz className="conteudo" {...atributosRaiz}>
-        <p role="status">Carregando apólice…</p>
+        <p className="caixa-status" role="status">
+          Carregando apólice…
+        </p>
       </ElementoRaiz>
     )
   }
@@ -171,7 +180,7 @@ export function SuperficieApolice({
   if (estado === 'erro') {
     return (
       <ElementoRaiz className="conteudo" {...atributosRaiz}>
-        <div role="alert">
+        <div className="caixa-status" role="alert">
           <h1>Não foi possível carregar sua apólice</h1>
           <p>
             <strong>Ocorrência:</strong> {falha?.ocorrencia}
@@ -182,7 +191,7 @@ export function SuperficieApolice({
           <p>
             <strong>Próxima ação:</strong> {falha?.proximaAcao}
           </p>
-          <button onClick={() => void carregar()} type="button">
+          <button className="btn secondary" onClick={() => void carregar()} type="button">
             Tentar novamente
           </button>
         </div>
@@ -199,46 +208,76 @@ export function SuperficieApolice({
         Situação atual: <strong>{rotuloEstadoObjetivo(apolice.estadoObjetivo)}</strong>
       </p>
 
-      <dl>
-        <div>
-          <dt>Número</dt>
-          <dd>{apolice.numero}</dd>
+      <dl className="grade-icones">
+        <div className="cartao-contexto">
+          <i aria-hidden="true">
+            <ShieldCheckIcon size={22} />
+          </i>
+          <div>
+            <dt>Número</dt>
+            <dd>{apolice.numero}</dd>
+          </div>
         </div>
-        <div>
-          <dt>Tipo</dt>
-          <dd>{rotuloTipo(apolice.tipo)}</dd>
+        <div className="cartao-contexto">
+          <i aria-hidden="true">
+            <HouseIcon size={22} />
+          </i>
+          <div>
+            <dt>Tipo</dt>
+            <dd>{rotuloTipo(apolice.tipo)}</dd>
+          </div>
         </div>
-        <div>
-          <dt>Vigência</dt>
-          <dd>
-            {apolice.vigenciaInicio} a {apolice.vigenciaFim}
-          </dd>
+        <div className="cartao-contexto">
+          <i aria-hidden="true">
+            <CalendarDotsIcon size={22} />
+          </i>
+          <div>
+            <dt>Vigência</dt>
+            <dd>
+              {apolice.vigenciaInicio} a {apolice.vigenciaFim}
+            </dd>
+          </div>
         </div>
-        <div>
-          <dt>Endereço do risco</dt>
-          <dd>{apolice.enderecoRiscoSintetico}</dd>
+        <div className="cartao-contexto">
+          <i aria-hidden="true">
+            <MapPinIcon size={22} />
+          </i>
+          <div>
+            <dt>Endereço do risco</dt>
+            <dd>{apolice.enderecoRiscoSintetico}</dd>
+          </div>
         </div>
       </dl>
 
-      <section aria-labelledby="titulo-coberturas-apolice">
+      <section aria-labelledby="titulo-coberturas-apolice" className="secao-alerta">
         <h2 id="titulo-coberturas-apolice">Coberturas</h2>
-        <ul>
+        <ul className="grade-icones">
           {apolice.coberturas.map((cobertura) => (
             <li key={cobertura}>{cobertura}</li>
           ))}
         </ul>
       </section>
 
-      <section aria-labelledby="titulo-preferencias-apolice">
+      <section aria-labelledby="titulo-preferencias-apolice" className="secao-alerta">
         <h2 id="titulo-preferencias-apolice">Preferências de comunicação</h2>
         <dl>
-          <div>
-            <dt>Canal preferencial</dt>
-            <dd>{rotuloCanal(apolice.canalPreferido)}</dd>
+          <div className="cartao-contexto">
+            <i aria-hidden="true">
+              <UserIcon size={22} />
+            </i>
+            <div>
+              <dt>Canal preferencial</dt>
+              <dd>{rotuloCanal(apolice.canalPreferido)}</dd>
+            </div>
           </div>
-          <div>
-            <dt>Participação em alertas</dt>
-            <dd>{apolice.participaDeAlertas ? 'Participando' : 'Não participando'}</dd>
+          <div className="cartao-contexto">
+            <i aria-hidden="true">
+              <ShieldCheckIcon size={22} />
+            </i>
+            <div>
+              <dt>Participação em alertas</dt>
+              <dd>{apolice.participaDeAlertas ? 'Participando' : 'Não participando'}</dd>
+            </div>
           </div>
         </dl>
         <p className="aviso-efeito-futuro">
@@ -248,17 +287,21 @@ export function SuperficieApolice({
       </section>
 
       {elegibilidadeIdExplicacao && (
-        <section aria-labelledby="titulo-explicacao-apolice">
+        <section aria-labelledby="titulo-explicacao-apolice" className="secao-alerta">
           <h2 id="titulo-explicacao-apolice">Como sua apólice participou desta decisão</h2>
 
-          {estadoExplicacao === 'carregando' && <p role="status">Carregando explicação…</p>}
+          {estadoExplicacao === 'carregando' && (
+            <p className="caixa-status" role="status">
+              Carregando explicação…
+            </p>
+          )}
 
           {estadoExplicacao === 'nao_encontrada' && (
             <p>Esta explicação não existe ou não pertence a você.</p>
           )}
 
           {estadoExplicacao === 'erro' && (
-            <div role="alert">
+            <div className="caixa-status" role="alert">
               <p>
                 <strong>Ocorrência:</strong> {falhaExplicacao?.ocorrencia}
               </p>
@@ -274,7 +317,7 @@ export function SuperficieApolice({
                 Esta explicação mostra como cada critério foi comparado; ela não confirma
                 cobertura, indenização nem decisão de sinistro.
               </p>
-              <ul>
+              <ul className="lista-marcada">
                 {explicacao.criterios.map((criterio) => (
                   <li key={criterio.operando}>
                     <strong>{criterio.operando}:</strong> {criterio.justificativa}

@@ -1,7 +1,10 @@
 import {
+  CalendarDotsIcon,
   ClockCounterClockwiseIcon,
+  DatabaseIcon,
   FlaskIcon,
   HourglassIcon,
+  MapPinIcon,
   WarningIcon,
 } from '@phosphor-icons/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -77,6 +80,12 @@ function IconeClassificacao({ classificacao }: { classificacao: ClassificacaoAle
       size={16}
     />
   )
+}
+
+const TONS_CLASSIFICACAO: Record<ClassificacaoAlerta, 'alto' | 'medio' | 'neutro'> = {
+  ativo: 'alto',
+  ainda_nao_simulado: 'medio',
+  anterior: 'neutro',
 }
 
 function falhaDe(causa: unknown): FalhaAlertas {
@@ -201,7 +210,9 @@ export function SuperficieAlertas({
   if (estadoLista === 'carregando') {
     return (
       <ElementoRaiz className="conteudo" {...atributosRaiz}>
-        <p role="status">Carregando alertas…</p>
+        <p className="caixa-status" role="status">
+          Carregando alertas…
+        </p>
       </ElementoRaiz>
     )
   }
@@ -209,7 +220,7 @@ export function SuperficieAlertas({
   if (estadoLista === 'erro') {
     return (
       <ElementoRaiz className="conteudo" {...atributosRaiz}>
-        <div role="alert">
+        <div className="caixa-status" role="alert">
           <h1>Não foi possível carregar seus alertas</h1>
           <p>
             <strong>Ocorrência:</strong> {falhaLista?.ocorrencia}
@@ -220,7 +231,7 @@ export function SuperficieAlertas({
           <p>
             <strong>Próxima ação:</strong> {falhaLista?.proximaAcao}
           </p>
-          <button onClick={() => void carregarLista()} type="button">
+          <button className="btn secondary" onClick={() => void carregarLista()} type="button">
             Tentar novamente
           </button>
         </div>
@@ -234,14 +245,18 @@ export function SuperficieAlertas({
         <p aria-live="polite" className="sr-only">
           {anuncio}
         </p>
-        <button onClick={voltarParaLista} type="button">
+        <button className="btn secondary" onClick={voltarParaLista} type="button">
           Voltar à lista
         </button>
 
-        {estadoDetalhe === 'carregando' && <p role="status">Carregando detalhe…</p>}
+        {estadoDetalhe === 'carregando' && (
+          <p className="caixa-status" role="status">
+            Carregando detalhe…
+          </p>
+        )}
 
         {estadoDetalhe === 'nao_encontrado' && (
-          <div role="alert">
+          <div className="caixa-status" role="alert">
             <h1 ref={tituloDetalheRef} tabIndex={-1}>
               Não encontrado
             </h1>
@@ -250,7 +265,7 @@ export function SuperficieAlertas({
         )}
 
         {estadoDetalhe === 'erro' && (
-          <div role="alert">
+          <div className="caixa-status" role="alert">
             <h1 ref={tituloDetalheRef} tabIndex={-1}>
               Não foi possível carregar o detalhe
             </h1>
@@ -271,68 +286,82 @@ export function SuperficieAlertas({
             <h1 ref={tituloDetalheRef} tabIndex={-1}>
               {rotuloEvento(detalhe.alerta.eventoTipo)}
             </h1>
-            <p className="nivel-risco">
+            <p className="nivel-risco badge" data-tom={TONS_CLASSIFICACAO[detalhe.classificacao]}>
               <IconeClassificacao classificacao={detalhe.classificacao} />
               {ROTULOS_CLASSIFICACAO[detalhe.classificacao]}
             </p>
 
             {detalhe.classificacao === 'ainda_nao_simulado' && (
-              <p role="status">
+              <p className="caixa-status" role="status">
                 Ainda não simulado — nenhum comunicado foi produzido para este alerta.
               </p>
             )}
 
             <dl>
-              <div>
-                <dt>Origem</dt>
-                <dd>
-                  {detalhe.alerta.origem === 'sintetico' && (
-                    <FlaskIcon aria-hidden="true" size={16} weight="fill" />
+              <div className="cartao-contexto">
+                <i aria-hidden="true">
+                  {detalhe.alerta.origem === 'sintetico' ? (
+                    <FlaskIcon size={22} weight="fill" />
+                  ) : (
+                    <DatabaseIcon size={22} />
                   )}
-                  {rotuloOrigem(detalhe.alerta.origem)}
-                </dd>
+                </i>
+                <div>
+                  <dt>Origem</dt>
+                  <dd>{rotuloOrigem(detalhe.alerta.origem)}</dd>
+                </div>
               </div>
-              <div>
-                <dt>Período</dt>
-                <dd>
-                  {detalhe.alerta.periodoInicio} a {detalhe.alerta.periodoFim}
-                </dd>
+              <div className="cartao-contexto">
+                <i aria-hidden="true">
+                  <CalendarDotsIcon size={22} />
+                </i>
+                <div>
+                  <dt>Período</dt>
+                  <dd>
+                    {detalhe.alerta.periodoInicio} a {detalhe.alerta.periodoFim}
+                  </dd>
+                </div>
               </div>
-              <div>
-                <dt>Localização</dt>
-                <dd>{detalhe.alerta.localizacao}</dd>
+              <div className="cartao-contexto">
+                <i aria-hidden="true">
+                  <MapPinIcon size={22} />
+                </i>
+                <div>
+                  <dt>Localização</dt>
+                  <dd>{detalhe.alerta.localizacao}</dd>
+                </div>
               </div>
             </dl>
 
-            <section aria-labelledby="titulo-impactos-alerta">
+            <section aria-labelledby="titulo-impactos-alerta" className="secao-alerta">
               <h2 id="titulo-impactos-alerta">Impactos esperados</h2>
-              <ul>
+              <ul className="grade-icones">
                 {detalhe.alerta.impactosEsperados.map((impacto) => (
                   <li key={impacto}>{impacto}</li>
                 ))}
               </ul>
             </section>
 
-            <section aria-labelledby="titulo-recomendacoes-alerta">
+            <section aria-labelledby="titulo-recomendacoes-alerta" className="secao-alerta">
               <h2 id="titulo-recomendacoes-alerta">Recomendações</h2>
-              <ul>
+              <ul className="lista-marcada">
                 {detalhe.alerta.recomendacoes.map((recomendacao) => (
                   <li key={recomendacao}>{recomendacao}</li>
                 ))}
               </ul>
             </section>
 
-            <section aria-labelledby="titulo-contexto-apolice">
+            <section aria-labelledby="titulo-contexto-apolice" className="secao-alerta">
               <h2 id="titulo-contexto-apolice">Contexto da apólice</h2>
               <p>{detalhe.justificativa}</p>
             </section>
 
-            <section aria-labelledby="titulo-linha-do-tempo-alerta">
+            <section aria-labelledby="titulo-linha-do-tempo-alerta" className="secao-alerta">
               <h2 id="titulo-linha-do-tempo-alerta">Linha do tempo</h2>
               {detalhe.linhaDoTempo.length === 0 ? (
                 <p>Nenhum marco disponível para este alerta.</p>
               ) : (
-                <ul>
+                <ul className="linha-do-tempo">
                   {detalhe.linhaDoTempo.map((marco, indice) => (
                     <li key={`${marco.timestamp}-${indice}`}>
                       {marco.timestamp} — {marco.acao}: {marco.resultado}
@@ -352,7 +381,7 @@ export function SuperficieAlertas({
       <ElementoRaiz className="conteudo" {...atributosRaiz}>
         <h1>Nenhum alerta no momento</h1>
         <p className="introducao">Você ainda não tem nenhum alerta ativo ou anterior.</p>
-        <button onClick={() => void carregarLista()} type="button">
+        <button className="btn secondary" onClick={() => void carregarLista()} type="button">
           Atualizar
         </button>
       </ElementoRaiz>
@@ -362,7 +391,7 @@ export function SuperficieAlertas({
   return (
     <ElementoRaiz className="conteudo" {...atributosRaiz}>
       <h1>Seus alertas</h1>
-      <table>
+      <table className="tabela">
         <caption className="sr-only">Lista de alertas ativos e anteriores</caption>
         <thead>
           <tr>
@@ -386,13 +415,14 @@ export function SuperficieAlertas({
               <td>{item.alerta.localizacao}</td>
               <td>{rotuloOrigem(item.alerta.origem)}</td>
               <td>
-                <span className="nivel-risco">
+                <span className="nivel-risco badge" data-tom={TONS_CLASSIFICACAO[item.classificacao]}>
                   <IconeClassificacao classificacao={item.classificacao} />
                   {ROTULOS_CLASSIFICACAO[item.classificacao]}
                 </span>
               </td>
               <td>
                 <button
+                  className="btn secondary"
                   id={`botao-detalhe-${item.alerta.elegibilidadeId}`}
                   onClick={() => void abrirDetalhe(item.alerta.elegibilidadeId)}
                   type="button"

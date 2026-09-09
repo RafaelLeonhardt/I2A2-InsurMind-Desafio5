@@ -1,4 +1,12 @@
-import { CalendarDotsIcon, CloudRainIcon, FlaskIcon, WarningIcon } from '@phosphor-icons/react'
+import {
+  CalendarDotsIcon,
+  CheckCircleIcon,
+  CloudRainIcon,
+  DatabaseIcon,
+  FlaskIcon,
+  MapPinIcon,
+  WarningIcon,
+} from '@phosphor-icons/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   type AlertaSegurado,
@@ -98,11 +106,19 @@ export function VisaoGeralSegurado({ seguradoId }: PropriedadesVisaoGeralSegurad
       <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
         <p className="rotulo-contexto">Visão geral preventiva</p>
 
-        {estado === 'carregando' && <p role="status">Carregando alerta…</p>}
-        {estado === 'contexto_trocando' && <p role="status">Contexto trocando…</p>}
+        {estado === 'carregando' && (
+          <p className="caixa-status" role="status">
+            Carregando alerta…
+          </p>
+        )}
+        {estado === 'contexto_trocando' && (
+          <p className="caixa-status" role="status">
+            Contexto trocando…
+          </p>
+        )}
 
         {estado === 'erro' && (
-          <div role="alert">
+          <div className="caixa-status" role="alert">
             {resolvidoAoMenosUmaVez ? (
               <p>
                 <strong>Não foi possível atualizar seu alerta.</strong>
@@ -119,7 +135,7 @@ export function VisaoGeralSegurado({ seguradoId }: PropriedadesVisaoGeralSegurad
             <p>
               <strong>Próxima ação:</strong> {falha?.proximaAcao}
             </p>
-            <button onClick={() => void carregar()} type="button">
+            <button className="btn secondary" onClick={() => void carregar()} type="button">
               Tentar novamente
             </button>
           </div>
@@ -127,13 +143,18 @@ export function VisaoGeralSegurado({ seguradoId }: PropriedadesVisaoGeralSegurad
 
         {(estado === 'sem_alerta' ||
           (estado === 'erro' && resolvidoAoMenosUmaVez && !alerta)) && (
-          <>
-            <h1>Nenhum alerta relevante no momento</h1>
-            <p className="introducao">
-              Não há nenhum evento meteorológico relevante associado à sua apólice no
-              momento.
-            </p>
-          </>
+          <section aria-labelledby="titulo-sem-alerta" className="alerta-principal">
+            <div aria-hidden="true" className="icone-alerta icone-alerta--sucesso">
+              <CheckCircleIcon size={32} weight="fill" />
+            </div>
+            <div>
+              <h1 id="titulo-sem-alerta">Nenhum alerta relevante no momento</h1>
+              <p className="introducao">
+                Não há nenhum evento meteorológico relevante associado à sua apólice no
+                momento.
+              </p>
+            </div>
+          </section>
         )}
 
         {(estado === 'alerta' || (estado === 'erro' && resolvidoAoMenosUmaVez)) && alerta && (
@@ -173,18 +194,18 @@ export function VisaoGeralSegurado({ seguradoId }: PropriedadesVisaoGeralSegurad
               </div>
             </section>
 
-            <section aria-labelledby="titulo-impactos">
+            <section aria-labelledby="titulo-impactos" className="secao-alerta">
               <h2 id="titulo-impactos">Impactos esperados</h2>
-              <ul>
+              <ul className="grade-icones">
                 {alerta.impactosEsperados.map((impacto) => (
                   <li key={impacto}>{impacto}</li>
                 ))}
               </ul>
             </section>
 
-            <section aria-labelledby="titulo-acoes">
+            <section aria-labelledby="titulo-acoes" className="secao-alerta">
               <h2 id="titulo-acoes">Como se prevenir</h2>
-              <ul className="acoes-preventivas">
+              <ul className="lista-marcada">
                 {alerta.recomendacoes.map((recomendacao) => (
                   <li key={recomendacao}>{recomendacao}</li>
                 ))}
@@ -201,17 +222,32 @@ export function VisaoGeralSegurado({ seguradoId }: PropriedadesVisaoGeralSegurad
             <h2 id="titulo-contexto">Por que este alerta é relevante?</h2>
           </div>
           <dl>
-            <div>
-              <dt>Localização</dt>
-              <dd>{alerta.localizacao}</dd>
+            <div className="cartao-contexto">
+              <i aria-hidden="true">
+                <MapPinIcon size={22} />
+              </i>
+              <div>
+                <dt>Localização</dt>
+                <dd>{alerta.localizacao}</dd>
+              </div>
             </div>
-            <div>
-              <dt>Origem do dado</dt>
-              <dd>{rotuloOrigem(alerta.origem)}</dd>
+            <div className="cartao-contexto">
+              <i aria-hidden="true">
+                <DatabaseIcon size={22} />
+              </i>
+              <div>
+                <dt>Origem do dado</dt>
+                <dd>{rotuloOrigem(alerta.origem)}</dd>
+              </div>
             </div>
-            <div>
-              <dt>Horário do dado</dt>
-              <dd>{alerta.instanteObservado}</dd>
+            <div className="cartao-contexto">
+              <i aria-hidden="true">
+                <CalendarDotsIcon size={22} />
+              </i>
+              <div>
+                <dt>Horário do dado</dt>
+                <dd>{alerta.instanteObservado}</dd>
+              </div>
             </div>
           </dl>
           <div className="nota-dados">

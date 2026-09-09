@@ -40,7 +40,7 @@ export function SeletorSegurado() {
   const motivo = motivoDesabilitado()
 
   return (
-    <div className="seletor-segurado">
+    <div className="seletor-segurado faixa-toolbar">
       <label htmlFor={ID_CAMPO}>Visualizar como</label>
       <select
         aria-describedby={motivo ? `${ID_CAMPO}-motivo` : undefined}
