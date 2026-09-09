@@ -160,7 +160,7 @@ T7 → T8
 
 ---
 
-### T5: Adicionar os 5 itens de navegação de negócio do Administrador
+### T5: Adicionar os 5 itens de navegação de negócio do Administrador ✅ Concluída
 
 **What**: `NavegacaoLateral.tsx` passa a iterar `SUPERFICIES_TOPO_POR_PERFIL[perfil]` (T4) e ganha rótulos/ícones para `eventos` ("Eventos climáticos"), `regras` ("Regras de negócio"), `segurados` ("Segurados"), `comunicacoes` ("Comunicações"), `fontes-de-dados` ("Fontes de dados") — espelhando `adminNav` do protótipo (`docs/design/prototype/src/App.jsx:18`).
 **Where**: `src/frontend/src/componentes/NavegacaoLateral.tsx`

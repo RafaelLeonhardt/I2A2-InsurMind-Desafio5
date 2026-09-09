@@ -27,6 +27,16 @@ describe('NavegacaoLateral', () => {
     expect(screen.queryByRole('button', { name: /Visão geral/ })).not.toBeInTheDocument()
   })
 
+  it('no perfil Administrador, mostra os 5 itens de negócio (Eventos, Regras, Segurados, Comunicações, Fontes)', () => {
+    renderizarComPerfil('administrador')
+
+    expect(screen.getByRole('button', { name: /Eventos climáticos/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Regras de negócio/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Segurados/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Comunicações/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Fontes de dados/ })).toBeInTheDocument()
+  })
+
   it('no perfil Segurado, mostra somente "Visão geral"', () => {
     renderizarComPerfil('segurado')
 
@@ -34,6 +44,16 @@ describe('NavegacaoLateral', () => {
     expect(screen.queryByRole('button', { name: /Prontidão/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Restaurar dados sintéticos/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Documentação da API/ })).not.toBeInTheDocument()
+  })
+
+  it('no perfil Segurado, nenhum item de negócio do Administrador aparece', () => {
+    renderizarComPerfil('segurado')
+
+    expect(screen.queryByRole('button', { name: /Eventos climáticos/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Regras de negócio/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Segurados/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Comunicações/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Fontes de dados/ })).not.toBeInTheDocument()
   })
 
   it('o item "Documentação da API" renderiza para o perfil Administrador', () => {
