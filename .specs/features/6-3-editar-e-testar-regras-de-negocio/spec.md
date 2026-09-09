@@ -44,8 +44,8 @@
 
 **Acceptance Criteria**:
 
-1. WHEN o administrador abrir "Regras de negócio" pela navegação THEN a interface SHALL exibir a regra preventiva ativa com suas seções de Evento, Público elegível e Comunicação preenchidas com os valores persistidos.
-2. WHEN o administrador alterar um campo e confirmar "Salvar e testar regra" THEN o sistema SHALL persistir a nova versão da regra e atualizar a versão exibida na interface.
+1. WHEN o administrador abrir "Regras de negócio" pela navegação THEN a interface SHALL exibir a regra preventiva ativa com os campos de evento (tipo, severidade, limiar), público elegível (área, apólice, cobertura) e comunicação (antecedência, canal) preenchidos com os valores persistidos, na tabela versionada e no formulário de edição.
+2. WHEN o administrador alterar um campo, confirmar "Testar" e em seguida "Ativar nova versão" THEN o sistema SHALL persistir a nova versão da regra e atualizar a versão exibida na interface.
 3. IF a versão da regra mudou no backend desde que a tela foi carregada (conflito de concorrência otimista) THEN o sistema SHALL rejeitar a gravação com um erro explícito, sem sobrescrever a versão mais recente.
 
 **Independent Test**: Abrir "Regras de negócio", alterar um valor de condição, salvar, e confirmar que a versão da regra incrementou e o valor persistiu ao recarregar a tela.
@@ -68,7 +68,7 @@
 
 ## Edge Cases
 
-- IF nenhuma regra preventiva ativa existir para o tipo de evento monitorado THEN a interface SHALL mostrar esse estado explicitamente, nunca um formulário vazio sem explicação.
+- IF nenhuma regra preventiva ativa existir para o tipo de evento monitorado THEN a interface SHALL mostrar esse estado explicitamente, nunca um formulário vazio sem explicação. **Gap conhecido (Verifier, 2026-09-09)**: `SuperficieRegras.tsx` (2.4) hoje só distingue "nenhuma regra na tabela" de "há regras" — não há um estado dedicado para "há regras, mas nenhuma com `estado === 'ativa'`", nem teste cobrindo esse caso. Era código pré-existente da 2.4, não tocado por esta história, mas passa a ser alcançável pela primeira vez via navegação; registrado como follow-up, não bloqueia REGRASADM-01/02/03.
 - WHEN o administrador tentar salvar uma condição inválida (ex.: limiar negativo) THEN o sistema SHALL rejeitar com uma mensagem de validação específica, sem persistir a alteração.
 
 ---
@@ -77,16 +77,16 @@
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| REGRASADM-01 | P1: Consultar e editar a regra preventiva ativa | Execute | Implementing — `App.tsx` monta `SuperficieRegras` (2.4) no case `'regras'`; aguardando Verifier |
-| REGRASADM-02 | P1: Consultar e editar a regra preventiva ativa | Execute | Implementing — `ativarRegra(id, versao, dados)` já existente (2.4); aguardando Verifier |
-| REGRASADM-03 | P1: Consultar e editar a regra preventiva ativa | Execute | Implementing — backend já responde `409 conflito_versao`; teste novo cobrindo o cenário em `SuperficieRegras.test.tsx`; aguardando Verifier |
+| REGRASADM-01 | P1: Consultar e editar a regra preventiva ativa | Execute | ✅ Verified — `App.tsx` monta `SuperficieRegras` (2.4) no case `'regras'`; evidência em `validation.md` (spec-precision gap não bloqueante: AC ainda cita seções "Evento/Público elegível/Comunicação" que não existem na UI real — follow-up de wording) |
+| REGRASADM-02 | P1: Consultar e editar a regra preventiva ativa | Execute | ✅ Verified — `ativarRegra(id, versao, dados)` já existente (2.4); evidência em `validation.md` (spec-precision gap não bloqueante: AC cita botão "Salvar e testar regra" que não existe — fluxo real é "Testar" + "Ativar nova versão") |
+| REGRASADM-03 | P1: Consultar e editar a regra preventiva ativa | Execute | ✅ Verified — backend já responde `409 conflito_versao`; teste novo cobrindo o cenário em `SuperficieRegras.test.tsx`; sensor de discriminação confirmou (2/2 mutações mortas); evidência em `validation.md` |
 | REGRASADM-04 | P2: Ver a estimativa de elegíveis antes de salvar | - | Deferred — ver Out of Scope (decisão do usuário, exige capacidade nova de backend) |
 
 **ID format:** `REGRASADM-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified → Deferred
 
-**Coverage:** 4 total, 3 mapped (P1, Execute concluído), 1 deferred (P2, REGRASADM-04) — Design feito inline (Medium, reusa `SuperficieRegras` 2.4 já existente, sem decisão de arquitetura nova); aguardando Verifier.
+**Coverage:** 4 total, 3 verified (P1, Execute concluído, ver `validation.md`), 1 deferred (P2, REGRASADM-04) — Design feito inline (Medium, reusa `SuperficieRegras` 2.4 já existente, sem decisão de arquitetura nova).
 
 ---
 

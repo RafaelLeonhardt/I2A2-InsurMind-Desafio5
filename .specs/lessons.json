@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 93,
+  "next_id": 95,
   "lessons": [
     {
       "id": "L-001",
@@ -1693,6 +1693,42 @@
       ],
       "created": "2026-09-09T20:14:36Z",
       "last_seen": "2026-09-09T20:14:36Z"
+    },
+    {
+      "id": "L-093",
+      "key": "spec_precision_gap::when design corrects a wrong assumption reword every acceptance criterion whose wording depended on it in the same pass a corrected assumption next to stale ac text describing a ui structure that doesn t exist leaves the spec self contradictory",
+      "text": "When Design corrects a wrong Assumption, reword every Acceptance Criterion whose wording depended on it in the same pass — a corrected Assumption next to stale AC text describing a UI structure that doesn't exist leaves the spec self-contradictory.",
+      "signal": "spec_precision_gap",
+      "scope": "specify",
+      "status": "candidate",
+      "features": [
+        "6-3-editar-e-testar-regras-de-negocio"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "spec.md REGRASADM-01/02 AC text (specify)"
+      ],
+      "created": "2026-09-09T20:36:47Z",
+      "last_seen": "2026-09-09T20:36:47Z"
+    },
+    {
+      "id": "L-094",
+      "key": "ac_gap::a listed edge case no active x is not satisfied by code that only special cases the fully empty list verify the edge case s exact condition none active vs zero rows has its own explicit ui state and test",
+      "text": "A listed Edge Case ('no active X') is not satisfied by code that only special-cases the fully-empty list — verify the edge case's exact condition (none active, vs zero rows) has its own explicit UI state and test.",
+      "signal": "ac_gap",
+      "scope": "frontend",
+      "status": "candidate",
+      "features": [
+        "6-3-editar-e-testar-regras-de-negocio"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "spec.md Edge Cases: nenhuma regra ativa (frontend)"
+      ],
+      "created": "2026-09-09T20:36:47Z",
+      "last_seen": "2026-09-09T20:36:47Z"
     }
   ]
 }

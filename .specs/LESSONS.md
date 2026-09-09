@@ -564,6 +564,18 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: PAINELEXEC-05 - src/frontend/src/funcionalidades/evento-decisao/SuperficieEventoDecisao.tsx:311-358 (frontend/spec-wording)
 - last seen: 2026-09-09T20:14:36Z
 
+### L-093 - When Design corrects a wrong Assumption, reword every Acceptance Criterion whose wording depended on it in the same pass — a corrected Assumption next to stale AC text describing a UI structure that doesn't exist leaves the spec self-contradictory.
+- signal: `spec_precision_gap` · recurrence: 1 feature(s) · scope: `specify` · harmful: 0
+- features: 6-3-editar-e-testar-regras-de-negocio
+- evidence: spec.md REGRASADM-01/02 AC text (specify)
+- last seen: 2026-09-09T20:36:47Z
+
+### L-094 - A listed Edge Case ('no active X') is not satisfied by code that only special-cases the fully-empty list — verify the edge case's exact condition (none active, vs zero rows) has its own explicit UI state and test.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `frontend` · harmful: 0
+- features: 6-3-editar-e-testar-regras-de-negocio
+- evidence: spec.md Edge Cases: nenhuma regra ativa (frontend)
+- last seen: 2026-09-09T20:36:47Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
