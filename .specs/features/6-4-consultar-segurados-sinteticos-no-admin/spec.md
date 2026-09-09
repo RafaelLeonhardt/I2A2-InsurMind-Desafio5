@@ -89,18 +89,18 @@ O protótipo (`PeopleTable`, rota `insureds` do `adminNav`, tela "Segurados") e 
 
 | Requirement ID | Story | Phase | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| LISTASEG-01 | P1: Listar segurados sintéticos | Execute | Implementing | `SuperficieSegurados.tsx` renderiza tabela nome/localização/apólice/canal a partir de `getSeguradosDetalhado()`; teste `SuperficieSegurados.test.tsx` ("exibe nome, localização, apólice e canal traduzido de cada segurado (LISTASEG-01)") |
-| LISTASEG-02 | P1: Listar segurados sintéticos | Execute | Implementing | Estado `vazio` explícito em `SuperficieSegurados.tsx`; teste "mostra o estado vazio explícito quando a API devolve lista vazia (LISTASEG-02)" |
-| LISTASEG-03 | P1: Listar segurados sintéticos | Execute | Implementing | Estado `erro` com "Tentar novamente" em `SuperficieSegurados.tsx`; teste "mostra erro explícito com 'Tentar novamente' quando a API falha (LISTASEG-03)" |
-| LISTASEG-04 | P2: Buscar por nome ou bairro | Execute | Implementing | Filtro client-side por `nome`/`codigoIbgeArea` com `.toLowerCase()` nos dois lados; testes "filtra por localização (LISTASEG-04)" e "filtra por nome sem diferenciar maiúsculas/minúsculas (LISTASEG-04)" |
-| LISTASEG-05 | P2: Buscar por nome ou bairro | Execute | Implementing | Mensagem "Nenhum segurado encontrado para..." distinta da mensagem de lista vazia; teste "mostra mensagem de 'nenhum resultado' distinta da lista vazia quando a busca não bate (LISTASEG-05)" |
-| LISTASEG-06 | P3: Abrir o contexto de um segurado a partir da lista | Execute | Implementing | Botão "Ver contexto" abre `SuperficieApolice`/`SuperficieAlertas`/`SuperficieComunicados` com `comoSecao`+`seguradoId`, sem ação de edição; testes "abre o contexto somente leitura do segurado selecionado, com o seguradoId correto (LISTASEG-06)" e "nenhuma ação de edição fica disponível no contexto aberto" |
+| LISTASEG-01 | P1: Listar segurados sintéticos | Execute | ✅ Verified | `SuperficieSegurados.tsx` renderiza tabela nome/localização/apólice/canal a partir de `getSeguradosDetalhado()`; teste `SuperficieSegurados.test.tsx` ("exibe nome, localização, apólice e canal traduzido de cada segurado (LISTASEG-01)"); verificado de forma independente em `validation.md` |
+| LISTASEG-02 | P1: Listar segurados sintéticos | Execute | ✅ Verified | Estado `vazio` explícito em `SuperficieSegurados.tsx`; teste "mostra o estado vazio explícito quando a API devolve lista vazia (LISTASEG-02)"; verificado de forma independente em `validation.md` |
+| LISTASEG-03 | P1: Listar segurados sintéticos | Execute | ✅ Verified | Estado `erro` com "Tentar novamente" em `SuperficieSegurados.tsx`; teste "mostra erro explícito com 'Tentar novamente' quando a API falha (LISTASEG-03)"; verificado de forma independente em `validation.md` |
+| LISTASEG-04 | P2: Buscar por nome ou bairro | Execute | ✅ Verified | Filtro client-side por `nome`/`codigoIbgeArea` com `.toLowerCase()` nos dois lados; testes "filtra por localização (LISTASEG-04)" e "filtra por nome sem diferenciar maiúsculas/minúsculas (LISTASEG-04)"; verificado de forma independente em `validation.md`, incluindo sensor de mutação que matou a remoção de um `.toLowerCase()` |
+| LISTASEG-05 | P2: Buscar por nome ou bairro | Execute | ✅ Verified | Mensagem "Nenhum segurado encontrado para..." distinta da mensagem de lista vazia; teste "mostra mensagem de 'nenhum resultado' distinta da lista vazia quando a busca não bate (LISTASEG-05)"; verificado de forma independente em `validation.md` |
+| LISTASEG-06 | P3: Abrir o contexto de um segurado a partir da lista | Execute | ✅ Verified | Botão "Ver contexto" abre `SuperficieApolice`/`SuperficieAlertas`/`SuperficieComunicados` com `comoSecao`+`seguradoId`, sem ação de edição; testes "abre o contexto somente leitura do segurado selecionado, com o seguradoId correto (LISTASEG-06)" e "nenhuma ação de edição fica disponível no contexto aberto"; verificado de forma independente em `validation.md`, incluindo leitura direta das três superfícies reusadas confirmando ausência de qualquer ação de edição |
 
 **ID format:** `LISTASEG-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 6 total, 6 mapped, 0 unmapped — implementação concluída (Execute); aguardando verificação independente (Verifier).
+**Coverage:** 6 total, 6 mapped, 0 unmapped — implementação concluída e verificada de forma independente (ver `.specs/features/6-4-consultar-segurados-sinteticos-no-admin/validation.md`).
 
 ---
 
