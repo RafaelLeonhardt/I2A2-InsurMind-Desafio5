@@ -6,6 +6,7 @@ import {
 } from '@phosphor-icons/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { type Execucao, ErroExecucao, getExecucao } from '../../api/execucao'
+import { usePerfilContexto } from '../../contexto/PerfilContexto'
 import { SuperficieEventoDecisao } from '../evento-decisao/SuperficieEventoDecisao'
 import './SuperficieExecucao.css'
 
@@ -74,9 +75,9 @@ function construirEtapas(execucao: Execucao): Etapa[] {
 
   if (!estaEmAndamento(execucao.estado)) {
     const ultimoMarco = execucao.marcos.at(-1) ?? null
-    if (execucao.estado === 'falhou_coleta') {
+    if (execucao.estado.startsWith('falhou_')) {
       etapas.push({
-        chave: 'falhou_coleta',
+        chave: execucao.estado,
         rotulo: ROTULO_EXCECAO,
         categoria: 'excecao',
         causa: ultimoMarco?.causa ?? null,
@@ -126,6 +127,7 @@ type PropriedadesSuperficieExecucao = {
  * (RUNNER-01..09, RUNNER-12), nunca recalculado nesta tela.
  */
 export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecucao) {
+  const { selecionarSuperficie } = usePerfilContexto()
   const [estadoCarregamento, definirEstadoCarregamento] = useState<EstadoCarregamento>('carregando')
   const [execucao, definirExecucao] = useState<Execucao | null>(null)
   const [falha, definirFalha] = useState<ErroExecucao | null>(null)
@@ -169,8 +171,24 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
     }
   }, [execucao, consultar])
 
+  const abrirExecucao = useCallback(
+    (outroExecucaoId: string) => {
+      selecionarSuperficie({
+        tipo: 'evento-execucao',
+        execucaoId: outroExecucaoId,
+        perfilPai: 'administrador',
+      })
+    },
+    [selecionarSuperficie],
+  )
+
   const etapas = execucao ? construirEtapas(execucao) : []
-  const emGeracao = execucao?.estado === 'aguardando_geracao'
+  // A decisão de risco/elegibilidade (SuperficieEventoDecisao) pode já estar persistida a
+  // partir do momento em que a coleta termina — mostrada mesmo em sem_risco/sem_elegiveis
+  // para explicar a decisão (PAINELEXEC-02, edge case "por que o evento foi sem risco"),
+  // não só quando a execução chega em aguardando_geracao.
+  const mostrarDecisaoDeRisco =
+    execucao !== null && execucao.estado !== 'coletando' && execucao.estado !== 'falhou_coleta'
 
   return (
     <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
@@ -222,7 +240,44 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
         </section>
       )}
 
-      {emGeracao && <SuperficieEventoDecisao embutido execucaoId={execucaoId} />}
+      {execucao && (execucao.execucaoOrigemId !== null || execucao.retentativas.length > 0) && (
+        <section aria-labelledby="titulo-execucoes-correlacionadas">
+          <h2 id="titulo-execucoes-correlacionadas">Execuções correlacionadas</h2>
+          {execucao.execucaoOrigemId !== null && (
+            <p>
+              Esta é uma nova tentativa da execução{' '}
+              <button
+                className="btn secondary"
+                onClick={() => abrirExecucao(execucao.execucaoOrigemId as string)}
+                type="button"
+              >
+                {execucao.execucaoOrigemId}
+              </button>
+              .
+            </p>
+          )}
+          {execucao.retentativas.length > 0 && (
+            <div>
+              <p>Novas tentativas criadas a partir desta execução:</p>
+              <ul>
+                {execucao.retentativas.map((retentativaId) => (
+                  <li key={retentativaId}>
+                    <button
+                      className="btn secondary"
+                      onClick={() => abrirExecucao(retentativaId)}
+                      type="button"
+                    >
+                      {retentativaId}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
+      )}
+
+      {mostrarDecisaoDeRisco && <SuperficieEventoDecisao embutido execucaoId={execucaoId} />}
     </main>
   )
 }
