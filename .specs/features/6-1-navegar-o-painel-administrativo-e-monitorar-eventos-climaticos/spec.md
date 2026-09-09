@@ -79,19 +79,19 @@ O protótipo navegável (`docs/design/prototype`, tela `AdminHome`/imagem `01-mo
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| ADMNAV-01 | P1: Painel do administrador com navegação própria | T4/T5 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
-| ADMNAV-02 | P1: Painel do administrador com navegação própria | T6 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
-| ADMNAV-03 | P1: Painel do administrador com navegação própria | T4 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
-| ADMNAV-04 | P1: Lista de eventos climáticos identificados | T1/T2/T7/T8 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
-| ADMNAV-05 | P1: Lista de eventos climáticos identificados | T6/T8 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
-| ADMNAV-06 | P1: Lista de eventos climáticos identificados | T8 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
-| ADMNAV-07 | P1: Lista de eventos climáticos identificados | T8 | Implementing (todas T1–T8 concluídas; aguardando Verifier) |
+| ADMNAV-01 | P1: Painel do administrador com navegação própria | T4/T5 | ✅ Verified |
+| ADMNAV-02 | P1: Painel do administrador com navegação própria | T6 | Implementing — Fix 3 aplicado (teste de integração "Eventos climáticos" em `App.test.tsx`); aguardando reverificação |
+| ADMNAV-03 | P1: Painel do administrador com navegação própria | T4 | ✅ Verified |
+| ADMNAV-04 | P1: Lista de eventos climáticos identificados | T1/T2/T7/T8 | Implementing — Fix 1/Fix 2 aplicados (coluna "Severidade" + `rotuloEstadoExecucao` nos 4 termos da spec); aguardando reverificação |
+| ADMNAV-05 | P1: Lista de eventos climáticos identificados | T6/T8 | ✅ Verified |
+| ADMNAV-06 | P1: Lista de eventos climáticos identificados | T8 | ✅ Verified |
+| ADMNAV-07 | P1: Lista de eventos climáticos identificados | T8 | ✅ Verified |
 
 **ID format:** `ADMNAV-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped — todas as tasks (T1–T8) implementadas e com gate verde; validação final pendente do Verifier (`.specs/features/6-1-.../validation.md`).
+**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped — Verifier independente rodou em 2026-09-09 (`.specs/features/6-1-.../validation.md`): 5/7 requisitos Verified, 2/7 Needs Fix (ADMNAV-02, ADMNAV-04). Gate de build 100% verde nos dois stacks; sensor de discriminação 3/3 mutações mortas. Ver `validation.md` para o relatório completo e os fix tasks ranqueados.
 
 ---
 

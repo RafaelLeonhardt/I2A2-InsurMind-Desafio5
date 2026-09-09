@@ -16,6 +16,7 @@ const {
   getListaComunicadosMock,
   getPreferenciasMock,
   getExecucaoMock,
+  getEventosMock,
 } = vi.hoisted(() => ({
   getSeguradoPadraoMock: vi.fn(),
   restaurarDadosSinteticosMock: vi.fn(),
@@ -27,6 +28,7 @@ const {
   getListaComunicadosMock: vi.fn(),
   getPreferenciasMock: vi.fn(),
   getExecucaoMock: vi.fn(),
+  getEventosMock: vi.fn(),
 }))
 
 vi.mock('./api/contexto', async () => {
@@ -96,6 +98,11 @@ vi.mock('./api/execucao', async () => {
   return { ...real, getExecucao: getExecucaoMock }
 })
 
+vi.mock('./api/meteorologia', async () => {
+  const real = await vi.importActual<typeof import('./api/meteorologia')>('./api/meteorologia')
+  return { ...real, getEventos: getEventosMock }
+})
+
 function definirLargura(largura: number) {
   Object.defineProperty(window, 'innerWidth', { configurable: true, value: largura })
 }
@@ -155,6 +162,7 @@ beforeEach(() => {
     execucaoOrigemId: null,
     retentativas: [],
   })
+  getEventosMock.mockResolvedValue([])
   window.localStorage.clear()
 })
 
@@ -392,6 +400,32 @@ describe('shell do contexto demonstrativo', () => {
         screen.getByText('Visualizando como Segurado').closest('[aria-live="polite"]'),
       ).not.toBeNull()
     })
+  })
+
+  it('navega para "Eventos climáticos" e monta SuperficieEventos', async () => {
+    definirLargura(1440)
+    getEventosMock.mockResolvedValue([
+      {
+        id: '44444444-4444-4444-4444-444444444444',
+        tipo: 'chuva_intensa',
+        area: '9990001',
+        periodoInicio: '2026-08-30T17:00:00+00:00',
+        periodoFim: '2026-08-30T18:00:00+00:00',
+        intensidade: 55.4,
+        proveniencia: 'real_inmet',
+        instanteObservado: '2026-08-30T18:00:00+00:00',
+        execucaoId: null,
+        execucaoEstado: null,
+      },
+    ])
+    const usuario = userEvent.setup()
+    render(<App />)
+
+    await usuario.click(screen.getByRole('button', { name: 'Eventos climáticos' }))
+
+    expect(await screen.findByRole('heading', { name: 'Eventos climáticos' })).toBeInTheDocument()
+    expect(await screen.findByText('Sem execução iniciada')).toBeInTheDocument()
+    expect(getEventosMock).toHaveBeenCalled()
   })
 
   it('navega para "Regras de negócio" e mostra o placeholder "Em construção"', async () => {

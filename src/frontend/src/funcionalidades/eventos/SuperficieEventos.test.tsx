@@ -70,7 +70,7 @@ describe('SuperficieEventos', () => {
     renderizar()
 
     expect(await screen.findByText('Chuva intensa')).toBeInTheDocument()
-    expect(screen.getByText('aguardando_geracao')).toBeInTheDocument()
+    expect(screen.getByText('Em andamento')).toBeInTheDocument()
     const botao = screen.getByRole('button', { name: 'Ver execução' })
 
     await usuario.click(botao)
@@ -93,6 +93,41 @@ describe('SuperficieEventos', () => {
 
     expect(await screen.findByText('Sem execução iniciada')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Ver execução' })).not.toBeInTheDocument()
+  })
+
+  it('deriva a severidade em mm para chuva intensa e como ocorrência para granizo', async () => {
+    getEventosMock.mockResolvedValue([
+      evento({ id: '1', tipo: 'chuva_intensa', intensidade: 72.5 }),
+      evento({ id: '2', tipo: 'granizo', intensidade: 1 }),
+    ])
+
+    renderizar()
+
+    expect(await screen.findByText('72.5 mm')).toBeInTheDocument()
+    expect(screen.getByText('Ocorrência de granizo')).toBeInTheDocument()
+  })
+
+  it('mostra "Concluída" para uma execução no estado terminal concluida', async () => {
+    getEventosMock.mockResolvedValue([
+      evento({ execucaoId: '22222222-2222-2222-2222-222222222222', execucaoEstado: 'concluida' }),
+    ])
+
+    renderizar()
+
+    expect(await screen.findByText('Concluída')).toBeInTheDocument()
+  })
+
+  it('mostra "Com falha" para qualquer estado terminal falhou_*', async () => {
+    getEventosMock.mockResolvedValue([
+      evento({
+        execucaoId: '22222222-2222-2222-2222-222222222222',
+        execucaoEstado: 'falhou_preparacao_ia',
+      }),
+    ])
+
+    renderizar()
+
+    expect(await screen.findByText('Com falha')).toBeInTheDocument()
   })
 
   it('mostra o estado vazio explícito quando não houver nenhum evento', async () => {

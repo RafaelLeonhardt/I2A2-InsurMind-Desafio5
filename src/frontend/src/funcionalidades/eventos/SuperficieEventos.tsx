@@ -26,6 +26,30 @@ function rotuloTipo(evento: EventoMeteorologico): string {
 }
 
 /**
+ * Severidade derivada de `intensidade`, sem persistir um valor novo (ADMNAV-04).
+ *
+ * Segue a mesma leitura do critério aplicado por `AvaliadorRisco` (2.3, AD-013):
+ * chuva intensa é medida em mm acumulados; granizo é relevante por ocorrência, sem uma
+ * escala de magnitude adicional — por isso não exibe um número de intensidade para ele.
+ */
+function severidadeDerivada(evento: EventoMeteorologico): string {
+  return evento.tipo === 'chuva_intensa'
+    ? `${evento.intensidade.toFixed(1)} mm`
+    : 'Ocorrência de granizo'
+}
+
+/**
+ * Reduz o estado bruto da execução (`EstadoExecucao`, 13 valores no backend) às 4
+ * categorias que ADMNAV-04 exige: não iniciada, em andamento, concluída, com falha.
+ * `null` (sem execução) é tratado à parte, fora desta função (ver `'Sem execução iniciada'`).
+ */
+function rotuloEstadoExecucao(estado: string): string {
+  if (estado === 'concluida') return 'Concluída'
+  if (estado.startsWith('falhou_')) return 'Com falha'
+  return 'Em andamento'
+}
+
+/**
  * Superfície "Eventos climáticos" do perfil Administrador (História 6.1): lista os eventos
  * meteorológicos identificados com o status da execução preventiva associada, quando houver
  * (`execucaoId`/`execucaoEstado`, ADMNAV-04/05/06/07).
@@ -118,6 +142,7 @@ export function SuperficieEventos() {
           <tr>
             <th scope="col">Tipo</th>
             <th scope="col">Área</th>
+            <th scope="col">Severidade</th>
             <th scope="col">Execução</th>
             <th scope="col">Ação</th>
           </tr>
@@ -127,7 +152,12 @@ export function SuperficieEventos() {
             <tr key={evento.id}>
               <td>{rotuloTipo(evento)}</td>
               <td>{evento.area}</td>
-              <td>{evento.execucaoEstado ?? 'Sem execução iniciada'}</td>
+              <td>{severidadeDerivada(evento)}</td>
+              <td>
+                {evento.execucaoEstado === null
+                  ? 'Sem execução iniciada'
+                  : rotuloEstadoExecucao(evento.execucaoEstado)}
+              </td>
               <td>
                 {evento.execucaoId !== null && (
                   <button
