@@ -3806,6 +3806,25 @@
         "title": "RespostaListaSegurados",
         "type": "object"
       },
+      "RespostaListaSeguradosDetalhado": {
+        "additionalProperties": false,
+        "description": "A lista detalhada de todos os segurados sintéticos do seed.",
+        "properties": {
+          "segurados": {
+            "description": "Todos os segurados sintéticos do seed, com área, apólice mais recente e canal, ordenados por nome.",
+            "items": {
+              "$ref": "#/components/schemas/RespostaSeguradoDetalhado"
+            },
+            "title": "Segurados",
+            "type": "array"
+          }
+        },
+        "required": [
+          "segurados"
+        ],
+        "title": "RespostaListaSeguradosDetalhado",
+        "type": "object"
+      },
       "RespostaLoteRevisao": {
         "additionalProperties": false,
         "description": "O lote de revisão de uma execução, com os itens de atenção primeiro (REVISAO-01).",
@@ -5056,6 +5075,54 @@
           "regra_versao"
         ],
         "title": "RespostaSecaoEvento",
+        "type": "object"
+      },
+      "RespostaSeguradoDetalhado": {
+        "additionalProperties": false,
+        "description": "Um segurado sintético com os dados básicos exibidos ao administrador.",
+        "properties": {
+          "apolice_numero": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Número da apólice mais recente do segurado, ou nulo se ele não tiver nenhuma apólice.",
+            "title": "Apolice Numero"
+          },
+          "canal_preferido": {
+            "description": "Canal de comunicação preferencial do segurado (`whatsapp`/`email`/`sms`).",
+            "title": "Canal Preferido",
+            "type": "string"
+          },
+          "codigo_ibge_area": {
+            "description": "Código IBGE da área do segurado (proxy sintético de bairro/região).",
+            "title": "Codigo Ibge Area",
+            "type": "string"
+          },
+          "id": {
+            "description": "Identificador do segurado sintético.",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "nome": {
+            "description": "Nome do segurado sintético.",
+            "title": "Nome",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "nome",
+          "codigo_ibge_area",
+          "apolice_numero",
+          "canal_preferido"
+        ],
+        "title": "RespostaSeguradoDetalhado",
         "type": "object"
       },
       "RespostaSeguradoListado": {
@@ -8111,6 +8178,28 @@
           }
         },
         "summary": "Listar os segurados sintéticos disponíveis",
+        "tags": [
+          "Segurados"
+        ]
+      }
+    },
+    "/api/v1/segurados/detalhado": {
+      "get": {
+        "description": "Devolve nome, área, apólice mais recente e canal preferencial de cada segurado do conjunto sintético semeado, ordenados por nome, para a superfície 'Segurados' do perfil Administrador auditar a base. Lista vazia quando os dados sintéticos ainda não foram restaurados; apólice nula quando o segurado não tiver nenhuma apólice.",
+        "operationId": "listar_segurados_detalhado_api_v1_segurados_detalhado_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespostaListaSeguradosDetalhado"
+                }
+              }
+            },
+            "description": "Consulta realizada, com ou sem segurados."
+          }
+        },
+        "summary": "Listar os segurados sintéticos com dados detalhados para o admin",
         "tags": [
           "Segurados"
         ]

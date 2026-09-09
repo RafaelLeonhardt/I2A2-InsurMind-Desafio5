@@ -21,6 +21,21 @@ class PreferenciasSegurado:
     versao: int
 
 
+@dataclass(frozen=True, slots=True)
+class SeguradoDetalhado:
+    """Um segurado sintético com os dados básicos que o admin audita (LISTASEG-01..03):
+    nome, área e canal do próprio segurado, mais o número da apólice mais recente — nulo
+    quando o segurado não tiver nenhuma apólice. Separado de `Segurado` (id+nome, usado por
+    `listar_sinteticos`/SELETOR-01) para não alargar o tipo mínimo já consumido pelo seletor
+    "Visualizar como"."""
+
+    id: UUID
+    nome: str
+    codigo_ibge_area: str
+    canal_preferido: str
+    apolice_numero: str | None
+
+
 class ConflitoVersao(RuntimeError):
     """Indica que `versao_esperada` não corresponde à versão persistida do segurado."""
 
@@ -60,6 +75,37 @@ class RepositorioSegurados:
         with abrir_conexao(self._caminho) as conexao:
             linhas = conexao.execute("SELECT id, nome FROM segurados ORDER BY nome").fetchall()
         return [Segurado(id=UUID(str(linha[0])), nome=str(linha[1])) for linha in linhas]
+
+    def listar_sinteticos_detalhado(self) -> list[SeguradoDetalhado]:
+        """Lista todos os segurados sintéticos com área, canal e o número da apólice mais
+        recente, ordenados por nome (LISTASEG-01..03, admin).
+
+        `LEFT JOIN` preserva na lista um segurado sem nenhuma apólice (`apolice_numero`
+        fica nulo) — nunca `INNER JOIN`, que o faria desaparecer. `QUALIFY ROW_NUMBER()`
+        mantém só a apólice mais recente por segurado quando houver mais de uma, mesmo
+        padrão de `RepositorioMeteorologia.mapear_execucoes_por_evento` (6.1). Separado de
+        `listar_sinteticos` (SELETOR-01, id+nome) para não alargar um método/dataclass já
+        usado pelo seletor "Visualizar como" do perfil Segurado."""
+
+        with abrir_conexao(self._caminho) as conexao:
+            linhas = conexao.execute(
+                "SELECT s.id, s.nome, s.codigo_ibge_area, s.canal_preferido, a.numero "
+                "FROM segurados s "
+                "LEFT JOIN apolices a ON a.segurado_id = s.id "
+                "QUALIFY ROW_NUMBER() "
+                "OVER (PARTITION BY s.id ORDER BY a.criado_em DESC) = 1 "
+                "ORDER BY s.nome"
+            ).fetchall()
+        return [
+            SeguradoDetalhado(
+                id=UUID(str(linha[0])),
+                nome=str(linha[1]),
+                codigo_ibge_area=str(linha[2]),
+                canal_preferido=str(linha[3]),
+                apolice_numero=str(linha[4]) if linha[4] is not None else None,
+            )
+            for linha in linhas
+        ]
 
     def buscar_preferencias_por_id(self, id: UUID) -> PreferenciasSegurado | None:
         """Retorna o canal preferencial, a participação em alertas e a versão do segurado,

@@ -50,6 +50,9 @@ from central_preventiva.adaptadores.http.lista_comunicados import (
 from central_preventiva.adaptadores.http.lista_segurados import (
     criar_roteador as criar_roteador_lista_segurados,
 )
+from central_preventiva.adaptadores.http.lista_segurados_detalhado import (
+    criar_roteador as criar_roteador_lista_segurados_detalhado,
+)
 from central_preventiva.adaptadores.http.mensagens import (
     criar_roteador as criar_roteador_mensagens,
 )
@@ -239,6 +242,10 @@ def criar_aplicacao(configuracao: Configuracao | None = None) -> FastAPI:
     )
     aplicacao.include_router(
         criar_roteador_lista_segurados(configuracao_ativa),
+        prefix="/api/v1",
+    )
+    aplicacao.include_router(
+        criar_roteador_lista_segurados_detalhado(configuracao_ativa),
         prefix="/api/v1",
     )
     return aplicacao
