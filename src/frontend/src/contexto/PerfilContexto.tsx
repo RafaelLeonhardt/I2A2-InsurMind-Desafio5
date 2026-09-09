@@ -2,17 +2,49 @@ import { createContext, type ReactNode, useCallback, useContext, useState } from
 
 export type Perfil = 'administrador' | 'segurado'
 
-export type Superficie =
-  | 'prontidao'
-  | 'restaurar-dados-sinteticos'
-  | 'documentacao-api'
-  | 'visao-geral'
+/**
+ * Superfícies "de topo": alcançáveis pela navegação lateral, sem payload (AD-016).
+ * `eventos`, `regras`, `segurados`, `comunicacoes` e `fontes-de-dados` são os 5 itens de
+ * negócio do Administrador (História 6.1) — suas telas chegam nas Histórias 6.2–6.7;
+ * até lá, `App.tsx` monta um placeholder para elas.
+ */
+export type SuperficieTopo =
+  | { tipo: 'prontidao' }
+  | { tipo: 'restaurar-dados-sinteticos' }
+  | { tipo: 'documentacao-api' }
+  | { tipo: 'eventos' }
+  | { tipo: 'regras' }
+  | { tipo: 'segurados' }
+  | { tipo: 'comunicacoes' }
+  | { tipo: 'fontes-de-dados' }
+  | { tipo: 'visao-geral' }
+
+/**
+ * Superfícies "de detalhe": parametrizadas por id, nunca listadas na navegação lateral —
+ * só alcançáveis por uma ação dentro da superfície de topo correspondente (AD-016).
+ */
+export type SuperficieDetalhe = {
+  tipo: 'evento-execucao'
+  execucaoId: string
+  perfilPai: 'administrador'
+}
+
+export type Superficie = SuperficieTopo | SuperficieDetalhe
 
 export const CHAVE_ARMAZENAMENTO_PERFIL = 'central-preventiva.perfil'
 
-export const SUPERFICIES_POR_PERFIL: Record<Perfil, readonly Superficie[]> = {
-  administrador: ['prontidao', 'restaurar-dados-sinteticos', 'documentacao-api'],
-  segurado: ['visao-geral'],
+export const SUPERFICIES_TOPO_POR_PERFIL: Record<Perfil, readonly SuperficieTopo[]> = {
+  administrador: [
+    { tipo: 'prontidao' },
+    { tipo: 'restaurar-dados-sinteticos' },
+    { tipo: 'documentacao-api' },
+    { tipo: 'eventos' },
+    { tipo: 'regras' },
+    { tipo: 'segurados' },
+    { tipo: 'comunicacoes' },
+    { tipo: 'fontes-de-dados' },
+  ],
+  segurado: [{ tipo: 'visao-geral' }],
 }
 
 type PerfilContextoValor = {
@@ -43,7 +75,7 @@ function lerPerfilArmazenado(): Perfil {
 export function PerfilProvider({ children }: { children: ReactNode }) {
   const [perfil, definirPerfil] = useState<Perfil>(lerPerfilArmazenado)
   const [superficieAtiva, definirSuperficieAtiva] = useState<Superficie>(
-    () => SUPERFICIES_POR_PERFIL[lerPerfilArmazenado()][0],
+    () => SUPERFICIES_TOPO_POR_PERFIL[lerPerfilArmazenado()][0],
   )
 
   const alternarPerfil = useCallback((novoPerfil: Perfil) => {
@@ -53,14 +85,17 @@ export function PerfilProvider({ children }: { children: ReactNode }) {
       // Armazenamento indisponível: a alternância continua válida só nesta sessão.
     }
     definirPerfil(novoPerfil)
-    definirSuperficieAtiva(SUPERFICIES_POR_PERFIL[novoPerfil][0])
+    definirSuperficieAtiva(SUPERFICIES_TOPO_POR_PERFIL[novoPerfil][0])
   }, [])
 
   const selecionarSuperficie = useCallback((superficie: Superficie) => {
     definirSuperficieAtiva(superficie)
   }, [])
 
-  const superficieValida = SUPERFICIES_POR_PERFIL[perfil].includes(superficieAtiva)
+  const superficieValida =
+    'perfilPai' in superficieAtiva
+      ? superficieAtiva.perfilPai === perfil
+      : SUPERFICIES_TOPO_POR_PERFIL[perfil].some((s) => s.tipo === superficieAtiva.tipo)
 
   return (
     <PerfilContexto.Provider

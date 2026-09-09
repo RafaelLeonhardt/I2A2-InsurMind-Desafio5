@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   CHAVE_ARMAZENAMENTO_PERFIL,
   PerfilProvider,
-  SUPERFICIES_POR_PERFIL,
+  SUPERFICIES_TOPO_POR_PERFIL,
   usePerfilContexto,
 } from './PerfilContexto'
 
@@ -25,7 +25,7 @@ describe('PerfilProvider / usePerfilContexto', () => {
     const { result } = renderizarPerfilContexto()
 
     expect(result.current.perfil).toBe('administrador')
-    expect(result.current.superficieAtiva).toBe('prontidao')
+    expect(result.current.superficieAtiva).toEqual({ tipo: 'prontidao' })
   })
 
   it('restaura o perfil "segurado" salvo em localStorage', () => {
@@ -34,7 +34,7 @@ describe('PerfilProvider / usePerfilContexto', () => {
     const { result } = renderizarPerfilContexto()
 
     expect(result.current.perfil).toBe('segurado')
-    expect(result.current.superficieAtiva).toBe('visao-geral')
+    expect(result.current.superficieAtiva).toEqual({ tipo: 'visao-geral' })
   })
 
   it('restaura o perfil "administrador" salvo em localStorage', () => {
@@ -70,39 +70,39 @@ describe('PerfilProvider / usePerfilContexto', () => {
     const { result } = renderizarPerfilContexto()
 
     act(() => {
-      result.current.selecionarSuperficie('restaurar-dados-sinteticos')
+      result.current.selecionarSuperficie({ tipo: 'restaurar-dados-sinteticos' })
     })
-    expect(result.current.superficieAtiva).toBe('restaurar-dados-sinteticos')
+    expect(result.current.superficieAtiva).toEqual({ tipo: 'restaurar-dados-sinteticos' })
 
     act(() => {
       result.current.alternarPerfil('segurado')
     })
 
     expect(result.current.perfil).toBe('segurado')
-    expect(result.current.superficieAtiva).toBe('visao-geral')
+    expect(result.current.superficieAtiva).toEqual({ tipo: 'visao-geral' })
   })
 
   it('alternarPerfil de segurado para administrador redefine superficieAtiva para "prontidao"', () => {
     window.localStorage.setItem(CHAVE_ARMAZENAMENTO_PERFIL, 'segurado')
     const { result } = renderizarPerfilContexto()
-    expect(result.current.superficieAtiva).toBe('visao-geral')
+    expect(result.current.superficieAtiva).toEqual({ tipo: 'visao-geral' })
 
     act(() => {
       result.current.alternarPerfil('administrador')
     })
 
     expect(result.current.perfil).toBe('administrador')
-    expect(result.current.superficieAtiva).toBe('prontidao')
+    expect(result.current.superficieAtiva).toEqual({ tipo: 'prontidao' })
   })
 
   it('selecionarSuperficie aceita um valor presente na lista do perfil ativo', () => {
     const { result } = renderizarPerfilContexto()
 
     act(() => {
-      result.current.selecionarSuperficie('restaurar-dados-sinteticos')
+      result.current.selecionarSuperficie({ tipo: 'restaurar-dados-sinteticos' })
     })
 
-    expect(result.current.superficieAtiva).toBe('restaurar-dados-sinteticos')
+    expect(result.current.superficieAtiva).toEqual({ tipo: 'restaurar-dados-sinteticos' })
     expect(result.current.superficieValida).toBe(true)
   })
 
@@ -110,7 +110,7 @@ describe('PerfilProvider / usePerfilContexto', () => {
     const { result } = renderizarPerfilContexto()
 
     act(() => {
-      result.current.selecionarSuperficie('visao-geral')
+      result.current.selecionarSuperficie({ tipo: 'visao-geral' })
     })
 
     expect(result.current.superficieValida).toBe(false)
@@ -126,12 +126,71 @@ describe('PerfilProvider / usePerfilContexto', () => {
     })
 
     expect(result.current.perfil).toBe('segurado')
-    expect(result.current.superficieAtiva).toBe('visao-geral')
+    expect(result.current.superficieAtiva).toEqual({ tipo: 'visao-geral' })
     expect(window.localStorage.getItem(CHAVE_ARMAZENAMENTO_PERFIL)).toBe('segurado')
   })
 
   it('"documentacao-api" está presente só nas superfícies do perfil administrador', () => {
-    expect(SUPERFICIES_POR_PERFIL.administrador).toContain('documentacao-api')
-    expect(SUPERFICIES_POR_PERFIL.segurado).not.toContain('documentacao-api')
+    expect(SUPERFICIES_TOPO_POR_PERFIL.administrador.map((s) => s.tipo)).toContain(
+      'documentacao-api',
+    )
+    expect(SUPERFICIES_TOPO_POR_PERFIL.segurado.map((s) => s.tipo)).not.toContain(
+      'documentacao-api',
+    )
+  })
+
+  it('lista os 5 itens de negócio do administrador em SUPERFICIES_TOPO_POR_PERFIL', () => {
+    const tipos = SUPERFICIES_TOPO_POR_PERFIL.administrador.map((s) => s.tipo)
+
+    expect(tipos).toEqual(
+      expect.arrayContaining([
+        'eventos',
+        'regras',
+        'segurados',
+        'comunicacoes',
+        'fontes-de-dados',
+      ]),
+    )
+  })
+
+  it('superficieValida é true para uma superfície de detalhe cujo perfilPai bate com o perfil ativo', () => {
+    const { result } = renderizarPerfilContexto()
+
+    act(() => {
+      result.current.selecionarSuperficie({
+        tipo: 'evento-execucao',
+        execucaoId: 'exec-1',
+        perfilPai: 'administrador',
+      })
+    })
+
+    expect(result.current.superficieValida).toBe(true)
+  })
+
+  it('superficieValida vira false para uma superfície de detalhe que sobrevive à troca de perfil', () => {
+    const { result } = renderizarPerfilContexto()
+
+    act(() => {
+      result.current.selecionarSuperficie({
+        tipo: 'evento-execucao',
+        execucaoId: 'exec-1',
+        perfilPai: 'administrador',
+      })
+    })
+    expect(result.current.superficieValida).toBe(true)
+
+    act(() => {
+      result.current.alternarPerfil('segurado')
+      // alternarPerfil já redefine superficieAtiva; força de volta a superfície de detalhe
+      // "antiga" para simular uma referência que sobreviveu à troca (ex.: callback assíncrono).
+      result.current.selecionarSuperficie({
+        tipo: 'evento-execucao',
+        execucaoId: 'exec-1',
+        perfilPai: 'administrador',
+      })
+    })
+
+    expect(result.current.perfil).toBe('segurado')
+    expect(result.current.superficieValida).toBe(false)
   })
 })

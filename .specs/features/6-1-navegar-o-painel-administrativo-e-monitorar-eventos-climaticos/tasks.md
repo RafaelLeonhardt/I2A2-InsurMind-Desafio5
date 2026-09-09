@@ -137,7 +137,7 @@ T7 → T8
 
 ---
 
-### T4: Estender `Superficie` para union discriminado com payload (AD-016)
+### T4: Estender `Superficie` para union discriminado com payload (AD-016) ✅ Concluída
 
 **What**: `Superficie` em `PerfilContexto.tsx` vira union de `SuperficieTopo` (sem payload) + `SuperficieDetalhe` (com payload, começando por `{ tipo: 'evento-execucao'; execucaoId: string; perfilPai: Perfil }`); `SUPERFICIES_POR_PERFIL` vira `SUPERFICIES_TOPO_POR_PERFIL` (só tipos de topo, incluindo os 5 novos itens do admin: `eventos`, `regras`, `segurados`, `comunicacoes`, `fontes-de-dados` — usados só como itens de navegação por ora, suas telas chegam em 6.2–6.7); `superficieValida` passa a validar também o caso de detalhe (`perfilPai === perfil`).
 **Where**: `src/frontend/src/contexto/PerfilContexto.tsx`
