@@ -115,6 +115,10 @@ class RepositorioEventosMeteorologicos(Protocol):
         """
         ...
 
+    def mapear_execucoes_por_evento(self) -> dict[UUID, tuple[UUID, str]]:
+        """Liga cada evento à sua execução preventiva mais recente (História 6.1)."""
+        ...
+
 
 class RepositorioSincronizacoes(Protocol):
     """Persiste e consulta o histórico de tentativas de sincronização meteorológica."""

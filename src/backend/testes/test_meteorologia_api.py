@@ -228,10 +228,14 @@ def test_get_eventos_retorna_200_com_os_campos_esperados_apos_coleta(
         "intensidade",
         "proveniencia",
         "instante_observado",
+        "execucao_id",
+        "execucao_estado",
     }
     assert set(eventos[0]) == campos_esperados
     assert eventos[0]["tipo"] == "chuva_intensa"
     assert eventos[0]["proveniencia"] == "real_inmet"
+    assert eventos[0]["execucao_id"] is None
+    assert eventos[0]["execucao_estado"] is None
 
 
 def test_get_eventos_sem_nenhuma_coleta_devolve_lista_vazia(tmp_path: Path) -> None:
@@ -241,6 +245,38 @@ def test_get_eventos_sem_nenhuma_coleta_devolve_lista_vazia(tmp_path: Path) -> N
 
     assert resposta.status_code == 200
     assert resposta.json() == {"eventos": []}
+
+
+def test_get_eventos_com_execucao_associada_expoe_execucao_id_e_estado(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    caminho = preparar_banco(tmp_path)
+    area_id = inserir_area_monitorada(caminho, "A701", "9990001")
+    permitir_resposta_valida(monkeypatch)
+    cliente = cliente_para(caminho)
+    cliente.post(
+        CAMINHO_COLETAS, json={"area_id": area_id}, headers={"Idempotency-Key": str(uuid4())}
+    )
+    evento_id = cliente.get(CAMINHO_EVENTOS).json()["eventos"][0]["id"]
+    execucao_id = uuid4()
+    with abrir_conexao(caminho) as conexao:
+        conexao.execute(
+            "INSERT INTO execucao_preventiva (id, estado) VALUES (?, 'aguardando_geracao')",
+            [execucao_id],
+        )
+        conexao.execute(
+            "INSERT INTO avaliacoes_risco "
+            "(id, execucao_id, evento_id, regra_id, regra_versao, relevante, criterios, motivo) "
+            "VALUES (?, ?, ?, NULL, NULL, true, '[]', 'evento_relevante')",
+            [uuid4(), execucao_id, evento_id],
+        )
+
+    resposta = cliente.get(CAMINHO_EVENTOS)
+
+    assert resposta.status_code == 200
+    evento = resposta.json()["eventos"][0]
+    assert evento["execucao_id"] == str(execucao_id)
+    assert evento["execucao_estado"] == "aguardando_geracao"
 
 
 def test_get_sincronizacoes_retorna_200_com_os_campos_esperados_apos_coleta(

@@ -94,6 +94,12 @@ class RespostaEvento(BaseModel):
     instante_observado: datetime = Field(
         description="Instante RFC 3339 em UTC em que a medida foi observada."
     )
+    execucao_id: UUID | None = Field(
+        description="Execução preventiva mais recente ligada a este evento, ou nula se nenhuma."
+    )
+    execucao_estado: str | None = Field(
+        description="Estado atual da execução ligada, ou nulo quando `execucao_id` é nulo."
+    )
 
 
 class RespostaEventos(BaseModel):
@@ -199,8 +205,14 @@ def problema(
     )
 
 
-def _resposta_evento(evento: object) -> RespostaEvento:
-    """Traduz um `EventoMeteorologico` interno para o contrato REST/JSON público."""
+def _resposta_evento(
+    evento: object, execucao: tuple[UUID, str] | None
+) -> RespostaEvento:
+    """Traduz um `EventoMeteorologico` interno para o contrato REST/JSON público.
+
+    `execucao` vem de `RepositorioEventosMeteorologicos.mapear_execucoes_por_evento()`
+    (História 6.1) — `None` quando o evento ainda não tem execução associada.
+    """
 
     return RespostaEvento(
         id=evento.id,  # type: ignore[attr-defined]
@@ -211,6 +223,8 @@ def _resposta_evento(evento: object) -> RespostaEvento:
         intensidade=evento.intensidade,  # type: ignore[attr-defined]
         proveniencia=str(evento.proveniencia),  # type: ignore[attr-defined]
         instante_observado=evento.instante_observado,  # type: ignore[attr-defined]
+        execucao_id=execucao[0] if execucao is not None else None,
+        execucao_estado=execucao[1] if execucao is not None else None,
     )
 
 
@@ -497,10 +511,18 @@ def criar_roteador(configuracao: Configuracao) -> APIRouter:
         responses={200: {"description": "Eventos meteorológicos normalizados."}},
     )
     async def consultar_eventos() -> RespostaEventos:  # pyright: ignore[reportUnusedFunction]
-        """Traduz a listagem de eventos para o contrato REST/JSON público."""
+        """Traduz a listagem de eventos para o contrato REST/JSON público.
 
+        Combina com `mapear_execucoes_por_evento()` (História 6.1) para expor a
+        execução preventiva mais recente de cada evento, quando existir.
+        """
+
+        execucoes_por_evento = eventos_repo.mapear_execucoes_por_evento()
         return RespostaEventos(
-            eventos=[_resposta_evento(evento) for evento in eventos_repo.listar()]
+            eventos=[
+                _resposta_evento(evento, execucoes_por_evento.get(evento.id))
+                for evento in eventos_repo.listar()
+            ]
         )
 
     @roteador.get(

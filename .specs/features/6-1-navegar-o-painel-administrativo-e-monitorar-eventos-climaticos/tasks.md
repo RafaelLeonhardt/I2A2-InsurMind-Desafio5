@@ -91,7 +91,7 @@ T7 → T8
 
 ---
 
-### T2: Estender `RespostaEvento` e `consultar_eventos` com o vínculo de execução
+### T2: Estender `RespostaEvento` e `consultar_eventos` com o vínculo de execução ✅ Concluída
 
 **What**: `RespostaEvento` ganha `execucao_id: UUID | None` e `execucao_estado: str | None`; `consultar_eventos()` combina `eventos_repo.listar()` com `eventos_repo.mapear_execucoes_por_evento()` (T1) para preencher os dois campos, `None` quando o evento não tiver execução.
 **Where**: `src/backend/central_preventiva/adaptadores/http/meteorologia.py`
@@ -114,7 +114,7 @@ T7 → T8
 
 ---
 
-### T3: Sincronizar os testes de contrato OpenAPI/saúde
+### T3: Sincronizar os testes de contrato OpenAPI/saúde ✅ Concluída
 
 **What**: Confirmar que `test_openapi_sincronizado.py` passa contra o snapshot regenerado em T2 e que `test_saude.py` continua correto (nenhuma rota nova foi criada nesta história, só um schema de resposta existente mudou — o `set` de paths de `test_openapi_em_portugues_nao_antecipa_recursos_futuros` não muda; verificado, não modificado, nesta task).
 **Where**: `src/backend/testes/test_openapi_sincronizado.py`

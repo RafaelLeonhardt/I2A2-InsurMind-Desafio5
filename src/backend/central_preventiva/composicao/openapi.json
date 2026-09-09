@@ -2880,6 +2880,31 @@
             "title": "Area",
             "type": "string"
           },
+          "execucao_estado": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Estado atual da execução ligada, ou nulo quando `execucao_id` é nulo.",
+            "title": "Execucao Estado"
+          },
+          "execucao_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Execução preventiva mais recente ligada a este evento, ou nula se nenhuma.",
+            "title": "Execucao Id"
+          },
           "id": {
             "description": "Identificador do evento meteorológico.",
             "format": "uuid",
@@ -2928,7 +2953,9 @@
           "periodo_fim",
           "intensidade",
           "proveniencia",
-          "instante_observado"
+          "instante_observado",
+          "execucao_id",
+          "execucao_estado"
         ],
         "title": "RespostaEvento",
         "type": "object"

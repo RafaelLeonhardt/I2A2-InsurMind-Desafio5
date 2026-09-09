@@ -142,8 +142,12 @@ def test_mapear_execucoes_por_evento_mantem_so_a_avaliacao_mais_recente_por_even
     execucao_recente_id = uuid4()
     inserir_execucao(caminho, execucao_antiga_id, "concluido")
     inserir_execucao(caminho, execucao_recente_id, "aguardando_geracao")
-    inserir_avaliacao_risco(caminho, execucao_antiga_id, evento_id, datetime(2026, 8, 30, 10, 0, 0))
-    inserir_avaliacao_risco(caminho, execucao_recente_id, evento_id, datetime(2026, 8, 30, 20, 0, 0))
+    inserir_avaliacao_risco(
+        caminho, execucao_antiga_id, evento_id, datetime(2026, 8, 30, 10, 0, 0)
+    )
+    inserir_avaliacao_risco(
+        caminho, execucao_recente_id, evento_id, datetime(2026, 8, 30, 20, 0, 0)
+    )
 
     mapa = RepositorioEventosMeteorologicos(caminho).mapear_execucoes_por_evento()
 

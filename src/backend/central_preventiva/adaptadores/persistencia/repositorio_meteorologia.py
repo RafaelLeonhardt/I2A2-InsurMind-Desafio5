@@ -183,7 +183,8 @@ class RepositorioEventosMeteorologicos:
                 "SELECT ar.evento_id, ar.execucao_id, ep.estado "
                 "FROM avaliacoes_risco ar "
                 "JOIN execucao_preventiva ep ON ep.id = ar.execucao_id "
-                "QUALIFY ROW_NUMBER() OVER (PARTITION BY ar.evento_id ORDER BY ar.criado_em DESC) = 1"
+                "QUALIFY ROW_NUMBER() "
+                "OVER (PARTITION BY ar.evento_id ORDER BY ar.criado_em DESC) = 1"
             ).fetchall()
         return {
             UUID(str(linha[0])): (UUID(str(linha[1])), str(linha[2])) for linha in linhas

@@ -82,8 +82,8 @@ O protótipo navegável (`docs/design/prototype`, tela `AdminHome`/imagem `01-mo
 | ADMNAV-01 | P1: Painel do administrador com navegação própria | - | Pending |
 | ADMNAV-02 | P1: Painel do administrador com navegação própria | - | Pending |
 | ADMNAV-03 | P1: Painel do administrador com navegação própria | - | Pending |
-| ADMNAV-04 | P1: Lista de eventos climáticos identificados | T1/T2/T7/T8 | In Tasks (T1 done) |
-| ADMNAV-05 | P1: Lista de eventos climáticos identificados | - | Pending |
+| ADMNAV-04 | P1: Lista de eventos climáticos identificados | T1/T2/T7/T8 | In Tasks (T1–T3 done) |
+| ADMNAV-05 | P1: Lista de eventos climáticos identificados | T6/T8 | In Tasks (backend pronto — T1–T3) |
 | ADMNAV-06 | P1: Lista de eventos climáticos identificados | - | Pending |
 | ADMNAV-07 | P1: Lista de eventos climáticos identificados | - | Pending |
 
