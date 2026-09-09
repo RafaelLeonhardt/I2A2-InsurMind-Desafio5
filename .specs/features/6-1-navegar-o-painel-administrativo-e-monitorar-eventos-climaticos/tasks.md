@@ -207,7 +207,7 @@ T7 → T8
 
 ---
 
-### T7: Estender `api/meteorologia.ts` com o vínculo de execução
+### T7: Estender `api/meteorologia.ts` com o vínculo de execução ✅ Concluída
 
 **What**: Após regenerar `src/frontend/src/api/tipos-gerados.ts` (backend rodando localmente, `npm run gerar-tipos-api --prefix src/frontend`, conforme T2), `EventoMeteorologico` (tipo) e `paraEvento()` em `api/meteorologia.ts` ganham `execucaoId: string | null` e `execucaoEstado: string | null`, traduzidos de `execucao_id`/`execucao_estado`.
 **Where**: `src/frontend/src/api/meteorologia.ts`

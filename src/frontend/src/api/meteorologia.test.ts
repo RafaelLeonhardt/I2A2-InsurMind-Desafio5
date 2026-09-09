@@ -274,6 +274,8 @@ describe('getEventos', () => {
               intensidade: 55.4,
               proveniencia: 'real_inmet',
               instante_observado: '2026-08-30T18:00:00+00:00',
+              execucao_id: null,
+              execucao_estado: null,
             },
           ],
         }),
@@ -292,8 +294,39 @@ describe('getEventos', () => {
         intensidade: 55.4,
         proveniencia: 'real_inmet',
         instanteObservado: '2026-08-30T18:00:00+00:00',
+        execucaoId: null,
+        execucaoEstado: null,
       },
     ])
+  })
+
+  it('mapeia execucao_id/execucao_estado quando o evento tem uma execução associada', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        responder(200, {
+          eventos: [
+            {
+              id: '1',
+              tipo: 'chuva_intensa',
+              area: '9990001',
+              periodo_inicio: '2026-08-30T17:00:00+00:00',
+              periodo_fim: '2026-08-30T18:00:00+00:00',
+              intensidade: 55.4,
+              proveniencia: 'real_inmet',
+              instante_observado: '2026-08-30T18:00:00+00:00',
+              execucao_id: '44444444-4444-4444-4444-444444444444',
+              execucao_estado: 'aguardando_geracao',
+            },
+          ],
+        }),
+      ),
+    )
+
+    const [evento] = await getEventos()
+
+    expect(evento.execucaoId).toBe('44444444-4444-4444-4444-444444444444')
+    expect(evento.execucaoEstado).toBe('aguardando_geracao')
   })
 
   it('resolve lista vazia quando o backend não tem nenhum evento (sem dado fixo)', async () => {

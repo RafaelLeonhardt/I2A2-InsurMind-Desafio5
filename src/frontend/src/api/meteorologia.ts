@@ -14,6 +14,10 @@ export type EventoMeteorologico = {
   intensidade: number
   proveniencia: string
   instanteObservado: string
+  /** Execução preventiva mais recente ligada a este evento (História 6.1), ou nula. */
+  execucaoId: string | null
+  /** Estado atual da execução ligada, nulo quando `execucaoId` é nulo. */
+  execucaoEstado: string | null
 }
 
 /** Tentativa individual de coleta dentro de uma sincronização com retry. */
@@ -157,6 +161,8 @@ function paraEvento(corpo: components['schemas']['RespostaEvento']): EventoMeteo
     intensidade: corpo.intensidade,
     proveniencia: corpo.proveniencia,
     instanteObservado: corpo.instante_observado,
+    execucaoId: corpo.execucao_id,
+    execucaoEstado: corpo.execucao_estado,
   }
 }
 

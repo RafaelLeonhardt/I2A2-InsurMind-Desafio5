@@ -3009,6 +3009,16 @@ export interface components {
              * @description Instante RFC 3339 em UTC em que a medida foi observada.
              */
             instante_observado: string;
+            /**
+             * Execucao Id
+             * @description Execução preventiva mais recente ligada a este evento, ou nula se nenhuma.
+             */
+            execucao_id: string | null;
+            /**
+             * Execucao Estado
+             * @description Estado atual da execução ligada, ou nulo quando `execucao_id` é nulo.
+             */
+            execucao_estado: string | null;
         };
         /**
          * RespostaEventoDetalhe
