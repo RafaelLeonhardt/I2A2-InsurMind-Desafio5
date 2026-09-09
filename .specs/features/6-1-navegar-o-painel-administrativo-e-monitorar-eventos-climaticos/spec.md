@@ -80,9 +80,9 @@ O protótipo navegável (`docs/design/prototype`, tela `AdminHome`/imagem `01-mo
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
 | ADMNAV-01 | P1: Painel do administrador com navegação própria | T4/T5 | ✅ Verified |
-| ADMNAV-02 | P1: Painel do administrador com navegação própria | T6 | Implementing — Fix 3 aplicado (teste de integração "Eventos climáticos" em `App.test.tsx`); aguardando reverificação |
+| ADMNAV-02 | P1: Painel do administrador com navegação própria | T6 | ✅ Verified |
 | ADMNAV-03 | P1: Painel do administrador com navegação própria | T4 | ✅ Verified |
-| ADMNAV-04 | P1: Lista de eventos climáticos identificados | T1/T2/T7/T8 | Implementing — Fix 1/Fix 2 aplicados (coluna "Severidade" + `rotuloEstadoExecucao` nos 4 termos da spec); aguardando reverificação |
+| ADMNAV-04 | P1: Lista de eventos climáticos identificados | T1/T2/T7/T8 | ✅ Verified |
 | ADMNAV-05 | P1: Lista de eventos climáticos identificados | T6/T8 | ✅ Verified |
 | ADMNAV-06 | P1: Lista de eventos climáticos identificados | T8 | ✅ Verified |
 | ADMNAV-07 | P1: Lista de eventos climáticos identificados | T8 | ✅ Verified |
@@ -91,7 +91,7 @@ O protótipo navegável (`docs/design/prototype`, tela `AdminHome`/imagem `01-mo
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped — Verifier independente rodou em 2026-09-09 (`.specs/features/6-1-.../validation.md`): 5/7 requisitos Verified, 2/7 Needs Fix (ADMNAV-02, ADMNAV-04). Gate de build 100% verde nos dois stacks; sensor de discriminação 3/3 mutações mortas. Ver `validation.md` para o relatório completo e os fix tasks ranqueados.
+**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped — Verifier independente rodou em 2026-09-09, iteração 2 de re-verificação (`.specs/features/6-1-.../validation.md`): 7/7 requisitos Verified, 0 gaps. Gate de build 100% verde nos dois stacks; sensor de discriminação 2/2 novas mutações mortas (mais 3/3 da rodada anterior, código não alterado por este fix). Ver `validation.md` para o relatório completo.
 
 ---
 
