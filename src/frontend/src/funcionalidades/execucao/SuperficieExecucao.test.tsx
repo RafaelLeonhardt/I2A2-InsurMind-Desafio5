@@ -17,6 +17,10 @@ const { getElegibilidade } = vi.hoisted(() => ({
   getElegibilidade: vi.fn(),
 }))
 
+const { getMensagens } = vi.hoisted(() => ({
+  getMensagens: vi.fn(),
+}))
+
 vi.mock('../../api/execucao', async (importarOriginal) => ({
   ...(await importarOriginal<typeof import('../../api/execucao')>()),
   getExecucao,
@@ -30,6 +34,11 @@ vi.mock('../../api/avaliacaoRisco', async (importarOriginal) => ({
 vi.mock('../../api/elegibilidade', async (importarOriginal) => ({
   ...(await importarOriginal<typeof import('../../api/elegibilidade')>()),
   getElegibilidade,
+}))
+
+vi.mock('../../api/mensagens', async (importarOriginal) => ({
+  ...(await importarOriginal<typeof import('../../api/mensagens')>()),
+  getMensagens,
 }))
 
 const EXECUCAO_ID = '11111111-1111-1111-1111-111111111111'
@@ -66,8 +75,10 @@ beforeEach(() => {
   getExecucao.mockReset()
   getAvaliacaoRisco.mockReset()
   getElegibilidade.mockReset()
+  getMensagens.mockReset()
   getAvaliacaoRisco.mockResolvedValue(null)
   getElegibilidade.mockResolvedValue({ incluidos: 0, excluidos: 0, registros: [] })
+  getMensagens.mockResolvedValue([])
 })
 
 describe('superfície de execução', () => {
@@ -434,6 +445,32 @@ describe('superfície de execução', () => {
     await screen.findByText('Encerrado — evento sem risco relevante')
     expect(
       screen.queryByRole('heading', { name: 'Preparação da produção de mensagens' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('embute a geração de mensagens quando processando_mensagens', async () => {
+    getExecucao.mockResolvedValue(
+      execucao({
+        estado: 'processando_mensagens',
+        marcos: [
+          { marco: 'aguardando_geracao', causa: null, criadoEm: '2026-08-30T12:00:00Z' },
+        ],
+      }),
+    )
+    renderizar()
+
+    expect(
+      await screen.findByRole('heading', { name: 'Geração de mensagens' }),
+    ).toBeInTheDocument()
+  })
+
+  it('não embute a geração de mensagens fora de processando_mensagens', async () => {
+    getExecucao.mockResolvedValue(execucao({ estado: 'sem_risco', marcos: [] }))
+    renderizar()
+
+    await screen.findByText('Encerrado — evento sem risco relevante')
+    expect(
+      screen.queryByRole('heading', { name: 'Geração de mensagens' }),
     ).not.toBeInTheDocument()
   })
 })

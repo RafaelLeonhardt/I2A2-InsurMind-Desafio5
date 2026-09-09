@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { type Execucao, ErroExecucao, getExecucao } from '../../api/execucao'
 import { usePerfilContexto } from '../../contexto/PerfilContexto'
 import { SuperficieEventoDecisao } from '../evento-decisao/SuperficieEventoDecisao'
+import { SuperficieGeracaoMensagens } from '../geracao-mensagens/SuperficieGeracaoMensagens'
 import { SuperficiePreparacaoIA } from '../preparacao-ia/SuperficiePreparacaoIA'
 import './SuperficieExecucao.css'
 
@@ -196,6 +197,7 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
   const mostrarDecisaoDeRisco =
     execucao !== null && execucao.estado !== 'coletando' && execucao.estado !== 'falhou_coleta'
   const mostrarPreparacaoIa = execucao !== null && ESTADOS_PREPARACAO_IA.has(execucao.estado)
+  const mostrarGeracaoMensagens = execucao !== null && execucao.estado === 'processando_mensagens'
 
   return (
     <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
@@ -291,6 +293,8 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
       {mostrarPreparacaoIa && (
         <SuperficiePreparacaoIA aoNavegar={abrirExecucao} execucaoId={execucaoId} />
       )}
+
+      {mostrarGeracaoMensagens && <SuperficieGeracaoMensagens embutido execucaoId={execucaoId} />}
     </main>
   )
 }
