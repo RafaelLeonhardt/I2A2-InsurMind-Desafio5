@@ -1085,6 +1085,19 @@
             "title": "Elegibilidade Id",
             "type": "string"
           },
+          "entrega_simulada_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Entrega simulada mais recente associada a este alerta, ou nulo se nenhuma mensagem dele chegou a `simulada_entregue` ainda.",
+            "title": "Entrega Simulada Id"
+          },
           "evento_tipo": {
             "description": "Tipo do evento meteorológico (`chuva_intensa`/`granizo`).",
             "title": "Evento Tipo",
@@ -1156,7 +1169,8 @@
           "recomendacoes",
           "origem",
           "instante_observado",
-          "fonte_degradada"
+          "fonte_degradada",
+          "entrega_simulada_id"
         ],
         "title": "RespostaAlerta",
         "type": "object"

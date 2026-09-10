@@ -12,9 +12,14 @@ from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigrac
 from central_preventiva.adaptadores.persistencia.repositorio_elegibilidade import (
     RepositorioElegibilidades,
 )
+from central_preventiva.adaptadores.persistencia.repositorio_entregas_simuladas import (
+    MensagemAprovada,
+    RepositorioEntregasSimuladas,
+)
 from central_preventiva.adaptadores.persistencia.repositorio_execucao_preventiva import (
     RepositorioExecucaoPreventiva,
 )
+from central_preventiva.adaptadores.persistencia.repositorio_mensagens import RepositorioMensagens
 from central_preventiva.adaptadores.persistencia.repositorio_meteorologia import (
     RepositorioEventosMeteorologicos,
     RepositorioSincronizacoes,
@@ -28,11 +33,13 @@ from central_preventiva.composicao.configuracao import Configuracao
 from central_preventiva.dominio.avaliador_elegibilidade import ResultadoElegibilidade
 from central_preventiva.dominio.avaliador_risco import Criterio
 from central_preventiva.dominio.estados_execucao import EstadoExecucao
+from central_preventiva.dominio.estados_mensagem import EstadoMensagem
 from central_preventiva.dominio.evento_meteorologico import (
     EventoMeteorologico,
     ProvenienciaEvento,
     TipoEventoMeteorologico,
 )
+from central_preventiva.dominio.validador_saida_canal import Canal, SaidaCanal
 
 TIPO_PROBLEMA = "application/problem+json"
 REGRA_ID = UUID("33333333-3333-3333-3333-333333333333")
@@ -114,6 +121,20 @@ def criar_elegibilidade(
     )
     assert id_registro is not None
     return id_registro
+
+
+def marcar_entrega_simulada(caminho: Path, elegibilidade_id: UUID) -> UUID:
+    """Cria mensagem+entrega `simulada_entregue` para a elegibilidade (6.8)."""
+
+    execucao_id = uuid4()
+    mensagens = RepositorioMensagens(caminho)
+    entregas = RepositorioEntregasSimuladas(caminho)
+    mensagem_id = mensagens.criar(execucao_id, elegibilidade_id, Canal.WHATSAPP)
+    [entrega_id] = entregas.criar_lote(
+        execucao_id, [MensagemAprovada(mensagem_id, Canal.WHATSAPP, SaidaCanal(corpo="Corpo"))]
+    )
+    mensagens.transicionar(mensagem_id, 1, EstadoMensagem.SIMULADA_ENTREGUE)
+    return entrega_id
 
 
 def _periodo_futuro() -> tuple[datetime, datetime]:
@@ -201,6 +222,63 @@ def test_consultar_detalhe_devolve_200_com_todos_os_campos_do_contrato(
     assert alerta["impactos_esperados"] == ["alagamento"]
     assert len(alerta["recomendacoes"]) > 0
     assert len(corpo["linha_do_tempo"]) > 0
+    assert alerta["entrega_simulada_id"] is None
+
+
+def test_consultar_detalhe_com_entrega_simulada_devolve_entrega_simulada_id(
+    tmp_path: Path,
+) -> None:
+    """6.8 (ABRIREXP-02): o detalhe expõe o `entrega_simulada_id` da própria elegibilidade
+    consultada, não de outra."""
+
+    caminho = preparar_banco(tmp_path)
+    execucoes = RepositorioExecucaoPreventiva(caminho)
+    inicio, fim = _periodo_futuro()
+    evento = criar_evento(caminho, inicio, fim)
+    execucao_id = execucoes.criar(EstadoExecucao.CONCLUIDA)
+    elegibilidade_id = criar_elegibilidade(caminho, evento.id, execucao_id)
+    entrega_id = marcar_entrega_simulada(caminho, elegibilidade_id)
+
+    resposta = cliente_para(caminho).get(
+        f"/api/v1/segurados/{CARLOS_ID}/alertas/{elegibilidade_id}"
+    )
+
+    assert resposta.status_code == 200
+    assert resposta.json()["alerta"]["entrega_simulada_id"] == str(entrega_id)
+
+
+def test_listar_expoe_entrega_simulada_id_por_item(tmp_path: Path) -> None:
+    """6.8 (ABRIREXP-01/03): cada item da lista carrega o `entrega_simulada_id` certo — o
+    alerta com entrega, e `null` para o que ainda não tem nenhuma."""
+
+    caminho = preparar_banco(tmp_path)
+    execucoes = RepositorioExecucaoPreventiva(caminho)
+    inicio, fim = _periodo_futuro()
+
+    evento_com_entrega = criar_evento(caminho, inicio, fim)
+    execucao_com_entrega = execucoes.criar(EstadoExecucao.CONCLUIDA)
+    elegibilidade_com_entrega = criar_elegibilidade(
+        caminho, evento_com_entrega.id, execucao_com_entrega
+    )
+    entrega_id = marcar_entrega_simulada(caminho, elegibilidade_com_entrega)
+
+    evento_sem_entrega = criar_evento(
+        caminho, inicio + timedelta(days=1), fim + timedelta(days=1)
+    )
+    execucao_sem_entrega = execucoes.criar(EstadoExecucao.CONCLUIDA)
+    elegibilidade_sem_entrega = criar_elegibilidade(
+        caminho, evento_sem_entrega.id, execucao_sem_entrega
+    )
+
+    resposta = cliente_para(caminho).get(f"/api/v1/segurados/{CARLOS_ID}/alertas")
+
+    assert resposta.status_code == 200
+    itens = {
+        item["alerta"]["elegibilidade_id"]: item["alerta"]["entrega_simulada_id"]
+        for item in resposta.json()["alertas"]
+    }
+    assert itens[str(elegibilidade_com_entrega)] == str(entrega_id)
+    assert itens[str(elegibilidade_sem_entrega)] is None
 
 
 def test_consultar_detalhe_de_evento_sintetico_com_fonte_degradada(tmp_path: Path) -> None:

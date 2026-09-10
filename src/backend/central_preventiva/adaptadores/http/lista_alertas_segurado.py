@@ -21,6 +21,9 @@ from central_preventiva.adaptadores.http.linha_do_tempo import (
 from central_preventiva.adaptadores.persistencia.repositorio_elegibilidade import (
     RepositorioElegibilidades,
 )
+from central_preventiva.adaptadores.persistencia.repositorio_entregas_simuladas import (
+    RepositorioEntregasSimuladas,
+)
 from central_preventiva.adaptadores.persistencia.repositorio_execucao_preventiva import (
     RepositorioExecucaoPreventiva,
 )
@@ -169,6 +172,7 @@ def _resposta_alerta(alerta: AlertaSegurado) -> RespostaAlerta:
         origem=str(alerta.origem),
         instante_observado=alerta.instante_observado,
         fonte_degradada=alerta.fonte_degradada,
+        entrega_simulada_id=alerta.entrega_simulada_id,
     )
 
 
@@ -206,6 +210,7 @@ def montar_servico_lista_alertas_segurado(
             areas_monitoradas=RepositorioAreasMonitoradas(caminho),
             sincronizacoes=RepositorioSincronizacoes(caminho),
             tentativas=RepositorioTentativasColeta(caminho),
+            entregas=RepositorioEntregasSimuladas(caminho),
         )
     )
     return ServicoListaAlertasSegurado(

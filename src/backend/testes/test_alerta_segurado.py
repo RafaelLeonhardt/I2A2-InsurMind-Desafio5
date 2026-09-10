@@ -14,6 +14,11 @@ from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigrac
 from central_preventiva.adaptadores.persistencia.repositorio_elegibilidade import (
     RepositorioElegibilidades,
 )
+from central_preventiva.adaptadores.persistencia.repositorio_entregas_simuladas import (
+    MensagemAprovada,
+    RepositorioEntregasSimuladas,
+)
+from central_preventiva.adaptadores.persistencia.repositorio_mensagens import RepositorioMensagens
 from central_preventiva.adaptadores.persistencia.repositorio_meteorologia import (
     RepositorioAreasMonitoradas,
     RepositorioEventosMeteorologicos,
@@ -30,6 +35,7 @@ from central_preventiva.aplicacao.portas_meteorologia import (
 )
 from central_preventiva.dominio.avaliador_elegibilidade import ResultadoElegibilidade
 from central_preventiva.dominio.avaliador_risco import Criterio
+from central_preventiva.dominio.estados_mensagem import EstadoMensagem
 from central_preventiva.dominio.evento_meteorologico import (
     EventoMeteorologico,
     ProvenienciaEvento,
@@ -37,11 +43,13 @@ from central_preventiva.dominio.evento_meteorologico import (
 )
 from central_preventiva.dominio.identificadores_demonstracao import SEGURADO_PADRAO
 from central_preventiva.dominio.montador_contexto_agente import ORIENTACOES_POR_EVENTO
+from central_preventiva.dominio.validador_saida_canal import Canal, SaidaCanal
 
 AREA = "9990001"
 REGRA_ID = uuid4()
 SEGURADO_ID = uuid4()
 APOLICE_ID = uuid4()
+EXECUCAO_ID = uuid4()
 
 RESULTADO_INCLUIDO = ResultadoElegibilidade(
     elegivel=True,
@@ -66,6 +74,8 @@ class Contexto:
         self.areas = RepositorioAreasMonitoradas(self.caminho)
         self.sincronizacoes = RepositorioSincronizacoes(self.caminho)
         self.tentativas = RepositorioTentativasColeta(self.caminho)
+        self.mensagens = RepositorioMensagens(self.caminho)
+        self.entregas = RepositorioEntregasSimuladas(self.caminho)
         with abrir_conexao(self.caminho) as conexao:
             conexao.execute(
                 "INSERT INTO regras (id, evento_tipo, limiar_meteorologico, area_aplicavel, "
@@ -73,6 +83,11 @@ class Contexto:
                 "VALUES (?, 'chuva_intensa', 50.0, ?, 'residencial', 'alagamento', 24, "
                 "'whatsapp', 1, 'ativa')",
                 [REGRA_ID, AREA],
+            )
+            conexao.execute(
+                "INSERT INTO execucao_preventiva (id, estado, versao) "
+                "VALUES (?, 'concluida', 1)",
+                [EXECUCAO_ID],
             )
         self.servico = ServicoAlertaSegurado(
             PortasAlertaSegurado(
@@ -82,6 +97,7 @@ class Contexto:
                 areas_monitoradas=self.areas,
                 sincronizacoes=self.sincronizacoes,
                 tentativas=self.tentativas,
+                entregas=self.entregas,
             )
         )
 
@@ -90,13 +106,29 @@ class Contexto:
 
         self.eventos.salvar(evento)
 
-    def salvar_elegibilidade(self, evento_id: UUID) -> None:
-        """Persiste a elegibilidade `incluido` do segurado para o evento informado."""
+    def salvar_elegibilidade(self, evento_id: UUID) -> UUID:
+        """Persiste a elegibilidade `incluido` do segurado para o evento informado; devolve
+        o id gerado pelo próprio repositório (o primeiro argumento de `salvar` é
+        `execucao_id`, não o id da elegibilidade)."""
 
-        self.elegibilidades.salvar(
+        id_registro = self.elegibilidades.salvar(
             uuid4(), evento_id, REGRA_ID, SEGURADO_ID, APOLICE_ID, "Pessoa Teste",
             RESULTADO_INCLUIDO,
         )
+        assert id_registro is not None
+        return id_registro
+
+    def marcar_entrega_simulada(
+        self, elegibilidade_id: UUID, canal: Canal = Canal.WHATSAPP
+    ) -> UUID:
+        """Cria mensagem+entrega `simulada_entregue` para a elegibilidade (6.8)."""
+
+        mensagem_id = self.mensagens.criar(EXECUCAO_ID, elegibilidade_id, canal)
+        [entrega_id] = self.entregas.criar_lote(
+            EXECUCAO_ID, [MensagemAprovada(mensagem_id, canal, SaidaCanal(corpo="Corpo teste"))]
+        )
+        self.mensagens.transicionar(mensagem_id, 1, EstadoMensagem.SIMULADA_ENTREGUE)
+        return entrega_id
 
 
 def _evento_real(intensidade: float = 62.5) -> EventoMeteorologico:
@@ -310,6 +342,7 @@ def test_segurado_padrao_semeado_recebe_alerta_completo_sem_avaliacoes_risco_ou_
             areas_monitoradas=RepositorioAreasMonitoradas(caminho),
             sincronizacoes=RepositorioSincronizacoes(caminho),
             tentativas=RepositorioTentativasColeta(caminho),
+            entregas=RepositorioEntregasSimuladas(caminho),
         )
     )
 
@@ -324,3 +357,38 @@ def test_segurado_padrao_semeado_recebe_alerta_completo_sem_avaliacoes_risco_ou_
     assert alerta.recomendacoes == ORIENTACOES_POR_EVENTO[TipoEventoMeteorologico.CHUVA_INTENSA]
     assert alerta.origem is ProvenienciaEvento.SINTETICO
     assert alerta.fonte_degradada is False
+    assert alerta.entrega_simulada_id is None
+
+
+def test_entrega_simulada_id_e_none_sem_nenhuma_mensagem_simulada_entregue(
+    tmp_path: Path,
+) -> None:
+    """6.8 (ABRIREXP-03): elegibilidade sem entrega simulada não tem o que abrir."""
+
+    contexto = Contexto(tmp_path)
+    evento = _evento_real()
+    contexto.salvar_evento(evento)
+    contexto.salvar_elegibilidade(evento.id)
+
+    alerta = contexto.servico.obter_mais_relevante(SEGURADO_ID)
+
+    assert alerta is not None
+    assert alerta.entrega_simulada_id is None
+
+
+def test_entrega_simulada_id_reflete_a_entrega_mais_recente_da_elegibilidade(
+    tmp_path: Path,
+) -> None:
+    """6.8 (ABRIREXP-01): `montar_para_registro` popula `entrega_simulada_id` com o valor
+    resolvido pela porta de entregas simuladas, para a elegibilidade exata do alerta."""
+
+    contexto = Contexto(tmp_path)
+    evento = _evento_real()
+    contexto.salvar_evento(evento)
+    elegibilidade_id = contexto.salvar_elegibilidade(evento.id)
+    entrega_id = contexto.marcar_entrega_simulada(elegibilidade_id)
+
+    alerta = contexto.servico.obter_mais_relevante(SEGURADO_ID)
+
+    assert alerta is not None
+    assert alerta.entrega_simulada_id == entrega_id

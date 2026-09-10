@@ -16,6 +16,9 @@ from pydantic import BaseModel, ConfigDict, Field
 from central_preventiva.adaptadores.persistencia.repositorio_elegibilidade import (
     RepositorioElegibilidades,
 )
+from central_preventiva.adaptadores.persistencia.repositorio_entregas_simuladas import (
+    RepositorioEntregasSimuladas,
+)
 from central_preventiva.adaptadores.persistencia.repositorio_meteorologia import (
     RepositorioAreasMonitoradas,
     RepositorioEventosMeteorologicos,
@@ -61,6 +64,12 @@ class RespostaAlerta(BaseModel):
         description=(
             "Se a fonte meteorológica real está degradada no momento da consulta — o "
             "alerta é o último snapshot disponível, de caráter apenas informativo."
+        )
+    )
+    entrega_simulada_id: UUID | None = Field(
+        description=(
+            "Entrega simulada mais recente associada a este alerta, ou nulo se nenhuma "
+            "mensagem dele chegou a `simulada_entregue` ainda."
         )
     )
 
@@ -115,6 +124,7 @@ def _resposta_alerta(alerta: AlertaSegurado) -> RespostaAlerta:
         origem=str(alerta.origem),
         instante_observado=alerta.instante_observado,
         fonte_degradada=alerta.fonte_degradada,
+        entrega_simulada_id=alerta.entrega_simulada_id,
     )
 
 
@@ -130,6 +140,7 @@ def montar_servico_alerta_segurado(configuracao: Configuracao) -> ServicoAlertaS
             areas_monitoradas=RepositorioAreasMonitoradas(caminho),
             sincronizacoes=RepositorioSincronizacoes(caminho),
             tentativas=RepositorioTentativasColeta(caminho),
+            entregas=RepositorioEntregasSimuladas(caminho),
         )
     )
 

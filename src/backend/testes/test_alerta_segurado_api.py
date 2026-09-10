@@ -11,6 +11,11 @@ from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigrac
 from central_preventiva.adaptadores.persistencia.repositorio_elegibilidade import (
     RepositorioElegibilidades,
 )
+from central_preventiva.adaptadores.persistencia.repositorio_entregas_simuladas import (
+    MensagemAprovada,
+    RepositorioEntregasSimuladas,
+)
+from central_preventiva.adaptadores.persistencia.repositorio_mensagens import RepositorioMensagens
 from central_preventiva.adaptadores.persistencia.repositorio_meteorologia import (
     RepositorioEventosMeteorologicos,
     RepositorioSincronizacoes,
@@ -23,11 +28,13 @@ from central_preventiva.composicao.api import criar_aplicacao
 from central_preventiva.composicao.configuracao import Configuracao
 from central_preventiva.dominio.avaliador_elegibilidade import ResultadoElegibilidade
 from central_preventiva.dominio.avaliador_risco import Criterio
+from central_preventiva.dominio.estados_mensagem import EstadoMensagem
 from central_preventiva.dominio.evento_meteorologico import (
     EventoMeteorologico,
     ProvenienciaEvento,
     TipoEventoMeteorologico,
 )
+from central_preventiva.dominio.validador_saida_canal import Canal, SaidaCanal
 
 TIPO_PROBLEMA = "application/problem+json"
 REGRA_ID = UUID("33333333-3333-3333-3333-333333333333")
@@ -70,7 +77,7 @@ def cliente_para(caminho: Path) -> TestClient:
     return TestClient(criar_aplicacao(configuracao))
 
 
-def criar_elegibilidade_incluida(caminho: Path, segurado_id: UUID) -> None:
+def criar_elegibilidade_incluida(caminho: Path, segurado_id: UUID) -> UUID:
     """Persiste um evento real e uma elegibilidade `incluido` para o segurado informado."""
 
     evento = EventoMeteorologico(
@@ -84,9 +91,25 @@ def criar_elegibilidade_incluida(caminho: Path, segurado_id: UUID) -> None:
         instante_observado=datetime(2026, 9, 4, 18, 0),
     )
     RepositorioEventosMeteorologicos(caminho).salvar(evento)
-    RepositorioElegibilidades(caminho).salvar(
+    id_registro = RepositorioElegibilidades(caminho).salvar(
         uuid4(), evento.id, REGRA_ID, segurado_id, uuid4(), "Carlos Teste", RESULTADO_INCLUIDO
     )
+    assert id_registro is not None
+    return id_registro
+
+
+def marcar_entrega_simulada(caminho: Path, elegibilidade_id: UUID) -> UUID:
+    """Cria mensagem+entrega `simulada_entregue` para a elegibilidade (6.8)."""
+
+    execucao_id = uuid4()
+    mensagens = RepositorioMensagens(caminho)
+    entregas = RepositorioEntregasSimuladas(caminho)
+    mensagem_id = mensagens.criar(execucao_id, elegibilidade_id, Canal.WHATSAPP)
+    [entrega_id] = entregas.criar_lote(
+        execucao_id, [MensagemAprovada(mensagem_id, Canal.WHATSAPP, SaidaCanal(corpo="Corpo"))]
+    )
+    mensagens.transicionar(mensagem_id, 1, EstadoMensagem.SIMULADA_ENTREGUE)
+    return entrega_id
 
 
 def test_consultar_alerta_devolve_200_com_alerta_quando_existir(tmp_path: Path) -> None:
@@ -112,6 +135,23 @@ def test_consultar_alerta_devolve_200_com_alerta_quando_existir(tmp_path: Path) 
     assert "62.5" in alerta["severidade"]
     assert alerta["impactos_esperados"] == ["alagamento"]
     assert len(alerta["recomendacoes"]) > 0
+    assert alerta["entrega_simulada_id"] is None
+
+
+def test_consultar_alerta_com_entrega_simulada_devolve_entrega_simulada_id(
+    tmp_path: Path,
+) -> None:
+    """6.8 (contrato de VISAO, campo aditivo): quando a elegibilidade já tem uma entrega
+    `simulada_entregue`, a rota expõe o id certo, não nulo."""
+
+    caminho = preparar_banco(tmp_path)
+    elegibilidade_id = criar_elegibilidade_incluida(caminho, CARLOS_ID)
+    entrega_id = marcar_entrega_simulada(caminho, elegibilidade_id)
+
+    resposta = cliente_para(caminho).get(f"/api/v1/segurados/{CARLOS_ID}/alerta-mais-relevante")
+
+    assert resposta.status_code == 200
+    assert resposta.json()["alerta"]["entrega_simulada_id"] == str(entrega_id)
 
 
 def test_consultar_alerta_de_evento_sintetico_devolve_origem_sintetico(

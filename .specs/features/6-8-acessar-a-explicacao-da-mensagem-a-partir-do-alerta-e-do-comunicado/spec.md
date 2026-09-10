@@ -89,19 +89,19 @@ A História 5.4 já especificou e implementou o conteúdo de "Como esta mensagem
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| ABRIREXP-01 | P1: Abrir a explicação a partir de um alerta | - | Pending |
-| ABRIREXP-02 | P1: Abrir a explicação a partir de um alerta | - | Pending |
-| ABRIREXP-03 | P1: Abrir a explicação a partir de um alerta | - | Pending |
-| ABRIREXP-04 | P1: Abrir a explicação a partir de um comunicado | - | Pending |
-| ABRIREXP-05 | P1: Abrir a explicação a partir de um comunicado | - | Pending |
-| ABRIREXP-06 | P1: Foco devolvido corretamente após fechar, qualquer que seja a origem | - | Pending |
-| ABRIREXP-07 | P1: Foco devolvido corretamente após fechar, qualquer que seja a origem | - | Pending |
+| ABRIREXP-01 | P1: Abrir a explicação a partir de um alerta | T1, T2, T3, T5, T6 | Implementing (backend completo; UI pendente) |
+| ABRIREXP-02 | P1: Abrir a explicação a partir de um alerta | T5, T6 | In Tasks |
+| ABRIREXP-03 | P1: Abrir a explicação a partir de um alerta | T1, T2, T3, T5, T6 | Implementing (backend completo; UI pendente) |
+| ABRIREXP-04 | P1: Abrir a explicação a partir de um comunicado | T4 | In Tasks |
+| ABRIREXP-05 | P1: Abrir a explicação a partir de um comunicado | T4 | In Tasks |
+| ABRIREXP-06 | P1: Foco devolvido corretamente após fechar, qualquer que seja a origem | T4, T6 | In Tasks |
+| ABRIREXP-07 | P1: Foco devolvido corretamente após fechar, qualquer que seja a origem | T4, T6 | In Tasks |
 
 **ID format:** `ABRIREXP-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 7 total, 0 mapped to tasks, 7 unmapped ⚠️ — fase Specify apenas; Design/Tasks pendentes.
+**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped — Design + Tasks aprovados; Phase 1 (T1-T3, backend) completa; Phase 2/3 (T4-T6, frontend) pendentes.
 
 ---
 

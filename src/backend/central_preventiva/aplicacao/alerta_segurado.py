@@ -62,6 +62,10 @@ class AlertaSegurado:
     origem: ProvenienciaEvento
     instante_observado: datetime
     fonte_degradada: bool
+    entrega_simulada_id: UUID | None
+    """Entrega simulada mais recente associada à elegibilidade, ou `None` se nenhuma
+    mensagem dela chegou a `simulada_entregue` ainda (6.8: origem "alerta" de "Como esta
+    mensagem foi criada")."""
 
 
 class _RepositorioElegibilidades(Protocol):
@@ -102,6 +106,12 @@ class _RepositorioTentativasColeta(Protocol):
     def listar_tentativas(self, sincronizacao_id: UUID) -> tuple[TentativaColeta, ...]: ...
 
 
+class _RepositorioEntregasSimuladas(Protocol):
+    """Porta mínima de `entregas_simuladas` (3.6, estendida em 6.8)."""
+
+    def obter_id_mais_recente_por_elegibilidade(self, elegibilidade_id: UUID) -> UUID | None: ...
+
+
 @dataclass(frozen=True, slots=True)
 class PortasAlertaSegurado:
     """Agrupa as portas de que o alerta do segurado depende."""
@@ -112,6 +122,7 @@ class PortasAlertaSegurado:
     areas_monitoradas: _RepositorioAreasMonitoradas
     sincronizacoes: _RepositorioSincronizacoes
     tentativas: _RepositorioTentativasColeta
+    entregas: _RepositorioEntregasSimuladas
 
 
 class ServicoAlertaSegurado:
@@ -185,6 +196,9 @@ class ServicoAlertaSegurado:
             origem=evento.proveniencia,
             instante_observado=evento.instante_observado,
             fonte_degradada=self._fonte_degradada(evento),
+            entrega_simulada_id=self._portas.entregas.obter_id_mais_recente_por_elegibilidade(
+                registro.id
+            ),
         )
 
     def _fonte_degradada(self, evento: EventoMeteorologico) -> bool:

@@ -105,12 +105,14 @@ T3 → T5 → T6
 
 **Done when**:
 
-- [ ] `montar_para_registro` popula `entrega_simulada_id` com o valor devolvido pela porta
-- [ ] `None` quando a porta devolve `None`
-- [ ] Gate check passa: `uv run --directory src/backend pytest`
+- [x] `montar_para_registro` popula `entrega_simulada_id` com o valor devolvido pela porta
+- [x] `None` quando a porta devolve `None`
+- [x] Gate check passa: `uv run --directory src/backend pytest` (verde)
 
 **Tests**: unit
 **Gate**: quick
+
+> **Nota de execução**: T2 sozinho deixa `PortasAlertaSegurado` com um campo obrigatório novo sem que os dois pontos de composição (T3) o preencham — o app real (e a suíte inteira, via `TestClient`) não compõe até T3 também mudar. Mesmo padrão de "Resolving compilation dependencies" de `implement.md`: T2 e T3 foram implementados e verificados juntos (gate completo passou só depois dos dois), mas commitados como um único commit atômico em vez de dois — a divisão em duas tasks continua válida para leitura/rastreabilidade, só a fronteira de commit foi fundida.
 
 ---
 
@@ -128,10 +130,10 @@ T3 → T5 → T6
 
 **Done when**:
 
-- [ ] `GET /segurados/{id}/alerta-mais-relevante` inclui `entrega_simulada_id` na resposta (VISAO, fora de escopo de UI, mas o contrato precisa ficar consistente)
-- [ ] `GET /segurados/{id}/alertas` e `GET /segurados/{id}/alertas/{elegibilidade_id}` incluem `entrega_simulada_id` correto por item
-- [ ] Snapshot OpenAPI regenerado: `uv run --directory src/backend python -m central_preventiva.composicao.openapi_export`
-- [ ] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright`
+- [x] `GET /segurados/{id}/alerta-mais-relevante` inclui `entrega_simulada_id` na resposta (VISAO, fora de escopo de UI, mas o contrato precisa ficar consistente)
+- [x] `GET /segurados/{id}/alertas` e `GET /segurados/{id}/alertas/{elegibilidade_id}` incluem `entrega_simulada_id` correto por item
+- [x] Snapshot OpenAPI regenerado: `uv run --directory src/backend python -m central_preventiva.composicao.openapi_export`
+- [x] Gate check passa: `uv run --directory src/backend pytest && uv run --directory src/backend ruff check . && uv run --directory src/backend pyright` (1118 testes, 0 ruff, 0 pyright)
 
 **Tests**: integration
 **Gate**: full

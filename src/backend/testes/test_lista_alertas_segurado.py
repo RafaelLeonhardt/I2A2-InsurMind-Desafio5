@@ -14,9 +14,14 @@ from central_preventiva.adaptadores.persistencia.migracoes import ExecutorMigrac
 from central_preventiva.adaptadores.persistencia.repositorio_elegibilidade import (
     RepositorioElegibilidades,
 )
+from central_preventiva.adaptadores.persistencia.repositorio_entregas_simuladas import (
+    MensagemAprovada,
+    RepositorioEntregasSimuladas,
+)
 from central_preventiva.adaptadores.persistencia.repositorio_execucao_preventiva import (
     RepositorioExecucaoPreventiva,
 )
+from central_preventiva.adaptadores.persistencia.repositorio_mensagens import RepositorioMensagens
 from central_preventiva.adaptadores.persistencia.repositorio_meteorologia import (
     RepositorioAreasMonitoradas,
     RepositorioEventosMeteorologicos,
@@ -34,11 +39,13 @@ from central_preventiva.composicao.configuracao import Configuracao
 from central_preventiva.dominio.avaliador_elegibilidade import ResultadoElegibilidade
 from central_preventiva.dominio.avaliador_risco import Criterio
 from central_preventiva.dominio.estados_execucao import EstadoExecucao
+from central_preventiva.dominio.estados_mensagem import EstadoMensagem
 from central_preventiva.dominio.evento_meteorologico import (
     EventoMeteorologico,
     ProvenienciaEvento,
     TipoEventoMeteorologico,
 )
+from central_preventiva.dominio.validador_saida_canal import Canal, SaidaCanal
 
 AREA = "9990001"
 REGRA_ID = uuid4()
@@ -67,6 +74,8 @@ class Contexto:
         self.eventos = RepositorioEventosMeteorologicos(self.caminho)
         self.regras = RepositorioRegras(self.caminho)
         self.execucoes = RepositorioExecucaoPreventiva(self.caminho)
+        self.mensagens = RepositorioMensagens(self.caminho)
+        self.entregas = RepositorioEntregasSimuladas(self.caminho)
         with abrir_conexao(self.caminho) as conexao:
             conexao.execute(
                 "INSERT INTO regras (id, evento_tipo, limiar_meteorologico, area_aplicavel, "
@@ -83,6 +92,7 @@ class Contexto:
                 areas_monitoradas=RepositorioAreasMonitoradas(self.caminho),
                 sincronizacoes=RepositorioSincronizacoes(self.caminho),
                 tentativas=RepositorioTentativasColeta(self.caminho),
+                entregas=self.entregas,
             )
         )
         configuracao = Configuracao(
@@ -143,6 +153,18 @@ class Contexto:
         )
         assert id_registro is not None
         return id_registro
+
+    def marcar_entrega_simulada(self, elegibilidade_id: UUID) -> UUID:
+        """Cria mensagem+entrega `simulada_entregue` para a elegibilidade (6.8)."""
+
+        execucao_id = uuid4()
+        mensagem_id = self.mensagens.criar(execucao_id, elegibilidade_id, Canal.WHATSAPP)
+        [entrega_id] = self.entregas.criar_lote(
+            execucao_id,
+            [MensagemAprovada(mensagem_id, Canal.WHATSAPP, SaidaCanal(corpo="Corpo"))],
+        )
+        self.mensagens.transicionar(mensagem_id, 1, EstadoMensagem.SIMULADA_ENTREGUE)
+        return entrega_id
 
 
 def _periodo_futuro() -> tuple[datetime, datetime]:
@@ -275,3 +297,43 @@ def test_obter_detalhe_de_linha_semeada_sem_execucao_traz_linha_do_tempo_vazia(
 
     assert detalhe is not None
     assert detalhe.linha_do_tempo == ()
+
+
+def test_listar_expoe_entrega_simulada_id_por_item(tmp_path: Path) -> None:
+    """6.8 (ABRIREXP-01): cada item da lista carrega o `entrega_simulada_id` da sua
+    própria elegibilidade — `None` para a que ainda não tem entrega."""
+
+    contexto = Contexto(tmp_path)
+    inicio, fim = _periodo_futuro()
+    evento = contexto.salvar_evento(inicio, fim)
+    execucao_com_entrega = contexto.execucoes.criar(EstadoExecucao.CONCLUIDA)
+    id_com_entrega = contexto.salvar_elegibilidade(evento.id, execucao_com_entrega)
+    entrega_id = contexto.marcar_entrega_simulada(id_com_entrega)
+    id_sem_entrega = contexto.salvar_elegibilidade(evento.id, None)
+
+    itens = {item.alerta.elegibilidade_id: item for item in contexto.servico.listar(SEGURADO_ID)}
+
+    assert itens[id_com_entrega].alerta.entrega_simulada_id == entrega_id
+    assert itens[id_sem_entrega].alerta.entrega_simulada_id is None
+
+
+def test_obter_detalhe_expoe_entrega_simulada_id_do_alerta_selecionado(tmp_path: Path) -> None:
+    """6.8 (ABRIREXP-02): o detalhe do alerta selecionado carrega o `entrega_simulada_id`
+    daquele alerta, nunca o de outro."""
+
+    contexto = Contexto(tmp_path)
+    inicio, fim = _periodo_futuro()
+    evento = contexto.salvar_evento(inicio, fim)
+    execucao_id = contexto.execucoes.criar(EstadoExecucao.CONCLUIDA)
+    id_registro = contexto.salvar_elegibilidade(evento.id, execucao_id)
+    entrega_id = contexto.marcar_entrega_simulada(id_registro)
+    outra_execucao_id = contexto.execucoes.criar(EstadoExecucao.CONCLUIDA)
+    outro_registro = contexto.salvar_elegibilidade(evento.id, outra_execucao_id)
+
+    detalhe = contexto.servico.obter_detalhe(SEGURADO_ID, id_registro)
+    outro_detalhe = contexto.servico.obter_detalhe(SEGURADO_ID, outro_registro)
+
+    assert detalhe is not None
+    assert detalhe.alerta.entrega_simulada_id == entrega_id
+    assert outro_detalhe is not None
+    assert outro_detalhe.alerta.entrega_simulada_id is None
