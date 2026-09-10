@@ -72,16 +72,16 @@ O protótipo (`SimplePage(faq)`, item "Dúvidas frequentes" do `insuredNav`) mos
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| FAQ-01 | P1: Consultar as perguntas e respostas do FAQ | Implementing | `SuperficieFAQ.tsx` (novo) + `SuperficieFAQ.test.tsx` |
-| FAQ-02 | P1: Consultar as perguntas e respostas do FAQ | Implementing | `SuperficieFAQ.tsx` (novo) + `SuperficieFAQ.test.tsx` |
-| FAQ-03 | P2: Expandir/recolher cada pergunta individualmente | Implementing | `SuperficieFAQ.tsx` (`<details>` nativo) + `SuperficieFAQ.test.tsx` |
-| FAQ-04 | P2: Expandir/recolher cada pergunta individualmente | Implementing | `SuperficieFAQ.tsx` (`<details>` nativo) + `SuperficieFAQ.test.tsx` |
+| FAQ-01 | P1: Consultar as perguntas e respostas do FAQ | ✅ Verified | `SuperficieFAQ.tsx` (novo) + `SuperficieFAQ.test.tsx` |
+| FAQ-02 | P1: Consultar as perguntas e respostas do FAQ | ✅ Verified | `SuperficieFAQ.tsx` (novo) + `SuperficieFAQ.test.tsx` |
+| FAQ-03 | P2: Expandir/recolher cada pergunta individualmente | ✅ Verified | `SuperficieFAQ.tsx` (`<details>` nativo) + `SuperficieFAQ.test.tsx` |
+| FAQ-04 | P2: Expandir/recolher cada pergunta individualmente | ✅ Verified | `SuperficieFAQ.tsx` (`<details>` nativo) + `SuperficieFAQ.test.tsx` |
 
 **ID format:** `FAQ-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 4 total, 4 mapped, 0 unmapped — Design inline (Medium, sem decisão de arquitetura nova); Execute completo, aguardando Verifier.
+**Coverage:** 4 total, 4 mapped, 0 unmapped — Design inline (Medium, sem decisão de arquitetura nova); Execute completo, Verifier PASS em 2026-09-10 (`.specs/features/6-9-consultar-duvidas-frequentes/validation.md`).
 
 ---
 
