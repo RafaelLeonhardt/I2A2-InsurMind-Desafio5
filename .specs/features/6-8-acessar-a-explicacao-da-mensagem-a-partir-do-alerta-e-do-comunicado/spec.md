@@ -89,19 +89,19 @@ A História 5.4 já especificou e implementou o conteúdo de "Como esta mensagem
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| ABRIREXP-01 | P1: Abrir a explicação a partir de um alerta | T1, T2, T3, T5, T6 | Implementing |
-| ABRIREXP-02 | P1: Abrir a explicação a partir de um alerta | T5, T6 | Implementing |
-| ABRIREXP-03 | P1: Abrir a explicação a partir de um alerta | T1, T2, T3, T5, T6 | Implementing |
-| ABRIREXP-04 | P1: Abrir a explicação a partir de um comunicado | T4 | Implementing |
-| ABRIREXP-05 | P1: Abrir a explicação a partir de um comunicado | T4 | Implementing |
-| ABRIREXP-06 | P1: Foco devolvido corretamente após fechar, qualquer que seja a origem | T4, T6 | Implementing |
-| ABRIREXP-07 | P1: Foco devolvido corretamente após fechar, qualquer que seja a origem | T4, T6 | Implementing |
+| ABRIREXP-01 | P1: Abrir a explicação a partir de um alerta | T1, T2, T3, T5, T6 | ✅ Verified |
+| ABRIREXP-02 | P1: Abrir a explicação a partir de um alerta | T5, T6 | ✅ Verified |
+| ABRIREXP-03 | P1: Abrir a explicação a partir de um alerta | T1, T2, T3, T5, T6 | ✅ Verified |
+| ABRIREXP-04 | P1: Abrir a explicação a partir de um comunicado | T4 | ✅ Verified |
+| ABRIREXP-05 | P1: Abrir a explicação a partir de um comunicado | T4 | ✅ Verified |
+| ABRIREXP-06 | P1: Foco devolvido corretamente após fechar, qualquer que seja a origem | T4, T6 | ✅ Verified |
+| ABRIREXP-07 | P1: Foco devolvido corretamente após fechar, qualquer que seja a origem | T4, T6 | ✅ Verified |
 
 **ID format:** `ABRIREXP-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped — todas as 6 tasks (T1-T6) completas com gate verde; aguardando Verifier independente.
+**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped — todas as 6 tasks (T1-T6) completas com gate verde; Verifier independente PASS em 2026-09-10 (`validation.md`).
 
 ---
 
