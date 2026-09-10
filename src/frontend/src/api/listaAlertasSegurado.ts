@@ -103,6 +103,7 @@ function paraAlerta(corpo: components['schemas']['RespostaAlerta']): AlertaSegur
     origem: corpo.origem,
     instanteObservado: corpo.instante_observado,
     fonteDegradada: corpo.fonte_degradada,
+    entregaSimuladaId: corpo.entrega_simulada_id,
   }
 }
 

@@ -14,6 +14,7 @@ export type AlertaSegurado = {
   origem: string
   instanteObservado: string
   fonteDegradada: boolean
+  entregaSimuladaId: string | null
 }
 
 type CorpoProblema = Partial<components['schemas']['ProblemaAlertaSegurado']>
@@ -90,6 +91,7 @@ function paraAlertaSegurado(
     origem: corpo.origem,
     instanteObservado: corpo.instante_observado,
     fonteDegradada: corpo.fonte_degradada,
+    entregaSimuladaId: corpo.entrega_simulada_id,
   }
 }
 

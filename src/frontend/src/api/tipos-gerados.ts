@@ -1804,6 +1804,11 @@ export interface components {
              * @description Se a fonte meteorológica real está degradada no momento da consulta — o alerta é o último snapshot disponível, de caráter apenas informativo.
              */
             fonte_degradada: boolean;
+            /**
+             * Entrega Simulada Id
+             * @description Entrega simulada mais recente associada a este alerta, ou nulo se nenhuma mensagem dele chegou a `simulada_entregue` ainda.
+             */
+            entrega_simulada_id: string | null;
         };
         /**
          * RespostaAlertaSegurado

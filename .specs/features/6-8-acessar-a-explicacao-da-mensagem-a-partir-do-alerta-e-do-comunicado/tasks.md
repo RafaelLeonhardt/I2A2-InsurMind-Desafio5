@@ -185,10 +185,10 @@ T3 → T5 → T6
 
 **Done when**:
 
-- [ ] `npm run gerar-tipos-api --prefix src/frontend` executado com o backend no ar; `tipos-gerados.ts` atualizado
-- [ ] Os dois tradutores mapeiam `entrega_simulada_id` → `entregaSimuladaId`, presente e `null`
-- [ ] `npm run verificar-tipos-api --prefix src/frontend` sem divergência
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run`
+- [x] `npm run gerar-tipos-api --prefix src/frontend` executado com o backend no ar; `tipos-gerados.ts` atualizado
+- [x] Os dois tradutores mapeiam `entrega_simulada_id` → `entregaSimuladaId`, presente e `null`
+- [x] `npm run verificar-tipos-api --prefix src/frontend` sem divergência
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run` (538 testes, +10 novos — primeiros testes próprios de `alertaSegurado.ts`/`listaAlertasSegurado.ts`)
 
 **Tests**: unit
 **Gate**: quick
