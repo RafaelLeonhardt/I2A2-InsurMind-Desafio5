@@ -220,6 +220,29 @@ class RepositorioEntregasSimuladas:
             return None
         return _entrega_de_linha(linha)
 
+    def obter_id_mais_recente_por_elegibilidade(self, elegibilidade_id: UUID) -> UUID | None:
+        """Lê o id da entrega simulada mais recente da elegibilidade, ou `None` se nenhuma
+        das suas mensagens estiver em `simulada_entregue` (6.8: origem "alerta" da
+        explicação da mensagem).
+
+        Uma elegibilidade pode ter mais de uma mensagem (um canal por par
+        `elegibilidade_id`+`canal`, migração `0010`); com mais de uma entrega, a mais
+        recente (`criado_em`) é a escolhida — mesmo critério de desempate de
+        `RepositorioMensagens.obter_versao_atual`.
+        """
+
+        with abrir_conexao(self._caminho) as conexao:
+            linha = conexao.execute(
+                "SELECT e.id FROM entregas_simuladas e "
+                "JOIN mensagens m ON m.id = e.mensagem_id "
+                "WHERE m.elegibilidade_id = ? AND m.estado = ? "
+                "ORDER BY e.criado_em DESC, e.id DESC LIMIT 1",
+                [elegibilidade_id, EstadoMensagem.SIMULADA_ENTREGUE.value],
+            ).fetchone()
+        if linha is None:
+            return None
+        return UUID(str(linha[0]))
+
 
 def _entrega_de_linha(linha: tuple[object, ...]) -> EntregaSimulada:
     """Traduz uma linha de `entregas_simuladas` para `EntregaSimulada`."""

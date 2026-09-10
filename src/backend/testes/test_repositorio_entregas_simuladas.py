@@ -357,6 +357,91 @@ def test_listar_por_segurado_exclui_mensagem_ainda_nao_simulada_entregue(
     assert cenario.entregas.listar_por_segurado(CARLOS_ID) == []
 
 
+def test_obter_id_mais_recente_por_elegibilidade_devolve_a_entrega_simulada_entregue(
+    tmp_path: Path,
+) -> None:
+    """6.8 (ABRIREXP-01): elegibilidade com mensagem `simulada_entregue` devolve o id da
+    entrega associada."""
+
+    cenario = CenarioSegurado(tmp_path)
+    elegibilidade_id = uuid4()
+    _semear_mensagem_e_entrega(cenario, elegibilidade_id, Canal.SMS)
+    entrega_id = cenario.entregas.listar_por_execucao(EXECUCAO_ID)[0].id
+
+    resultado = cenario.entregas.obter_id_mais_recente_por_elegibilidade(elegibilidade_id)
+
+    assert resultado == entrega_id
+
+
+def test_obter_id_mais_recente_por_elegibilidade_sem_mensagem_devolve_none(
+    tmp_path: Path,
+) -> None:
+    """6.8 (ABRIREXP-03): elegibilidade sem nenhuma mensagem não tem o que abrir — `None`,
+    não um erro."""
+
+    cenario = CenarioSegurado(tmp_path)
+
+    assert cenario.entregas.obter_id_mais_recente_por_elegibilidade(uuid4()) is None
+
+
+def test_obter_id_mais_recente_por_elegibilidade_mensagem_nao_entregue_devolve_none(
+    tmp_path: Path,
+) -> None:
+    """6.8 (ABRIREXP-03): mensagem existe mas ainda não chegou a `simulada_entregue` (ex.:
+    ainda `gerando`) — o alerta é "ainda_nao_simulado", o botão não deve aparecer."""
+
+    cenario = CenarioSegurado(tmp_path)
+    elegibilidade_id = uuid4()
+    mensagem_id = cenario.mensagens.criar(EXECUCAO_ID, elegibilidade_id, Canal.SMS)
+    cenario.entregas.criar_lote(
+        EXECUCAO_ID, [MensagemAprovada(mensagem_id, Canal.SMS, SaidaCanal(corpo=CORPO_SMS))]
+    )
+
+    assert cenario.entregas.obter_id_mais_recente_por_elegibilidade(elegibilidade_id) is None
+
+
+def test_obter_id_mais_recente_por_elegibilidade_com_dois_canais_devolve_o_mais_recente(
+    tmp_path: Path,
+) -> None:
+    """6.8 (Tech Decision do design.md): uma elegibilidade com mensagens em dois canais
+    (um por par elegibilidade+canal, migração `0010`) devolve a entrega mais recente."""
+
+    cenario = CenarioSegurado(tmp_path)
+    elegibilidade_id = uuid4()
+    _semear_mensagem_e_entrega(cenario, elegibilidade_id, Canal.SMS)
+    entrega_antiga_id = cenario.entregas.listar_por_execucao(EXECUCAO_ID)[0].id
+    with abrir_conexao(cenario.caminho) as conexao:
+        conexao.execute(
+            "UPDATE entregas_simuladas SET criado_em = TIMESTAMP '2020-01-01 00:00:00' "
+            "WHERE id = ?",
+            [entrega_antiga_id],
+        )
+    _semear_mensagem_e_entrega(cenario, elegibilidade_id, Canal.EMAIL)
+    entrega_recente_id = next(
+        entrega.id
+        for entrega in cenario.entregas.listar_por_execucao(EXECUCAO_ID)
+        if entrega.id != entrega_antiga_id
+    )
+
+    resultado = cenario.entregas.obter_id_mais_recente_por_elegibilidade(elegibilidade_id)
+
+    assert resultado == entrega_recente_id
+
+
+def _semear_mensagem_e_entrega(
+    cenario: CenarioSegurado, elegibilidade_id: UUID, canal: Canal
+) -> UUID:
+    """Cria mensagem (`simulada_entregue`) + entrega simulada para a elegibilidade dada,
+    sem depender de uma linha de `elegibilidades_historicas` (AD-005: sem `REFERENCES`)."""
+
+    mensagem_id = cenario.mensagens.criar(EXECUCAO_ID, elegibilidade_id, canal)
+    [entrega_id] = cenario.entregas.criar_lote(
+        EXECUCAO_ID, [MensagemAprovada(mensagem_id, canal, SaidaCanal(corpo=CORPO_SMS))]
+    )
+    cenario.mensagens.transicionar(mensagem_id, 1, EstadoMensagem.SIMULADA_ENTREGUE)
+    return entrega_id
+
+
 def test_listar_por_segurado_ordena_por_data_e_desempata_por_id(tmp_path: Path) -> None:
     """Edge Case da spec.md: duas entregas com a mesma data são ordenadas de forma
     determinística por um critério secundário estável (id), sem posição instável."""
