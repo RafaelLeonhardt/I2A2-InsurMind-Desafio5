@@ -112,7 +112,7 @@ O protótipo fecha o ciclo do administrador com a tela de resultados (`Results`/
 | PAINELRES-02 | P1: Consultar o resultado consolidado da simulação | T5 | ✅ Verified |
 | PAINELRES-03 | P1: Consultar o resultado consolidado da simulação | T5 | ✅ Verified |
 | PAINELRES-04 | P1: Inspecionar o detalhe de um item, incluindo falhas | T6 | ✅ Verified |
-| PAINELRES-05 | P1: Inspecionar o detalhe de um item, incluindo falhas | T6 | Implementing (Fix 1 aplicado, aguardando re-verificação) |
+| PAINELRES-05 | P1: Inspecionar o detalhe de um item, incluindo falhas | T6 | ✅ Verified |
 | PAINELRES-06 | P2: Consultar a linha do tempo ponta a ponta | T3 | ✅ Verified |
 | PAINELRES-07 | P3: Exportar o resultado exibido | T7 | ✅ Verified |
 
@@ -120,7 +120,7 @@ O protótipo fecha o ciclo do administrador com a tela de resultados (`Results`/
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped — todas as 7 tasks (T1-T7) implementadas, gate completo passando (frontend 520 testes + lint + build). Rodada 1 do Verifier: FAIL (PAINELRES-05 sem cobertura de teste para o ramo `excecao`) → Fix 1 aplicado (teste de composição novo em `SuperficieResultados.test.tsx` com `excecao` não-nula) → aguardando rodada 2.
+**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped — todas as 7 tasks (T1-T7) implementadas, gate completo passando (frontend 520 testes + lint + build). Rodada 1 do Verifier: FAIL (PAINELRES-05 sem cobertura de teste para o ramo `excecao`) → Fix 1 aplicado (teste de composição novo em `SuperficieResultados.test.tsx` com `excecao` não-nula) → Rodada 2 do Verifier: **PASS** — 7/7 ACs casadas com o desfecho da spec, 2/2 mutações-alvo do fix mortas (isoladas em `git worktree`): `validation.md`.
 
 ---
 

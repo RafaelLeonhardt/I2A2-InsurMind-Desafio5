@@ -4,7 +4,7 @@
 **Spec**: `.specs/features/6-6-consultar-resultados-da-simulacao-e-a-linha-do-tempo/spec.md`
 **Diff range**: `f22fb78^..87cf9ec` (7 commits: f22fb78, 77b5983, 17a5605, 9e478b3, c07c199, e506b7c, 87cf9ec)
 **Verifier**: independent sub-agent (author ≠ verifier)
-**Result**: FAIL ❌ — 6/7 requirement IDs verified, 1 grounded gap (PAINELRES-05, no test evidence)
+**Round 1 verdict** (superseded by Round 2 below): FAIL ❌ — 6/7 requirement IDs verified, 1 grounded gap (PAINELRES-05, no test evidence)
 
 ---
 
@@ -137,3 +137,105 @@ Isolated in a temporary `git worktree` at `HEAD` (87cf9ec), `node_modules` symli
 **Issues found**: PAINELRES-05 (IF item failed THEN show the exact persisted failure reason) has no test anywhere in the frontend suite exercising a non-null `excecao`. See Fix 1.
 
 **Next steps**: Route Fix 1 to an implementer (add the missing test per Fix Plans above), then re-verify. This is a single, narrow gap — everything else in the story is solid.
+
+---
+---
+
+# Round 2
+
+**Date**: 2026-09-10
+**Diff range**: `87cf9ec..d32c831` (1 commit: `d32c831` — "test(resultados): cover PAINELRES-05 failure-reason rendering (Verifier Fix 1)")
+**Verifier**: independent sub-agent (author ≠ verifier; fresh pass, no memory of round 1's authoring)
+**Scope**: narrow re-verification of Fix 1 only (PAINELRES-05). Per round 1, PAINELRES-01/02/03/04/06/07 are not re-derived — nothing in this diff touches their code, and the full gate re-run below covers regression risk.
+**Result**: PASS ✅ — PAINELRES-05 gap closed, no regressions.
+
+---
+
+## Fix 1 Review
+
+**Change**: New test added to `SuperficieResultados.test.tsx`'s `describe('drill-down para SuperficieDetalheResultado (PAINELRES-04/05)', ...)` block: `it('exibe o motivo da falha exatamente como persistido quando o item selecionado está em exceção (PAINELRES-05)', ...)`.
+
+- **Independent literal fixture**: `getDetalheResultado.mockResolvedValue({...})` (`SuperficieResultados.test.tsx:449-464`) is a hand-written literal — `excecao: { causa: 'ErroIntegracaoIA: contexto mínimo indisponível', tentativas: 3, impacto: 'Nenhuma mensagem foi gerada para este destinatário.', criadoEm: '2026-09-04T12:03:00Z' }` — not derived from or copied out of the component's own rendering logic. ✅
+- **Assertion matches spec-defined outcome**: asserts `[data-secao="excecao"]` `toHaveTextContent` the exact `causa`, `tentativas` (`3`), and `impacto` strings from the fixture — i.e. "exhibits the reason exactly as persisted, without inferring" (PAINELRES-05's own wording). ✅
+- **Reaches the real code path**: `SuperficieResultados.tsx:545-550` mounts `SuperficieDetalheResultado` with only `execucaoId`/`mensagemId` — the component fetches its own detail via `getDetalheResultado` internally (confirmed by reading `SuperficieResultados.tsx:536-550`, no `detalhe` prop threading). The test mocks that same module (`vi.mock('../../api/detalheResultado', ...)`, hoisted at `SuperficieResultados.test.tsx:11-23`), so the real, unmodified component logic runs against the fixture — this is a genuine composition test, not a shortcut. ✅
+- **Assertion targets the right DOM node**: `SuperficieDetalheResultado.tsx:282-297` renders `detalhe.excecao && (<div className="detalhe-resultado-excecao" data-secao="excecao" role="alert">...)` with `Causa:`/`Tentativas:`/`Impacto:` `<p>` lines inside — exactly the node the test queries via `document.querySelector('[data-secao="excecao"]')` and asserts `role="alert"` on. ✅
+
+**Verdict**: the new test genuinely exercises the previously-uncovered branch. Not tautological, not shallow.
+
+---
+
+## Spec-Anchored Acceptance Criteria (PAINELRES-05 only — re-check)
+
+| Criterion (WHEN X THEN Y) | Spec-defined outcome | `file:line` + assertion | Result |
+| --- | --- | --- | --- |
+| PAINELRES-05: IF o item selecionado estiver em estado de falha THEN o detalhe SHALL exibir o motivo da falha tal como persistido pela API, sem inferir ou completar informação ausente | Bloco `detalhe.excecao` (`causa`/`tentativas`/`impacto`) — `SuperficieDetalheResultado.tsx:282-297` | `SuperficieResultados.test.tsx:435-486` — `getDetalheResultado.mockResolvedValue({..., excecao: {causa: 'ErroIntegracaoIA: contexto mínimo indisponível', tentativas: 3, impacto: 'Nenhuma mensagem foi gerada para este destinatário.', ...}})`; `expect(secaoExcecao).toHaveTextContent('ErroIntegracaoIA: contexto mínimo indisponível')`, `.toHaveTextContent('3')`, `.toHaveTextContent('Nenhuma mensagem foi gerada para este destinatário.')` at `:481-483` — independent literal fixture, exact-value assertions, correct DOM node | ✅ PASS |
+
+**Status**: ✅ Gap closed. All 7/7 PAINELRES ACs now covered with spec-anchored, non-tautological assertions (01-04/06/07 unchanged from round 1, re-affirmed by the clean full-suite gate re-run below).
+
+---
+
+## Discrimination Sensor (Fix 1 only)
+
+Isolated in a temporary `git worktree` at `HEAD` (`d32c831`), `node_modules` symlinked for speed, never touching the real tree. Baseline `git status --porcelain` recorded before the sensor ran (`M docs/design/prototype/package-lock.json`, pre-existing/unrelated) and confirmed identical after cleanup.
+
+| # | File:line | Description | Killed? |
+| - | --- | --- | --- |
+| 1 | `SuperficieDetalheResultado.tsx:282` | `{detalhe.excecao && (...)}` → `{false && (...)}` — the failure-reason block never renders | ✅ Killed (`SuperficieResultados.test.tsx` PAINELRES-05 test failed: `expected null not to be null`) |
+| 2 | `SuperficieDetalheResultado.tsx:288` | `<strong>Causa:</strong> {detalhe.excecao.causa}` → `{detalhe.excecao.impacto}` (field swap — wrong value renders under the "Causa" label) | ✅ Killed (PAINELRES-05 test failed: expected text `ErroIntegracaoIA: contexto mínimo indisponível`, received `Exceção técnica registrada.Causa: Nenhuma mensagem foi gerada...`) |
+
+**Sensor depth**: lightweight (2 targeted mutations, scoped to the Fix 1 diff — round 1's 5 mutations covering the rest of the story's logic are not re-run per the Verifier brief; nothing in this diff touches that code)
+**Result**: 2/2 killed — the new test discriminates both a "block never renders" fault and a "wrong field under the right label" fault
+**Isolation verified**: `git status --porcelain` before sensor setup and after `git worktree remove --force` match exactly.
+
+---
+
+## Gate Check
+
+- **Gate command**: `npm run test --prefix src/frontend && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- **Result**: 520 passed, 0 failed, 0 skipped (49 test files)
+- **Lint**: 0 errors (same pre-existing `react(set-state-in-effect)`/`react(only-export-components)` warnings as round 1, none introduced by Fix 1)
+- **Build**: succeeds (`dist/` produced, 254ms)
+- **Test count before this fix**: 519
+- **Test count after this fix**: 520
+- **Delta**: +1 new test (the PAINELRES-05 composition test)
+- **Skipped tests**: none
+- **Failures**: none
+- **Regression check**: no other test's assertions were weakened or removed; diff to round-1 baseline is additive only (`git show --stat d32c831` — 1 file changed in `src/frontend`, 52 insertions, 0 deletions in the test file)
+
+---
+
+## Requirement Traceability Update
+
+| Requirement | Round 1 Status | Round 2 Status |
+| --- | --- | --- |
+| PAINELRES-01 | ✅ Verified | ✅ Verified (unchanged) |
+| PAINELRES-02 | ✅ Verified | ✅ Verified (unchanged) |
+| PAINELRES-03 | ✅ Verified | ✅ Verified (unchanged) |
+| PAINELRES-04 | ✅ Verified | ✅ Verified (unchanged) |
+| PAINELRES-05 | ❌ Needs Fix | ✅ Verified |
+| PAINELRES-06 | ✅ Verified | ✅ Verified (unchanged) |
+| PAINELRES-07 | ✅ Verified | ✅ Verified (unchanged) |
+
+`spec.md`'s traceability table and Coverage line updated to reflect PAINELRES-05 ✅ Verified and the round-2 PASS (matching the closing convention used by História 6.5's `spec.md`).
+
+---
+
+## Lessons
+
+L-098 ("When a task reuses a pre-existing component's conditional branch (IF failure/error state) to satisfy an AC, add a test that actually drives that branch non-null...") was recorded as a `candidate` in round 1, grounded in this same PAINELRES-05 gap. Per `lessons.py`'s actual promotion mechanics (`references/lessons.md`, `scripts/lessons.py::cmd_add`), a candidate is promoted to `confirmed` only when the *same normalized lesson text* recurs across `promote_threshold` (2) **distinct features** — not when the originating feature's own gap is later fixed. Re-running `lessons.py add --feature 6-6-...` for this same feature would not increment `recurrence` (the feature is already in the lesson's `features` list) and would not promote it; fabricating a second feature name to force promotion would be dishonest bookkeeping. **L-098 is therefore correctly left as-is (`candidate`, recurrence 1, feature `6-6-...`)** — no `lessons.py` mutation was made. It will promote automatically, on its own evidence, if the same gap pattern is grounded in a second feature's validation. Round 2 itself is a clean PASS with no new surviving mutants, spec-precision gaps, or deviations, so per `lessons.md`'s "write nothing on clean PASS" rule, no new lesson was recorded for round 2.
+
+---
+
+## Summary (Round 2)
+
+**Overall**: ✅ Ready
+
+**Spec-anchored check**: 7/7 ACs matched spec outcome (6 unchanged from round 1 + PAINELRES-05 now closed)
+**Sensor**: 2/2 Fix-1-scoped mutations killed (round 1's 5/5 for the rest of the story stand unchanged)
+**Gate**: 520 passed, 0 failed, lint 0 errors, build succeeds
+
+**What works**: The new composition test in `SuperficieResultados.test.tsx` opens the drawer for an item with a non-null `excecao` via the real `getDetalheResultado` fetch path (not a prop shortcut), and asserts the exact persisted `causa`/`tentativas`/`impacto` render inside the correct `[data-secao="excecao"][role="alert"]` node. Both a "block never renders" mutant and a "wrong field under the right label" mutant were killed by this single test, run in an isolated `git worktree` — the real tree's `git status --porcelain` was confirmed unchanged before and after.
+
+**Issues found**: None. História 6.6 is fully verified — 7/7 PAINELRES requirements covered with spec-anchored, non-tautological, discrimination-tested evidence.
+
+**Next steps**: None required. Feature is done. (Separately: L-098 remains a `candidate` lesson per the script's cross-feature promotion rule — see Lessons section above; no action needed unless/until a second feature grounds the same pattern.)
