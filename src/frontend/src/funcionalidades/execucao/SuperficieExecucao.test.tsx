@@ -578,4 +578,40 @@ describe('superfície de execução', () => {
       screen.queryByRole('heading', { name: 'Simulação da comunicação preventiva' }),
     ).not.toBeInTheDocument()
   })
+
+  it('mostra o rótulo "Concluída — resultado disponível" e o botão de resultado em concluida', async () => {
+    const usuario = userEvent.setup()
+    getExecucao.mockResolvedValue(
+      execucao({
+        estado: 'concluida',
+        marcos: [{ marco: 'aguardando_geracao', causa: null, criadoEm: '2026-08-30T12:00:00Z' }],
+      }),
+    )
+    renderizar()
+
+    const encerramento = await screen.findByText('Concluída — resultado disponível')
+    expect(encerramento.closest('[data-categoria]')).toHaveAttribute(
+      'data-categoria',
+      'encerramento',
+    )
+
+    await usuario.click(await screen.findByRole('button', { name: 'Ver resultado consolidado' }))
+    expect(screen.getByTestId('superficie-ativa')).toHaveTextContent(
+      JSON.stringify({
+        tipo: 'resultado-execucao',
+        execucaoId: EXECUCAO_ID,
+        perfilPai: 'administrador',
+      }),
+    )
+  })
+
+  it('não mostra o botão de resultado consolidado fora de concluida', async () => {
+    getExecucao.mockResolvedValue(execucao({ estado: 'sem_risco', marcos: [] }))
+    renderizar()
+
+    await screen.findByText('Encerrado — evento sem risco relevante')
+    expect(
+      screen.queryByRole('button', { name: 'Ver resultado consolidado' }),
+    ).not.toBeInTheDocument()
+  })
 })

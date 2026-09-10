@@ -60,6 +60,7 @@ const ROTULOS_ENCERRAMENTO: Record<string, string> = {
   sem_risco: 'Encerrado — evento sem risco relevante',
   sem_elegiveis: 'Encerrado — nenhum segurado elegível',
   aguardando_geracao: 'Aguardando geração de mensagens',
+  concluida: 'Concluída — resultado disponível',
 }
 
 const ROTULO_EXCECAO = 'Falha técnica não recuperável'
@@ -197,6 +198,14 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
     [selecionarSuperficie],
   )
 
+  const abrirResultado = useCallback(() => {
+    selecionarSuperficie({
+      tipo: 'resultado-execucao',
+      execucaoId,
+      perfilPai: 'administrador',
+    })
+  }, [selecionarSuperficie, execucaoId])
+
   const etapas = execucao ? construirEtapas(execucao) : []
   // A decisão de risco/elegibilidade (SuperficieEventoDecisao) pode já estar persistida a
   // partir do momento em que a coleta termina — mostrada mesmo em sem_risco/sem_elegiveis
@@ -208,6 +217,7 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
   const mostrarGeracaoMensagens = execucao !== null && execucao.estado === 'processando_mensagens'
   const mostrarRevisaoLote = execucao !== null && execucao.estado === 'aguardando_revisao'
   const mostrarSimulacao = execucao !== null && ESTADOS_SIMULACAO.has(execucao.estado)
+  const mostrarResultado = execucao !== null && execucao.estado === 'concluida'
 
   return (
     <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
@@ -309,6 +319,12 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
       {mostrarRevisaoLote && <SuperficieRevisaoLote embutido execucaoId={execucaoId} />}
 
       {mostrarSimulacao && <SuperficieSimulacao embutido execucaoId={execucaoId} />}
+
+      {mostrarResultado && (
+        <button onClick={abrirResultado} type="button">
+          Ver resultado consolidado
+        </button>
+      )}
     </main>
   )
 }
