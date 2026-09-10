@@ -23,11 +23,9 @@ export type SuperficieTopo =
  * Superfícies "de detalhe": parametrizadas por id, nunca listadas na navegação lateral —
  * só alcançáveis por uma ação dentro da superfície de topo correspondente (AD-016).
  */
-export type SuperficieDetalhe = {
-  tipo: 'evento-execucao'
-  execucaoId: string
-  perfilPai: 'administrador'
-}
+export type SuperficieDetalhe =
+  | { tipo: 'evento-execucao'; execucaoId: string; perfilPai: 'administrador' }
+  | { tipo: 'resultado-execucao'; execucaoId: string; perfilPai: 'administrador' }
 
 export type Superficie = SuperficieTopo | SuperficieDetalhe
 

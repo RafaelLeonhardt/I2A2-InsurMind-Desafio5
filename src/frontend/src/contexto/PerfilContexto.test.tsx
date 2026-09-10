@@ -193,4 +193,43 @@ describe('PerfilProvider / usePerfilContexto', () => {
     expect(result.current.perfil).toBe('segurado')
     expect(result.current.superficieValida).toBe(false)
   })
+
+  it('superficieValida é true para "resultado-execucao" quando o perfilPai bate com o perfil ativo', () => {
+    const { result } = renderizarPerfilContexto()
+
+    act(() => {
+      result.current.selecionarSuperficie({
+        tipo: 'resultado-execucao',
+        execucaoId: 'exec-1',
+        perfilPai: 'administrador',
+      })
+    })
+
+    expect(result.current.superficieValida).toBe(true)
+  })
+
+  it('superficieValida vira false para "resultado-execucao" após trocar para o perfil segurado', () => {
+    const { result } = renderizarPerfilContexto()
+
+    act(() => {
+      result.current.selecionarSuperficie({
+        tipo: 'resultado-execucao',
+        execucaoId: 'exec-1',
+        perfilPai: 'administrador',
+      })
+    })
+    expect(result.current.superficieValida).toBe(true)
+
+    act(() => {
+      result.current.alternarPerfil('segurado')
+      result.current.selecionarSuperficie({
+        tipo: 'resultado-execucao',
+        execucaoId: 'exec-1',
+        perfilPai: 'administrador',
+      })
+    })
+
+    expect(result.current.perfil).toBe('segurado')
+    expect(result.current.superficieValida).toBe(false)
+  })
 })
