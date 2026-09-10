@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ErroResultados, type ResultadosConsolidados } from '../../api/resultados'
 import { SuperficieResultados } from './SuperficieResultados'
 
@@ -429,5 +429,74 @@ describe('drill-down para SuperficieDetalheResultado (PAINELRES-04/05)', () => {
 
     await utilitario.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+})
+
+describe('exportação CSV do que está filtrado (PAINELRES-07)', () => {
+  function doisItens() {
+    return resultados({
+      naoSimulaveis: [
+        {
+          mensagemId: 'item-sms-rejeitada',
+          canal: 'sms',
+          estado: 'rejeitada',
+          motivo: 'rejeitada pela revisão humana',
+        },
+        {
+          mensagemId: 'item-email-falha',
+          canal: 'email',
+          estado: 'falhou_integracao_ia',
+          motivo: 'falha de integração com a OpenAI',
+        },
+      ],
+    })
+  }
+
+  async function csvExportado(): Promise<string> {
+    const chamada = (URL.createObjectURL as ReturnType<typeof vi.fn>).mock.calls[0]
+    const blob = chamada[0] as Blob
+    return blob.text()
+  }
+
+  beforeEach(() => {
+    if (!('createObjectURL' in URL)) {
+      Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: () => '' })
+    }
+    if (!('revokeObjectURL' in URL)) {
+      Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: () => {} })
+    }
+    vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock-url')
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it('sem filtro ativo, exporta todos os itens de naoSimulaveis', async () => {
+    const utilitario = userEvent.setup()
+    getResultados.mockResolvedValue(doisItens())
+    renderizar()
+
+    await screen.findByText('rejeitada pela revisão humana')
+    await utilitario.click(screen.getByRole('button', { name: 'Exportar CSV' }))
+
+    const csv = await csvExportado()
+    expect(csv).toContain('rejeitada pela revisão humana')
+    expect(csv).toContain('falha de integração com a OpenAI')
+  })
+
+  it('com um filtro por estado ativo, exporta só os itens daquele estado', async () => {
+    const utilitario = userEvent.setup()
+    getResultados.mockResolvedValue(doisItens())
+    renderizar()
+
+    await screen.findByText('rejeitada pela revisão humana')
+    await utilitario.selectOptions(screen.getByLabelText('Estado'), 'rejeitada')
+    await utilitario.click(screen.getByRole('button', { name: 'Exportar CSV' }))
+
+    const csv = await csvExportado()
+    expect(csv).toContain('rejeitada pela revisão humana')
+    expect(csv).not.toContain('falha de integração com a OpenAI')
   })
 })

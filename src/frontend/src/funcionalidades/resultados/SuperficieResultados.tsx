@@ -264,6 +264,38 @@ function filtrarNaoSimulaveis(
   )
 }
 
+/** Campo de CSV entre aspas quando contém vírgula, aspas ou quebra de linha (RFC 4180). */
+function campoCsv(valor: string): string {
+  if (/[",\n]/.test(valor)) {
+    return `"${valor.replace(/"/g, '""')}"`
+  }
+  return valor
+}
+
+/** CSV dos itens exibidos (já filtrados) — nunca inclui itens ocultos pelo filtro ativo. */
+function paraCsv(itens: MensagemNaoSimulavel[]): string {
+  const linhas = [
+    ['Canal', 'Estado', 'Motivo'].join(','),
+    ...itens.map((item) =>
+      [campoCsv(rotuloCanal(item.canal)), campoCsv(item.estado), campoCsv(item.motivo)].join(','),
+    ),
+  ]
+  return linhas.join('\n')
+}
+
+/** Gera o CSV e aciona o download via um link temporário — sem armazenar nada no servidor. */
+function exportarCsv(itens: MensagemNaoSimulavel[]): void {
+  const blob = new Blob([paraCsv(itens)], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = 'mensagens-nao-simuladas.csv'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  URL.revokeObjectURL(url)
+}
+
 function TabelaNaoSimulaveis({
   todosItens,
   filtroCanal,
@@ -321,6 +353,12 @@ function TabelaNaoSimulaveis({
             ))}
           </select>
         </div>
+      )}
+
+      {todosItens.length > 0 && (
+        <button disabled={itens.length === 0} onClick={() => exportarCsv(itens)} type="button">
+          Exportar CSV
+        </button>
       )}
 
       {todosItens.length === 0 ? (
