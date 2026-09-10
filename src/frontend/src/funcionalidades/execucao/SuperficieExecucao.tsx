@@ -11,7 +11,14 @@ import { SuperficieEventoDecisao } from '../evento-decisao/SuperficieEventoDecis
 import { SuperficieGeracaoMensagens } from '../geracao-mensagens/SuperficieGeracaoMensagens'
 import { SuperficiePreparacaoIA } from '../preparacao-ia/SuperficiePreparacaoIA'
 import { SuperficieRevisaoLote } from '../revisao-lote/SuperficieRevisaoLote'
+import { SuperficieSimulacao } from '../simulacao/SuperficieSimulacao'
 import './SuperficieExecucao.css'
+
+const ESTADOS_SIMULACAO: ReadonlySet<string> = new Set([
+  'aguardando_confirmacao',
+  'simulando',
+  'falhou_simulacao',
+])
 
 const ESTADOS_PREPARACAO_IA: ReadonlySet<string> = new Set([
   'aguardando_geracao',
@@ -200,6 +207,7 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
   const mostrarPreparacaoIa = execucao !== null && ESTADOS_PREPARACAO_IA.has(execucao.estado)
   const mostrarGeracaoMensagens = execucao !== null && execucao.estado === 'processando_mensagens'
   const mostrarRevisaoLote = execucao !== null && execucao.estado === 'aguardando_revisao'
+  const mostrarSimulacao = execucao !== null && ESTADOS_SIMULACAO.has(execucao.estado)
 
   return (
     <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
@@ -299,6 +307,8 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
       {mostrarGeracaoMensagens && <SuperficieGeracaoMensagens embutido execucaoId={execucaoId} />}
 
       {mostrarRevisaoLote && <SuperficieRevisaoLote embutido execucaoId={execucaoId} />}
+
+      {mostrarSimulacao && <SuperficieSimulacao embutido execucaoId={execucaoId} />}
     </main>
   )
 }

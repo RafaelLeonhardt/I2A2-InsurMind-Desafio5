@@ -25,6 +25,10 @@ const { getLoteRevisao } = vi.hoisted(() => ({
   getLoteRevisao: vi.fn(),
 }))
 
+const { getResumoSimulacao } = vi.hoisted(() => ({
+  getResumoSimulacao: vi.fn(),
+}))
+
 vi.mock('../../api/execucao', async (importarOriginal) => ({
   ...(await importarOriginal<typeof import('../../api/execucao')>()),
   getExecucao,
@@ -48,6 +52,11 @@ vi.mock('../../api/mensagens', async (importarOriginal) => ({
 vi.mock('../../api/revisaoLote', async (importarOriginal) => ({
   ...(await importarOriginal<typeof import('../../api/revisaoLote')>()),
   getLoteRevisao,
+}))
+
+vi.mock('../../api/simulacao', async (importarOriginal) => ({
+  ...(await importarOriginal<typeof import('../../api/simulacao')>()),
+  getResumoSimulacao,
 }))
 
 const EXECUCAO_ID = '11111111-1111-1111-1111-111111111111'
@@ -86,6 +95,7 @@ beforeEach(() => {
   getElegibilidade.mockReset()
   getMensagens.mockReset()
   getLoteRevisao.mockReset()
+  getResumoSimulacao.mockReset()
   getAvaliacaoRisco.mockResolvedValue(null)
   getElegibilidade.mockResolvedValue({ incluidos: 0, excluidos: 0, registros: [] })
   getMensagens.mockResolvedValue([])
@@ -100,6 +110,19 @@ beforeEach(() => {
     aprovacoesAgenticas: 0,
     itensEmExcecao: 0,
     itens: [],
+  })
+  getResumoSimulacao.mockResolvedValue({
+    execucaoId: EXECUCAO_ID,
+    estado: 'aguardando_confirmacao',
+    versao: 1,
+    evento: null,
+    regraId: null,
+    regraVersao: null,
+    totalDestinatarios: 0,
+    distribuicaoPorCanal: [],
+    entregas: [],
+    execucaoOrigemId: null,
+    retentativas: [],
   })
 })
 
@@ -519,6 +542,40 @@ describe('superfície de execução', () => {
     await screen.findByText('Encerrado — evento sem risco relevante')
     expect(
       screen.queryByRole('heading', { name: 'Revisão do lote de comunicação' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it.each(['aguardando_confirmacao', 'simulando', 'falhou_simulacao'])(
+    'embute a simulação quando %s',
+    async (estadoSimulacao) => {
+      getExecucao.mockResolvedValue(
+        execucao({
+          estado: estadoSimulacao,
+          marcos: [
+            { marco: 'aguardando_geracao', causa: null, criadoEm: '2026-08-30T12:00:00Z' },
+          ],
+        }),
+      )
+      renderizar()
+
+      expect(
+        await screen.findByRole('heading', { name: 'Simulação da comunicação preventiva' }),
+      ).toBeInTheDocument()
+    },
+  )
+
+  it('não embute a simulação em concluida (escopo da História 6.6)', async () => {
+    getExecucao.mockResolvedValue(
+      execucao({
+        estado: 'concluida',
+        marcos: [{ marco: 'aguardando_geracao', causa: null, criadoEm: '2026-08-30T12:00:00Z' }],
+      }),
+    )
+    renderizar()
+
+    await screen.findByRole('heading', { name: 'Progresso' })
+    expect(
+      screen.queryByRole('heading', { name: 'Simulação da comunicação preventiva' }),
     ).not.toBeInTheDocument()
   })
 })
