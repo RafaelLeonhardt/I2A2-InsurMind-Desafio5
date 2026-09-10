@@ -133,6 +133,34 @@ describe('confirmação com reconhecimento explícito', () => {
     expect(getResumoSimulacao).toHaveBeenCalledTimes(2)
   })
 
+  it('trata duplo clique em "Confirmar simulação" como idempotente (uma única chamada)', async () => {
+    let resolverConfirmacao: (valor: unknown) => void = () => {}
+    confirmarSimulacao.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolverConfirmacao = resolve
+        }),
+    )
+    const utilitario = await abrirModal()
+    const dialogo = screen.getByRole('dialog')
+    await utilitario.click(within(dialogo).getByRole('checkbox'))
+    const confirmar = within(dialogo).getByRole('button', { name: 'Confirmar simulação' })
+
+    await utilitario.click(confirmar)
+    expect(confirmar).toBeDisabled()
+    await utilitario.click(confirmar)
+
+    resolverConfirmacao({
+      execucaoId: EXECUCAO_ID,
+      estado: 'concluida',
+      entregasCriadas: ['aaaa'],
+      mensagensSimuladas: ['bbbb'],
+    })
+
+    await waitFor(() => expect(getResumoSimulacao).toHaveBeenCalledTimes(2))
+    expect(confirmarSimulacao).toHaveBeenCalledTimes(1)
+  })
+
   it('não oferece a confirmação enquanto o lote não chega ao gate da simulação', async () => {
     getResumoSimulacao.mockResolvedValue(resumo({ estado: 'aguardando_revisao' }))
 

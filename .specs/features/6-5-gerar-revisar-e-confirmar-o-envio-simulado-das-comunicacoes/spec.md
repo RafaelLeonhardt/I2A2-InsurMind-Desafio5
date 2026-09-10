@@ -95,17 +95,17 @@ O protótipo mostra o fluxo completo de produção agêntica pelo lado do admini
 | FLUXOMSG-01 | P1: Acompanhar a preparação e a geração de mensagens | T1 | Implementing |
 | FLUXOMSG-02 | P1: Acompanhar a preparação e a geração de mensagens | T2 | Implementing |
 | FLUXOMSG-03 | P1: Acompanhar a preparação e a geração de mensagens | T2 | Implementing |
-| FLUXOMSG-04 | P1: Revisar a avaliação crítica de segurança de cada mensagem | T5 | Pending |
-| FLUXOMSG-05 | P1: Revisar a avaliação crítica de segurança de cada mensagem | T5 | Pending |
+| FLUXOMSG-04 | P1: Revisar a avaliação crítica de segurança de cada mensagem | T5 | Implementing |
+| FLUXOMSG-05 | P1: Revisar a avaliação crítica de segurança de cada mensagem | T5 | Implementing |
 | FLUXOMSG-06 | P1: Revisar o lote e confirmar o envio simulado | T3 | Implementing |
 | FLUXOMSG-07 | P1: Revisar o lote e confirmar o envio simulado | T3 | Implementing |
-| FLUXOMSG-08 | P1: Revisar o lote e confirmar o envio simulado | T4 | Implementing |
+| FLUXOMSG-08 | P1: Revisar o lote e confirmar o envio simulado | T4, T6 | Implementing |
 
 **ID format:** `FLUXOMSG-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 8 total, 8 mapped to tasks, 0 unmapped — Fase 1 (T1-T4) implementada e com gate completo passando (frontend 497 testes + lint + build); Fase 2 (T5-T6, avaliação crítica + cobertura do edge case de idempotência) pendente. Status final "Verified" só após o Verifier da história inteira.
+**Coverage:** 8 total, 8 mapped to tasks, 0 unmapped — todas as 6 tasks (T1-T6) implementadas, gate completo passando (frontend 502 testes + lint + build). Status final "Verified" só após o Verifier independente da história inteira (author ≠ verifier).
 
 ---
 
