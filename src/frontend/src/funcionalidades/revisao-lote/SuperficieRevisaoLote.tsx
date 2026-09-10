@@ -16,6 +16,7 @@ import {
   decidirLote,
   getLoteRevisao,
 } from '../../api/revisaoLote'
+import { SuperficieAvaliacaoCritica } from '../avaliacao-critica/SuperficieAvaliacaoCritica'
 import './SuperficieRevisaoLote.css'
 
 /** Rótulo acessível de cada decisão possível (REVISAO-05). Não existe "editar". */
@@ -110,6 +111,7 @@ export function SuperficieRevisaoLote({
   const [lote, definirLote] = useState<LoteRevisao | null>(null)
   const [falha, definirFalha] = useState<ErroRevisaoLote | null>(null)
   const [mensagemAberta, definirMensagemAberta] = useState<string | null>(null)
+  const [versaoAvaliacaoAberta, definirVersaoAvaliacaoAberta] = useState<string | null>(null)
   const [selecionadas, definirSelecionadas] = useState<string[]>([])
   const [resultado, definirResultado] = useState<ResultadoDecisao>('aprovar')
   const [rascunhos, definirRascunhos] = useState<Record<string, string>>({})
@@ -154,6 +156,10 @@ export function SuperficieRevisaoLote({
     }
     definirRascunhos((atuais) => ({ ...atuais, [mensagemAberta]: texto }))
     definirErroValidacao(null)
+  }
+
+  function alternarAvaliacaoCritica(versaoId: string) {
+    definirVersaoAvaliacaoAberta((atual) => (atual === versaoId ? null : versaoId))
   }
 
   function descartarRascunho() {
@@ -311,6 +317,7 @@ export function SuperficieRevisaoLote({
                 <button
                   onClick={() => {
                     definirMensagemAberta(candidato.mensagemId)
+                    definirVersaoAvaliacaoAberta(null)
                     definirErroValidacao(null)
                   }}
                   type="button"
@@ -416,6 +423,22 @@ export function SuperficieRevisaoLote({
                               .map((motivo) => motivo.categoria)
                               .join(', ')})`}{' '}
                       — modelo {versao.modelo}, prompt {versao.versaoPrompt}
+                      <button
+                        aria-expanded={versaoAvaliacaoAberta === versao.id}
+                        onClick={() => alternarAvaliacaoCritica(versao.id)}
+                        type="button"
+                      >
+                        {versaoAvaliacaoAberta === versao.id
+                          ? 'Fechar avaliação crítica'
+                          : 'Ver avaliação crítica completa'}
+                      </button>
+                      {versaoAvaliacaoAberta === versao.id && (
+                        <SuperficieAvaliacaoCritica
+                          embutido
+                          mensagemId={item.mensagemId}
+                          versaoId={versao.id}
+                        />
+                      )}
                     </li>
                   ))}
                 </ul>

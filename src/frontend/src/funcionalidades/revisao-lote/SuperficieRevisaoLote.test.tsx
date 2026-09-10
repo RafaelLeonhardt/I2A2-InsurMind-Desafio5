@@ -14,10 +14,19 @@ const { getLoteRevisao, decidirLote } = vi.hoisted(() => ({
   decidirLote: vi.fn(),
 }))
 
+const { getAvaliacaoCritica } = vi.hoisted(() => ({
+  getAvaliacaoCritica: vi.fn(),
+}))
+
 vi.mock('../../api/revisaoLote', async (importarOriginal) => ({
   ...(await importarOriginal<typeof import('../../api/revisaoLote')>()),
   getLoteRevisao,
   decidirLote,
+}))
+
+vi.mock('../../api/avaliacaoCritica', async (importarOriginal) => ({
+  ...(await importarOriginal<typeof import('../../api/avaliacaoCritica')>()),
+  getAvaliacaoCritica,
 }))
 
 const EXECUCAO_ID = '11111111-1111-1111-1111-111111111111'
@@ -114,6 +123,28 @@ function lote(itens: ItemLote[]): LoteRevisao {
   }
 }
 
+function avaliacaoCritica(sobrescritas: Partial<Record<string, unknown>> = {}) {
+  return {
+    mensagemId: item().mensagemId,
+    versaoMensagemId: 'versao-2',
+    numeroTentativa: 2,
+    origem: 'decisao_humana',
+    criterios: ['tom', 'utilidade', 'clareza', 'seguranca', 'promessa_indevida', 'distincao_oficial', 'adequacao_canal'],
+    aprovada: true,
+    motivos: [],
+    agente: 'critico',
+    modelo: 'gpt-4o-mini',
+    duracaoMs: 90,
+    criadoEm: '2026-09-04T19:00:00Z',
+    validacaoDeterministica: {
+      origem: 'regras_deterministicas',
+      valida: true,
+      motivoInvalidez: null,
+    },
+    ...sobrescritas,
+  }
+}
+
 function renderizar() {
   return render(<SuperficieRevisaoLote execucaoId={EXECUCAO_ID} />)
 }
@@ -128,6 +159,8 @@ describe('SuperficieRevisaoLote', () => {
   beforeEach(() => {
     getLoteRevisao.mockReset()
     decidirLote.mockReset()
+    getAvaliacaoCritica.mockReset()
+    getAvaliacaoCritica.mockResolvedValue(avaliacaoCritica())
     decidirLote.mockResolvedValue({
       execucaoId: EXECUCAO_ID,
       estado: 'aguardando_confirmacao',
@@ -461,5 +494,108 @@ describe('SuperficieRevisaoLote', () => {
     expect(alerta).toHaveTextContent(
       'Consulte a execução pelo identificador UUID retornado pela API.',
     )
+  })
+
+  it('abre a avaliação crítica completa de uma tentativa e fecha ao clicar novamente', async () => {
+    getLoteRevisao.mockResolvedValue(lote([item()]))
+    renderizar()
+    await abrirRevisorDe('Marina Teste')
+
+    expect(screen.queryByText('Critérios avaliados')).not.toBeInTheDocument()
+
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Ver avaliação crítica completa' }),
+    )
+
+    await waitFor(() => expect(getAvaliacaoCritica).toHaveBeenCalledWith(item().mensagemId, versao().id))
+    expect(
+      await screen.findByRole('button', { name: 'Fechar avaliação crítica' }),
+    ).toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Fechar avaliação crítica' }))
+    expect(
+      screen.queryByRole('button', { name: 'Fechar avaliação crítica' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('mostra tentativas e origem final (agente/humana) ao abrir a avaliação de uma mensagem regenerada', async () => {
+    getLoteRevisao.mockResolvedValue(
+      lote([
+        item({
+          tentativaAtual: 2,
+          reprovacaoHistorica: true,
+          versoes: [
+            versao({ id: 'versao-1', numeroTentativa: 1, corpo: 'Primeira formulação.' }),
+            versao({ id: 'versao-2', numeroTentativa: 2, corpo: 'Segunda formulação.' }),
+          ],
+        }),
+      ]),
+    )
+    getAvaliacaoCritica.mockResolvedValue(
+      avaliacaoCritica({ numeroTentativa: 2, origem: 'decisao_humana' }),
+    )
+    renderizar()
+    await abrirRevisorDe('Marina Teste')
+
+    const [, botaoSegundaTentativa] = await screen.findAllByRole('button', {
+      name: 'Ver avaliação crítica completa',
+    })
+    await userEvent.click(botaoSegundaTentativa)
+
+    await waitFor(() =>
+      expect(getAvaliacaoCritica).toHaveBeenCalledWith(item().mensagemId, 'versao-2'),
+    )
+    const detalheAvaliacao = await screen.findByRole('heading', { name: 'Avaliação da mensagem' })
+    const secaoAvaliacao = detalheAvaliacao.closest('section') as HTMLElement
+    expect(within(secaoAvaliacao).getByText('2ª tentativa')).toBeInTheDocument()
+    expect(secaoAvaliacao.querySelector('[data-origem="decisao_humana"]')).not.toBeNull()
+  })
+
+  it('abrir a avaliação crítica de outra tentativa fecha a anterior (só uma aberta por vez)', async () => {
+    getLoteRevisao.mockResolvedValue(
+      lote([
+        item({
+          tentativaAtual: 2,
+          versoes: [
+            versao({ id: 'versao-1', numeroTentativa: 1 }),
+            versao({ id: 'versao-2', numeroTentativa: 2 }),
+          ],
+        }),
+      ]),
+    )
+    renderizar()
+    await abrirRevisorDe('Marina Teste')
+
+    const [primeiraAba, segundaAba] = await screen.findAllByRole('button', {
+      name: 'Ver avaliação crítica completa',
+    })
+    await userEvent.click(primeiraAba)
+    await screen.findByRole('button', { name: 'Fechar avaliação crítica' })
+
+    await userEvent.click(segundaAba)
+    expect(await screen.findAllByRole('button', { name: 'Fechar avaliação crítica' })).toHaveLength(1)
+    expect(
+      screen.getAllByRole('button', { name: 'Ver avaliação crítica completa' }),
+    ).toHaveLength(1)
+  })
+
+  it('trocar de item do lote fecha qualquer avaliação crítica aberta', async () => {
+    getLoteRevisao.mockResolvedValue(
+      lote([
+        item({ mensagemId: 'item-a', destinatario: { ...item().destinatario, nomeSegurado: 'Item A' } }),
+        item({ mensagemId: 'item-b', destinatario: { ...item().destinatario, nomeSegurado: 'Item B' } }),
+      ]),
+    )
+    renderizar()
+    await abrirRevisorDe('Item A')
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Ver avaliação crítica completa' }),
+    )
+    await screen.findByRole('button', { name: 'Fechar avaliação crítica' })
+
+    await abrirRevisorDe('Item B')
+    expect(
+      screen.queryByRole('button', { name: 'Fechar avaliação crítica' }),
+    ).not.toBeInTheDocument()
   })
 })
