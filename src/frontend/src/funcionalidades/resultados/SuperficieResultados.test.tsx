@@ -269,3 +269,88 @@ describe('resumo estatístico (PAINELRES-01)', () => {
     )
   })
 })
+
+describe('filtro por canal/estado nas mensagens não simuladas (PAINELRES-02/03)', () => {
+  function doisItens() {
+    return resultados({
+      naoSimulaveis: [
+        {
+          mensagemId: 'item-sms-rejeitada',
+          canal: 'sms',
+          estado: 'rejeitada',
+          motivo: 'rejeitada pela revisão humana',
+        },
+        {
+          mensagemId: 'item-email-falha',
+          canal: 'email',
+          estado: 'falhou_integracao_ia',
+          motivo: 'falha de integração com a OpenAI',
+        },
+      ],
+    })
+  }
+
+  it('filtra por canal, mostrando só os itens daquele canal', async () => {
+    const utilitario = userEvent.setup()
+    getResultados.mockResolvedValue(doisItens())
+    renderizar()
+
+    await screen.findByText('rejeitada pela revisão humana')
+    await utilitario.selectOptions(screen.getByLabelText('Canal'), 'sms')
+
+    expect(screen.getByText('rejeitada pela revisão humana')).toBeInTheDocument()
+    expect(screen.queryByText('falha de integração com a OpenAI')).not.toBeInTheDocument()
+  })
+
+  it('filtra por estado, mostrando só os itens daquele estado', async () => {
+    const utilitario = userEvent.setup()
+    getResultados.mockResolvedValue(doisItens())
+    renderizar()
+
+    await screen.findByText('rejeitada pela revisão humana')
+    await utilitario.selectOptions(screen.getByLabelText('Estado'), 'falhou_integracao_ia')
+
+    expect(screen.queryByText('rejeitada pela revisão humana')).not.toBeInTheDocument()
+    expect(screen.getByText('falha de integração com a OpenAI')).toBeInTheDocument()
+  })
+
+  it('a soma dos itens exibidos após o filtro nunca excede o total de itens não simulados', async () => {
+    const utilitario = userEvent.setup()
+    getResultados.mockResolvedValue(doisItens())
+    renderizar()
+
+    await screen.findByText('rejeitada pela revisão humana')
+    await utilitario.selectOptions(screen.getByLabelText('Canal'), 'sms')
+
+    const tabela = screen.getByRole('table', { name: /mensagens não simuladas/i })
+    expect(within(tabela).getAllByRole('row')).toHaveLength(2) // cabeçalho + 1 item filtrado
+  })
+
+  it('limpar o filtro (Todos) mostra a lista completa de novo', async () => {
+    const utilitario = userEvent.setup()
+    getResultados.mockResolvedValue(doisItens())
+    renderizar()
+
+    await screen.findByText('rejeitada pela revisão humana')
+    await utilitario.selectOptions(screen.getByLabelText('Canal'), 'sms')
+    expect(screen.queryByText('falha de integração com a OpenAI')).not.toBeInTheDocument()
+
+    await utilitario.selectOptions(screen.getByLabelText('Canal'), 'Todos')
+    expect(screen.getByText('rejeitada pela revisão humana')).toBeInTheDocument()
+    expect(screen.getByText('falha de integração com a OpenAI')).toBeInTheDocument()
+  })
+
+  it('combina canal e estado (interseção), não exibindo nada quando nenhum item satisfaz ambos', async () => {
+    const utilitario = userEvent.setup()
+    getResultados.mockResolvedValue(doisItens())
+    renderizar()
+
+    await screen.findByText('rejeitada pela revisão humana')
+    await utilitario.selectOptions(screen.getByLabelText('Canal'), 'sms')
+    await utilitario.selectOptions(screen.getByLabelText('Estado'), 'falhou_integracao_ia')
+
+    expect(screen.queryByText('rejeitada pela revisão humana')).not.toBeInTheDocument()
+    expect(screen.queryByText('falha de integração com a OpenAI')).not.toBeInTheDocument()
+    expect(screen.getByText('Nenhuma mensagem corresponde ao filtro selecionado.')).toBeInTheDocument()
+  })
+})

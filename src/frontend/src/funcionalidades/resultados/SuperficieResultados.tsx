@@ -235,7 +235,51 @@ function TabelaTotais({
   )
 }
 
-function TabelaNaoSimulaveis({ itens }: { itens: MensagemNaoSimulavel[] }) {
+const TODOS = ''
+
+/** Valores distintos presentes nos itens, na ordem em que aparecem — sem lista fixa. */
+function valoresDistintos(itens: MensagemNaoSimulavel[], campo: 'canal' | 'estado'): string[] {
+  const vistos = new Set<string>()
+  const valores: string[] = []
+  for (const item of itens) {
+    if (!vistos.has(item[campo])) {
+      vistos.add(item[campo])
+      valores.push(item[campo])
+    }
+  }
+  return valores
+}
+
+/** Filtra por canal/estado quando um valor diferente de "Todos" (`''`) está selecionado. */
+function filtrarNaoSimulaveis(
+  itens: MensagemNaoSimulavel[],
+  filtroCanal: string,
+  filtroEstado: string,
+): MensagemNaoSimulavel[] {
+  return itens.filter(
+    (item) =>
+      (filtroCanal === TODOS || item.canal === filtroCanal) &&
+      (filtroEstado === TODOS || item.estado === filtroEstado),
+  )
+}
+
+function TabelaNaoSimulaveis({
+  todosItens,
+  filtroCanal,
+  filtroEstado,
+  aoMudarFiltroCanal,
+  aoMudarFiltroEstado,
+}: {
+  todosItens: MensagemNaoSimulavel[]
+  filtroCanal: string
+  filtroEstado: string
+  aoMudarFiltroCanal: (valor: string) => void
+  aoMudarFiltroEstado: (valor: string) => void
+}) {
+  const itens = filtrarNaoSimulaveis(todosItens, filtroCanal, filtroEstado)
+  const canais = valoresDistintos(todosItens, 'canal')
+  const estados = valoresDistintos(todosItens, 'estado')
+
   return (
     <section aria-labelledby="titulo-nao-simulaveis">
       <h3 id="titulo-nao-simulaveis">Mensagens não simuladas</h3>
@@ -243,8 +287,43 @@ function TabelaNaoSimulaveis({ itens }: { itens: MensagemNaoSimulavel[] }) {
         Rejeitadas, excluídas ou em exceção técnica: nunca contam como entrega simulada, mas
         seguem contabilizadas aqui para explicar a diferença.
       </p>
-      {itens.length === 0 ? (
+
+      {todosItens.length > 0 && (
+        <div className="resultados__filtros">
+          <label htmlFor="filtro-canal-nao-simuladas">Canal</label>
+          <select
+            id="filtro-canal-nao-simuladas"
+            onChange={(evento) => aoMudarFiltroCanal(evento.target.value)}
+            value={filtroCanal}
+          >
+            <option value={TODOS}>Todos</option>
+            {canais.map((canal) => (
+              <option key={canal} value={canal}>
+                {rotuloCanal(canal)}
+              </option>
+            ))}
+          </select>
+
+          <label htmlFor="filtro-estado-nao-simuladas">Estado</label>
+          <select
+            id="filtro-estado-nao-simuladas"
+            onChange={(evento) => aoMudarFiltroEstado(evento.target.value)}
+            value={filtroEstado}
+          >
+            <option value={TODOS}>Todos</option>
+            {estados.map((estado) => (
+              <option key={estado} value={estado}>
+                {aparenciaDe(estado).rotulo || estado}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {todosItens.length === 0 ? (
         <p>Nenhuma mensagem do lote ficou fora da simulação.</p>
+      ) : itens.length === 0 ? (
+        <p>Nenhuma mensagem corresponde ao filtro selecionado.</p>
       ) : (
         <table className="tabela-nao-simulaveis">
           <caption className="sr-only">Mensagens não simuladas, com o motivo</caption>
@@ -313,6 +392,8 @@ export function SuperficieResultados({ execucaoId }: PropriedadesSuperficieResul
     useState<EstadoCarregamento>('carregando')
   const [resultados, definirResultados] = useState<ResultadosConsolidados | null>(null)
   const [falha, definirFalha] = useState<ErroResultados | null>(null)
+  const [filtroCanal, definirFiltroCanal] = useState(TODOS)
+  const [filtroEstado, definirFiltroEstado] = useState(TODOS)
 
   const consultar = useCallback(async () => {
     try {
@@ -404,7 +485,13 @@ export function SuperficieResultados({ execucaoId }: PropriedadesSuperficieResul
             tituloId="titulo-totais-estado"
           />
 
-          <TabelaNaoSimulaveis itens={resultados.naoSimulaveis} />
+          <TabelaNaoSimulaveis
+            aoMudarFiltroCanal={definirFiltroCanal}
+            aoMudarFiltroEstado={definirFiltroEstado}
+            filtroCanal={filtroCanal}
+            filtroEstado={filtroEstado}
+            todosItens={resultados.naoSimulaveis}
+          />
         </>
       )}
     </main>
