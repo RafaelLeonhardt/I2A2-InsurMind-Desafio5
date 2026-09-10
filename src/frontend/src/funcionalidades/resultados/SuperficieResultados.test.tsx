@@ -8,9 +8,18 @@ const { getResultados } = vi.hoisted(() => ({
   getResultados: vi.fn(),
 }))
 
+const { getDetalheResultado } = vi.hoisted(() => ({
+  getDetalheResultado: vi.fn(),
+}))
+
 vi.mock('../../api/resultados', async (importarOriginal) => ({
   ...(await importarOriginal<typeof import('../../api/resultados')>()),
   getResultados,
+}))
+
+vi.mock('../../api/detalheResultado', async (importarOriginal) => ({
+  ...(await importarOriginal<typeof import('../../api/detalheResultado')>()),
+  getDetalheResultado,
 }))
 
 const EXECUCAO_ID = '11111111-1111-1111-1111-111111111111'
@@ -56,6 +65,25 @@ function corDe(elemento: Element | null): string {
 beforeEach(() => {
   vi.clearAllMocks()
   getResultados.mockResolvedValue(resultados())
+  getDetalheResultado.mockResolvedValue({
+    mensagemId: '22222222-2222-2222-2222-222222222222',
+    execucaoId: EXECUCAO_ID,
+    canal: 'email',
+    estado: 'rejeitada',
+    limiteCanalCorpo: 2000,
+    limiteCanalAssunto: 78,
+    criadoEm: '2026-09-04T12:00:00Z',
+    atualizadoEm: '2026-09-04T12:05:00Z',
+    nomeSegurado: 'Marina Teste',
+    apoliceId: '44444444-4444-4444-4444-444444444444',
+    codigoIbgeArea: '9990001',
+    evento: null,
+    regraId: '33333333-3333-3333-3333-333333333333',
+    regraVersao: 2,
+    apresentacaoSimulada: null,
+    versoes: [],
+    excecao: null,
+  })
 })
 
 describe('totais por canal e por estado', () => {
@@ -352,5 +380,54 @@ describe('filtro por canal/estado nas mensagens não simuladas (PAINELRES-02/03)
     expect(screen.queryByText('rejeitada pela revisão humana')).not.toBeInTheDocument()
     expect(screen.queryByText('falha de integração com a OpenAI')).not.toBeInTheDocument()
     expect(screen.getByText('Nenhuma mensagem corresponde ao filtro selecionado.')).toBeInTheDocument()
+  })
+})
+
+describe('drill-down para SuperficieDetalheResultado (PAINELRES-04/05)', () => {
+  it('clicar em "Ver detalhe" de uma linha abre o drawer com o mensagemId correto', async () => {
+    const utilitario = userEvent.setup()
+    getResultados.mockResolvedValue(
+      resultados({
+        naoSimulaveis: [
+          {
+            mensagemId: 'msg-alvo',
+            canal: 'sms',
+            estado: 'rejeitada',
+            motivo: 'rejeitada pela revisão humana',
+          },
+        ],
+      }),
+    )
+    renderizar()
+
+    await screen.findByText('rejeitada pela revisão humana')
+    await utilitario.click(screen.getByRole('button', { name: 'Ver detalhe' }))
+
+    await screen.findByRole('dialog')
+    expect(getDetalheResultado).toHaveBeenCalledWith(EXECUCAO_ID, 'msg-alvo')
+  })
+
+  it('fechar o drawer limpa mensagemAberta (drawer não fica mais presente)', async () => {
+    const utilitario = userEvent.setup()
+    getResultados.mockResolvedValue(
+      resultados({
+        naoSimulaveis: [
+          {
+            mensagemId: 'msg-alvo',
+            canal: 'sms',
+            estado: 'rejeitada',
+            motivo: 'rejeitada pela revisão humana',
+          },
+        ],
+      }),
+    )
+    renderizar()
+
+    await screen.findByText('rejeitada pela revisão humana')
+    await utilitario.click(screen.getByRole('button', { name: 'Ver detalhe' }))
+    await screen.findByRole('dialog')
+
+    await utilitario.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

@@ -17,6 +17,7 @@ import {
   type ResultadosConsolidados,
   type TotalPorChave,
 } from '../../api/resultados'
+import { SuperficieDetalheResultado } from './SuperficieDetalheResultado'
 import './SuperficieResultados.css'
 
 const ROTULOS_CANAL: Record<string, string> = {
@@ -269,12 +270,14 @@ function TabelaNaoSimulaveis({
   filtroEstado,
   aoMudarFiltroCanal,
   aoMudarFiltroEstado,
+  aoSelecionar,
 }: {
   todosItens: MensagemNaoSimulavel[]
   filtroCanal: string
   filtroEstado: string
   aoMudarFiltroCanal: (valor: string) => void
   aoMudarFiltroEstado: (valor: string) => void
+  aoSelecionar: (mensagemId: string) => void
 }) {
   const itens = filtrarNaoSimulaveis(todosItens, filtroCanal, filtroEstado)
   const canais = valoresDistintos(todosItens, 'canal')
@@ -332,6 +335,7 @@ function TabelaNaoSimulaveis({
               <th scope="col">Canal</th>
               <th scope="col">Estado</th>
               <th scope="col">Motivo</th>
+              <th scope="col">Detalhe</th>
             </tr>
           </thead>
           <tbody>
@@ -342,6 +346,11 @@ function TabelaNaoSimulaveis({
                   <SeloEstado estado={item.estado} />
                 </td>
                 <td>{item.motivo}</td>
+                <td>
+                  <button onClick={() => aoSelecionar(item.mensagemId)} type="button">
+                    Ver detalhe
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -394,6 +403,7 @@ export function SuperficieResultados({ execucaoId }: PropriedadesSuperficieResul
   const [falha, definirFalha] = useState<ErroResultados | null>(null)
   const [filtroCanal, definirFiltroCanal] = useState(TODOS)
   const [filtroEstado, definirFiltroEstado] = useState(TODOS)
+  const [mensagemAberta, definirMensagemAberta] = useState<string | null>(null)
 
   const consultar = useCallback(async () => {
     try {
@@ -488,9 +498,17 @@ export function SuperficieResultados({ execucaoId }: PropriedadesSuperficieResul
           <TabelaNaoSimulaveis
             aoMudarFiltroCanal={definirFiltroCanal}
             aoMudarFiltroEstado={definirFiltroEstado}
+            aoSelecionar={definirMensagemAberta}
             filtroCanal={filtroCanal}
             filtroEstado={filtroEstado}
             todosItens={resultados.naoSimulaveis}
+          />
+
+          <SuperficieDetalheResultado
+            aberto={mensagemAberta !== null}
+            execucaoId={execucaoId}
+            mensagemId={mensagemAberta ?? ''}
+            onFechar={() => definirMensagemAberta(null)}
           />
         </>
       )}
