@@ -10,20 +10,12 @@ import { SuperficieDocumentacaoApi } from './funcionalidades/documentacao-api/Su
 import { SuperficieEventos } from './funcionalidades/eventos/SuperficieEventos'
 import { SuperficieExecucao } from './funcionalidades/execucao/SuperficieExecucao'
 import { SuperficieFonteMeteorologica } from './funcionalidades/fonte-meteorologica/SuperficieFonteMeteorologica'
+import { SuperficieLinhaDoTempo } from './funcionalidades/linha-do-tempo/SuperficieLinhaDoTempo'
 import { SuperficieProntidao } from './funcionalidades/prontidao/SuperficieProntidao'
 import { SuperficieRegras } from './funcionalidades/regras/SuperficieRegras'
+import { SuperficieResultados } from './funcionalidades/resultados/SuperficieResultados'
 import { PainelSegurado } from './funcionalidades/segurado/PainelSegurado'
 import { SuperficieSegurados } from './funcionalidades/segurados-admin/SuperficieSegurados'
-
-/** Placeholder das superfícies de negócio do admin ainda não implementadas (Histórias 6.4–6.5). */
-function EmConstrucao({ titulo }: { titulo: string }) {
-  return (
-    <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
-      <h1>{titulo}</h1>
-      <p>Em construção — ver Histórias 6.2–6.7.</p>
-    </main>
-  )
-}
 
 function focarConteudoPrincipal(evento: MouseEvent<HTMLAnchorElement>) {
   evento.preventDefault()
@@ -56,6 +48,8 @@ export function SuperficieAtiva() {
       return <PainelSegurado />
     case 'evento-execucao':
       return <SuperficieExecucao execucaoId={superficieAtiva.execucaoId} />
+    case 'resultado-execucao':
+      return <SuperficieResultados execucaoId={superficieAtiva.execucaoId} />
     case 'eventos':
       return <SuperficieEventos />
     case 'regras':
@@ -63,7 +57,7 @@ export function SuperficieAtiva() {
     case 'segurados':
       return <SuperficieSegurados />
     case 'comunicacoes':
-      return <EmConstrucao titulo="Comunicações" />
+      return <SuperficieLinhaDoTempo />
     case 'fontes-de-dados':
       return <SuperficieFonteMeteorologica />
   }

@@ -20,6 +20,8 @@ const {
   getSincronizacoesMock,
   getRegrasMock,
   getSeguradosDetalhadoMock,
+  getResultadosMock,
+  buscarExecucoesMock,
 } = vi.hoisted(() => ({
   getSeguradoPadraoMock: vi.fn(),
   restaurarDadosSinteticosMock: vi.fn(),
@@ -35,6 +37,8 @@ const {
   getSincronizacoesMock: vi.fn(),
   getRegrasMock: vi.fn(),
   getSeguradosDetalhadoMock: vi.fn(),
+  getResultadosMock: vi.fn(),
+  buscarExecucoesMock: vi.fn(),
 }))
 
 vi.mock('./api/contexto', async () => {
@@ -120,6 +124,16 @@ vi.mock('./api/listaSeguradosAdmin', async () => {
   return { ...real, getSeguradosDetalhado: getSeguradosDetalhadoMock }
 })
 
+vi.mock('./api/resultados', async () => {
+  const real = await vi.importActual<typeof import('./api/resultados')>('./api/resultados')
+  return { ...real, getResultados: getResultadosMock }
+})
+
+vi.mock('./api/linhaDoTempo', async () => {
+  const real = await vi.importActual<typeof import('./api/linhaDoTempo')>('./api/linhaDoTempo')
+  return { ...real, buscarExecucoes: buscarExecucoesMock }
+})
+
 function definirLargura(largura: number) {
   Object.defineProperty(window, 'innerWidth', { configurable: true, value: largura })
 }
@@ -188,6 +202,16 @@ beforeEach(() => {
   })
   getRegrasMock.mockResolvedValue([])
   getSeguradosDetalhadoMock.mockResolvedValue([])
+  getResultadosMock.mockResolvedValue({
+    execucaoId: '33333333-3333-4333-8333-333333333333',
+    estado: 'concluida',
+    concluido: true,
+    totaisPorCanal: [],
+    totaisPorEstado: [],
+    naoSimulaveis: [],
+    divergencia: null,
+  })
+  buscarExecucoesMock.mockResolvedValue([])
   window.localStorage.clear()
 })
 
@@ -537,5 +561,46 @@ describe('shell do contexto demonstrativo', () => {
       await screen.findByRole('heading', { name: 'Acompanhamento da execução' }),
     ).toBeInTheDocument()
     expect(getExecucaoMock).toHaveBeenCalledWith('33333333-3333-4333-8333-333333333333')
+  })
+
+  it('uma superfície { tipo: "resultado-execucao" } monta SuperficieResultados com o execucaoId correto', async () => {
+    function ForcarSuperficieDeResultado() {
+      const { selecionarSuperficie } = usePerfilContexto()
+      useEffect(() => {
+        selecionarSuperficie({
+          tipo: 'resultado-execucao',
+          execucaoId: '33333333-3333-4333-8333-333333333333',
+          perfilPai: 'administrador',
+        })
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [])
+      return null
+    }
+
+    definirLargura(1440)
+    render(
+      <PerfilProvider>
+        <ForcarSuperficieDeResultado />
+        <SuperficieAtiva />
+      </PerfilProvider>,
+    )
+
+    expect(
+      await screen.findByRole('heading', { name: 'Resultados da simulação' }),
+    ).toBeInTheDocument()
+    expect(getResultadosMock).toHaveBeenCalledWith('33333333-3333-4333-8333-333333333333')
+  })
+
+  it('navega para "Comunicações" e monta SuperficieLinhaDoTempo', async () => {
+    definirLargura(1440)
+    const usuario = userEvent.setup()
+    render(<App />)
+
+    await usuario.click(screen.getByRole('button', { name: 'Comunicações' }))
+
+    expect(
+      await screen.findByRole('heading', { name: 'Linha do tempo ponta a ponta' }),
+    ).toBeInTheDocument()
+    expect(buscarExecucoesMock).toHaveBeenCalled()
   })
 })
