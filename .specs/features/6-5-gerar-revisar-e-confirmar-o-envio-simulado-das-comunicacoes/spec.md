@@ -92,20 +92,20 @@ O protótipo mostra o fluxo completo de produção agêntica pelo lado do admini
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| FLUXOMSG-01 | P1: Acompanhar a preparação e a geração de mensagens | T1 | Implementing |
-| FLUXOMSG-02 | P1: Acompanhar a preparação e a geração de mensagens | T2 | Implementing |
-| FLUXOMSG-03 | P1: Acompanhar a preparação e a geração de mensagens | T2 | Implementing |
-| FLUXOMSG-04 | P1: Revisar a avaliação crítica de segurança de cada mensagem | T5 | Implementing |
-| FLUXOMSG-05 | P1: Revisar a avaliação crítica de segurança de cada mensagem | T5 | Implementing |
-| FLUXOMSG-06 | P1: Revisar o lote e confirmar o envio simulado | T3 | Implementing |
-| FLUXOMSG-07 | P1: Revisar o lote e confirmar o envio simulado | T3 | Implementing |
-| FLUXOMSG-08 | P1: Revisar o lote e confirmar o envio simulado | T4, T6 | Implementing |
+| FLUXOMSG-01 | P1: Acompanhar a preparação e a geração de mensagens | T1 | ✅ Verified |
+| FLUXOMSG-02 | P1: Acompanhar a preparação e a geração de mensagens | T2 | ✅ Verified |
+| FLUXOMSG-03 | P1: Acompanhar a preparação e a geração de mensagens | T2 | ✅ Verified |
+| FLUXOMSG-04 | P1: Revisar a avaliação crítica de segurança de cada mensagem | T5 | ✅ Verified |
+| FLUXOMSG-05 | P1: Revisar a avaliação crítica de segurança de cada mensagem | T5 | ✅ Verified |
+| FLUXOMSG-06 | P1: Revisar o lote e confirmar o envio simulado | T3 | ✅ Verified |
+| FLUXOMSG-07 | P1: Revisar o lote e confirmar o envio simulado | T3 | ✅ Verified |
+| FLUXOMSG-08 | P1: Revisar o lote e confirmar o envio simulado | T4, T6 | ✅ Verified |
 
 **ID format:** `FLUXOMSG-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 8 total, 8 mapped to tasks, 0 unmapped — todas as 6 tasks (T1-T6) implementadas, gate completo passando (frontend 502 testes + lint + build). Status final "Verified" só após o Verifier independente da história inteira (author ≠ verifier).
+**Coverage:** 8 total, 8 mapped to tasks, 0 unmapped — todas as 6 tasks (T1-T6) implementadas, gate completo passando (frontend 502 testes + lint + build). Verificação independente **PASS** — 8/8 ACs casadas com o desfecho da spec, 2/2 Edge Cases cobertos, 4/4 mutações do sensor mortas: `validation.md`.
 
 ---
 
