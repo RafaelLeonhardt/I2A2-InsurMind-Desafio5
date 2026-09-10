@@ -157,11 +157,11 @@ T3 → T5 → T6
 
 **Done when**:
 
-- [ ] Botão sempre visível quando o comunicado carrega com sucesso (a prop já garante um `entregaSimuladaId` válido)
-- [ ] Acioná-lo abre o drawer com `seguradoId`/`entregaSimuladaId` daquele comunicado
-- [ ] Fechar o drawer devolve o foco ao botão
-- [ ] Trocar `seguradoId` com o drawer aberto o fecha (Edge Case da spec)
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Botão sempre visível quando o comunicado carrega com sucesso (a prop já garante um `entregaSimuladaId` válido)
+- [x] Acioná-lo abre o drawer com `seguradoId`/`entregaSimuladaId` daquele comunicado
+- [x] Fechar o drawer devolve o foco ao botão
+- [x] Trocar `seguradoId` com o drawer aberto o fecha (Edge Case da spec)
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend` (528 testes, +8 novos; lint/build limpos)
 
 **Tests**: unit
 **Gate**: full

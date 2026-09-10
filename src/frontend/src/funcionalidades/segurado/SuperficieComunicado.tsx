@@ -7,6 +7,7 @@ import {
   registrarVisualizacaoComunicado,
   type VisualizacaoComunicado,
 } from '../../api/comunicado'
+import { SuperficieExplicacaoComunicado } from './SuperficieExplicacaoComunicado'
 import './SuperficieComunicado.css'
 
 const ROTULOS_CANAL: Record<string, string> = {
@@ -34,10 +35,12 @@ type PropriedadesSuperficieComunicado = {
 /**
  * Superfície "Comunicado" do perfil Segurado (VISU-01, 02, 05, 06, 07).
  *
- * Só leitura de conteúdo: nenhuma ação administrativa aparece aqui. O `POST` de visualização
- * dispara num efeito separado, depois que o comunicado já renderizou com sucesso — nunca no
- * `GET` inicial (Tech Decision do design). Enquanto a confirmação do backend não chega, a
- * tela nunca mostra "Visualizada no portal" como se já tivesse acontecido.
+ * Só leitura de conteúdo: nenhuma ação administrativa aparece aqui — "Ver como esta mensagem
+ * foi criada" (6.8) abre `SuperficieExplicacaoComunicado` (5.4), também só leitura. O `POST`
+ * de visualização dispara num efeito separado, depois que o comunicado já renderizou com
+ * sucesso — nunca no `GET` inicial (Tech Decision do design). Enquanto a confirmação do
+ * backend não chega, a tela nunca mostra "Visualizada no portal" como se já tivesse
+ * acontecido.
  */
 export function SuperficieComunicado({
   seguradoId,
@@ -55,6 +58,14 @@ export function SuperficieComunicado({
   const [visualizacaoAtual, definirVisualizacaoAtual] =
     useState<VisualizacaoComunicado | null>(null)
   const [falhaVisualizacao, definirFalhaVisualizacao] = useState<ErroComunicado | null>(null)
+
+  const [explicacaoAberta, definirExplicacaoAberta] = useState(false)
+
+  // Trocar de segurado ativo (5.7) nunca deve deixar a explicação de um segurado anterior
+  // aberta sobre o contexto do novo (Edge Case da spec de 6.8).
+  useEffect(() => {
+    definirExplicacaoAberta(false)
+  }, [seguradoId])
 
   useEffect(() => {
     let cancelado = false
@@ -185,8 +196,24 @@ export function SuperficieComunicado({
               </button>
             </div>
           )}
+
+          <button
+            className="btn secondary"
+            id={`botao-explicacao-${entregaSimuladaId}`}
+            onClick={() => definirExplicacaoAberta(true)}
+            type="button"
+          >
+            Ver como esta mensagem foi criada
+          </button>
         </>
       )}
+
+      <SuperficieExplicacaoComunicado
+        aberto={explicacaoAberta}
+        entregaSimuladaId={entregaSimuladaId}
+        onFechar={() => definirExplicacaoAberta(false)}
+        seguradoId={seguradoId}
+      />
     </ElementoRaiz>
   )
 }

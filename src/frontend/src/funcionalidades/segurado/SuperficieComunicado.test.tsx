@@ -1,12 +1,14 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { type Comunicado, ErroComunicado } from '../../api/comunicado'
+import type { ExplicacaoComunicado } from '../../api/explicacaoComunicado'
 import { SuperficieComunicado } from './SuperficieComunicado'
 
-const { getComunicado, registrarVisualizacaoComunicado } = vi.hoisted(() => ({
+const { getComunicado, registrarVisualizacaoComunicado, getExplicacaoMock } = vi.hoisted(() => ({
   getComunicado: vi.fn(),
   registrarVisualizacaoComunicado: vi.fn(),
+  getExplicacaoMock: vi.fn(),
 }))
 
 vi.mock('../../api/comunicado', async (importarOriginal) => ({
@@ -15,8 +17,27 @@ vi.mock('../../api/comunicado', async (importarOriginal) => ({
   registrarVisualizacaoComunicado,
 }))
 
+vi.mock('../../api/explicacaoComunicado', async (importarOriginal) => ({
+  ...(await importarOriginal<typeof import('../../api/explicacaoComunicado')>()),
+  getExplicacaoComunicado: getExplicacaoMock,
+}))
+
 const SEGURADO_ID = '11111111-1111-1111-1111-111111111111'
+const OUTRO_SEGURADO_ID = '99999999-9999-9999-9999-999999999999'
 const ENTREGA_ID = '22222222-2222-2222-2222-222222222222'
+
+function explicacaoBase(): ExplicacaoComunicado {
+  return {
+    entregaSimuladaId: ENTREGA_ID,
+    mensagemId: '33333333-3333-3333-3333-333333333333',
+    execucaoId: '44444444-4444-4444-4444-444444444444',
+    execucaoOrigemId: null,
+    eventoERegra: { origem: 'deterministica', evento: null, regraId: 'regra-1', regraVersao: 1 },
+    contexto: null,
+    agente: { origem: 'agente', status: 'completa', causaExcecao: null, tentativas: [] },
+    apresentacaoSimulada: null,
+  }
+}
 
 function comunicado(sobrescritas: Partial<Comunicado> = {}): Comunicado {
   return {
@@ -108,7 +129,57 @@ describe('conteúdo apresentado (VISU-01/02)', () => {
     await screen.findByText(comunicado().corpo)
     await screen.findByText(/Visualizada no portal/)
 
-    expect(screen.queryAllByRole('button')).toHaveLength(0)
+    const acoesProibidas = [/editar regra/i, /gerar mensagem/i, /aprovar lote/i, /iniciar simulação/i]
+    for (const botao of screen.queryAllByRole('button')) {
+      for (const proibida of acoesProibidas) {
+        expect(botao.textContent ?? '').not.toMatch(proibida)
+      }
+    }
+  })
+})
+
+describe('explicação da mensagem (6.8, ABRIREXP-04..07)', () => {
+  beforeEach(() => {
+    getComunicado.mockResolvedValue(comunicado())
+    getExplicacaoMock.mockResolvedValue(explicacaoBase())
+  })
+
+  it('exibe a ação e abre o drawer com o seguradoId/entregaSimuladaId deste comunicado', async () => {
+    const usuario = userEvent.setup()
+    renderizar()
+    await screen.findByText(comunicado().corpo)
+
+    await usuario.click(screen.getByRole('button', { name: 'Ver como esta mensagem foi criada' }))
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(getExplicacaoMock).toHaveBeenCalledWith(SEGURADO_ID, ENTREGA_ID)
+  })
+
+  it('fechar o drawer devolve o foco ao botão que o abriu', async () => {
+    const usuario = userEvent.setup()
+    renderizar()
+    await screen.findByText(comunicado().corpo)
+    const botaoAbrir = screen.getByRole('button', { name: 'Ver como esta mensagem foi criada' })
+
+    await usuario.click(botaoAbrir)
+    await screen.findByRole('dialog')
+    await usuario.click(screen.getByRole('button', { name: 'Fechar' }))
+
+    await waitFor(() => expect(botaoAbrir).toHaveFocus())
+  })
+
+  it('trocar de segurado ativo com o drawer aberto o fecha (Edge Case)', async () => {
+    const usuario = userEvent.setup()
+    const { rerender } = render(
+      <SuperficieComunicado entregaSimuladaId={ENTREGA_ID} seguradoId={SEGURADO_ID} />,
+    )
+    await screen.findByText(comunicado().corpo)
+    await usuario.click(screen.getByRole('button', { name: 'Ver como esta mensagem foi criada' }))
+    await screen.findByRole('dialog')
+
+    rerender(<SuperficieComunicado entregaSimuladaId={ENTREGA_ID} seguradoId={OUTRO_SEGURADO_ID} />)
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 })
 
