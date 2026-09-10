@@ -108,19 +108,19 @@ O protótipo fecha o ciclo do administrador com a tela de resultados (`Results`/
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| PAINELRES-01 | P1: Consultar o resultado consolidado da simulação | T2, T3, T4 | Implementing |
-| PAINELRES-02 | P1: Consultar o resultado consolidado da simulação | T5 | Implementing |
-| PAINELRES-03 | P1: Consultar o resultado consolidado da simulação | T5 | Implementing |
-| PAINELRES-04 | P1: Inspecionar o detalhe de um item, incluindo falhas | T6 | Implementing |
-| PAINELRES-05 | P1: Inspecionar o detalhe de um item, incluindo falhas | T6 | Implementing |
-| PAINELRES-06 | P2: Consultar a linha do tempo ponta a ponta | T3 | Implementing |
-| PAINELRES-07 | P3: Exportar o resultado exibido | T7 | Implementing |
+| PAINELRES-01 | P1: Consultar o resultado consolidado da simulação | T2, T3, T4 | ✅ Verified |
+| PAINELRES-02 | P1: Consultar o resultado consolidado da simulação | T5 | ✅ Verified |
+| PAINELRES-03 | P1: Consultar o resultado consolidado da simulação | T5 | ✅ Verified |
+| PAINELRES-04 | P1: Inspecionar o detalhe de um item, incluindo falhas | T6 | ✅ Verified |
+| PAINELRES-05 | P1: Inspecionar o detalhe de um item, incluindo falhas | T6 | Implementing (Fix 1 aplicado, aguardando re-verificação) |
+| PAINELRES-06 | P2: Consultar a linha do tempo ponta a ponta | T3 | ✅ Verified |
+| PAINELRES-07 | P3: Exportar o resultado exibido | T7 | ✅ Verified |
 
 **ID format:** `PAINELRES-NN`
 
 **Status values:** Pending → In Design → In Tasks → Implementing → Verified
 
-**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped — todas as 7 tasks (T1-T7) implementadas, gate completo passando (frontend 519 testes + lint + build). Status final "Verified" só após o Verifier independente da história inteira (author ≠ verifier).
+**Coverage:** 7 total, 7 mapped to tasks, 0 unmapped — todas as 7 tasks (T1-T7) implementadas, gate completo passando (frontend 520 testes + lint + build). Rodada 1 do Verifier: FAIL (PAINELRES-05 sem cobertura de teste para o ramo `excecao`) → Fix 1 aplicado (teste de composição novo em `SuperficieResultados.test.tsx` com `excecao` não-nula) → aguardando rodada 2.
 
 ---
 

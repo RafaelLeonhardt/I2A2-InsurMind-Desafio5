@@ -430,6 +430,58 @@ describe('drill-down para SuperficieDetalheResultado (PAINELRES-04/05)', () => {
     await utilitario.keyboard('{Escape}')
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
+
+  it('exibe o motivo da falha exatamente como persistido quando o item selecionado está em exceção (PAINELRES-05)', async () => {
+    const utilitario = userEvent.setup()
+    getResultados.mockResolvedValue(
+      resultados({
+        naoSimulaveis: [
+          {
+            mensagemId: 'msg-excecao',
+            canal: 'email',
+            estado: 'falhou_integracao_ia',
+            motivo: 'falha de integração com a OpenAI',
+          },
+        ],
+      }),
+    )
+    getDetalheResultado.mockResolvedValue({
+      mensagemId: 'msg-excecao',
+      execucaoId: EXECUCAO_ID,
+      canal: 'email',
+      estado: 'falhou_integracao_ia',
+      limiteCanalCorpo: 2000,
+      limiteCanalAssunto: 78,
+      criadoEm: '2026-09-04T12:00:00Z',
+      atualizadoEm: '2026-09-04T12:05:00Z',
+      nomeSegurado: 'Marina Teste',
+      apoliceId: '44444444-4444-4444-4444-444444444444',
+      codigoIbgeArea: '9990001',
+      evento: null,
+      regraId: '33333333-3333-3333-3333-333333333333',
+      regraVersao: 2,
+      apresentacaoSimulada: null,
+      versoes: [],
+      excecao: {
+        causa: 'ErroIntegracaoIA: contexto mínimo indisponível',
+        tentativas: 3,
+        impacto: 'Nenhuma mensagem foi gerada para este destinatário.',
+        criadoEm: '2026-09-04T12:03:00Z',
+      },
+    })
+    renderizar()
+
+    await screen.findByText('falha de integração com a OpenAI')
+    await utilitario.click(screen.getByRole('button', { name: 'Ver detalhe' }))
+
+    await screen.findByRole('dialog')
+    const secaoExcecao = document.querySelector('[data-secao="excecao"]')
+    expect(secaoExcecao).not.toBeNull()
+    expect(secaoExcecao).toHaveAttribute('role', 'alert')
+    expect(secaoExcecao).toHaveTextContent('ErroIntegracaoIA: contexto mínimo indisponível')
+    expect(secaoExcecao).toHaveTextContent('3')
+    expect(secaoExcecao).toHaveTextContent('Nenhuma mensagem foi gerada para este destinatário.')
+  })
 })
 
 describe('exportação CSV do que está filtrado (PAINELRES-07)', () => {

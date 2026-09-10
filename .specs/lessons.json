@@ -3,7 +3,7 @@
   "promote_threshold": 2,
   "window_days": 45,
   "quarantine_threshold": 2,
-  "next_id": 98,
+  "next_id": 99,
   "lessons": [
     {
       "id": "L-001",
@@ -1783,6 +1783,24 @@
       ],
       "created": "2026-09-09T21:25:16Z",
       "last_seen": "2026-09-09T21:25:16Z"
+    },
+    {
+      "id": "L-098",
+      "key": "ac_gap::when a task reuses a pre existing component s conditional branch if failure error state to satisfy an ac add a test that actually drives that branch non null reusing the component is not evidence the branch is covered",
+      "text": "When a task reuses a pre-existing component's conditional branch (IF failure/error state) to satisfy an AC, add a test that actually drives that branch non-null — reusing the component is not evidence the branch is covered.",
+      "signal": "ac_gap",
+      "scope": "frontend-tests",
+      "status": "candidate",
+      "features": [
+        "6-6-consultar-resultados-da-simulacao-e-a-linha-do-tempo"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "PAINELRES-05 (frontend-tests)"
+      ],
+      "created": "2026-09-10T09:39:01Z",
+      "last_seen": "2026-09-10T09:39:01Z"
     }
   ]
 }

@@ -594,6 +594,12 @@ Seen once or not yet corroborated. Tracked, not trusted.
 - evidence: src/frontend/src/funcionalidades/fonte-meteorologica/SuperficieFonteMeteorologica.test.tsx:317-335 (frontend-testing)
 - last seen: 2026-09-09T21:25:16Z
 
+### L-098 - When a task reuses a pre-existing component's conditional branch (IF failure/error state) to satisfy an AC, add a test that actually drives that branch non-null — reusing the component is not evidence the branch is covered.
+- signal: `ac_gap` · recurrence: 1 feature(s) · scope: `frontend-tests` · harmful: 0
+- features: 6-6-consultar-resultados-da-simulacao-e-a-linha-do-tempo
+- evidence: PAINELRES-05 (frontend-tests)
+- last seen: 2026-09-10T09:39:01Z
+
 ## Quarantined (failed when applied - ignore)
 
 A confirmed lesson that recurred alongside failure. Kept for the maintainer to review.
