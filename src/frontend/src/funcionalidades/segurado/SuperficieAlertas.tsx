@@ -17,6 +17,7 @@ import {
   getListaAlertas,
   type ItemAlerta,
 } from '../../api/listaAlertasSegurado'
+import { SuperficieExplicacaoComunicado } from './SuperficieExplicacaoComunicado'
 
 type EstadoLista = 'carregando' | 'pronta' | 'erro'
 type EstadoDetalhe = 'carregando' | 'pronto' | 'nao_encontrado' | 'erro'
@@ -125,6 +126,7 @@ export function SuperficieAlertas({
   const [detalhe, definirDetalhe] = useState<DetalheAlerta | null>(null)
   const [falhaDetalhe, definirFalhaDetalhe] = useState<FalhaAlertas | null>(null)
   const [anuncio, definirAnuncio] = useState('')
+  const [explicacaoAberta, definirExplicacaoAberta] = useState(false)
 
   const idSeguradoResolvidoRef = useRef<string | null>(null)
   const tituloDetalheRef = useRef<HTMLHeadingElement>(null)
@@ -205,7 +207,14 @@ export function SuperficieAlertas({
     definirElegibilidadeSelecionada(null)
     definirDetalhe(null)
     definirAnuncio('')
+    definirExplicacaoAberta(false)
   }, [])
+
+  // Trocar de segurado ativo (5.7) nunca deve deixar a explicação de um segurado anterior
+  // aberta sobre o contexto do novo (Edge Case da spec de 6.8).
+  useEffect(() => {
+    definirExplicacaoAberta(false)
+  }, [seguradoId])
 
   if (estadoLista === 'carregando') {
     return (
@@ -370,7 +379,27 @@ export function SuperficieAlertas({
                 </ul>
               )}
             </section>
+
+            {detalhe.alerta.entregaSimuladaId && (
+              <button
+                className="btn secondary"
+                id={`botao-explicacao-${detalhe.alerta.elegibilidadeId}`}
+                onClick={() => definirExplicacaoAberta(true)}
+                type="button"
+              >
+                Ver como esta mensagem foi criada
+              </button>
+            )}
           </>
+        )}
+
+        {detalhe?.alerta.entregaSimuladaId && (
+          <SuperficieExplicacaoComunicado
+            aberto={explicacaoAberta}
+            entregaSimuladaId={detalhe.alerta.entregaSimuladaId}
+            onFechar={() => definirExplicacaoAberta(false)}
+            seguradoId={idSeguradoResolvidoRef.current ?? seguradoId ?? ''}
+          />
         )}
       </ElementoRaiz>
     )

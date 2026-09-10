@@ -39,6 +39,7 @@ function alertaReal(sobrescritas: Partial<AlertaSegurado> = {}): AlertaSegurado 
     origem: 'real_inmet',
     instanteObservado: '2026-09-04T18:00:00',
     fonteDegradada: false,
+    entregaSimuladaId: null,
     ...sobrescritas,
   }
 }

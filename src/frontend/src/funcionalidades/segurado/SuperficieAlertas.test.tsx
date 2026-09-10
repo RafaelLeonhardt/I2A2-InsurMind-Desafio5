@@ -1,15 +1,22 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AlertaSegurado } from '../../api/alertaSegurado'
 import { ErroContexto } from '../../api/contexto'
+import type { ExplicacaoComunicado } from '../../api/explicacaoComunicado'
 import { type DetalheAlerta, ErroListaAlertas, type ItemAlerta } from '../../api/listaAlertasSegurado'
 import { SuperficieAlertas } from './SuperficieAlertas'
 
-const { getListaAlertasMock, getDetalheAlertaMock, getSeguradoPadraoMock } = vi.hoisted(() => ({
+const {
+  getListaAlertasMock,
+  getDetalheAlertaMock,
+  getSeguradoPadraoMock,
+  getExplicacaoMock,
+} = vi.hoisted(() => ({
   getListaAlertasMock: vi.fn(),
   getDetalheAlertaMock: vi.fn(),
   getSeguradoPadraoMock: vi.fn(),
+  getExplicacaoMock: vi.fn(),
 }))
 
 vi.mock('../../api/listaAlertasSegurado', async (importarOriginal) => ({
@@ -23,9 +30,28 @@ vi.mock('../../api/contexto', async (importarOriginal) => ({
   getSeguradoPadrao: getSeguradoPadraoMock,
 }))
 
+vi.mock('../../api/explicacaoComunicado', async (importarOriginal) => ({
+  ...(await importarOriginal<typeof import('../../api/explicacaoComunicado')>()),
+  getExplicacaoComunicado: getExplicacaoMock,
+}))
+
 const SEGURADO_ID = '11111111-1111-1111-1111-111111111111'
 const OUTRO_SEGURADO_ID = '44444444-4444-4444-4444-444444444444'
 const ELEGIBILIDADE_ID = '22222222-2222-2222-2222-222222222222'
+const ENTREGA_ID = '55555555-5555-5555-5555-555555555555'
+
+function explicacaoBase(): ExplicacaoComunicado {
+  return {
+    entregaSimuladaId: ENTREGA_ID,
+    mensagemId: '66666666-6666-6666-6666-666666666666',
+    execucaoId: '77777777-7777-7777-7777-777777777777',
+    execucaoOrigemId: null,
+    eventoERegra: { origem: 'deterministica', evento: null, regraId: 'regra-1', regraVersao: 1 },
+    contexto: null,
+    agente: { origem: 'agente', status: 'completa', causaExcecao: null, tentativas: [] },
+    apresentacaoSimulada: null,
+  }
+}
 
 function promessaControlada<T>() {
   let resolver: (valor: T) => void = () => {}
@@ -48,6 +74,7 @@ function alertaBase(sobrescritas: Partial<AlertaSegurado> = {}): AlertaSegurado 
     origem: 'real_inmet',
     instanteObservado: '2026-09-04T18:00:00',
     fonteDegradada: false,
+    entregaSimuladaId: null,
     ...sobrescritas,
   }
 }
@@ -369,6 +396,106 @@ describe('resolução do segurado ativo', () => {
     await new Promise((resolucao) => setTimeout(resolucao, 50))
     expect(screen.queryByRole('cell', { name: 'AREA-ANTIGA' })).not.toBeInTheDocument()
     expect(screen.getByRole('cell', { name: 'AREA-NOVA' })).toBeInTheDocument()
+  })
+})
+
+describe('explicação da mensagem (6.8, ABRIREXP-01..03, 06, 07)', () => {
+  beforeEach(() => {
+    getExplicacaoMock.mockResolvedValue(explicacaoBase())
+  })
+
+  it('não exibe a ação quando o alerta selecionado não tem entrega simulada associada', async () => {
+    getListaAlertasMock.mockResolvedValue([item()])
+    getDetalheAlertaMock.mockResolvedValue(detalhe())
+    const usuario = userEvent.setup()
+    render(<SuperficieAlertas seguradoId={SEGURADO_ID} />)
+    await usuario.click(await screen.findByRole('button', { name: 'Ver detalhe' }))
+    await screen.findByRole('heading', { name: 'Chuva intensa' })
+
+    expect(
+      screen.queryByRole('button', { name: 'Ver como esta mensagem foi criada' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('exibe a ação e abre o drawer com o seguradoId/entregaSimuladaId deste alerta', async () => {
+    getListaAlertasMock.mockResolvedValue([item()])
+    getDetalheAlertaMock.mockResolvedValue(
+      detalhe({ alerta: alertaBase({ entregaSimuladaId: ENTREGA_ID }) }),
+    )
+    const usuario = userEvent.setup()
+    render(<SuperficieAlertas seguradoId={SEGURADO_ID} />)
+    await usuario.click(await screen.findByRole('button', { name: 'Ver detalhe' }))
+    await screen.findByRole('heading', { name: 'Chuva intensa' })
+
+    await usuario.click(screen.getByRole('button', { name: 'Ver como esta mensagem foi criada' }))
+
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(getExplicacaoMock).toHaveBeenCalledWith(SEGURADO_ID, ENTREGA_ID)
+  })
+
+  it('fechar o drawer devolve o foco ao botão que o abriu', async () => {
+    getListaAlertasMock.mockResolvedValue([item()])
+    getDetalheAlertaMock.mockResolvedValue(
+      detalhe({ alerta: alertaBase({ entregaSimuladaId: ENTREGA_ID }) }),
+    )
+    const usuario = userEvent.setup()
+    render(<SuperficieAlertas seguradoId={SEGURADO_ID} />)
+    await usuario.click(await screen.findByRole('button', { name: 'Ver detalhe' }))
+    await screen.findByRole('heading', { name: 'Chuva intensa' })
+    const botaoAbrir = screen.getByRole('button', { name: 'Ver como esta mensagem foi criada' })
+
+    await usuario.click(botaoAbrir)
+    await screen.findByRole('dialog')
+    await usuario.click(screen.getByRole('button', { name: 'Fechar' }))
+
+    await waitFor(() => expect(botaoAbrir).toHaveFocus())
+  })
+
+  it('cada alerta com entrega distinta abre a explicação da própria entrega, nunca a de outro (Edge Case)', async () => {
+    const entregaOutroAlerta = '88888888-8888-8888-8888-888888888888'
+    getListaAlertasMock.mockResolvedValue([
+      item({ alerta: alertaBase({ elegibilidadeId: 'item-1', entregaSimuladaId: ENTREGA_ID }) }),
+      item({
+        alerta: alertaBase({ elegibilidadeId: 'item-2', entregaSimuladaId: entregaOutroAlerta }),
+      }),
+    ])
+    getDetalheAlertaMock.mockImplementation(async (_segurado: string, elegibilidadeId: string) =>
+      detalhe({
+        alerta: alertaBase({
+          elegibilidadeId,
+          entregaSimuladaId: elegibilidadeId === 'item-1' ? ENTREGA_ID : entregaOutroAlerta,
+        }),
+      }),
+    )
+    const usuario = userEvent.setup()
+    render(<SuperficieAlertas seguradoId={SEGURADO_ID} />)
+    const botoesVerDetalhe = await screen.findAllByRole('button', { name: 'Ver detalhe' })
+    await usuario.click(botoesVerDetalhe[1])
+    await screen.findByRole('heading', { name: 'Chuva intensa' })
+
+    await usuario.click(screen.getByRole('button', { name: 'Ver como esta mensagem foi criada' }))
+
+    await waitFor(() =>
+      expect(getExplicacaoMock).toHaveBeenCalledWith(SEGURADO_ID, entregaOutroAlerta),
+    )
+    expect(getExplicacaoMock).not.toHaveBeenCalledWith(SEGURADO_ID, ENTREGA_ID)
+  })
+
+  it('trocar de segurado ativo com o drawer aberto o fecha (Edge Case)', async () => {
+    getListaAlertasMock.mockResolvedValue([item()])
+    getDetalheAlertaMock.mockResolvedValue(
+      detalhe({ alerta: alertaBase({ entregaSimuladaId: ENTREGA_ID }) }),
+    )
+    const usuario = userEvent.setup()
+    const { rerender } = render(<SuperficieAlertas seguradoId={SEGURADO_ID} />)
+    await usuario.click(await screen.findByRole('button', { name: 'Ver detalhe' }))
+    await screen.findByRole('heading', { name: 'Chuva intensa' })
+    await usuario.click(screen.getByRole('button', { name: 'Ver como esta mensagem foi criada' }))
+    await screen.findByRole('dialog')
+
+    rerender(<SuperficieAlertas seguradoId={OUTRO_SEGURADO_ID} />)
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   })
 })
 

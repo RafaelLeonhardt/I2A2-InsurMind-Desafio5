@@ -65,6 +65,7 @@ function criarAlerta(localizacao: string): AlertaSegurado {
     origem: 'sintetico',
     instanteObservado: '2026-09-06T05:00:00Z',
     fonteDegradada: false,
+    entregaSimuladaId: null,
   }
 }
 

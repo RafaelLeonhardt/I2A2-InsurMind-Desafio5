@@ -210,12 +210,12 @@ T3 → T5 → T6
 
 **Done when**:
 
-- [ ] Botão aparece só quando o alerta selecionado tem `entregaSimuladaId` não nulo (Edge Case: alertas distintos do mesmo segurado abrem a explicação certa cada um)
-- [ ] Botão ausente quando `entregaSimuladaId` é `null` (alerta `ainda_nao_simulado`)
-- [ ] Acioná-lo abre o drawer com `seguradoId`/`entregaSimuladaId` do alerta selecionado
-- [ ] Fechar o drawer devolve o foco ao botão daquele alerta
-- [ ] Trocar `seguradoId` com o drawer aberto o fecha (Edge Case da spec)
-- [ ] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend`
+- [x] Botão aparece só quando o alerta selecionado tem `entregaSimuladaId` não nulo (Edge Case: alertas distintos do mesmo segurado abrem a explicação certa cada um)
+- [x] Botão ausente quando `entregaSimuladaId` é `null` (alerta `ainda_nao_simulado`)
+- [x] Acioná-lo abre o drawer com `seguradoId`/`entregaSimuladaId` do alerta selecionado
+- [x] Fechar o drawer devolve o foco ao botão daquele alerta
+- [x] Trocar `seguradoId` com o drawer aberto o fecha (Edge Case da spec)
+- [x] Gate check passa: `npm test --prefix src/frontend -- --run && npm run lint --prefix src/frontend && npm run build --prefix src/frontend` (543 testes, +5 novos; lint/build limpos)
 
 **Tests**: unit
 **Gate**: build
