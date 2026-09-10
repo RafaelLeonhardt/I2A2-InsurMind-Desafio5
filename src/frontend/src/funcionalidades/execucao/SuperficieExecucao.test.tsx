@@ -21,6 +21,10 @@ const { getMensagens } = vi.hoisted(() => ({
   getMensagens: vi.fn(),
 }))
 
+const { getLoteRevisao } = vi.hoisted(() => ({
+  getLoteRevisao: vi.fn(),
+}))
+
 vi.mock('../../api/execucao', async (importarOriginal) => ({
   ...(await importarOriginal<typeof import('../../api/execucao')>()),
   getExecucao,
@@ -39,6 +43,11 @@ vi.mock('../../api/elegibilidade', async (importarOriginal) => ({
 vi.mock('../../api/mensagens', async (importarOriginal) => ({
   ...(await importarOriginal<typeof import('../../api/mensagens')>()),
   getMensagens,
+}))
+
+vi.mock('../../api/revisaoLote', async (importarOriginal) => ({
+  ...(await importarOriginal<typeof import('../../api/revisaoLote')>()),
+  getLoteRevisao,
 }))
 
 const EXECUCAO_ID = '11111111-1111-1111-1111-111111111111'
@@ -76,9 +85,22 @@ beforeEach(() => {
   getAvaliacaoRisco.mockReset()
   getElegibilidade.mockReset()
   getMensagens.mockReset()
+  getLoteRevisao.mockReset()
   getAvaliacaoRisco.mockResolvedValue(null)
   getElegibilidade.mockResolvedValue({ incluidos: 0, excluidos: 0, registros: [] })
   getMensagens.mockResolvedValue([])
+  getLoteRevisao.mockResolvedValue({
+    execucaoId: EXECUCAO_ID,
+    estado: 'aguardando_revisao',
+    evento: null,
+    regraId: null,
+    regraVersao: null,
+    totalPublicoIncluido: 0,
+    distribuicaoPorCanal: [],
+    aprovacoesAgenticas: 0,
+    itensEmExcecao: 0,
+    itens: [],
+  })
 })
 
 describe('superfície de execução', () => {
@@ -471,6 +493,32 @@ describe('superfície de execução', () => {
     await screen.findByText('Encerrado — evento sem risco relevante')
     expect(
       screen.queryByRole('heading', { name: 'Geração de mensagens' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('embute a revisão do lote quando aguardando_revisao', async () => {
+    getExecucao.mockResolvedValue(
+      execucao({
+        estado: 'aguardando_revisao',
+        marcos: [
+          { marco: 'aguardando_geracao', causa: null, criadoEm: '2026-08-30T12:00:00Z' },
+        ],
+      }),
+    )
+    renderizar()
+
+    expect(
+      await screen.findByRole('heading', { name: 'Revisão do lote de comunicação' }),
+    ).toBeInTheDocument()
+  })
+
+  it('não embute a revisão do lote fora de aguardando_revisao', async () => {
+    getExecucao.mockResolvedValue(execucao({ estado: 'sem_risco', marcos: [] }))
+    renderizar()
+
+    await screen.findByText('Encerrado — evento sem risco relevante')
+    expect(
+      screen.queryByRole('heading', { name: 'Revisão do lote de comunicação' }),
     ).not.toBeInTheDocument()
   })
 })

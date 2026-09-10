@@ -10,6 +10,7 @@ import { usePerfilContexto } from '../../contexto/PerfilContexto'
 import { SuperficieEventoDecisao } from '../evento-decisao/SuperficieEventoDecisao'
 import { SuperficieGeracaoMensagens } from '../geracao-mensagens/SuperficieGeracaoMensagens'
 import { SuperficiePreparacaoIA } from '../preparacao-ia/SuperficiePreparacaoIA'
+import { SuperficieRevisaoLote } from '../revisao-lote/SuperficieRevisaoLote'
 import './SuperficieExecucao.css'
 
 const ESTADOS_PREPARACAO_IA: ReadonlySet<string> = new Set([
@@ -198,6 +199,7 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
     execucao !== null && execucao.estado !== 'coletando' && execucao.estado !== 'falhou_coleta'
   const mostrarPreparacaoIa = execucao !== null && ESTADOS_PREPARACAO_IA.has(execucao.estado)
   const mostrarGeracaoMensagens = execucao !== null && execucao.estado === 'processando_mensagens'
+  const mostrarRevisaoLote = execucao !== null && execucao.estado === 'aguardando_revisao'
 
   return (
     <main className="conteudo" id="conteudo-principal" tabIndex={-1}>
@@ -295,6 +297,8 @@ export function SuperficieExecucao({ execucaoId }: PropriedadesSuperficieExecuca
       )}
 
       {mostrarGeracaoMensagens && <SuperficieGeracaoMensagens embutido execucaoId={execucaoId} />}
+
+      {mostrarRevisaoLote && <SuperficieRevisaoLote embutido execucaoId={execucaoId} />}
     </main>
   )
 }
