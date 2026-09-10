@@ -193,6 +193,15 @@ describe('PainelSegurado', () => {
     expect(screen.queryByText('Assunto A')).not.toBeInTheDocument()
   })
 
+  it('exibe a seção de dúvidas frequentes independente do segurado ativo (6.9)', async () => {
+    configurarDadosPorSegurado()
+    render(<PainelSegurado />)
+    await waitFor(() => expect(screen.getAllByText('Área Demo A').length).toBeGreaterThan(0))
+
+    expect(screen.getByRole('heading', { name: 'Dúvidas frequentes' })).toBeInTheDocument()
+    expect(screen.getByText('Como trocar o segurado simulado?')).toBeInTheDocument()
+  })
+
   it('nenhuma das cinco superfícies expõe qualquer ação administrativa', async () => {
     configurarDadosPorSegurado()
     render(<PainelSegurado />)

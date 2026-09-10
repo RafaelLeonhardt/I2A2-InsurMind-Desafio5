@@ -3,6 +3,7 @@ import { SeletorSegurado } from './SeletorSegurado'
 import { SuperficieAlertas } from './SuperficieAlertas'
 import { SuperficieApolice } from './SuperficieApolice'
 import { SuperficieComunicados } from './SuperficieComunicados'
+import { SuperficieFAQ } from './SuperficieFAQ'
 import { SuperficieMeusDados } from './SuperficieMeusDados'
 import { VisaoGeralSegurado } from './VisaoGeralSegurado'
 
@@ -46,12 +47,14 @@ function ConteudoPainelSegurado() {
       <SuperficieApolice comoSecao seguradoId={seguradoId} />
       <SuperficieComunicados comoSecao seguradoId={seguradoId} />
       <SuperficieMeusDados comoSecao seguradoId={seguradoId} />
+      <SuperficieFAQ comoSecao />
     </div>
   )
 }
 
 /** Painel completo do perfil Segurado: seletor "Visualizar como" + as cinco superfícies de
- * 5.1–5.6, todas seguindo o mesmo segurado sintético ativo (5.7). */
+ * 5.1–5.6 + a seção de dúvidas frequentes (6.9), todas seguindo o mesmo segurado sintético
+ * ativo (5.7) — a FAQ é a única sem dependência de segurado, conteúdo estático. */
 export function PainelSegurado() {
   return (
     <SeguradoProvider>
