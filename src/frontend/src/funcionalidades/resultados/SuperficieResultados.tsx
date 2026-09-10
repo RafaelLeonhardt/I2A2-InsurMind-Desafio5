@@ -90,6 +90,28 @@ const APARENCIA_PADRAO: AparenciaEstado = {
   nomeIcone: 'hourglass',
 }
 
+const ESTADOS_FALHA = new Set(['falhou_conteudo', 'falhou_integracao_ia'])
+const ESTADO_ENTREGUE = 'simulada_entregue'
+
+/** Total processado = soma de todos os estados — nenhum campo "processada" é persistido. */
+function totalProcessado(totais: TotalPorChave[]): number {
+  return totais.reduce((soma, item) => soma + item.total, 0)
+}
+
+/** Total entregue = soma dos itens no estado `simulada_entregue` (0 se ausente). */
+function totalEntregue(totais: TotalPorChave[]): number {
+  return totais
+    .filter((item) => item.chave === ESTADO_ENTREGUE)
+    .reduce((soma, item) => soma + item.total, 0)
+}
+
+/** Total com falha = soma dos estados de falha (`falhou_conteudo`, `falhou_integracao_ia`). */
+function totalComFalha(totais: TotalPorChave[]): number {
+  return totais
+    .filter((item) => ESTADOS_FALHA.has(item.chave))
+    .reduce((soma, item) => soma + item.total, 0)
+}
+
 function aparenciaDe(estado: string): AparenciaEstado {
   const aparencia = APARENCIA_ESTADO[estado]
   if (aparencia) return aparencia
@@ -346,6 +368,24 @@ export function SuperficieResultados({ execucaoId }: PropriedadesSuperficieResul
 
       {estadoCarregamento === 'disponivel' && resultados && resultados.concluido && (
         <>
+          <section aria-labelledby="titulo-resumo">
+            <h2 id="titulo-resumo">Resumo</h2>
+            <dl className="resultados__resumo">
+              <div>
+                <dt>Total processado</dt>
+                <dd>{totalProcessado(resultados.totaisPorEstado)}</dd>
+              </div>
+              <div>
+                <dt>Total entregue</dt>
+                <dd>{totalEntregue(resultados.totaisPorEstado)}</dd>
+              </div>
+              <div>
+                <dt>Total com falha</dt>
+                <dd>{totalComFalha(resultados.totaisPorEstado)}</dd>
+              </div>
+            </dl>
+          </section>
+
           <BlocoDivergencia resultados={resultados} />
 
           <TabelaTotais

@@ -218,3 +218,54 @@ describe('falha na consulta', () => {
     expect(alerta).toHaveTextContent('Consulte outra execução.')
   })
 })
+
+describe('resumo estatístico (PAINELRES-01)', () => {
+  it('deriva total processado, entregue e com falha a partir de totaisPorEstado', async () => {
+    getResultados.mockResolvedValue(
+      resultados({
+        totaisPorEstado: [
+          { chave: 'simulada_entregue', total: 5 },
+          { chave: 'aprovada', total: 1 },
+          { chave: 'rejeitada', total: 2 },
+          { chave: 'falhou_conteudo', total: 1 },
+          { chave: 'falhou_integracao_ia', total: 1 },
+        ],
+      }),
+    )
+    renderizar()
+
+    const resumo = (await screen.findByRole('heading', { name: 'Resumo' })).closest('section')
+    expect(within(resumo as HTMLElement).getByText('Total processado').nextElementSibling).toHaveTextContent(
+      '10',
+    )
+    expect(within(resumo as HTMLElement).getByText('Total entregue').nextElementSibling).toHaveTextContent(
+      '5',
+    )
+    expect(within(resumo as HTMLElement).getByText('Total com falha').nextElementSibling).toHaveTextContent(
+      '2',
+    )
+  })
+
+  it('mostra 0 para entregue/com falha quando nenhum item está nesses estados', async () => {
+    getResultados.mockResolvedValue(
+      resultados({
+        totaisPorEstado: [
+          { chave: 'aprovada', total: 3 },
+          { chave: 'excluida', total: 1 },
+        ],
+      }),
+    )
+    renderizar()
+
+    const resumo = (await screen.findByRole('heading', { name: 'Resumo' })).closest('section')
+    expect(within(resumo as HTMLElement).getByText('Total processado').nextElementSibling).toHaveTextContent(
+      '4',
+    )
+    expect(within(resumo as HTMLElement).getByText('Total entregue').nextElementSibling).toHaveTextContent(
+      '0',
+    )
+    expect(within(resumo as HTMLElement).getByText('Total com falha').nextElementSibling).toHaveTextContent(
+      '0',
+    )
+  })
+})
